@@ -1,0 +1,78 @@
+# Mac OS
+.DS_Store
+*~
+.python-version
+# Log
+checkpoint
+log
+
+# Vim
+.*.s[a-w][a-z]
+Session.vim
+
+# Data
+*.pkl
+*.csv
+*.ini
+*.npy
+test.mp4
+*.zip
+*.hdf5
+*screenlog*
+recordings
+
+# Mujoco
+MUJOCO_LOG.TXT
+/unity-xml
+
+# Unity
+UnitySDK.log
+/furniture-unity/*.sln
+/furniture-unity/[Ll]ibrary/
+/furniture-unity/[Ll]ogs/
+/furniture-unity/[Tt]emp/
+/furniture-unity/[Oo]bj/
+/furniture-unity/[Bb]uild/
+/furniture-unity/[Bb]uilds/
+/furniture-unity/Assets/AssetStoreTools*
+/furniture-unity/Assets/Resources/[Tt]emp*
+/furniture-unity/.vs
+furniture-unity/Assembly-CSharp-Editor.csproj
+furniture-unity/*.csproj
+/binary
+
+
+# Python
+## Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+## C extensions
+#*.so
+
+## Distribution / packaging
+.Python
+build/
+*.egg-info/
+.installed.cfg
+*.egg
+
+## Jupyter Notebook
+.ipynb_checkpoints
+
+## virtualenv
+.venv
+venv/
+
+## Rope project settings
+.ropeproject
+
+## Wandb
+wandb/
+
+## Jupyter notebook
+**/*.ipynb
+
+## flake8
+.flake8

@@ -1,0 +1,119 @@
+fileFormatVersion: 2
+guid: 7aedcf377a2595a40bcc0f5331df325e
+timeCreated: 1466818468
+licenseType: Store
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: pCube1
+    100004: pCylinder1
+    100006: pen
+    100008: pTorus1
+    100010: pTorus2
+    100012: pTorus3
+    100014: notebook
+    100016: pTorus4
+    100018: pTorus5
+    100020: pTorus6
+    100022: transform1
+    100024: transform2
+    100026: transform3
+    100028: transform4
+    400000: //RootNode
+    400002: pCube1
+    400004: pCylinder1
+    400006: pen
+    400008: pTorus1
+    400010: pTorus2
+    400012: pTorus3
+    400014: notebook
+    400016: pTorus4
+    400018: pTorus5
+    400020: pTorus6
+    400022: transform1
+    400024: transform2
+    400026: transform3
+    400028: transform4
+    2300000: pCube1
+    2300002: pCylinder1
+    2300004: pen
+    2300006: pTorus1
+    2300008: pTorus2
+    2300010: pTorus3
+    2300012: pTorus6
+    2300014: //RootNode
+    3300000: pCube1
+    3300002: pCylinder1
+    3300004: pen
+    3300006: pTorus1
+    3300008: pTorus2
+    3300010: pTorus3
+    3300012: pTorus6
+    3300014: //RootNode
+    4300000: pCube1
+    4300002: pTorus1
+    4300004: pTorus2
+    4300006: pTorus3
+    4300008: pCylinder1
+    4300010: pen
+    4300012: pTorus6
+    4300014: note_book
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

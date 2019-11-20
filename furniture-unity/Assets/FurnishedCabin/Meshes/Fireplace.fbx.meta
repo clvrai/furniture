@@ -1,0 +1,142 @@
+fileFormatVersion: 2
+guid: 91dd9734515124a55a7601f751109097
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: fireplace
+    100004: fireplaceFBX
+    100006: grp_fireplaceWood
+    100008: guard
+    100010: wood01
+    100012: wood02
+    100014: wood03
+    100016: wood04
+    100018: wood05
+    100020: fireplace_base
+    400000: //RootNode
+    400002: fireplace
+    400004: fireplaceFBX
+    400006: grp_fireplaceWood
+    400008: guard
+    400010: wood01
+    400012: wood02
+    400014: wood03
+    400016: wood04
+    400018: wood05
+    400020: fireplace_base
+    2300000: fireplace
+    2300002: guard
+    2300004: wood01
+    2300006: wood02
+    2300008: wood03
+    2300010: wood04
+    2300012: wood05
+    2300014: fireplace_base
+    2300016: //RootNode
+    3300000: fireplace
+    3300002: guard
+    3300004: wood01
+    3300006: wood02
+    3300008: wood03
+    3300010: wood04
+    3300012: wood05
+    3300014: fireplace_base
+    3300016: //RootNode
+    4300000: fireplace
+    4300002: guard
+    4300004: wood01
+    4300006: wood02
+    4300008: wood03
+    4300010: wood04
+    4300012: wood05
+    4300014: fireplace_base
+    4300016: Fireplace
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fireplace_KitchenBench_MAT
+    second: {fileID: 2100000, guid: 00d8ce6c4a0c9f948b70d391f10f72cf, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 0
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

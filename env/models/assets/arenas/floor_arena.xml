@@ -1,0 +1,28 @@
+<mujoco model="table_arena">
+    <asset>
+        <texture builtin="flat" height="256" rgb1="1 1 1." rgb2=".2 .3 .4" type="skybox" width="256"/>
+        <texture builtin="checker" height="512" name="texplane" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" type="2d" width="512"/>
+        <material name="floorplane" reflectance="0.5" texrepeat="1 1" texture="texplane" texuniform="true"/>
+    </asset>
+
+    <worldbody>
+        <geom condim="3" rgba="0.7 0.7 0.7 1" name="floor" pos="0 0 0" size="0.5 0.5 .125" type="plane" />
+        <!--<geom condim="3" rgba="1 1 1 0" name="ground_up" pos="0 0 0" size="0 0 0.1" type="plane" /> -->
+        <!--<geom condim="3" conaffinity="0" contype="0" rgba="0.7 0.7 0.7 1" name="floor" pos="0 0 -.075" size="0.5 0.5 .075" type="box" />-->
+        <!--<geom condim="3" rgba="1 1 1 1" name="ground" pos="0 0 -0.15" size="0 0 0.1" type="plane" /> -->
+        <!--
+        <geom condim="3" name="left_wall" pos="-0.5 0 0.5" size="0.5 0.5 .125" quat="1 1 0 0" type="plane" rgba="1 0 0 0.1"/>
+        <geom condim="3" name="right_wall" pos="0.5 0 0.5" size="0.5 0.5 .125" quat="1 -1 0 0" type="plane" rgba="1 0 0 0.1"/>
+        <geom condim="3" name="front_wall" pos="0 -0.5 0.5" size="0.5 0.5 .125" quat="1 0 1 0" type="plane" rgba="1 0 0 0.1"/>
+        <geom condim="3" name="back_wall" pos="0 0.5 0.5" size="0.5 0.5 .125" quat="1 0 -1 0" type="plane" rgba="1 0 0 0.1"/>
+        -->
+
+        <light diffuse=".8 .8 .8" dir=".5 -.3 -.8" directional="true" pos="0 0 2.0" specular="0.3 0.3 0.3" castshadow="true"/>
+
+        <!-- front view -->
+        <!--camera mode="fixed" name="frontview" pos="0 -.7 0.5" quat="0.8891 0.4575 0. 0." fovy="60"/-->
+        <!-- robot front view -->
+        <camera mode="fixed" name="frontview" pos="0 -1.2 0.9" quat="0.86 0.51 0. 0." fovy="60"/> 
+        <camera mode="fixed" name="sideview" pos="-2.5 0. 0.5" quat="0.5468 0.4482 -0.4482 -0.5468"/>
+    </worldbody>
+</mujoco>

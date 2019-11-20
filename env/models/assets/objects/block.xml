@@ -1,0 +1,25 @@
+<mujoco model="blocks">
+    <asset>
+        <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+        <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
+    </asset>
+    <equality>
+        <weld active="false" body1="1_block_l" body2="2_block_r" solimp="1 1 0.5" solref="0.01 0.3" />
+    </equality>
+    <worldbody>
+        <body name="1_block_l" pos="-0.101 0.0 0.05" quat="1 0 0 0">
+            <geom material="light-wood" type="box" size="0.1 0.02 0.05" name="box_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" density="100" solref="0.001 1"/>
+            <site name="left-right,0,180,conn_site1" pos="0.101 0. 0." quat="0.707 0 -0.707 0" rgba="1 0 0 0.3" size="0.01" />
+            <site name="1_block_l_bottom_site" pos="0.0 0.0 -0.05" rgba="0 0 1 0.3" size="0.0015" />
+            <site name="1_block_l_top_site" pos="0.0 0.0 0.05" rgba="0 0 1 0.3" size="0.0015" />
+            <site name="1_block_l_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.1" />
+        </body>
+        <body name="2_block_r" pos="0.101 0.0 0.05" quat="1 0 0 0">
+            <geom material="light-wood" type="box" size="0.1 0.02 0.05" name="box_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" density="100" solref="0.001 1"/>
+            <site name="right-left,0,180,conn_site1" pos="-0.101 0. 0." quat="0.707 0 -0.707 0" rgba="0 0 1 0.3" size="0.01" />
+            <site name="2_block_r_bottom_site" pos="0.0 0.0 -0.05" rgba="0 0 1 0.3" size="0.0015" />
+            <site name="2_block_r_top_site" pos="0.0 0.0 0.05" rgba="0 0 1 0.3" size="0.0015" />
+            <site name="2_block_r_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.1" />
+        </body>
+    </worldbody>
+</mujoco>

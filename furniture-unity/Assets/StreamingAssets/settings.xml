@@ -1,0 +1,71 @@
+<settings>
+  <materials>
+    <material name="Plastic (Instance)">
+      <hue min="0.0" max="1.0"/>
+      <saturation min="0.0" max="1.0"/>
+      <lightness min="0.2" max="1.0"/>
+    </material>
+    <material name="Carpet (Instance)">
+      <hue min="0.0" max="1.0"/>
+      <saturation min="0.0" max="1.0"/>
+      <lightness min="0.2" max="1.0"/>
+    </material>
+    <material name="Metal (Instance)">
+      <hue min="0.0" max="1.0"/>
+      <saturation min="0.0" max="1.0"/>
+      <lightness min="0.2" max="1.0"/>
+    </material>
+    <material name="Wood (Instance)">
+      <hue min="0.07" max="0.167"/>
+      <saturation min="0.0" max="1.0"/>
+      <lightness min="0.2" max="1.0"/>
+    </material>
+    <material name="Paint (Instance)">
+      <hue min="0.0" max="1.0"/>
+      <saturation min="0.0" max="1.0"/>
+      <lightness min="0.2" max="1.0"/>
+    </material>
+  </materials>
+  <segments>
+    <segment name="bg" id="0"/>
+    <segment name="robotworld" id="1"/>
+    <segment name="door" id="2"/>
+    <segment name="frame" id="3"/>
+    <segment name="wall" id="4"/>
+    <segment name="floor" id="5"/>
+    <segment name="ceiling" id="6"/>
+    <segment name="robotbase" id="7"/>
+    <segment name="robotshoulder" id="8"/>
+    <segment name="robotupperarm" id="9"/>
+    <segment name="robotforearm" id="10"/>
+    <segment name="robotwrist" id="11"/>
+    <segment name="robotfingerlimb" id="12"/>
+    <segment name="robotfingertip" id="13"/>
+    <segment name="leverknob" id="14"/>
+    <segment name="roundknob" id="15"/>
+    <segment name="pullknob" id="16"/>
+    
+    <segment name="cursor0" id="1"/>
+    <segment name="cursor1" id="2"/>
+    <segment name="control" id="14"/>
+    <segment name="pedestal" id="15"/>
+    <segment name="torso" id="13"/>
+    <segment name="head" id="12"/>
+    <segment name="right" id="1"/>
+    <segment name="left" id="1"/>
+    <segment name="l" id="2"/>
+    <segment name="r" id="2"/>
+    <segment name="screen" id="11"/>
+    <segment name="1" id="3"/>
+    <segment name="2" id="4"/>
+    <segment name="3" id="5"/>
+    <segment name="4" id="6"/>
+    <segment name="5" id="7"/>
+    <segment name="6" id="8"/>
+    <segment name="7" id="9"/>
+    <segment name="8" id="10"/>
+    <segment name="9" id="11"/>
+    <segment name="10" id="12"/>
+        
+  </segments>
+</settings>

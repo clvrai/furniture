@@ -1,0 +1,257 @@
+fileFormatVersion: 2
+guid: 14cf328cd0a9046e5a177954438c6a56
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: base
+    100002: benchTop
+    100004: door01
+    100006: door02
+    100008: door03
+    100010: door04
+    100012: door05
+    100014: doors
+    100016: draw01
+    100018: draw02
+    100020: draw03
+    100022: draw04
+    100024: draws
+    100026: grp_door01
+    100028: grp_door02
+    100030: grp_draw01
+    100032: grp_draw02
+    100034: grp_draw03
+    100036: grp_draw03 1
+    100038: grp_draw04
+    100040: grp_draw04 1
+    100042: grp_draw05
+    100044: grp_drawsDoors
+    100046: handle01
+    100048: handle01 1
+    100050: handle02
+    100052: handle02 1
+    100054: handle03
+    100056: handle03 1
+    100058: handle04
+    100060: handle04 1
+    100062: handle05
+    100064: //RootNode
+    100066: kitchenBench_metalPieces
+    100068: grp_door03
+    100070: grp_door04
+    100072: grp_door05
+    100074: KitchenBench_base
+    400000: base
+    400002: benchTop
+    400004: door01
+    400006: door02
+    400008: door03
+    400010: door04
+    400012: door05
+    400014: doors
+    400016: draw01
+    400018: draw02
+    400020: draw03
+    400022: draw04
+    400024: draws
+    400026: grp_door01
+    400028: grp_door02
+    400030: grp_draw01
+    400032: grp_draw02
+    400034: grp_draw03
+    400036: grp_draw03 1
+    400038: grp_draw04
+    400040: grp_draw04 1
+    400042: grp_draw05
+    400044: grp_drawsDoors
+    400046: handle01
+    400048: handle01 1
+    400050: handle02
+    400052: handle02 1
+    400054: handle03
+    400056: handle03 1
+    400058: handle04
+    400060: handle04 1
+    400062: handle05
+    400064: //RootNode
+    400066: kitchenBench_metalPieces
+    400068: grp_door03
+    400070: grp_door04
+    400072: grp_door05
+    400074: KitchenBench_base
+    2300000: base
+    2300002: benchTop
+    2300004: door01
+    2300006: door02
+    2300008: door03
+    2300010: door04
+    2300012: door05
+    2300014: draw01
+    2300016: draw02
+    2300018: draw03
+    2300020: draw04
+    2300022: handle01
+    2300024: handle01 1
+    2300026: handle02
+    2300028: handle02 1
+    2300030: handle03
+    2300032: handle03 1
+    2300034: handle04
+    2300036: handle04 1
+    2300038: handle05
+    2300040: kitchenBench_metalPieces
+    2300042: KitchenBench_base
+    3300000: base
+    3300002: benchTop
+    3300004: door01
+    3300006: door02
+    3300008: door03
+    3300010: door04
+    3300012: door05
+    3300014: draw01
+    3300016: draw02
+    3300018: draw03
+    3300020: draw04
+    3300022: handle01
+    3300024: handle01 1
+    3300026: handle02
+    3300028: handle02 1
+    3300030: handle03
+    3300032: handle03 1
+    3300034: handle04
+    3300036: handle04 1
+    3300038: handle05
+    3300040: kitchenBench_metalPieces
+    3300042: KitchenBench_base
+    4300000: benchTop
+    4300002: base
+    4300004: kitchenBench_metalPieces
+    4300006: draw01
+    4300008: handle01
+    4300010: draw02
+    4300012: handle02
+    4300014: draw03
+    4300016: handle03
+    4300018: draw04
+    4300020: handle04
+    4300022: door01
+    4300024: handle01
+    4300026: door02
+    4300028: handle02
+    4300030: door03
+    4300032: handle03
+    4300034: door04
+    4300036: handle04
+    4300038: door05
+    4300040: handle05
+    4300042: KitchenBench_base
+    6400000: base
+    6400002: benchTop
+    6400004: door01
+    6400006: door02
+    6400008: door03
+    6400010: door04
+    6400012: door05
+    6400014: draw01
+    6400016: draw02
+    6400018: draw03
+    6400020: draw04
+    6400022: handle01
+    6400024: handle01 1
+    6400026: handle02
+    6400028: handle02 1
+    6400030: handle03
+    6400032: handle03 1
+    6400034: handle04
+    6400036: handle04 1
+    6400038: handle05
+    6400040: kitchenBench_metalPieces
+    6400042: KitchenBench_base
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fireplace_KitchenBench_MAT
+    second: {fileID: 2100000, guid: 00d8ce6c4a0c9f948b70d391f10f72cf, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 0
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

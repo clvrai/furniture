@@ -1,0 +1,12 @@
+Modular PBR Ready morgue room
+
+48 prefabs
+PBR
+Textures up to 2048 px
+pre-made scene included
+
+
+
+
+You can use unity's vertex snapping feature to speed up the building process of walls, floors, etc. 
+If you have any questions don't hesitate to contact me.

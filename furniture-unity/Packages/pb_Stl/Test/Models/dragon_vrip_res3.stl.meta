@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 60941d2625d7442169729004f6af245c
+ScriptedImporter:
+  fileIDToRecycleName:
+    100000: dragon_vrip_res3/dragon_vrip_res3
+    400000: dragon_vrip_res3/dragon_vrip_res3/Transform
+    2300006: dragon_vrip_res3/dragon_vrip_res3/MeshRenderer
+    3300006: dragon_vrip_res3/dragon_vrip_res3/MeshFilter
+    4300006: Mesh-dragon_vrip_res3
+    100100000: dragon_vrip_res3
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: e911a8caffb922d4988d7cb2c7d7b2da, type: 3}
+  coordinateSpace: 0
+  upAxis: 0
+  smooth: 1

@@ -1,0 +1,101 @@
+<mujoco model="table_lack_0825">
+    <asset>
+        <mesh file="table_lack_0825/complete_table.stl" name="table_complete" scale="0.02 0.02 0.02" />
+        <mesh file="table_lack_0825/leg1.stl" name="table_leg1" scale="0.02 0.02 0.02" />
+        <mesh file="table_lack_0825/leg2.stl" name="table_leg2" scale="0.02 0.02 0.02" />
+        <mesh file="table_lack_0825/leg3.stl" name="table_leg3" scale="0.02 0.02 0.02" />
+        <mesh file="table_lack_0825/leg4.stl" name="table_leg4" scale="0.02 0.02 0.02" />
+        <mesh file="table_lack_0825/table.stl" name="table_top" scale="0.02 0.02 0.02" />
+        <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+        <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
+    </asset>
+    <equality>
+        <weld active="false" body1="table_leg1" body2="table_top" solimp="1 1 0.5" solref="0.01 0.3" />
+        <weld active="false" body1="table_leg2" body2="table_top" solimp="1 1 0.5" solref="0.01 0.3" />
+        <weld active="false" body1="table_leg3" body2="table_top" solimp="1 1 0.5" solref="0.01 0.3" />
+        <weld active="false" body1="table_leg4" body2="table_top" solimp="1 1 0.5" solref="0.01 0.3" />
+    </equality>
+    <worldbody>
+        <body name="table_leg1" pos="-0.4 -0.133 0.0833">
+            <geom density="100" material="pencil-wood" mesh="table_leg1" name="table_leg1_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+            <site group="0" name="leg1-table,conn_site" pos="0.0 0.0 0.1483" rgba="1 0 0 0.3" size="0.0116" />
+            <site name="table_leg1_bottom_site" pos="0.0 0.0 -0.133" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg1_top_site" pos="0.0 0.0 0.1333" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg1_corner_site1" pos="0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site2" pos="0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site3" pos="-0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site4" pos="-0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site5" pos="0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site6" pos="0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site7" pos="-0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg1_corner_site8" pos="-0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+
+            <site name="table_leg1_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.14" />
+        </body>
+        <body name="table_leg2" pos="-0.4 0.14 0.0833" quat="1 0 0 0">
+            <geom density="100" material="pencil-wood" mesh="table_leg2" name="table_leg2_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+            <site group="0" name="leg2-table,conn_site" pos="0.0 0.0 0.1483" rgba="0 1 1 0.3" size="0.0116" />
+            <site name="table_leg2_bottom_site" pos="0.0 0.0 -0.133" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg2_top_site" pos="0.0 0.0 0.1333" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg2_corner_site1" pos="0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site2" pos="0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site3" pos="-0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site4" pos="-0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site5" pos="0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site6" pos="0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site7" pos="-0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_corner_site8" pos="-0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg2_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.14" />
+        </body>
+        <body name="table_leg3" pos="0.4083 -0.133 0.0833" quat="1 0 0 0">
+            <geom density="100" material="pencil-wood" mesh="table_leg3" name="table_leg3_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+            <site group="0" name="leg3-table,conn_site" pos="0.0 0.0 0.1483" rgba="1 0 1 0.3" size="0.0116" />
+            <site name="table_leg3_bottom_site" pos="0.0 0.0 -0.133" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg3_top_site" pos="0.0 0.0 0.1333" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg3_corner_site1" pos="0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site2" pos="0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site3" pos="-0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site4" pos="-0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site5" pos="0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site6" pos="0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site7" pos="-0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_corner_site8" pos="-0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg3_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.14" />
+        </body>
+        <body name="table_leg4" pos="0.4083 0.14 0.0833" quat="1 0 0 0">
+            <geom density="100" material="pencil-wood" mesh="table_leg4" name="table_leg4_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+            <site group="0" name="leg4-table,conn_site" pos="0.0 0.0 0.1483" rgba="1 1 0 0.3" size="0.0116" />
+            <site name="table_leg4_bottom_site" pos="0.0 0.0 -0.133" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg4_top_site" pos="0.0 0.0 0.1333" rgba="0 0 1 0" size="0.0116" />
+            <site name="table_leg4_corner_site1" pos="0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site2" pos="0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site3" pos="-0.02 0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site4" pos="-0.02 -0.02 -0.133" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site5" pos="0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site6" pos="0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site7" pos="-0.02 0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_corner_site8" pos="-0.02 -0.02 0.1333" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_leg4_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.14" />
+        </body>
+        <body name="table_top" pos="0.0 0.0 0.2433" quat="1 0 0 0">
+            <geom density="100" material="pencil-wood" mesh="table_top" name="table_top_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+            <site group="0" name="table-leg1,conn_site" pos="-0.4 -0.133 -0.016" rgba="1 0 0 0.3" size="0.0116" />
+            <site group="0" name="table-leg2,conn_site" pos="-0.4 0.14 -0.016" rgba="0 1 1 0.3" size="0.0116" />
+            <site group="0" name="table-leg3,conn_site" pos="0.4083 -0.133 -0.016" rgba="1 0 1 0.3" size="0.0116" />
+            <site group="0" name="table-leg4,conn_site" pos="0.4083 0.14 -0.016" rgba="1 1 0 0.3" size="0.0116" />
+
+            <site name="table_top_corner_site1" pos="-0.428 -0.156 -0.023" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site2" pos="-0.428 0.1566 -0.023" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site3" pos="0.4283 -0.156 -0.023" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site4" pos="0.4283 0.1566 -0.023" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site5" pos="-0.428 -0.156 0.0233" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site6" pos="-0.428 0.1566 0.0233" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site7" pos="0.4283 -0.156 0.0233" rgba="0 0 1 0.3" size="0.005" />
+            <site name="table_top_corner_site8" pos="0.4283 0.1566 0.0233" rgba="0 0 1 0.3" size="0.005" />
+
+            <site name="table_top_bottom_site" pos="0.0 0.0 -0.0" rgba="0 0 1 0.3" size="0.0066" />
+            <site name="table_top_top_site" pos="0.0 0.0 0.02" rgba="0 0 1 0.3" size="0.0066" />
+            <site name="table_top_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.4583" />
+        </body>
+    </worldbody>
+</mujoco>
