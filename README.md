@@ -40,7 +40,7 @@ If you are on a headless server, make sure you run a [virtual display](docs/inst
 ### (1.1) Human control
 You can use WASDQE keys for moving and IJKLUO keys for rotating an end-effector of an agent.
 ```bash
-python demo_manual.py
+$ python demo_manual.py
 ```
 
 ### (1.2) RL Training
@@ -73,7 +73,7 @@ Train block picking up with the provided SAC implementation. It requires 300k st
 Before running the following code, you need to change `furniture/rl/trainer.py:74` with your [wandb](https://wandb.com) entity name for logging. Or, you can disable logging by setting `os.environ['WANDB_MODE'] = 'dryrun'`.
 ```bash
 # gpu: gpu number
-python -m rl.main --env FurnitureBaxterBlockEnv --prefix demo --gpu 0 --reward_scale 3
+$ python -m rl.main --env FurnitureBaxterBlockEnv --prefix demo --gpu 0 --reward_scale 3
 ```
 See the [`furniture/rl`](rl) folder for a full SAC implementation that uses the IKEA furniture assembly environment.
 
@@ -105,16 +105,16 @@ to the environment. The video generation can be RAM heavy, so
 decrease `--screen_width` and `--screen_height` if it crashes.
 There are pre-recorded demonstrations `sawyer_7.pkl, baxter_0.pkl, cursor_7.pkl` in the `demos` folder for
 data generation.
-```py
-python -m demo_vision
+```bash
+$ python -m demo_vision
 ```
 ![](docs/img/readme/demo_vision.gif)
 
 ### (1.5) Demonstration recording and playback
 The following script will take the user through the 1) playback of existing
 demonstrations and 2) recording and playback of their own demos.
-```py
-python -m demo_demonstration
+```bash
+$ python -m demo_demonstration
 ```
 
 <br>

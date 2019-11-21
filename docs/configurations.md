@@ -55,3 +55,5 @@ Use `--background` argument to choose a background scene.
 - Ambient: flat ground, colored lighting
 
 The next update will make lighting and material changes programmatic, so the user does not need to rebuild the binary for Unity changes.
+Note that objects in the Unity scene are not physically simulated. For example, the table is just an overlay of the invisible mujoco ground plane.
+
