@@ -36,7 +36,7 @@ $ sudo apt-get install libgl1-mesa-dev libgl1-mesa-glx libosmesa6-dev patchelf l
 pip install -r requirements.txt
 
 # for RL
-$ pip install torch torchvision h5py wandb
+$ pip install torch torchvision h5py wandb mpi4py
 ```
 
 3. Download MuJoCo-Unity binary
