@@ -2,8 +2,8 @@
 <br>
 
 # IKEA Furniture Assembly Environment
-[Youngwoon Lee](https://youngwoon.github.io), [Edward S. Hu](https://www.edwardshu.com), Zhengyu Yang, Alex Yin, [Joseph J. Lim](https://clvrai.com) at [USC CLVR lab](https://clvrai.com)   
-[[Environment website (https://clvrai.com/furinture)](https://clvrai.com/furniture)]  
+[Youngwoon Lee](https://youngwoon.github.io), [Edward S. Hu](https://www.edwardshu.com), Zhengyu Yang, Alex Yin, [Joseph J. Lim](https://clvrai.com) at [USC CLVR lab](https://clvrai.com)
+[[Environment website (https://clvrai.com/furniture)](https://clvrai.com/furniture)]
 [[arXiv Paper](https://arxiv.org/abs/1911.07246)]
 
 |![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
@@ -71,7 +71,7 @@ while not done:
 ```
 
 Train block picking up with the provided SAC implementation. It requires 300k steps to pick up a block.
-Befoer running the following code, you need to change `furniture/rl/trainer.py:74` with your [wandb](https://wandb.com) entity name for logging. Or, you can disable logging by setting `os.environ['WANDB_MODE'] = 'dryrun'`.
+Before running the following code, you need to change `furniture/rl/trainer.py:74` with your [wandb](https://wandb.com) entity name for logging. Or, you can disable logging by setting `os.environ['WANDB_MODE'] = 'dryrun'`.
 ```bash
 # gpu: gpu number
 python -m rl.main --env FurnitureBaxterBlockEnv --prefix demo --gpu 0 --reward_scale 3
