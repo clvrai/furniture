@@ -11,7 +11,6 @@ log
 Session.vim
 
 # Data
-*.pkl
 *.csv
 *.ini
 *.npy
