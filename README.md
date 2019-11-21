@@ -2,8 +2,8 @@
 <br>
 
 # IKEA Furniture Assembly Environment
-[Youngwoon Lee](https://youngwoon.github.io), [Edward S. Hu](https://www.edwardshu.com), Zhengyu Yang, Alex Yin, [Joseph J. Lim](https://clvrai.com) at [USC CLVR lab](https://clvrai.com)
-[[Environment website (https://clvrai.com/furniture)](https://clvrai.com/furniture)]
+[Youngwoon Lee](https://youngwoon.github.io), [Edward S. Hu](https://www.edwardshu.com), Zhengyu Yang, Alex Yin, [Joseph J. Lim](https://clvrai.com) at [USC CLVR lab](https://clvrai.com)<br/>
+[[Environment website (https://clvrai.com/furniture)](https://clvrai.com/furniture)]<br/>
 [[arXiv Paper](https://arxiv.org/abs/1911.07246)]
 
 |![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
