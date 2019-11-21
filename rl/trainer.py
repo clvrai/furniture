@@ -67,7 +67,7 @@ class Trainer(object):
         # setup log
         if self._is_chef and self._config.is_train:
             exclude = ['device']
-            if config.debug:
+            if not self._config.wandb:
                 os.environ['WANDB_MODE'] = 'dryrun'
 
             # user or team name
