@@ -33,7 +33,12 @@ The IKEA Furniture Assembly environment provides:
 
 ## (1) Example use cases
 
+### (1.0) Installation
+See [`docs/installation.md`](docs/installation.md) for installation.
+If you are on a headless server, make sure you run a [virtual display](docs/installation.md#virtual-display) and use `--virtual_display` to specify the display number (e.g. :0 or :1).
+
 ### (1.1) Human control
+
 You can use WASDQE keys for moving and IJKLUO keys for rotating an end-effector of an agent.
 ```bash
 python demo_manual.py

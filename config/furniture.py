@@ -11,8 +11,8 @@ def add_argument(parser):
                         help='Use Unity or MuJoCo for rendering')
     parser.add_argument('--unity_editor', type=str2bool, default=False,
                         help='Use bundle or editor for Unity')
-    parser.add_argument('--virtual_display', type=str2bool, default=False,
-                        help='Use virtual display for rendering')
+    parser.add_argument('--virtual_display', type=str, default=None,
+                        help="Specify virtual display for rendering if you use (e.g. ':0' or ':1')")
     parser.add_argument('--port', type=int, default=1050,
                         help='Port for MuJoCo-Unity plugin')
     parser.add_argument('--background', type=str, default='Industrial',

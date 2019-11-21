@@ -23,8 +23,8 @@ class UnityInterface(object):
 
         Args:
             port: port number to connect to Unity
-            unity_editor: Opens a Unity app if False, otherwise connect to Unity editor.
-            virtual_display: True if virtual display is needed
+            unity_editor: opens a Unity app if False, otherwise connect to Unity editor.
+            virtual_display: virtual display number if needed
         """
         self._port = port
         self._unity_editor = unity_editor
@@ -166,13 +166,6 @@ class UnityInterface(object):
         new_env = os.environ.copy()
         if self._virtual_display:
             new_env["DISPLAY"] = ":1"
-
-        if "linux" in platform and self._virtual_display:
-            outputs = subprocess.run("ps ax | grep -Po '.*Xorg :\K(\d+|\d+.\d+)'", shell=True, stdout=subprocess.PIPE)
-            displays = outputs.stdout.decode().split()
-            if len(displays) == 0 or '1' not in displays:
-                print("Run a virtual screen on headless server: sudo /usr/bin/X :1 &")
-                os.popen("sudo /usr/bin/X :1 &")
 
         os.makedirs('unity-log', exist_ok=True)
         # Launch Unity environment

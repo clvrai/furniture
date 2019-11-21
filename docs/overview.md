@@ -77,7 +77,7 @@ Here are some general command line configuration options.
 '--load_demo': string, path to a pickle file of a demonstration
 '--record_demo': bool, whether to enable demonstration recording
 '--demo_dir': string, path to demonstration folder
-'--virtual_display': bool, whether you have a physical display or not
+'--virtual_display': str, specify display number
 ```
 Within each `furniture_*.py`, there are environment specific configurations in the `__init__` function. See [Configure Environments](configurations.md) for available furniture models, backgrounds, etc.
 

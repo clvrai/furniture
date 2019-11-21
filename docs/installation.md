@@ -47,15 +47,21 @@ unzip binary.zip
 ```
 Inside `furniture/binary` there should be `Furniture.app` for macOS and `Furniture.x86_64` and `Furniture_Data` folder for Ubuntu.
 
-4. Virtual screen (on headless machines)
+## Virtual display (on headless machines)
 
 On servers, you don’t have a monitor. Use this to get a virtual monitor for rendering. Set the `--virtual_display` flag to
-`True` when you run the environment.
+`:1` when you run the environment.
 ```bash
+# Run the next line for Ubuntu
 sudo apt-get install xserver-xorg libglu1-mesa-dev freeglut3-dev mesa-common-dev libxmu-dev libxi-dev
-# configure nvidia-x
+
+# Configure nvidia-x
 sudo nvidia-xconfig -a --use-display-device=None --virtual=1280x1024
-# use virtual display flag when running FurnitureEnvironment
-python -m demo_manual --unity True --virtual_display True
+
+# Launch a virtual display
+sudo /usr/bin/X :1 &
+
+# Set virtual display flag
+python -m demo_manual --virtual_display :1
 ```
 

@@ -56,7 +56,7 @@ To enable GPU rendering for mujoco, you need to add `/usr/lib/nvidia-000` to `LD
 Then, during `mujoco-py` compilation, it will show you `linuxgpuextension` instead of `linuxcpuextension`.
 In Ubuntu 18.04, you may encounter an GL-related error while building `mujoco-py`, open `venv/lib/python3.6/site-packages/mujoco_py/gl/eglshim.c` and comment line 5 `#include <GL/gl.h>` and line 7 `#include <GL/glext.h>`.
 
-### Virtual Display
+### Virtual display
 If you are running on an Ubuntu server, chances are you do not have a physical monitor. Therefore, you must use a virtual display to render
-images. Check out `env/unity_interface.py` to see how we automatically launch X, a virtual display program with `--virtual_display`.
-If it's not working, try manually running X and set `DISPLAY=:<number>` as an environment variable.
+images. Check out [Virtual display](installation.md#virtual-display) to see how to launch X, and specify a virtual display number with `--virtual_display` flag.
+

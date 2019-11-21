@@ -70,7 +70,6 @@ def argsparser():
     import config.furniture as furniture_config
     furniture_config.add_argument(parser)
 
-    parser.set_defaults(virtual_display=True)
     parser.set_defaults(visual_ob=True)
 
     args = parser.parse_args()
