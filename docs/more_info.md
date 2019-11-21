@@ -45,7 +45,7 @@ The environment can be parallelized by specifying different port numbers and eac
 ### Mujoco-py
 * RuntimeError: Failed to initialize OpenGL
 
-See https://github.com/openai/mujoco-py/issues/187#issuecomment-384905400
+See [this link](https://github.com/openai/mujoco-py/issues/187#issuecomment-384905400).
 
 I've found that if I want to call `env.render()` then I need to set `LD_PRELOAD` to `/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/nvidia-418/libGL.so`.
 

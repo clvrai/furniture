@@ -12,8 +12,8 @@
 
 
 We are announcing the launch of the **IKEA Furniture Assembly environment** as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes.
-An agent (Sawyer, Baxter, Cursor) is asked to move and align furniture parts and connect them one by one.
-The task is completed when all parts are assembled.
+An agent (Sawyer, Baxter, Cursor) is required to move, align, and connect furniture parts sequentially.
+The task is completed when all parts are connected.
 
 
 The IKEA Furniture Assembly environment provides:
