@@ -944,32 +944,36 @@ class FurnitureEnv(metaclass=EnvMeta):
                     ctrl = self._setup_action(low_action)
 
         if connect > 0:
-            touch_left_finger = {}
-            touch_right_finger = {}
-            for body_id in self._object_body_ids:
-                touch_left_finger[body_id] = False
-                touch_right_finger[body_id] = False
+            num_hands = 2 if self._agent_type == 'Baxter' else 1
+            for i in range(num_hands):
+                touch_left_finger = {}
+                touch_right_finger = {}
+                for body_id in self._object_body_ids:
+                    touch_left_finger[body_id] = False
+                    touch_right_finger[body_id] = False
 
-            for j in range(self.sim.data.ncon):
-                c = self.sim.data.contact[j]
-                body1 = self.sim.model.geom_bodyid[c.geom1]
-                body2 = self.sim.model.geom_bodyid[c.geom2]
-                if c.geom1 in self.l_finger_geom_ids[0] and body2 in self._object_body_ids:
-                    touch_left_finger[body2] = True
-                if body1 in self._object_body_ids and c.geom2 in self.l_finger_geom_ids[0]:
-                    touch_left_finger[body1] = True
+                for j in range(self.sim.data.ncon):
+                    c = self.sim.data.contact[j]
+                    body1 = self.sim.model.geom_bodyid[c.geom1]
+                    body2 = self.sim.model.geom_bodyid[c.geom2]
+                    if c.geom1 in self.l_finger_geom_ids[i] and body2 in self._object_body_ids:
+                        touch_left_finger[body2] = True
+                    if body1 in self._object_body_ids and c.geom2 in self.l_finger_geom_ids[i]:
+                        touch_left_finger[body1] = True
 
-                if c.geom1 in self.r_finger_geom_ids[0] and body2 in self._object_body_ids:
-                    touch_right_finger[body2] = True
-                if body1 in self._object_body_ids and c.geom2 in self.r_finger_geom_ids[0]:
-                    touch_right_finger[body1] = True
+                    if c.geom1 in self.r_finger_geom_ids[i] and body2 in self._object_body_ids:
+                        touch_right_finger[body2] = True
+                    if body1 in self._object_body_ids and c.geom2 in self.r_finger_geom_ids[i]:
+                        touch_right_finger[body1] = True
 
-            for body_id in self._object_body_ids:
-                if touch_left_finger[body_id] and touch_right_finger[body_id]:
-                    if self._debug:
-                        print('try connect')
-                    self._try_connect(self.sim.model.body_id2name(body_id))
-                    break
+                for body_id in self._object_body_ids:
+                    if touch_left_finger[body_id] and touch_right_finger[body_id]:
+                        if self._debug:
+                            print('try connect')
+                        result = self._try_connect(self.sim.model.body_id2name(body_id))
+                        if result:
+                            return
+                        break
 
     def _make_input(self, action, old_quat):
         """

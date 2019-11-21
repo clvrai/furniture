@@ -54,4 +54,6 @@ Use `--background` argument to choose a background scene.
 - NightTime: flat ground, dim lighting
 - Ambient: flat ground, colored lighting
 
-The next update will make lighting and material changes programatic, so the user does not need to rebuild the binary for Unity changes.
+The next update will make lighting and material changes programmatic, so the user does not need to rebuild the binary for Unity changes.
+Note that objects in the Unity scene are not physically simulated. For example, the table is just an overlay of the invisible mujoco ground plane.
+

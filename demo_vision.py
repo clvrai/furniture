@@ -53,7 +53,7 @@ def main(args):
     # load demo file for playback
     demo = args.load_demo = input('Input path to demo file, such as demos/Sawyer_7.pkl: ')
     if demo == '':
-        demo = args.load_demo = 'demos/sawyer_7.pkl'
+        demo = args.load_demo = 'demos/Sawyer_7.pkl'
 
     agent_name, furniture_id = demo.split('/')[-1].split('.')[0].split('_')
     agent_name = agent_name[0].upper() + agent_name[1:]
@@ -134,9 +134,9 @@ def main(args):
     print(f"Depth Map: {use_depth}, Segmentation Map: {use_seg}")
     print()
     print("Observation Space:\n")
-    print("The observation space is a dictionary. For furniture (object) observations, it is"+
-          "a multiple of 7 because each part has 3 dims for position and 4 dims for quaternion."+
-          "The robot_ob is dependent on the agent, and contains position, velocity, or angles of"+
+    print("The observation space is a dictionary. For furniture (object) observations, it is "+
+          "a multiple of 7 because each part has 3 dims for position and 4 dims for quaternion. "+
+          "The robot_ob is dependent on the agent, and contains position, velocity, or angles of "+
           "the current robot.\n")
     print(env.observation_space)
     print()

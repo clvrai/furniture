@@ -45,7 +45,7 @@ The environment can be parallelized by specifying different port numbers and eac
 ### Mujoco-py
 * RuntimeError: Failed to initialize OpenGL
 
-See https://github.com/openai/mujoco-py/issues/187#issuecomment-384905400
+See [this link](https://github.com/openai/mujoco-py/issues/187#issuecomment-384905400).
 
 I've found that if I want to call `env.render()` then I need to set `LD_PRELOAD` to `/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/nvidia-418/libGL.so`.
 
@@ -56,7 +56,7 @@ To enable GPU rendering for mujoco, you need to add `/usr/lib/nvidia-000` to `LD
 Then, during `mujoco-py` compilation, it will show you `linuxgpuextension` instead of `linuxcpuextension`.
 In Ubuntu 18.04, you may encounter an GL-related error while building `mujoco-py`, open `venv/lib/python3.6/site-packages/mujoco_py/gl/eglshim.c` and comment line 5 `#include <GL/gl.h>` and line 7 `#include <GL/glext.h>`.
 
-### Virtual Display
+### Virtual display
 If you are running on an Ubuntu server, chances are you do not have a physical monitor. Therefore, you must use a virtual display to render
-images. Check out `env/unity_interface.py` to see how we automatically launch X, a virtual display program with `--virtual_display`.
-If it's not working, try manually running X and set `DISPLAY=:<number>` as an environment variable.
+images. Check out [Virtual display](installation.md#virtual-display) to see how to launch X, and specify a virtual display number with `--virtual_display` flag.
+
