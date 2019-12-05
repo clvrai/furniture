@@ -30,7 +30,7 @@ class FloorTask(Task):
             initializer = UniformRandomSampler(rng=rng, ensure_object_boundary_in_range=False)
 
         self.initializer = initializer
-        self.initializer.setup(mujoco_objects, (0, -0.05, 0), (0.7, 0.7, 0))
+        self.initializer.setup(mujoco_objects, (0, -0.05, 0), (0.4, 0.4, 0))
 
         self.rng = rng
 

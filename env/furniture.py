@@ -1041,6 +1041,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         for i, body in enumerate(self._object_names):
             rotate = self._rng.randint(0, 10, size=3)
             quat_init.append(list(T.euler_to_quat(rotate)))
+        pos_init = [[-0.3, -0.13, 0.05], [0.3, -0.13, 0.05]]
+        quat_init = [[1, 0, 0, 0], [1,0,0,0]]
         return pos_init, quat_init
 
     def _reset(self, furniture_id=None, background=None):
@@ -1578,6 +1580,139 @@ class FurnitureEnv(metaclass=EnvMeta):
             img = self.render('rgb_array')
             vr.add(img)
         vr.save_video('demo.mp4')
+    
+    def get_vr_input(self, controller):
+        c = self.vr.devices[controller]
+        if controller not in self.vr.devices:
+            print("Lost track of ", controller)
+            return None, None
+        pose = c.get_pose_euler()
+        state = c.get_controller_inputs()
+        if pose is None or state is None:
+            print("Lost track of pose ", controller)
+            return None, None
+        return np.asarray(pose), state
+    
+    def run_vr(self, config):
+        """
+        Runs the environment with HTC Vive support
+        """
+        from util.triad_openvr import triad_openvr
+
+        self.vr = triad_openvr.triad_openvr()
+        self.vr.print_discovered_objects()
+
+        if config.furniture_name is not None:
+            config.furniture_id = furniture_name2id[config.furniture_name]
+        ob = self.reset(config.furniture_id, config.background)
+
+        if config.render:
+            self.render()
+
+        # set initial pose of controller as origin
+        origin_1, _ = self.get_vr_input('controller_1')
+        origin_2 = None
+        if self._agent_type == 'Baxter':
+            origin_2, _ = self.get_vr_input('controller_2')
+
+        cursor_idx = 0
+        flag = [-1, -1]
+        t = 0
+        while True:
+            # get pose of the vr
+            p1, s1 = self.get_vr_input('controller_1')
+            if self._agent_type == 'Baxter':
+                p2, s2 = self.get_vr_input('controller_2')
+
+            # check if controller is connected
+            if p1 is None or s1 is None:
+                time.sleep(0.1)
+                continue
+            if self._agent_type == 'Baxter' and p2 is None or s2 is None:
+                time.sleep(0.1)
+                continue
+
+            d_p1 = p1 - origin_1
+            # clamp rotation
+            r1 = d_p1[-3:]
+            r1[np.abs(r1) < 0.0] = 0
+            d_p1[-3:] = r1
+            # remap xyz translation
+            d_p1[1], d_p1[2] = d_p1[2], d_p1[1]
+            d_p1[1] = -d_p1[1]
+            # remap xyz rotation
+            # wrist rotation is 3
+            d_p1[3] = d_p1[4]
+            d_p1[[4,5]] = 0
+            origin_1 = p1
+
+            if self._agent_type == 'Baxter':
+                d_p2 = p2 - origin_2
+                # clamp rotation
+                r2 = d_p2[-3:]
+                r2[np.abs(r2) < 0.0] = 0
+                d_p2[-3:] = r2
+                # remap xyz translation
+                d_p2[1], d_p2[2] = d_p2[2], d_p2[1]
+                d_p2[1] = -d_p2[1]
+                # remap xyz rotation
+                d_p2[3] = d_p2[4]
+                d_p2[[4,5]] = 0
+                origin_2 = p2
+
+            
+            if config.render:
+                self.render()
+
+            action = np.zeros((8, ))
+            action_2 = np.zeros((8, ))
+
+
+            states = [s1, s2] if self._agent_type == 'Baxter' else [s1]
+            reset = False
+            for cursor_idx, s in enumerate(states):
+                # select
+                if s['trigger'] > 0.01:
+                    flag[cursor_idx] = 1
+                else:
+                    flag[cursor_idx] = -1
+                
+                # connect
+                if s['trackpad_pressed'] != 0:
+                    action[7] = 1
+
+                # reset
+                if s['grip_button'] != 0:
+                    t = 0
+                    flag = [-1, -1]
+                    self.reset(config.furniture_id, config.background)
+                    reset = True
+                    break
+            
+            if reset:
+                continue
+
+            # action space is 7 dim per controller (3 xyz, 3 euler, 1 sel)
+            # and then one more dim for connect
+            if self._agent_type == 'Cursor':
+                action = np.hstack([d_p1[:6], [flag[0]], np.zeros_like(action[:6]), [flag[1], action[7]]])
+            elif self._agent_type == 'Sawyer':
+                action[:6] = d_p1[:6]
+                action = action[:8]
+                action[6] = flag[0]
+            elif self._agent_type == 'Baxter':
+                action = np.hstack([d_p1[:6], d_p2[:6], [flag[0], flag[1], action[7]]])
+
+            ob, reward, done, info = self.step(action)
+            if config.debug:
+                print('\rAction: ' + str(action[:6]), end='')
+                # txt = "Action: "
+                # for each in action[:6]:
+                #     txt += "%.4f" % each
+                #     txt += " "
+                # print("\r" + txt, end="")
+            t += 1
+
 
     def run_manual(self, config):
         """
@@ -1864,7 +1999,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 # gravity compensation
                 for obj_name in self._object_names:
                     if self._find_group(obj_name) in selected_idx:
-                        self._stop_object(obj_name, gravity=0)
+                        self._stop_object(obj_name, gravity=1)
 
         except Exception as e:
             print('[!] Warning: Simulation is unstable. The episode is terminated.')

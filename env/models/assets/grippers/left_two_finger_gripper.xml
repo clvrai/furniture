@@ -23,7 +23,7 @@
                 <!-- This site was added for visualization. -->
                 <site name="l_g_grip_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
                 <!-- This site was added for visualization. -->
-                <site name="l_g_grip_site_cylinder" pos="0 0 0" size="0.005 10" rgba="0 1 0 0.1" type="cylinder" group="1"></site>
+                <site name="conn_l_g_grip_site_cylinder" pos="0 0 0" size="0.005 10" rgba="0 1 0 0.1" type="cylinder" group="1"></site>
             </body>
             <!-- original <body name="l_gripper_l_finger" pos="0 -0.0015 0.02"> -->
             <body name="l_gripper_l_finger" pos="0 0.01 0.02">
