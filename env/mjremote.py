@@ -114,8 +114,14 @@ class mjremote:
             return 'Not connected'
         self._s.sendall(struct.pack("i", 5))
         self._s.sendall(struct.pack("i", index))
+    
+    def setcamerapose(self, pose):
+        if not self._s:
+            return 'Not connected'
+        pose = pose.astype('float32')
+        self._s.sendall(struct.pack("i", 18))
+        self._s.sendall(pose.tobytes())
 
-    # qpos = numpy.ndarray(nqpos)
     def setqpos(self, qpos):
         if not self._s:
             return 'Not connected'

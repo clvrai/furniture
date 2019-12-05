@@ -547,6 +547,31 @@ public class MJRemote : MonoBehaviour
         camindex = Math.Max(-1, Math.Min(ncamera - 1, camindex));
     }
 
+    public unsafe void setCameraPose(NetworkStream stream) {
+        ReadAll(stream, 4);
+        float x = BitConverter.ToSingle(buffer, 0);
+        ReadAll(stream, 4);
+        float y = BitConverter.ToSingle(buffer, 0);
+        ReadAll(stream, 4);
+        float z = BitConverter.ToSingle(buffer, 0);
+        Vector3 pos = new Vector3(-x, z, -y);
+        
+        ReadAll(stream, 4);
+        float w = BitConverter.ToSingle(buffer, 0);
+        ReadAll(stream, 4);
+        x = BitConverter.ToSingle(buffer, 0);
+        ReadAll(stream, 4);
+        y = BitConverter.ToSingle(buffer, 0);
+        ReadAll(stream, 4);
+        z = BitConverter.ToSingle(buffer, 0);
+        
+        //TODO: map mujoco quat to unity quat
+        Quaternion q = new Quaternion(x, y, z, w);
+        thecamera.transform.localPosition = pos;
+        thecamera.transform.localRotation = q;
+
+    }
+
     public unsafe void setQpos(NetworkStream stream)
     {
         if (nqpos > 0)
