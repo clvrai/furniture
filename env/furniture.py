@@ -1611,13 +1611,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         while True:
             if config.unity:
                 self.key_input_unity()
-                ans = input("Set new camera pose?")
-                if ans == 'y':
-                    pose = np.zeros(7)
-                    pose[:3] = np.random.normal(size=3)
-                    pose[3:] = [1,0,0,0]
-                    self._set_camera_pose(pose)
-
 
             if config.render:
                 self.render()
