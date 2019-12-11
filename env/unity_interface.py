@@ -10,6 +10,7 @@ from sys import platform
 import numpy as np
 
 from env.mjremote import mjremote
+from util.logger import logger
 
 
 class UnityInterface(object):
@@ -38,7 +39,7 @@ class UnityInterface(object):
         if not unity_editor:
             self._launch_unity(port)
 
-        print("Unity remote connecting to {}".format(port))
+        logger.info("Unity remote connecting to {}".format(port))
         while True:
             try:
                 self._remote.connect(port=port)
@@ -68,9 +69,9 @@ class UnityInterface(object):
         self._remote.changeworld(full_path)
         self._remote.setcamera(camera_id)
         self._remote.setresolution(screen_width, screen_height)
-        print("Size of qpos:", self._remote.nqpos,", Size of mocap:", self._remote.nmocap, \
-              ", No. of camera:", self._remote.ncamera,", Size of image w =",\
-              self._remote.width, ", h =", self._remote.height)
+        logger.debug(f"Size of qpos:{self._remote.nqpos} Size of mocap: {self._remote.nmocap}" +
+                     f" No. of camera: {self._remote.ncamera}" +
+                     f" Size of image w = {self._remote.width} h ={self._remote.height}")
 
     def get_image(self, render_depth=False):
         """
@@ -138,7 +139,7 @@ class UnityInterface(object):
         file_name = (file_name.strip()
                      .replace('.app', '').replace('.exe', '').replace('.x86_64', '').replace('.x86', ''))
         true_filename = os.path.basename(os.path.normpath(file_name))
-        print('The true file name is {}'.format(true_filename))
+        logger.info('The true file name is {}'.format(true_filename))
 
         launch_string = None
         if platform == "linux" or platform == "linux2":
@@ -162,7 +163,7 @@ class UnityInterface(object):
         if len(candidates) > 0:
             launch_string = candidates[0]
 
-        print("This is the launch string {}".format(launch_string))
+        logger.info("This is the launch string {}".format(launch_string))
         assert launch_string is not None, 'Cannot find unity app {}'.format(
             launch_string)
 
