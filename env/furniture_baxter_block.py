@@ -6,6 +6,7 @@ import numpy as np
 
 from env.furniture_baxter import FurnitureBaxterEnv
 import env.transform_utils as T
+from util.logger import logger
 
 
 class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
@@ -52,7 +53,7 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
         reward, done, info = self._compute_reward(a)
 
         if self._success:
-            print('Success!')
+            logger.info('Success!')
 
         info['right_action'] = a[0:6]
         info['left_action'] = a[6:12]

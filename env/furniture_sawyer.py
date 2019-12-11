@@ -6,7 +6,7 @@ import numpy as np
 
 from env.furniture import FurnitureEnv
 import env.transform_utils as T
-
+from util.logger import logger
 
 class FurnitureSawyerEnv(FurnitureEnv):
     """
@@ -70,7 +70,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         info['reward_connect'] = connect_reward
 
         if self._success:
-            print('Success!')
+            logger.info('Success!')
 
         reward = ctrl_reward + connect_reward
 

@@ -3,6 +3,7 @@
 import os
 import time
 import pickle
+import logging
 from collections import OrderedDict
 
 import numpy as np
@@ -24,6 +25,7 @@ import env.transform_utils as T
 import env.image_utils as I
 from util.video_recorder import VideoRecorder
 from util.demo_recorder import DemoRecorder
+from util.logger import logger
 np.set_printoptions(suppress=True)
 
 
@@ -54,6 +56,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         }
 
         self._debug = config.debug
+        logger.setLevel(logging.INFO)
+        if self._debug:
+            logger.setLevel(logging.DEBUG)
         self._rng = np.random.RandomState(config.seed)
 
         if config.render and not config.unity:
@@ -338,6 +343,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         q = T.lookat_to_quat(-forward, up)
         self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to='wxyz')
 
+    def _set_camera_pose(self, pose):
+        """
+        Sets unity camera to pose
+        """
+        self._unity.set_camera_pose(pose)
+
     def _render_callback(self):
         """
         Callback for rendering
@@ -557,15 +568,13 @@ class FurnitureEnv(metaclass=EnvMeta):
 
             success = self._move_cursor(cursor_i, move_offset)
             if not success:
-                if self._debug:
-                    print('could not move cursor')
+                logger.debug('could not move cursor')
                 continue
             if self._cursor_selected[cursor_i] is not None:
                 success = self._move_rotate_object(
                     self._cursor_selected[cursor_i], move_offset, rotate_offset)
                 if not success:
-                    if self._debug:
-                        print('could not move cursor due to object out of boundary')
+                    logger.debug('could not move cursor due to object out of boundary')
                     # reset cursor to original position
                     self._move_cursor(cursor_i, -move_offset)
                     continue
@@ -576,8 +585,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         connect = a[14]
         if connect > 0 and self._cursor_selected[0] and self._cursor_selected[1]:
-            if self._debug:
-                print('try connect ({} and {})'.format(self._cursor_selected[0],
+            logger.debug('try connect ({} and {})'.format(self._cursor_selected[0],
                                                        self._cursor_selected[1]))
             self._try_connect(self._cursor_selected[0], self._cursor_selected[1])
         elif self._connect_step > 0:
@@ -595,8 +603,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         site1 = self.sim.model.site_names[site1_id]
         site2 = self.sim.model.site_names[site2_id]
 
-        if self._debug:
-            print('**** connect {} and {}'.format(site1, site2))
+        logger.debug('**** connect {} and {}'.format(site1, site2))
 
         body1_id = self.sim.model.site_bodyid[site1_id]
         body2_id = self.sim.model.site_bodyid[site2_id]
@@ -703,8 +710,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         # first check if already connected
                         if site1_id in self._connected_sites or site2_id in self._connected_sites:
                             continue
-                        if self._debug:
-                            print(f'connect {site1_name} and {site2_name}, {self._connect_step}/{self._num_connect_steps}')
+                        logger.debug(f'connect {site1_name} and {site2_name}, {self._connect_step}/{self._num_connect_steps}')
                         if self._connect_step < self._num_connect_steps:
                             # set target as site2 pos
                             site1_pos_quat = self._site_xpos_xquat(site1_name)
@@ -780,9 +786,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         project1_2 = np.dot(up1, T.unit_vector(site2_xpos[:3] - site1_xpos[:3]))
         project2_1 = np.dot(up2, T.unit_vector(site1_xpos[:3] - site2_xpos[:3]))
 
-        if self._debug:
-            print('pos_dist', pos_dist, 'rot_dist_up', rot_dist_up, 'rot_dist_forward',
-                rot_dist_forward, 'project', project1_2, project2_1)
+        logger.debug(f'pos_dist: {pos_dist}'+f'rot_dist_up: {rot_dist_up}'+
+                     f'rot_dist_forward: {rot_dist_forward}'+
+                     f'project: {project1_2}, {project2_1}')
 
         max_rot_dist_forward = rot_dist_forward
         if len(allowed_angles) == 0:
@@ -809,15 +815,14 @@ class FurnitureEnv(metaclass=EnvMeta):
                 is_rot_forward_aligned:
             return True
 
-        if self._debug:
-            if pos_dist >= self._env_config['pos_dist']:
-                print('(connect) two parts are too far ({} >= {})'.format(pos_dist, self._env_config['pos_dist']))
-            elif rot_dist_up <= self._env_config['rot_dist_up']:
-                print('(connect) misaligned ({} <= {})'.format(rot_dist_up, self._env_config['rot_dist_up']))
-            elif not is_rot_forward_aligned:
-                print('(connect) aligned, but rotate a connector ({} <= {})'.format(max_rot_dist_forward, self._env_config['rot_dist_forward']))
-            else:
-                print('(connect) misaligned. move connectors to align the axis')
+        if pos_dist >= self._env_config['pos_dist']:
+            logger.debug('(connect) two parts are too far ({} >= {})'.format(pos_dist, self._env_config['pos_dist']))
+        elif rot_dist_up <= self._env_config['rot_dist_up']:
+            logger.debug('(connect) misaligned ({} <= {})'.format(rot_dist_up, self._env_config['rot_dist_up']))
+        elif not is_rot_forward_aligned:
+            logger.debug('(connect) aligned, but rotate a connector ({} <= {})'.format(max_rot_dist_forward, self._env_config['rot_dist_forward']))
+        else:
+            logger.debug('(connect) misaligned. move connectors to align the axis')
         return False
 
     def _move_objects_target(self, obj, target_pos, target_quat, gravity=1):
@@ -968,8 +973,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 for body_id in self._object_body_ids:
                     if touch_left_finger[body_id] and touch_right_finger[body_id]:
-                        if self._debug:
-                            print('try connect')
+                        logger.debug('try connect')
                         result = self._try_connect(self.sim.model.body_id2name(body_id))
                         if result:
                             return
@@ -1110,8 +1114,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
         self._do_simulation(None)
 
-        if self._debug:
-            print('*** furniture initialization ***')
+        logger.debug('*** furniture initialization ***')
         # load demo from path and initialize furniture and robot
         if self._load_demo is not None:
             with open(self._load_demo, 'rb') as f:
@@ -1135,8 +1138,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # set furniture positions
         for i, body in enumerate(self._object_names):
-            if self._debug:
-                print(body, pos_init[i], quat_init[i])
+            logger.debug(f'{body} {pos_init[i]} {quat_init[i]}')
             if self._config.assembled:
                 self._object_group[i] = 0
             else:
@@ -1286,8 +1288,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                                      self._screen_width,
                                      self._screen_height)
 
-        if self._debug:
-            print(self.mujoco_model.get_xml())
+        logger.debug(self.mujoco_model.get_xml())
 
         # construct mujoco model from xml
         self.mjpy_model = self.mujoco_model.get_model(mode="mujoco_py")
@@ -1393,8 +1394,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         # load models for objects
         path = xml_path_completion(furniture_xmls[self._furniture_id])
-        if self._debug:
-            print('load furniture %s' % path)
+        logger.debug('load furniture %s' % path)
         objects = MujocoXMLObject(path, self._debug)
         part_names = objects.get_children_names()
 
@@ -1480,7 +1480,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         else:
             return
 
-        print('Input action: %s' % action)
+        logger.info('Input action: %s' % action)
         self.action = action
         self._action_on = True
 
@@ -1538,7 +1538,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         else:
             return
 
-        print('Input action: %s' % action)
+        logger.info('Input action: %s' % action)
         self.action = action
         self._action_on = True
 
@@ -1684,8 +1684,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         action = np.hstack([action[:6], np.zeros(6), [flag[0], flag[1], action[7]]])
 
             ob, reward, done, info = self.step(action)
-            if config.debug:
-                print('Action:', action)
+            logger.info(f'Action: {action}')
 
             vr.add(self.render('rgb_array'))
 
@@ -1867,8 +1866,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self._stop_object(obj_name, gravity=0)
 
         except Exception as e:
-            print('[!] Warning: Simulation is unstable. The episode is terminated.')
-            print(e)
+            logger.warn('[!] Warning: Simulation is unstable. The episode is terminated.')
+            logger.warn(e)
             self.reset()
             self._fail = True
 

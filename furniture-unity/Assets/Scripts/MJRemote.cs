@@ -81,6 +81,7 @@ public class MJRemote : MonoBehaviour
     Dictionary<string, Vector3> modifiedObjects = null;
     List<GameObject> backgrounds = null;
 
+    bool cameraPoseSet = false;
 
     // convert transform from plugin to GameObject
     static unsafe void SetTransform(GameObject obj, MJP.TTransform transform)
@@ -441,8 +442,11 @@ public class MJRemote : MonoBehaviour
             }
 
         // update camera
-        MJP.GetCameraState(camindex, &transform);
-        SetCamera(thecamera, transform);
+        if (!cameraPoseSet) {
+            MJP.GetCameraState(camindex, &transform);
+            SetCamera(thecamera, transform);
+        }
+       
         thecamera.fieldOfView = camfov[camindex + 1];
     }
 
@@ -453,8 +457,6 @@ public class MJRemote : MonoBehaviour
         // mouse interaction
         ProcessMouse();
         UpdateModel();
-
-
     }
 
 
@@ -545,6 +547,26 @@ public class MJRemote : MonoBehaviour
         ReadAll(stream, 4);
         camindex = BitConverter.ToInt32(buffer, 0);
         camindex = Math.Max(-1, Math.Min(ncamera - 1, camindex));
+    }
+
+    public unsafe void setCameraPose(NetworkStream stream) {
+        ReadAll(stream, 4 * 7);
+        fixed (byte* pose = buffer)
+        {
+            float x = ((float*)pose)[0];
+            float y = ((float*)pose)[1];
+            float z = ((float*)pose)[2];
+            Vector3 pos = new Vector3(-x, z, -y);
+            float w = ((float*)pose)[3];
+            x = ((float*)pose)[4];
+            y = ((float*)pose)[5];
+            z = ((float*)pose)[6];
+            Quaternion q = new Quaternion(x, y, z, w);
+            thecamera.transform.localPosition = pos;
+            thecamera.transform.localRotation = q;
+        }
+        cameraPoseSet = true;
+
     }
 
     public unsafe void setQpos(NetworkStream stream)

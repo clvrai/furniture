@@ -66,6 +66,7 @@ public class MJTCPInterface : MonoBehaviour
         GetKeyInput = 15,
         SetBackground = 16,
         SetGraphicsQuality = 17,
+        SetCameraPose = 18,
     }
 
     public string tcpAddress = "0.0.0.0";
@@ -274,6 +275,10 @@ public class MJTCPInterface : MonoBehaviour
 
                 case Command.SetGraphicsQuality:
                     ext.setGraphicsQuality(stream);
+                    break;
+                
+                case Command.SetCameraPose:
+                    ext.setCameraPose(stream);
                     break;
             }
         }
