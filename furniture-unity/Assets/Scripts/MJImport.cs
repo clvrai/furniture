@@ -42,7 +42,6 @@ using System.IO;
 using System.Xml;
 
 
-using System.Collections.Generic;
 using System;
 
 public class MJImport : MonoBehaviour

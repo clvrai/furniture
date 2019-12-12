@@ -586,7 +586,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         connect = a[14]
         if connect > 0 and self._cursor_selected[0] and self._cursor_selected[1]:
             logger.debug('try connect ({} and {})'.format(self._cursor_selected[0],
-                                                       self._cursor_selected[1]))
+                                                          self._cursor_selected[1]))
             self._try_connect(self._cursor_selected[0], self._cursor_selected[1])
         elif self._connect_step > 0:
             self._connect_step = 0
@@ -1840,10 +1840,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         try:
             self.sim.forward()
 
-            if a is None and self.sim.data.ctrl is not None:
-                self.sim.data.ctrl[:] = 0
-            elif self.sim.data.ctrl is not None:
-                self.sim.data.ctrl[:] = a
+            if self.sim.data.ctrl is not None:
+                self.sim.data.ctrl[:] = 0 if a is None else a
 
             if self._agent_type == 'Cursor':
                 # gravity compensation
@@ -1998,6 +1996,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
                 return self.sim.model.geom_size[geom_idx, :].copy()
+        raise ValueError
 
     def _set_size(self, name, size):
         """
@@ -2007,6 +2006,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
                 self.sim.model.geom_size[geom_idx, :] = size
+                return
+        raise ValueError
 
     def _get_geom_type(self, name):
         """
@@ -2028,14 +2029,14 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _get_qpos(self, name):
         """
-        Get the qpos of a geometry
+        Get the qpos of a joint
         """
         object_qpos = self.sim.data.get_joint_qpos(name)
         return object_qpos.copy()
 
     def _set_qpos(self, name, pos, rot=[1, 0, 0, 0]):
         """
-        Set the qpos of a geom
+        Set the qpos of a joint
         """
         object_qpos = self.sim.data.get_joint_qpos(name)
         assert object_qpos.shape == (7,)
