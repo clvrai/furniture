@@ -1041,8 +1041,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         for i, body in enumerate(self._object_names):
             rotate = self._rng.randint(0, 10, size=3)
             quat_init.append(list(T.euler_to_quat(rotate)))
-        pos_init = [[-0.3, -0.13, 0.05], [0.3, -0.13, 0.05]]
-        quat_init = [[1, 0, 0, 0], [1,0,0,0]]
         return pos_init, quat_init
 
     def _reset(self, furniture_id=None, background=None):

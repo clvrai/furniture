@@ -33,7 +33,7 @@ class TwoFingerGripperBase(Gripper):
 
     @property
     def visualization_sites(self):
-        return ["grip_site", "conn_grip_site_cylinder"]
+        return ["grip_site", "grip_site_cylinder"]
 
     def contact_geoms(self):
         return [
@@ -98,7 +98,7 @@ class LeftTwoFingerGripperBase(Gripper):
 
     @property
     def visualization_sites(self):
-        return ["l_g_grip_site", "conn_l_g_grip_site_cylinder"]
+        return ["l_g_grip_site", "l_g_grip_site_cylinder"]
 
     def contact_geoms(self):
         return [
