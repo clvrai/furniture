@@ -73,6 +73,10 @@ def add_argument(parser):
                         help='MuJoCo camera id')
     parser.add_argument('--render', type=str2bool, default=False,
                         help='whether to render camera')
+    
+    # vr
+    parser.add_argument('--wrist_only', type=str2bool, default=False,
+                        help='fix rotation to robot wrist')
 
     # debug
     parser.add_argument('--render_agent', type=str2bool, default=True,

@@ -1643,7 +1643,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             # remap xyz rotation
             # wrist rotation is 3
             d_p1[3] = d_p1[4]
-            d_p1[[4,5]] = 0
+            if config.wrist_only:
+                d_p1[[4,5]] = 0
             origin_1 = p1
 
             if self._agent_type == 'Baxter':
@@ -1657,7 +1658,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 d_p2[1] = -d_p2[1]
                 # remap xyz rotation
                 d_p2[3] = d_p2[4]
-                d_p2[[4,5]] = 0
+                if config.wrist_only:
+                    d_p2[[4,5]] = 0
                 origin_2 = p2
 
             
@@ -1706,11 +1708,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             ob, reward, done, info = self.step(action)
             if config.debug:
                 print('\rAction: ' + str(action[:6]), end='')
-                # txt = "Action: "
-                # for each in action[:6]:
-                #     txt += "%.4f" % each
-                #     txt += " "
-                # print("\r" + txt, end="")
             t += 1
 
 
