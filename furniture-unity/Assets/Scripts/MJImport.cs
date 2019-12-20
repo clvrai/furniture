@@ -865,6 +865,7 @@ public class MJImport : MonoBehaviour
 
         // add camera to root
         AddCamera();
+        // TODO: turn on AddCameras if you want multiple cameras
         //AddCameras(size.ncamera);
 
         // import renderable objects under root

@@ -73,7 +73,7 @@ class UnityInterface(object):
                      f" No. of camera: {self._remote.ncamera}" +
                      f" Size of image w = {self._remote.width} h ={self._remote.height}")
 
-    def get_image(self, render_depth=False):
+    def _get_image(self, render_depth=False):
         """
         Gets a rendered image from Unity.
 
@@ -90,6 +90,29 @@ class UnityInterface(object):
         else:
             depth = None
         return img, depth
+
+    def get_image(self, n_camera=1, render_depth=False):
+        """
+        Gets multiple rendered image from Unity.
+
+        Args:
+            n_camera: number of cameras to include
+            render_depth: returns depth image if True
+        """
+        if n_camera == 1:
+            return self._get_image(render_depth)
+
+        b_img = bytearray(n_camera * 3 * self._remote.height*self._remote.width)
+        self._remote.getimages(b_img, n_camera)
+        img = np.reshape(b_img, (n_camera, self._remote.height, self._remote.width, 3))
+        if render_depth:
+            b_img = bytearray(3*self._remote.height*self._remote.width)
+            self._remote.getdepthimage(b_img)
+            depth = np.reshape(b_img, (self._remote.height, self._remote.width, 3))
+        else:
+            depth = None
+        return img, depth
+
 
     def get_segmentation(self):
         """

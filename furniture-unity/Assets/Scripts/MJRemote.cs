@@ -512,9 +512,11 @@ public class MJRemote : MonoBehaviour
         stream.Write(data, 0, size);
     }
 
-    public void writeColorImages(NetworkStream stream, int ncamera)
+    public void writeColorImages(NetworkStream stream)
     {
-        for (int i = -1; i < ncamera; i++) {
+        ReadAll(stream, 4);
+        ncamera = BitConverter.ToInt32(buffer, 0);
+        for (int i = 0; i < ncamera; i++) {
             Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
             Texture2D tex = off_render.RenderColor(c);
             byte[] data = tex.GetRawTextureData();

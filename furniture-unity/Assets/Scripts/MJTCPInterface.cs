@@ -67,6 +67,9 @@ public class MJTCPInterface : MonoBehaviour
         SetBackground = 16,
         SetGraphicsQuality = 17,
         SetCameraPose = 18,
+        GetImages = 19,
+        GetSegmentationImages = 20,
+        GetDepthImages = 21,
     }
 
     public string tcpAddress = "0.0.0.0";
@@ -195,6 +198,10 @@ public class MJTCPInterface : MonoBehaviour
                 // GetImage: send 3*width*height bytes
                 case Command.GetImage:
                     ext.writeColorImage(stream);
+                    break;
+
+                case Command.GetImages:
+                    ext.writeColorImages(stream);
                     break;
 
                 case Command.GetSegmentationImage:

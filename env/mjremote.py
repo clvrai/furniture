@@ -87,6 +87,13 @@ class mjremote:
         self._s.sendall(struct.pack("i", 2))
         self._recvall(buffer)
 
+    def getimages(self, buffer, n_camera):
+        if not self._s:
+            return 'Not connected'
+        self._s.sendall(struct.pack("i", 19))
+        self._s.sendall(struct.pack("i", n_camera))
+        self._recvall(buffer)
+
     def getsegmentationimage(self, buffer):
         if not self._s:
             return 'Not connected'
