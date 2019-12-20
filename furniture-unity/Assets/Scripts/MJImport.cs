@@ -146,6 +146,51 @@ public class MJImport : MonoBehaviour
         cam.transform.localPosition = new Vector3(-transform.position[0], transform.position[2], -transform.position[1]);
         cam.transform.localRotation = q;
     }
+    // add multiple camera
+    private unsafe void AddCameras(int ncamera) {
+        if (enable_rendering == false)
+        {
+            Destroy(GameObject.Find("PreviewCamera"));
+        }
+        else
+        {
+            Destroy(GameObject.Find("DummyCamera"));
+        }
+        for (int i = -1; i < ncamera; i++) {
+            // add camera under root
+            GameObject camobj = new GameObject("camera" + i);
+            camobj.layer = LayerMask.NameToLayer("PostProcessing");
+
+            camobj.transform.parent = root.transform;
+            Camera thecamera = camobj.AddComponent<Camera>();
+
+            // For Furniture Assembly Environment: remove SITE from the culling mask
+            thecamera.cullingMask = 1 + (1 << 1) + (1 << 2) + (1 << 4) + (1 << 8);
+            thecamera.backgroundColor = new Color(1f, 1f, 1f);
+            thecamera.clearFlags = CameraClearFlags.SolidColor;
+
+            Shader segshader = Shader.Find("Unlit/SegmentationColor");
+            SegmentationShader shadersub = camobj.AddComponent<SegmentationShader>();
+
+            DepthShader shaderdepth = camobj.AddComponent<DepthShader>();
+
+            // set field of view, near, far
+            MJP.TCamera cam;
+            MJP.GetCamera(i, &cam);
+            thecamera.fieldOfView = cam.fov;
+
+            // For Furniture Assembly Environment: set znear and zfar independent to model extent.
+            thecamera.nearClipPlane = 0.01f;
+            thecamera.farClipPlane = 10f;
+
+            //thecamera.enabled = false;
+            //camobj.SetActive(false);
+            // set transform
+            MJP.TTransform transform;
+            MJP.GetCameraState(i, &transform);
+            SetCamera(thecamera, transform);
+        }
+    }
 
     // add camera
     private unsafe void AddCamera()
@@ -781,10 +826,9 @@ public class MJImport : MonoBehaviour
             QualitySettings.vSyncCount = 1;
 
         // disable active cameras
-       /* Camera[] activecam = FindObjectsOfType<Camera>();
-        foreach( Camera ac in activecam )
-            ac.gameObject.SetActive(false);
-            */
+        //Camera[] activecam = FindObjectsOfType<Camera>();
+        //foreach( Camera ac in activecam )
+        //    ac.gameObject.SetActive(false);
 
         fileName = Path.GetFileName(modelFile);
 
@@ -821,6 +865,7 @@ public class MJImport : MonoBehaviour
 
         // add camera to root
         AddCamera();
+        //AddCameras(size.ncamera);
 
         // import renderable objects under root
         ImportObjects(size.nobject);

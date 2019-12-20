@@ -512,6 +512,17 @@ public class MJRemote : MonoBehaviour
         stream.Write(data, 0, size);
     }
 
+    public void writeColorImages(NetworkStream stream, int ncamera)
+    {
+        for (int i = -1; i < ncamera; i++) {
+            Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
+            Texture2D tex = off_render.RenderColor(c);
+            byte[] data = tex.GetRawTextureData();
+            int size = off_render.GetColorBufferSize();
+            stream.Write(data, 0, size);
+        }
+    }
+
     internal void writeDepthImage(NetworkStream stream)
     {
         Texture2D tex = off_render.ReadDepth(thecamera);
