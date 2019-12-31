@@ -10,7 +10,7 @@ class Sawyer(Robot):
         path = "robots/sawyer/robot.xml"
         if use_torque:
             path = "robots/sawyer/robot_torque.xml"
-        
+
         super().__init__(xml_path_completion(path))
 
         self.bottom_offset = np.array([0, 0, -0.913])

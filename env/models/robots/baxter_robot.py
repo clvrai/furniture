@@ -6,8 +6,12 @@ from env.mjcf_utils import xml_path_completion, array_to_string
 class Baxter(Robot):
     """Baxter is a hunky bimanual robot designed by Rethink Robotics."""
 
-    def __init__(self):
-        super().__init__(xml_path_completion("robots/baxter/robot.xml"))
+    def __init__(self, use_torque=False):
+        path = "robots/baxter/robot.xml"
+        if use_torque:
+            path = "robots/baxter/robot_torque.xml"
+
+        super().__init__(xml_path_completion(path))
 
         self.bottom_offset = np.array([0, 0, -0.913])
         self.left_hand = self.worldbody.find(".//body[@name='left_hand']")
