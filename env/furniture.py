@@ -586,7 +586,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         connect = a[14]
         if connect > 0 and self._cursor_selected[0] and self._cursor_selected[1]:
             logger.debug('try connect ({} and {})'.format(self._cursor_selected[0],
-                                                       self._cursor_selected[1]))
+                                                          self._cursor_selected[1]))
             self._try_connect(self._cursor_selected[0], self._cursor_selected[1])
         elif self._connect_step > 0:
             self._connect_step = 0
@@ -598,8 +598,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         self._connected_sites.add(site1_id)
         self._connected_sites.add(site2_id)
-        self.site1 = site1_id
-        self.site2 = site2_id
+        self._site1_id = site1_id
+        self._site2_id = site2_id
         site1 = self.sim.model.site_names[site1_id]
         site2 = self.sim.model.site_names[site2_id]
 
@@ -643,9 +643,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._stop_objects()
         self.sim.forward()
         self.sim.step()
-
-        self._set_qpos0(body1, self._get_qpos(body1))
-        self._set_qpos0(body2, self._get_qpos(body2))
 
         self._activate_weld(body1, body2)
 
@@ -835,7 +832,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _move_objects_translation_quat(self, obj, translation, target_quat, gravity=1):
         """
-        Moves object with translation and target quaternion
+        Moves objects with translation and target quaternion
         """
         obj_id = self._object_name2id[obj]
         qpos_base = self._get_qpos(obj)
@@ -859,13 +856,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         Move target site towards target quaternion / position
         """
         qpos_base = self._site_xpos_xquat(site)
-        translation = target_qpos[:3] - qpos_base[:3]
         target_quat = target_qpos[3:]
 
         site_id = self.sim.model.site_name2id(site)
         body_id = self.sim.model.site_bodyid[site_id]
         body_name = self.sim.model.body_names[body_id]
-        new_pos, new_quat = T.transform_to_target_quat(qpos_base, self._get_qpos(body_name), target_quat)
+        body_qpos = self._get_qpos(body_name)
+        new_pos, new_quat = T.transform_to_target_quat(qpos_base, body_qpos, target_quat)
+        new_site_pos, new_site_quat = T.transform_to_target_quat(body_qpos, qpos_base, new_quat)
+        translation = target_qpos[:3] - new_site_pos
         self._move_objects_translation_quat(body_name, translation, new_quat, gravity)
 
     def _bounded_d_pos(self, d_pos, pos):
@@ -1062,6 +1061,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             else:
                 self._furniture_id = furniture_id
             self._reset_internal()
+
+        # reset simulation data and clear buffers
+        self.sim.reset()
 
         # store robot's condim and contype
         robot_col = {}
@@ -1910,6 +1912,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             p1 = self.sim.model.body_id2name(id1)
             p2 = self.sim.model.body_id2name(id2)
             if p1 in [part1, part2] and p2 in [part1, part2]:
+                # setup eq_data
+                self.sim.model.eq_data[i] = T.rel_pose(self._get_qpos(p1), self._get_qpos(p2))
                 self.sim.model.eq_active[i] = 1
                 self._merge_groups(part1, part2)
 
@@ -1966,10 +1970,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         try:
             self.sim.forward()
 
-            if a is None and self.sim.data.ctrl is not None:
-                self.sim.data.ctrl[:] = 0
-            elif self.sim.data.ctrl is not None:
-                self.sim.data.ctrl[:] = a
+            if self.sim.data.ctrl is not None:
+                self.sim.data.ctrl[:] = 0 if a is None else a
 
             if self._agent_type == 'Cursor':
                 # gravity compensation
@@ -2124,6 +2126,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
                 return self.sim.model.geom_size[geom_idx, :].copy()
+        raise ValueError
 
     def _set_size(self, name, size):
         """
@@ -2133,6 +2136,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         for geom_idx, body_idx2 in enumerate(self.sim.model.geom_bodyid):
             if body_idx1 == body_idx2:
                 self.sim.model.geom_size[geom_idx, :] = size
+                return
+        raise ValueError
 
     def _get_geom_type(self, name):
         """
@@ -2154,14 +2159,14 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _get_qpos(self, name):
         """
-        Get the qpos of a geometry
+        Get the qpos of a joint
         """
         object_qpos = self.sim.data.get_joint_qpos(name)
         return object_qpos.copy()
 
     def _set_qpos(self, name, pos, rot=[1, 0, 0, 0]):
         """
-        Set the qpos of a geom
+        Set the qpos of a joint
         """
         object_qpos = self.sim.data.get_joint_qpos(name)
         assert object_qpos.shape == (7,)

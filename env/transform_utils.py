@@ -589,6 +589,14 @@ def euler_to_quat(rotation, quat=None):
     return final_quat
 
 
+def rel_pose(qpos1, qpos2):
+    """ Returns relative pose of @qpos2 w.r.t @qpos1 """
+    rel_quat = Quaternion(qpos2[3:]) * Quaternion(qpos1[3:]).inverse
+    rel_pos = qpos2[:3] - qpos1[:3]
+    rel_pos = Quaternion(qpos1[3:]).inverse.rotate(rel_pos)
+    return np.concatenate([rel_pos, list(rel_quat)])
+
+
 def transform_to_target_quat(qpos_base, qpos, target_quat):
     """
     Returns new position and rotation of @qpos when rotate @qpos_base to @target_quat
