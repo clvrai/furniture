@@ -1993,10 +1993,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self._stop_object(obj_name, gravity=0)
 
             self.sim.forward()
-            end_time = self._cur_time + self._control_timestep
-            while self._cur_time < end_time:
+            for i in range(int(self._control_timestep / self._model_timestep)):
                 self.sim.step()
                 self._cur_time += self._model_timestep
+
+            self._cur_time += self._control_timestep
 
             if self._agent_type == 'Cursor':
                 # gravity compensation
