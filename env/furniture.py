@@ -248,8 +248,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._step_continuous(a)
 
         elif self._control_type == 'torque':
-            raise NotImplementedError
-            self._do_simulation(a)
+            self._step_continuous(a)
 
         elif self._control_type == 'impedance':
             a = self._setup_action(a)
@@ -947,6 +946,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                         low_action = np.concatenate([velocities, action[14:]])
                     ctrl = self._setup_action(low_action)
 
+        elif self._control_type == 'torque':
+            self._do_simulation(action)
+
+
         if connect > 0:
             num_hands = 2 if self._agent_type == 'Baxter' else 1
             for i in range(num_hands):
@@ -1334,15 +1337,18 @@ class FurnitureEnv(metaclass=EnvMeta):
                     bullet_data_path=os.path.join(env.models.assets_root, "bullet_data"),
                     robot_jpos_getter=self._robot_jpos_getter,
                 )
+        elif self._control_type == 'torque':
+            pass
 
     def _load_model_robot(self):
         """
         Loads sawyer, baxter, or cursor
         """
+        use_torque = self._control_type == 'torque'
         if self._agent_type == 'Sawyer':
             from env.models.robots import Sawyer
             from env.models.grippers import gripper_factory
-            self.mujoco_robot = Sawyer()
+            self.mujoco_robot = Sawyer(use_torque=use_torque)
             self.gripper = gripper_factory("TwoFingerGripper")
             self.gripper.hide_visualization()
             self.mujoco_robot.add_gripper("right_hand", self.gripper)
@@ -1352,7 +1358,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif self._agent_type == 'Baxter':
             from env.models.robots import Baxter
             from env.models.grippers import gripper_factory
-            self.mujoco_robot = Baxter()
+            self.mujoco_robot = Baxter(use_torque=use_torque)
             self.gripper_right = gripper_factory("TwoFingerGripper")
             self.gripper_left = gripper_factory("LeftTwoFingerGripper")
             self.gripper_right.hide_visualization()
@@ -1580,7 +1586,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             img = self.render('rgb_array')
             vr.add(img)
         vr.save_video('demo.mp4')
-    
+
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
         if controller not in self.vr.devices:
@@ -1592,7 +1598,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             print("Lost track of pose ", controller)
             return None, None
         return np.asarray(pose), state
-    
+
     def run_vr(self, config):
         """
         Runs the environment with HTC Vive support
@@ -1662,7 +1668,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     d_p2[[4,5]] = 0
                 origin_2 = p2
 
-            
+
             if config.render:
                 self.render()
 
@@ -1678,7 +1684,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     flag[cursor_idx] = 1
                 else:
                     flag[cursor_idx] = -1
-                
+
                 # connect
                 if s['trackpad_pressed'] != 0:
                     action[7] = 1
@@ -1690,7 +1696,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self.reset(config.furniture_id, config.background)
                     reset = True
                     break
-            
+
             if reset:
                 continue
 
