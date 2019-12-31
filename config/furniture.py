@@ -23,7 +23,7 @@ def add_argument(parser):
 
     # mujoco simulation
     parser.add_argument('--control_type', type=str, default='ik',
-                        choices=['ik', 'impedance'],
+                        choices=['ik', 'impedance', 'torque'],
                         help='control type of agent')
     parser.add_argument('--control_freq', type=int, default=10,
                         help='frequency of physic solver steps')

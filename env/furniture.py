@@ -248,8 +248,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._step_continuous(a)
 
         elif self._control_type == 'torque':
-            raise NotImplementedError
-            self._do_simulation(a)
+            self._step_continuous(a)
 
         elif self._control_type == 'impedance':
             a = self._setup_action(a)
@@ -948,6 +947,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                         low_action = np.concatenate([velocities, action[14:]])
                     ctrl = self._setup_action(low_action)
 
+        elif self._control_type == 'torque':
+            self._do_simulation(action)
+
+
         if connect > 0:
             num_hands = 2 if self._agent_type == 'Baxter' else 1
             for i in range(num_hands):
@@ -1340,7 +1343,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._agent_type == 'Sawyer':
             from env.models.robots import Sawyer
             from env.models.grippers import gripper_factory
-            self.mujoco_robot = Sawyer()
+            self.mujoco_robot = Sawyer(self._control_type == 'torque')
             self.gripper = gripper_factory("TwoFingerGripper")
             self.gripper.hide_visualization()
             self.mujoco_robot.add_gripper("right_hand", self.gripper)
