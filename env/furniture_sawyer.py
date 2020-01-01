@@ -8,6 +8,7 @@ from env.furniture import FurnitureEnv
 import env.transform_utils as T
 from util.logger import logger
 
+
 class FurnitureSawyerEnv(FurnitureEnv):
     """
     Sawyer environment.

@@ -44,6 +44,23 @@ class Robot(MujocoXML):
         self.merge(gripper, merge_body=False)
         self.grippers[arm_name] = gripper
 
+    def is_robot_part(self, geom_name):
+        """
+        Checks if @geom_name is part of robot.
+        """
+        is_robot_geom = False
+
+        # check geoms of robot.
+        if geom_name in self.contact_geoms:
+            is_robot_geom = True
+
+        # check geoms of grippers.
+        for gripper in self.grippers.values():
+            if geom_name in gripper.contact_geoms:
+                is_robot_geom = True
+
+        return is_robot_geom
+
     @property
     def dof(self):
         """Returns the number of DOF of the robot, not including gripper."""

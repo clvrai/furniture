@@ -439,6 +439,9 @@ public class MJImport : MonoBehaviour
             if (objects[i].name.StartsWith("noviz", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
             }
+            if (objects[i].name.EndsWith("collision", StringComparison.Ordinal)) {
+                objects[i].layer = 10;
+            }
             if (objects[i].name.StartsWith("floor", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
             }
