@@ -1,0 +1,218 @@
+<mujoco model="bookcase_grevback_0484">
+  <asset>
+    <mesh file="0.stl" name="part0" scale="1 1 1" />
+    <mesh file="9.stl" name="part9" scale="1 1 1" />
+    <mesh file="8.stl" name="part8" scale="1 1 1" />
+    <mesh file="7.stl" name="part7" scale="1 1 1" />
+    <mesh file="6.stl" name="part6" scale="1 1 1" />
+    <mesh file="5.stl" name="part5" scale="1 1 1" />
+    <mesh file="4.stl" name="part4" scale="1 1 1" />
+    <mesh file="3.stl" name="part3" scale="1 1 1" />
+    <mesh file="2.stl" name="part2" scale="1 1 1" />
+    <mesh file="13.stl" name="part13" scale="1 1 1" />
+    <mesh file="12.stl" name="part12" scale="1 1 1" />
+    <mesh file="11.stl" name="part11" scale="1 1 1" />
+    <mesh file="10.stl" name="part10" scale="1 1 1" />
+    <mesh file="1.stl" name="part1" scale="1 1 1" />
+  </asset>
+  <equality>
+    </equality>
+  <worldbody>
+    <body name="0_part0" pos="-0.0 0.0 2e-07" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part0" name="0_part0_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="0_part0_horizontal_radius_site" pos="-0.0 0.0 2e-07" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="0_part0_top_site" pos="0.0 0.0 12.7000198" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="0_part0_bottom_site" pos="0.0 0.0 -12.7000195" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="0_part0_corner_site8" pos="-400.685 835.0250244 12.7000198" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site7" pos="400.685 835.0250244 12.7000198" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site6" pos="400.685 -835.0250244 12.7000198" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site5" pos="-400.685 -835.0250244 12.7000198" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site4" pos="-400.685 835.0250244 -12.7000195" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site3" pos="400.685 835.0250244 -12.7000195" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site2" pos="400.685 -835.0250244 -12.7000195" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="0_part0_corner_site1" pos="-400.685 -835.0250244 -12.7000195" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="13_part9" pos="-418.465 -815.9750244 645.1599805" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part9" name="13_part9_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="13_part9_horizontal_radius_site" pos="0.0 1.5e-06 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="13_part9_top_site" pos="0.0 1.5e-06 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="13_part9_bottom_site" pos="0.0 1.5e-06 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="13_part9_corner_site8" pos="-12.7 69.8500015 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site7" pos="12.7 69.8500015 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site6" pos="12.7 -69.8499985 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site5" pos="-12.7 -69.8499985 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site4" pos="-12.7 69.8500015 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site3" pos="12.7 69.8500015 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site2" pos="12.7 -69.8499985 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="13_part9_corner_site1" pos="-12.7 -69.8499985 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="12_part8" pos="10.16 -847.7250252 645.1599805" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part8" name="12_part8_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="12_part8_horizontal_radius_site" pos="2e-07 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="12_part8_top_site" pos="2e-07 0.0 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="12_part8_bottom_site" pos="2e-07 0.0 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="12_part8_corner_site8" pos="-415.9249998 12.7000008 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site7" pos="415.9250002 12.7000008 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site6" pos="415.9250002 -12.7000008 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site5" pos="-415.9249998 -12.7000008 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site4" pos="-415.9249998 12.7000008 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site3" pos="415.9250002 12.7000008 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site2" pos="415.9250002 -12.7000008 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="12_part8_corner_site1" pos="-415.9249998 -12.7000008 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="11_part7" pos="10.16 847.7249756 645.1599805" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part7" name="11_part7_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="11_part7_horizontal_radius_site" pos="2e-07 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="11_part7_top_site" pos="2e-07 0.0 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="11_part7_bottom_site" pos="2e-07 0.0 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="11_part7_corner_site8" pos="-415.9249998 12.7 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site7" pos="415.9250002 12.7 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site6" pos="415.9250002 -12.7 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site5" pos="-415.9249998 -12.7 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site4" pos="-415.9249998 12.7 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site3" pos="415.9250002 12.7 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site2" pos="415.9250002 -12.7 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="11_part7_corner_site1" pos="-415.9249998 -12.7 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="10_part6" pos="-2.5400031 0.0 -485.1400195" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part6" name="10_part6_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="10_part6_horizontal_radius_site" pos="-3e-06 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="10_part6_top_site" pos="-2.9e-06 0.0 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="10_part6_bottom_site" pos="-2.9e-06 0.0 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="10_part6_corner_site8" pos="-403.2250061 835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site7" pos="403.2250002 835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site6" pos="403.2250002 -835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site5" pos="-403.2250061 -835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site4" pos="-403.2250061 835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site3" pos="403.2250002 835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site2" pos="403.2250002 -835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="10_part6_corner_site1" pos="-403.2250061 -835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="9_part5" pos="-403.2249995 -418.147522 721.3599774" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part5" name="9_part5_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="9_part5_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="9_part5_top_site" pos="0.0 0.0 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="9_part5_bottom_site" pos="0.0 0.0 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="9_part5_corner_site8" pos="-2.5400009 416.8775024 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site7" pos="2.5400009 416.8775024 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site6" pos="2.5400009 -416.8775024 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site5" pos="-2.5400009 -416.8775024 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site4" pos="-2.5400009 416.8775024 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site3" pos="2.5400009 416.8775024 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site2" pos="2.5400009 -416.8775024 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="9_part5_corner_site1" pos="-2.5400009 -416.8775024 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="8_part4" pos="-403.2249995 418.1474915 721.3599774" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part4" name="8_part4_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="8_part4_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="8_part4_top_site" pos="0.0 0.0 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="8_part4_bottom_site" pos="0.0 0.0 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="8_part4_corner_site8" pos="-2.5400009 416.877533 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site7" pos="2.5400009 416.877533 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site6" pos="2.5400009 -416.877533 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site5" pos="-2.5400009 -416.877533 1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site4" pos="-2.5400009 416.877533 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site3" pos="2.5400009 416.877533 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site2" pos="2.5400009 -416.877533 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="8_part4_corner_site1" pos="-2.5400009 -416.877533 -1193.8000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="7_part3" pos="-0.0 0.0 1417.3200344" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part3" name="7_part3_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="7_part3_horizontal_radius_site" pos="-0.0 0.0 2e-07" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="7_part3_top_site" pos="0.0 0.0 12.7000542" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="7_part3_bottom_site" pos="0.0 0.0 -12.7000537" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="7_part3_corner_site8" pos="-400.685 835.0250244 12.7000542" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site7" pos="400.685 835.0250244 12.7000542" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site6" pos="400.685 -835.0250244 12.7000542" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site5" pos="-400.685 -835.0250244 12.7000542" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site4" pos="-400.685 835.0250244 -12.7000537" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site3" pos="400.685 835.0250244 -12.7000537" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site2" pos="400.685 -835.0250244 -12.7000537" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="7_part3_corner_site1" pos="-400.685 -835.0250244 -12.7000537" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="6_part2" pos="-0.0 0.0 944.8799805" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part2" name="6_part2_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="6_part2_horizontal_radius_site" pos="-0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="6_part2_top_site" pos="0.0 0.0 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="6_part2_bottom_site" pos="0.0 0.0 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="6_part2_corner_site8" pos="-400.685 835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site7" pos="400.685 835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site6" pos="400.685 -835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site5" pos="-400.685 -835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site4" pos="-400.685 835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site3" pos="400.685 835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site2" pos="400.685 -835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="6_part2_corner_site1" pos="-400.685 -835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="5_part13" pos="48.2599878 -12.7000122 1927.8600537" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part13" name="5_part13_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="5_part13_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="5_part13_top_site" pos="0.0 0.0 38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="5_part13_bottom_site" pos="0.0 0.0 -38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="5_part13_corner_site8" pos="-479.4249878 949.3250122 38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site7" pos="479.4249878 949.3250122 38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site6" pos="479.4249878 -949.3250122 38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site5" pos="-479.4249878 -949.3250122 38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site4" pos="-479.4249878 949.3250122 -38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site3" pos="479.4249878 949.3250122 -38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site2" pos="479.4249878 -949.3250122 -38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="5_part13_corner_site1" pos="-479.4249878 -949.3250122 -38.0999756" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="4_part12" pos="438.7850122 -815.9750244 632.4600293" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part12" name="4_part12_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="4_part12_horizontal_radius_site" pos="0.0 1.5e-06 -0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="4_part12_top_site" pos="0.0 1.5e-06 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="4_part12_bottom_site" pos="0.0 1.5e-06 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="4_part12_corner_site8" pos="-12.7000122 69.8500015 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site7" pos="12.7000122 69.8500015 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site6" pos="12.7000122 -69.8499985 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site5" pos="-12.7000122 -69.8499985 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site4" pos="-12.7000122 69.8500015 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site3" pos="12.7000122 69.8500015 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site2" pos="12.7000122 -69.8499985 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="4_part12_corner_site1" pos="-12.7000122 -69.8499985 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="3_part11" pos="438.7850122 815.9749756 632.4600293" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part11" name="3_part11_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="3_part11_horizontal_radius_site" pos="0.0 0.0 -0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="3_part11_top_site" pos="0.0 0.0 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="3_part11_bottom_site" pos="0.0 0.0 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="3_part11_corner_site8" pos="-12.7000122 69.85 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site7" pos="12.7000122 69.85 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site6" pos="12.7000122 -69.85 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site5" pos="-12.7000122 -69.85 1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site4" pos="-12.7000122 69.85 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site3" pos="12.7000122 69.85 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site2" pos="12.7000122 -69.85 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="3_part11_corner_site1" pos="-12.7000122 -69.85 -1257.3000488" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="2_part10" pos="-418.465 815.9749756 645.1599805" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part10" name="2_part10_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="2_part10_horizontal_radius_site" pos="0.0 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="2_part10_top_site" pos="0.0 0.0 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="2_part10_bottom_site" pos="0.0 0.0 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="2_part10_corner_site8" pos="-12.7 69.85 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site7" pos="12.7 69.85 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site6" pos="12.7 -69.85 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site5" pos="-12.7 -69.85 1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site4" pos="-12.7 69.85 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site3" pos="12.7 69.85 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site2" pos="12.7 -69.85 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="2_part10_corner_site1" pos="-12.7 -69.85 -1270.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+    <body name="1_part1" pos="-0.0 0.0 472.4399805" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part1" name="1_part1_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="1_part1_horizontal_radius_site" pos="-0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="1_part1_top_site" pos="0.0 0.0 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="1_part1_bottom_site" pos="0.0 0.0 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="1" />
+      <site name="1_part1_corner_site8" pos="-400.685 835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site7" pos="400.685 835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site6" pos="400.685 -835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site5" pos="-400.685 -835.0250244 12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site4" pos="-400.685 835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site3" pos="400.685 835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site2" pos="400.685 -835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+      <site name="1_part1_corner_site1" pos="-400.685 -835.0250244 -12.7" quat="1 0 0 0" rgba="0 0 1 0.3" size="20" />
+    </body>
+  </worldbody>
+</mujoco>

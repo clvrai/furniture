@@ -5,7 +5,7 @@ import argparse
 def str2bool(v):
     return v.lower() == 'true'
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='../models/assets/objects/table_klubbo_0743.xml')
+parser.add_argument('--path', type=str, default='../models/assets/objects/in_progress/complete/bench_bjoderna_0208.xml')
 parser.add_argument('--mult', type=float, default=1)
 config, unparsed = parser.parse_known_args()
 
