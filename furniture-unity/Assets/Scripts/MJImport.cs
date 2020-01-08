@@ -183,7 +183,7 @@ public class MJImport : MonoBehaviour
             thecamera.nearClipPlane = 0.01f;
             thecamera.farClipPlane = 10f;
 
-            //thecamera.enabled = false;
+            thecamera.enabled = false;
             //camobj.SetActive(false);
             // set transform
             MJP.TTransform transform;
@@ -864,9 +864,8 @@ public class MJImport : MonoBehaviour
         root.transform.localScale = transform.localScale;
 
         // add camera to root
-        AddCamera();
-        // TODO: turn on AddCameras if you want multiple cameras
-        //AddCameras(size.ncamera);
+        print("number of cameras at startup:" + size.ncamera);
+        AddCameras(size.ncamera);
 
         // import renderable objects under root
         ImportObjects(size.nobject);

@@ -208,6 +208,10 @@ public class MJTCPInterface : MonoBehaviour
                     ext.writeSegmentationImage(stream);
                     break;
 
+                case Command.GetSegmentationImages:
+                    ext.writeSegmentationImages(stream);
+                    break;
+
                 // SaveSnapshot: no data exchange
                 case Command.SaveSnapshot:
                     ext.writeSnapshot();
@@ -232,8 +236,8 @@ public class MJTCPInterface : MonoBehaviour
                 // SetMocap: receive mocap_pos and mocap_quat vectors
                 case Command.SetMocap:
                     ext.setMocap(stream);
-
                     break;
+
                 case Command.ChangeWorld:
                     ReadAll(stream, 4);
                     int strlen = BitConverter.ToInt32(buffer, 0);
@@ -258,6 +262,10 @@ public class MJTCPInterface : MonoBehaviour
 
                 case Command.GetDepthImage:
                     ext.writeDepthImage(stream);
+                    break;
+
+                case Command.GetDepthImages:
+                    ext.writeDepthImages(stream);
                     break;
 
                 // For Furniture Assembly Environment

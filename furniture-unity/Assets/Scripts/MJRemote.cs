@@ -66,7 +66,6 @@ public class MJRemote : MonoBehaviour
     float[] camfov;
 
     int camindex = -1;
-
     byte[] buffer;
     int buffersize = 0;
 
@@ -167,7 +166,6 @@ public class MJRemote : MonoBehaviour
             thecamera = root.transform.GetChild(i).gameObject.GetComponent<Camera>();
             if (thecamera != null)
             {
-                // thecamera.enabled = false;
                 break;
             }
         }
@@ -512,20 +510,51 @@ public class MJRemote : MonoBehaviour
         stream.Write(data, 0, size);
     }
 
-    public void writeColorImages(NetworkStream stream)
+    // receive list of camera indices to render
+    public unsafe void writeColorImages(NetworkStream stream)
     {
         ReadAll(stream, 4);
-        ncamera = BitConverter.ToInt32(buffer, 0);
-        for (int i = 0; i < ncamera; i++) {
-            Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
-            Texture2D tex = off_render.RenderColor(c);
-            byte[] data = tex.GetRawTextureData();
-            int size = off_render.GetColorBufferSize();
-            stream.Write(data, 0, size);
+        int length = BitConverter.ToInt32(buffer,0);
+        ReadAll(stream, 4 * length);
+        fixed (byte* temp = buffer)
+        {
+            int* arr = (int*) temp;
+            for (int i = 0; i < length; i++) {
+                int camid = arr[i];
+                Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
+                c.enabled = true;
+                Texture2D tex = off_render.RenderColor(c);
+                byte[] data = tex.GetRawTextureData();
+                int size = off_render.GetColorBufferSize();
+                stream.Write(data, 0, size);
+                c.enabled = camindex == i;
+
+            }
         }
     }
 
-    internal void writeDepthImage(NetworkStream stream)
+    public unsafe void writeDepthImages(NetworkStream stream)
+    {
+        ReadAll(stream, 4);
+        int length = BitConverter.ToInt32(buffer,0);
+        ReadAll(stream, 4 * length);
+        fixed (byte* temp = buffer)
+        {
+            int* arr = (int*) temp;
+            for (int i = 0; i < length; i++) {
+                int camid = arr[i];
+                Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
+                c.enabled = true;
+                Texture2D tex = off_render.ReadDepth(c);
+                byte[] data = tex.GetRawTextureData();
+                int size = off_render.GetColorBufferSize();
+                stream.Write(data, 0, size);
+                c.enabled = camindex == i;
+            }
+        }
+    }
+
+    public void writeDepthImage(NetworkStream stream)
     {
         Texture2D tex = off_render.ReadDepth(thecamera);
         byte[] data = tex.GetRawTextureData();
@@ -536,6 +565,24 @@ public class MJRemote : MonoBehaviour
     public void writeSegmentationImage(NetworkStream stream)
     {
         stream.Write(off_render.RenderSegmentation(thecamera).GetRawTextureData(), 0, off_render.GetSegmentationBufferSize());
+    }
+
+    public unsafe void writeSegmentationImages(NetworkStream stream)
+    {
+        ReadAll(stream, 4);
+        int length = BitConverter.ToInt32(buffer,0);
+        ReadAll(stream, 4 * length);
+        fixed (byte* temp = buffer)
+        {
+            int* arr = (int*) temp;
+            for (int i = 0; i < length; i++) {
+                int camid = arr[i];
+                Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
+                c.enabled = true;
+                stream.Write(off_render.RenderSegmentation(c).GetRawTextureData(), 0, off_render.GetSegmentationBufferSize());
+                c.enabled = camindex == i;
+            }
+        }
     }
 
     public void writeSnapshot()
@@ -555,11 +602,17 @@ public class MJRemote : MonoBehaviour
         videofile.Write(off_render.RenderColor(thecamera).GetRawTextureData(), 0, off_render.GetColorBufferSize());
     }
 
+    // choose a camera for rendering to the display
     public void setCamera(NetworkStream stream)
     {
         ReadAll(stream, 4);
         camindex = BitConverter.ToInt32(buffer, 0);
-        camindex = Math.Max(-1, Math.Min(ncamera - 1, camindex));
+        print("setCamera: " + camindex);
+        for (int i = -1; i < ncamera; i++) {
+            Camera c = GameObject.Find("camera" + i).GetComponent<Camera>();
+            c.enabled = i == camindex;
+            c.targetDisplay = i == camindex ? 0 : 1;
+        }
     }
 
     public unsafe void setCameraPose(NetworkStream stream) {
