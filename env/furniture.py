@@ -343,11 +343,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         q = T.lookat_to_quat(-forward, up)
         self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to='wxyz')
 
-    def _set_camera_pose(self, pose):
+    def _set_camera_pose(self, cam_id, pose):
         """
         Sets unity camera to pose
         """
-        self._unity.set_camera_pose(pose)
+        self._unity.set_camera_pose(cam_id, pose)
 
     def _render_callback(self):
         """

@@ -48,17 +48,14 @@ public class MJTCPInterface : MonoBehaviour
     {
         None = 0,    // null command
         GetInput = 1,    // send: key, select, active, refpos[3], refquat[4] (40 bytes)
-        GetImage = 2,    // send: rgb image (3*width*height bytes)
         SaveSnapshot = 3,    // (no data exchange)
         SaveVideoframe = 4,    // (no data exchange)
         SetCamera = 5,    // receive: camera index (4 bytes)
         SetQpos = 6,    // receive: qpos (4*nqpos bytes)
         SetMocap = 7,     // receive: mocap_pos, mocap_quat (28*nmocap bytes)
-        GetSegmentationImage = 8,    // send: rgb image (3*width*height bytes)
         ChangeWorld = 9,   // send: rgb image (3*width*height bytes)
         GetWorldInfo = 10,
         RandomizeAppearance = 11,
-        GetDepthImage = 12,
 
         // For Furniture Assembly Environment
         SetResolution = 13,    // receive: width, height (4 * 2 bytes)
@@ -195,17 +192,8 @@ public class MJTCPInterface : MonoBehaviour
                     ext.writeInput(stream);
                     break;
 
-                // GetImage: send 3*width*height bytes
-                case Command.GetImage:
-                    ext.writeColorImage(stream);
-                    break;
-
                 case Command.GetImages:
                     ext.writeColorImages(stream);
-                    break;
-
-                case Command.GetSegmentationImage:
-                    ext.writeSegmentationImage(stream);
                     break;
 
                 case Command.GetSegmentationImages:
@@ -258,10 +246,6 @@ public class MJTCPInterface : MonoBehaviour
 
                 case Command.RandomizeAppearance:
                     ext.randomizeAppearance();
-                    break;
-
-                case Command.GetDepthImage:
-                    ext.writeDepthImage(stream);
                     break;
 
                 case Command.GetDepthImages:

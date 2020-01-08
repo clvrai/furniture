@@ -142,9 +142,9 @@ class UnityInterface(object):
     def set_qpos(self, qpos):
         """ Changes qpos of the scene. """
         self._remote.setqpos(qpos)
-    def set_camera_pose(self, pose):
+    def set_camera_pose(self, cam_id, pose):
         """Sets xyz, wxyz of camera pose. """
-        self._remote.setcamerapose(pose)
+        self._remote.setcamerapose(cam_id, pose)
 
     def set_geom_pos(self, name, pos):
         """ Changes position of geometry of the scene. """

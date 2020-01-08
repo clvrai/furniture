@@ -133,11 +133,12 @@ class mjremote:
         self._s.sendall(struct.pack("i", 5))
         self._s.sendall(struct.pack("i", index))
     
-    def setcamerapose(self, pose):
+    def setcamerapose(self, cam_id, pose):
         if not self._s:
             return 'Not connected'
         pose = pose.astype('float32')
         self._s.sendall(struct.pack("i", 18))
+        self._s.sendall(struct.pack("i", cam_id))
         self._s.sendall(pose.tobytes())
 
     def setqpos(self, qpos):

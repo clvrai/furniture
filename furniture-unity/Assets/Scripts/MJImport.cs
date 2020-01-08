@@ -183,7 +183,7 @@ public class MJImport : MonoBehaviour
             thecamera.nearClipPlane = 0.01f;
             thecamera.farClipPlane = 10f;
 
-            thecamera.enabled = false;
+            //thecamera.enabled = false;
             //camobj.SetActive(false);
             // set transform
             MJP.TTransform transform;
