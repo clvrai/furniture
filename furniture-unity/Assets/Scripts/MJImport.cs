@@ -192,66 +192,6 @@ public class MJImport : MonoBehaviour
         }
     }
 
-    // add camera
-    private unsafe void AddCamera()
-    {
-        if (enable_rendering == false)
-        {
-            Destroy(GameObject.Find("PreviewCamera"));
-        }
-        else
-        {
-            Destroy(GameObject.Find("DummyCamera"));
-        }
-
-
-        // add camera under root
-        GameObject camobj = new GameObject("camera");
-        camobj.layer = LayerMask.NameToLayer("PostProcessing");
-
-        camobj.transform.parent = root.transform;
-        Camera thecamera = camobj.AddComponent<Camera>();
-
-        // For Furniture Assembly Environment: remove SITE from the culling mask
-        thecamera.cullingMask = 1 + (1 << 1) + (1 << 2) + (1 << 4) + (1 << 8);
-        thecamera.backgroundColor = new Color(1f, 1f, 1f);
-        thecamera.clearFlags = CameraClearFlags.SolidColor;
-
-        Shader segshader = Shader.Find("Unlit/SegmentationColor");
-        SegmentationShader shadersub = camobj.AddComponent<SegmentationShader>();
-
-        DepthShader shaderdepth = camobj.AddComponent<DepthShader>();
-
-
-        // For Furniture Assembly Environment: no post process
-        //GameObject pp_obj = GameObject.Find("PostPocessing");
-        //PostProcessLayer pp_layer = camobj.AddComponent<PostProcessLayer>();
-        //var resources= Resources.FindObjectsOfTypeAll<PostProcessResources>();
-        //pp_layer.Init(resources[0]);
-        //pp_layer.volumeTrigger = camobj.transform;
-        //pp_layer.volumeLayer = 1 << LayerMask.NameToLayer("PostProcessing");
-
-        // set field of view, near, far
-        MJP.TCamera cam;
-        MJP.GetCamera(-1, &cam);
-        thecamera.fieldOfView = cam.fov;
-
-        // For Furniture Assembly Environment: set znear and zfar independent to model extent.
-        thecamera.nearClipPlane = 0.01f;
-        thecamera.farClipPlane = 10f;
-
-        //thecamera.nearClipPlane = cam.znear * this.transform.localScale.x;
-        //thecamera.farClipPlane = cam.zfar * this.transform.localScale.x;
-
-        // thecamera.enabled = false;
-        //camobj.SetActive(enable_rendering);
-        // set transform
-        MJP.TTransform transform;
-        MJP.GetCameraState(-1, &transform);
-        SetCamera(thecamera, transform);
-    }
-
-
     // import materials
     private unsafe void ImportMaterials(int nmaterial)
     {
@@ -864,7 +804,6 @@ public class MJImport : MonoBehaviour
         root.transform.localScale = transform.localScale;
 
         // add camera to root
-        print("number of cameras at startup:" + size.ncamera);
         AddCameras(size.ncamera);
 
         // import renderable objects under root

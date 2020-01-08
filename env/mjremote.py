@@ -79,26 +79,12 @@ class mjremote:
         result = struct.unpack('iiifffffff', data)
         return result
 
-
-    # buffer = bytearray(3*width*height)
-    def getimage(self, buffer):
-        if not self._s:
-            return 'Not connected'
-        self._s.sendall(struct.pack("i", 2))
-        self._recvall(buffer)
-
     def getimages(self, buffer, indices):
         if not self._s:
             return 'Not connected'
         self._s.sendall(struct.pack("i", 19))
         self._s.sendall(struct.pack("i", len(indices)))
         self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
-        self._recvall(buffer)
-
-    def getsegmentationimage(self, buffer):
-        if not self._s:
-            return 'Not connected'
-        self._s.sendall(struct.pack("i", 8))
         self._recvall(buffer)
 
     def getsegmentationimages(self, buffer, indices):
