@@ -79,24 +79,28 @@ class mjremote:
         result = struct.unpack('iiifffffff', data)
         return result
 
-
-    # buffer = bytearray(3*width*height)
-    def getimage(self, buffer):
+    def getimages(self, buffer, indices):
         if not self._s:
             return 'Not connected'
-        self._s.sendall(struct.pack("i", 2))
+        self._s.sendall(struct.pack("i", 19))
+        self._s.sendall(struct.pack("i", len(indices)))
+        self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
         self._recvall(buffer)
 
-    def getsegmentationimage(self, buffer):
+    def getsegmentationimages(self, buffer, indices):
         if not self._s:
             return 'Not connected'
-        self._s.sendall(struct.pack("i", 8))
+        self._s.sendall(struct.pack("i", 20))
+        self._s.sendall(struct.pack("i", len(indices)))
+        self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
         self._recvall(buffer)
 
-    def getdepthimage(self, buffer):
+    def getdepthimages(self, buffer, indices):
         if not self._s:
             return 'Not connected'
-        self._s.sendall(struct.pack("i", 12))
+        self._s.sendall(struct.pack("i", 21))
+        self._s.sendall(struct.pack("i", len(indices)))
+        self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
         self._recvall(buffer)
 
     def savesnapshot(self):
@@ -115,11 +119,12 @@ class mjremote:
         self._s.sendall(struct.pack("i", 5))
         self._s.sendall(struct.pack("i", index))
     
-    def setcamerapose(self, pose):
+    def setcamerapose(self, cam_id, pose):
         if not self._s:
             return 'Not connected'
         pose = pose.astype('float32')
         self._s.sendall(struct.pack("i", 18))
+        self._s.sendall(struct.pack("i", cam_id))
         self._s.sendall(pose.tobytes())
 
     def setqpos(self, qpos):

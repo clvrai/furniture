@@ -73,32 +73,38 @@ class UnityInterface(object):
                      f" No. of camera: {self._remote.ncamera}" +
                      f" Size of image w = {self._remote.width} h ={self._remote.height}")
 
-    def get_image(self, render_depth=False):
+    def get_images(self, camera_ids, render_depth=False):
         """
-        Gets a rendered image from Unity.
+        Gets multiple rendered image from Unity.
 
         Args:
+            camera_ids: cameras ids to get
             render_depth: returns depth image if True
         """
-        b_img = bytearray(3*self._remote.height*self._remote.width)
-        self._remote.getimage(b_img)
-        img = np.reshape(b_img, (self._remote.height, self._remote.width, 3))
+        n_camera = len(camera_ids)
+        b_img = bytearray(n_camera * 3 * self._remote.height*self._remote.width)
+        self._remote.getimages(b_img, camera_ids)
+        img = np.reshape(b_img, (n_camera, self._remote.height, self._remote.width, 3))
         if render_depth:
-            b_img = bytearray(3*self._remote.height*self._remote.width)
-            self._remote.getdepthimage(b_img)
-            depth = np.reshape(b_img, (self._remote.height, self._remote.width, 3))
+            b_img = bytearray(n_camera*3*self._remote.height*self._remote.width)
+            self._remote.getdepthimages(b_img, camera_ids)
+            depth = np.reshape(b_img, (n_camera, self._remote.height, self._remote.width, 3))
         else:
             depth = None
         return img, depth
 
-    def get_segmentation(self):
+
+    def get_segmentations(self, camera_ids):
         """
-        Gets a segmentation map from Unity.
+        Gets segmentation maps from Unity.
+        Args:
+            camera_ids: camera_ids to get
         """
-        b_img = bytearray(self._remote.height*self._remote.width*3)
-        self._remote.getsegmentationimage(b_img)
-        img = np.reshape(b_img, (self._remote.height, self._remote.width, 3))
-        img = img[::-1, :, :]
+        n_camera = len(camera_ids)
+        b_img = bytearray(n_camera*self._remote.height*self._remote.width*3)
+        self._remote.getsegmentationimages(b_img, camera_ids)
+        img = np.reshape(b_img, (n_camera, self._remote.height, self._remote.width, 3))
+        img = img[:, ::-1, :, :]
         return img
 
     def get_input(self):
@@ -108,10 +114,10 @@ class UnityInterface(object):
     def set_qpos(self, qpos):
         """ Changes qpos of the scene. """
         self._remote.setqpos(qpos)
-
-    def set_camera_pose(self, pose):
+    
+    def set_camera_pose(self, cam_id, pose):
         """Sets xyz, wxyz of camera pose. """
-        self._remote.setcamerapose(pose)
+        self._remote.setcamerapose(cam_id, pose)
 
     def set_geom_pos(self, name, pos):
         """ Changes position of geometry of the scene. """

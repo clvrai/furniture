@@ -48,17 +48,14 @@ public class MJTCPInterface : MonoBehaviour
     {
         None = 0,    // null command
         GetInput = 1,    // send: key, select, active, refpos[3], refquat[4] (40 bytes)
-        GetImage = 2,    // send: rgb image (3*width*height bytes)
         SaveSnapshot = 3,    // (no data exchange)
         SaveVideoframe = 4,    // (no data exchange)
         SetCamera = 5,    // receive: camera index (4 bytes)
         SetQpos = 6,    // receive: qpos (4*nqpos bytes)
         SetMocap = 7,     // receive: mocap_pos, mocap_quat (28*nmocap bytes)
-        GetSegmentationImage = 8,    // send: rgb image (3*width*height bytes)
         ChangeWorld = 9,   // send: rgb image (3*width*height bytes)
         GetWorldInfo = 10,
         RandomizeAppearance = 11,
-        GetDepthImage = 12,
 
         // For Furniture Assembly Environment
         SetResolution = 13,    // receive: width, height (4 * 2 bytes)
@@ -67,6 +64,9 @@ public class MJTCPInterface : MonoBehaviour
         SetBackground = 16,
         SetGraphicsQuality = 17,
         SetCameraPose = 18,
+        GetImages = 19,
+        GetSegmentationImages = 20,
+        GetDepthImages = 21,
     }
 
     public string tcpAddress = "0.0.0.0";
@@ -192,13 +192,12 @@ public class MJTCPInterface : MonoBehaviour
                     ext.writeInput(stream);
                     break;
 
-                // GetImage: send 3*width*height bytes
-                case Command.GetImage:
-                    ext.writeColorImage(stream);
+                case Command.GetImages:
+                    ext.writeColorImages(stream);
                     break;
 
-                case Command.GetSegmentationImage:
-                    ext.writeSegmentationImage(stream);
+                case Command.GetSegmentationImages:
+                    ext.writeSegmentationImages(stream);
                     break;
 
                 // SaveSnapshot: no data exchange
@@ -225,8 +224,8 @@ public class MJTCPInterface : MonoBehaviour
                 // SetMocap: receive mocap_pos and mocap_quat vectors
                 case Command.SetMocap:
                     ext.setMocap(stream);
-
                     break;
+
                 case Command.ChangeWorld:
                     ReadAll(stream, 4);
                     int strlen = BitConverter.ToInt32(buffer, 0);
@@ -249,8 +248,8 @@ public class MJTCPInterface : MonoBehaviour
                     ext.randomizeAppearance();
                     break;
 
-                case Command.GetDepthImage:
-                    ext.writeDepthImage(stream);
+                case Command.GetDepthImages:
+                    ext.writeDepthImages(stream);
                     break;
 
                 // For Furniture Assembly Environment

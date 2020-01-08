@@ -145,10 +145,8 @@ public class MJImport : MonoBehaviour
         cam.transform.localPosition = new Vector3(-transform.position[0], transform.position[2], -transform.position[1]);
         cam.transform.localRotation = q;
     }
-
-    // add camera
-    private unsafe void AddCamera()
-    {
+    // add multiple camera
+    private unsafe void AddCameras(int ncamera) {
         if (enable_rendering == false)
         {
             Destroy(GameObject.Find("PreviewCamera"));
@@ -157,54 +155,41 @@ public class MJImport : MonoBehaviour
         {
             Destroy(GameObject.Find("DummyCamera"));
         }
+        for (int i = -1; i < ncamera; i++) {
+            // add camera under root
+            GameObject camobj = new GameObject("camera" + i);
+            camobj.layer = LayerMask.NameToLayer("PostProcessing");
 
+            camobj.transform.parent = root.transform;
+            Camera thecamera = camobj.AddComponent<Camera>();
 
-        // add camera under root
-        GameObject camobj = new GameObject("camera");
-        camobj.layer = LayerMask.NameToLayer("PostProcessing");
+            // For Furniture Assembly Environment: remove SITE from the culling mask
+            thecamera.cullingMask = 1 + (1 << 1) + (1 << 2) + (1 << 4) + (1 << 8);
+            thecamera.backgroundColor = new Color(1f, 1f, 1f);
+            thecamera.clearFlags = CameraClearFlags.SolidColor;
 
-        camobj.transform.parent = root.transform;
-        Camera thecamera = camobj.AddComponent<Camera>();
+            Shader segshader = Shader.Find("Unlit/SegmentationColor");
+            SegmentationShader shadersub = camobj.AddComponent<SegmentationShader>();
 
-        // For Furniture Assembly Environment: remove SITE from the culling mask
-        thecamera.cullingMask = 1 + (1 << 1) + (1 << 2) + (1 << 4) + (1 << 8);
-        thecamera.backgroundColor = new Color(1f, 1f, 1f);
-        thecamera.clearFlags = CameraClearFlags.SolidColor;
+            DepthShader shaderdepth = camobj.AddComponent<DepthShader>();
 
-        Shader segshader = Shader.Find("Unlit/SegmentationColor");
-        SegmentationShader shadersub = camobj.AddComponent<SegmentationShader>();
+            // set field of view, near, far
+            MJP.TCamera cam;
+            MJP.GetCamera(i, &cam);
+            thecamera.fieldOfView = cam.fov;
 
-        DepthShader shaderdepth = camobj.AddComponent<DepthShader>();
+            // For Furniture Assembly Environment: set znear and zfar independent to model extent.
+            thecamera.nearClipPlane = 0.01f;
+            thecamera.farClipPlane = 10f;
 
-
-        // For Furniture Assembly Environment: no post process
-        //GameObject pp_obj = GameObject.Find("PostPocessing");
-        //PostProcessLayer pp_layer = camobj.AddComponent<PostProcessLayer>();
-        //var resources= Resources.FindObjectsOfTypeAll<PostProcessResources>();
-        //pp_layer.Init(resources[0]);
-        //pp_layer.volumeTrigger = camobj.transform;
-        //pp_layer.volumeLayer = 1 << LayerMask.NameToLayer("PostProcessing");
-
-        // set field of view, near, far
-        MJP.TCamera cam;
-        MJP.GetCamera(-1, &cam);
-        thecamera.fieldOfView = cam.fov;
-
-        // For Furniture Assembly Environment: set znear and zfar independent to model extent.
-        thecamera.nearClipPlane = 0.01f;
-        thecamera.farClipPlane = 10f;
-
-        //thecamera.nearClipPlane = cam.znear * this.transform.localScale.x;
-        //thecamera.farClipPlane = cam.zfar * this.transform.localScale.x;
-
-        // thecamera.enabled = false;
-        //camobj.SetActive(enable_rendering);
-        // set transform
-        MJP.TTransform transform;
-        MJP.GetCameraState(-1, &transform);
-        SetCamera(thecamera, transform);
+            //thecamera.enabled = false;
+            //camobj.SetActive(false);
+            // set transform
+            MJP.TTransform transform;
+            MJP.GetCameraState(i, &transform);
+            SetCamera(thecamera, transform);
+        }
     }
-
 
     // import materials
     private unsafe void ImportMaterials(int nmaterial)
@@ -783,10 +768,9 @@ public class MJImport : MonoBehaviour
             QualitySettings.vSyncCount = 1;
 
         // disable active cameras
-       /* Camera[] activecam = FindObjectsOfType<Camera>();
-        foreach( Camera ac in activecam )
-            ac.gameObject.SetActive(false);
-            */
+        //Camera[] activecam = FindObjectsOfType<Camera>();
+        //foreach( Camera ac in activecam )
+        //    ac.gameObject.SetActive(false);
 
         fileName = Path.GetFileName(modelFile);
 
@@ -822,7 +806,7 @@ public class MJImport : MonoBehaviour
         root.transform.localScale = transform.localScale;
 
         // add camera to root
-        AddCamera();
+        AddCameras(size.ncamera);
 
         // import renderable objects under root
         ImportObjects(size.nobject);

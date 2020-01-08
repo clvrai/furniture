@@ -59,6 +59,7 @@ public class MJRemote : MonoBehaviour
     int ncamera = 0;
     int nobject = 0;
     GameObject[] objects;
+    Dictionary<string, GameObject> cameras;
     Color selcolor;
     public GameObject root = null;
     Camera thecamera = null;
@@ -66,7 +67,6 @@ public class MJRemote : MonoBehaviour
     float[] camfov;
 
     int camindex = -1;
-
     byte[] buffer;
     int buffersize = 0;
 
@@ -80,8 +80,6 @@ public class MJRemote : MonoBehaviour
     // For Furniture Assembly Environment
     Dictionary<string, Vector3> modifiedObjects = null;
     List<GameObject> backgrounds = null;
-
-    bool cameraPoseSet = false;
 
     // convert transform from plugin to GameObject
     static unsafe void SetTransform(GameObject obj, MJP.TTransform transform)
@@ -122,6 +120,7 @@ public class MJRemote : MonoBehaviour
         // For Furniture Assembly Environment: record geom positions
         modifiedObjects = new Dictionary<string, Vector3>();
         backgrounds = new List<GameObject>();
+        cameras = new Dictionary<string, GameObject>();
         foreach (GameObject child in SceneManager.GetActiveScene().GetRootGameObjects()) {
             if (child.name.StartsWith("Background_")) {
                 backgrounds.Add(child);
@@ -164,11 +163,13 @@ public class MJRemote : MonoBehaviour
         int nchild = root.transform.childCount;
         for (int i = 0; i < nchild; i++)
         {
-            thecamera = root.transform.GetChild(i).gameObject.GetComponent<Camera>();
-            if (thecamera != null)
+            GameObject child = root.transform.GetChild(i).gameObject;
+            Camera c = child.GetComponent<Camera>();
+            if (c != null)
             {
-                // thecamera.enabled = false;
-                break;
+                thecamera = c;
+                cameras.Add(child.name, child);
+                child.SetActive(false);
             }
         }
         if (thecamera == null)
@@ -441,13 +442,9 @@ public class MJRemote : MonoBehaviour
                     objects[i].GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.black);
             }
 
-        // update camera
-        if (!cameraPoseSet) {
-            MJP.GetCameraState(camindex, &transform);
-            SetCamera(thecamera, transform);
-        }
-       
-        thecamera.fieldOfView = camfov[camindex + 1];
+        //MJP.GetCameraState(camindex, &transform);
+        //SetCamera(thecamera, transform);
+        //thecamera.fieldOfView = camfov[camindex + 1];
     }
 
 
@@ -504,25 +501,69 @@ public class MJRemote : MonoBehaviour
         lastkey = 0;
     }
 
-    public void writeColorImage(NetworkStream stream)
+    // receive list of camera indices to render
+    public unsafe void writeColorImages(NetworkStream stream)
     {
-        Texture2D tex = off_render.RenderColor(thecamera);
-        byte[] data = tex.GetRawTextureData();
-        int size = off_render.GetColorBufferSize();
-        stream.Write(data, 0, size);
+        ReadAll(stream, 4);
+        int length = BitConverter.ToInt32(buffer,0);
+        ReadAll(stream, 4 * length);
+        fixed (byte* temp = buffer)
+        {
+            int* arr = (int*) temp;
+            for (int i = 0; i < length; i++) {
+                int camid = arr[i];
+                GameObject camobj = cameras["camera" + camid];
+                camobj.SetActive(true);
+                Camera c = camobj.GetComponent<Camera>();
+                Texture2D tex = off_render.RenderColor(c);
+                byte[] data = tex.GetRawTextureData();
+                int size = off_render.GetColorBufferSize();
+                stream.Write(data, 0, size);
+                camobj.SetActive(camindex == camid);
+
+            }
+        }
     }
 
-    internal void writeDepthImage(NetworkStream stream)
+    public unsafe void writeDepthImages(NetworkStream stream)
     {
-        Texture2D tex = off_render.ReadDepth(thecamera);
-        byte[] data = tex.GetRawTextureData();
-        int size = off_render.GetColorBufferSize();
-        stream.Write(data, 0, size);
+        ReadAll(stream, 4);
+        int length = BitConverter.ToInt32(buffer,0);
+        ReadAll(stream, 4 * length);
+        fixed (byte* temp = buffer)
+        {
+            int* arr = (int*) temp;
+            for (int i = 0; i < length; i++) {
+                int camid = arr[i];
+                GameObject camobj = cameras["camera" + camid];
+                camobj.SetActive(true);
+                Camera c = camobj.GetComponent<Camera>();
+                Texture2D tex = off_render.ReadDepth(c);
+                byte[] data = tex.GetRawTextureData();
+                int size = off_render.GetColorBufferSize();
+                stream.Write(data, 0, size);
+                camobj.SetActive(camindex == camid);
+            }
+        }
     }
 
-    public void writeSegmentationImage(NetworkStream stream)
+    public unsafe void writeSegmentationImages(NetworkStream stream)
     {
-        stream.Write(off_render.RenderSegmentation(thecamera).GetRawTextureData(), 0, off_render.GetSegmentationBufferSize());
+        ReadAll(stream, 4);
+        int length = BitConverter.ToInt32(buffer,0);
+        ReadAll(stream, 4 * length);
+        fixed (byte* temp = buffer)
+        {
+            int* arr = (int*) temp;
+            for (int i = 0; i < length; i++) {
+                int camid = arr[i];
+                GameObject camobj = cameras["camera" + camid];
+                camobj.SetActive(true);
+                Camera c = camobj.GetComponent<Camera>();
+                stream.Write(off_render.RenderSegmentation(c).GetRawTextureData(), 0, off_render.GetSegmentationBufferSize());
+                camobj.SetActive(camindex == camid);
+            }
+        }
     }
 
     public void writeSnapshot()
@@ -542,14 +583,26 @@ public class MJRemote : MonoBehaviour
         videofile.Write(off_render.RenderColor(thecamera).GetRawTextureData(), 0, off_render.GetColorBufferSize());
     }
 
+    // choose a camera for rendering to the display
     public void setCamera(NetworkStream stream)
     {
         ReadAll(stream, 4);
         camindex = BitConverter.ToInt32(buffer, 0);
-        camindex = Math.Max(-1, Math.Min(ncamera - 1, camindex));
+        print("setCamera: " + camindex);
+        for (int i = -1; i < ncamera; i++) {
+            GameObject camobj = cameras["camera" + i];
+            Camera c = camobj.GetComponent<Camera>();
+            camobj.SetActive(i == camindex);
+            c.targetDisplay = i == camindex ? 0 : 1;
+            if (i == camindex) {
+                thecamera = c;
+            }
+        }
     }
 
     public unsafe void setCameraPose(NetworkStream stream) {
+        ReadAll(stream, 4);
+        int i = BitConverter.ToInt32(buffer, 0);
         ReadAll(stream, 4 * 7);
         fixed (byte* pose = buffer)
         {
@@ -562,11 +615,10 @@ public class MJRemote : MonoBehaviour
             y = ((float*)pose)[5];
             z = ((float*)pose)[6];
             Quaternion q = new Quaternion(x, y, z, w);
-            thecamera.transform.localPosition = pos;
-            thecamera.transform.localRotation = q;
+            Camera c = cameras["camera" + i].GetComponent<Camera>();
+            c.transform.localPosition = pos;
+            c.transform.localRotation = q;
         }
-        cameraPoseSet = true;
-
     }
 
     public unsafe void setQpos(NetworkStream stream)

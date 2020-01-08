@@ -81,7 +81,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._subtask_ob = config.subtask_ob
         self._segmentation_ob = config.segmentation_ob
         self._depth_ob = config.depth_ob
-        self._camera_id = config.camera_id
+        self._camera_ids = config.camera_ids
         self._camera_name = "frontview"
         self._is_render = False
 
@@ -343,11 +343,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         q = T.lookat_to_quat(-forward, up)
         self.sim.model.cam_quat[cam_id] = T.convert_quat(q, to='wxyz')
 
-    def _set_camera_pose(self, pose):
+    def _set_camera_pose(self, cam_id, pose):
         """
         Sets unity camera to pose
         """
-        self._unity.set_camera_pose(pose)
+        self._unity.set_camera_pose(cam_id, pose)
 
     def _render_callback(self):
         """
@@ -371,19 +371,22 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         if mode == 'rgb_array':
             if self._unity:
-                img, _ = self._unity.get_image(False)
+                img, _ = self._unity.get_images(self._camera_ids)
             else:
                 img = self.sim.render(camera_name=self._camera_name,
                                       width=self._screen_width,
                                       height=self._screen_height,
                                       depth=False)
-            img = img[::-1, :, :] / 255.0
+            if len(img.shape) == 4: 
+                img = img[:, ::-1, :, :] / 255.0
+            elif len(img.shape) == 3:
+                img = img[::-1, :, :] / 255.0
             return img
 
         elif mode == 'rgbd_array':
             depth = None
             if self._unity:
-                img, depth = self._unity.get_image(self._depth_ob)
+                img, depth = self._unity.get_images(self._camera_ids, self._depth_ob)
             else:
                 camera_obs = self.sim.render(camera_name=self._camera_name,
                                              width=self._screen_width,
@@ -393,18 +396,25 @@ class FurnitureEnv(metaclass=EnvMeta):
                     img, depth = camera_obs
                 else:
                     img = camera_obs
-            img = img[::-1, :, :] / 255.0
+            if len(img.shape) == 4: 
+                img = img[:, ::-1, :, :] / 255.0
+            elif len(img.shape) == 3:
+                img = img[::-1, :, :] / 255.0
+                
             if depth is not None:
                 # depth map is 0 to 1, with 1 being furthest
                 # infinite depth is 0, so set to 1
                 black_pixels = np.all(depth==[0,0,0], axis=-1)
                 depth[black_pixels] = [255] * 3
+                if len(depth.shape) == 4: 
+                    depth = depth[:, ::-1, :, :] / 255.0
+                elif len(depth.shape) == 3:
+                    depth = depth[::-1, :, :] / 255.0
 
-                depth = depth[::-1,:,:] / 255.0
             return img, depth
 
         elif mode == 'segmentation' and self._unity:
-            img = self._unity.get_segmentation()
+            img = self._unity.get_segmentations(self._camera_ids)
             return img
 
         elif mode == 'human' and not self._unity:
@@ -433,7 +443,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         if self._viewer is None:
             self._viewer = mujoco_py.MjViewer(self.sim)
-            self._viewer.cam.fixedcamid = self._camera_id
+            self._viewer.cam.fixedcamid = self._camera_ids[0]
             self._viewer.cam.type = mujoco_py.generated.const.CAMERA_FIXED
             self._viewer_reset()
         return self._viewer
@@ -1289,7 +1299,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         # write xml for unity viewer
         if self._unity:
             self._unity.change_model(self.mujoco_model.get_xml(),
-                                     self._camera_id,
+                                     self._camera_ids[0],
                                      self._screen_width,
                                      self._screen_height)
 
@@ -1303,14 +1313,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._is_render = self._visual_ob or self._render_mode != 'no'
         if self._is_render:
             self._destroy_viewer()
-            if self._camera_id == 0:
+            if self._camera_ids[0] == 0:
                 # front view
-                self._set_camera_position(self._camera_id, [0., -0.7, 0.5])
-                self._set_camera_rotation(self._camera_id, [0., 0., 0.0])
-            elif self._camera_id == 1:
+                self._set_camera_position(self._camera_ids[0], [0., -0.7, 0.5])
+                self._set_camera_rotation(self._camera_ids[0], [0., 0., 0.0])
+            elif self._camera_ids[0] == 1:
                 # side view
-                self._set_camera_position(self._camera_id, [-2.5, 0., 0.5])
-                self._set_camera_rotation(self._camera_id, [0., 0., 0.])
+                self._set_camera_position(self._camera_ids[0], [-2.5, 0., 0.5])
+                self._set_camera_rotation(self._camera_ids[0], [0., 0., 0.])
 
         # additional housekeeping
         self._sim_state_initial = self.sim.get_state()
@@ -1831,11 +1841,20 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self.action == 'screenshot':
                 import imageio
                 img, depth = self.render('rgbd_array')
+
+                if len(img.shape) == 4:
+                    img = np.concatenate(img)
+                    if depth is not None:
+                        depth = np.concatenate(depth)
+                
                 imageio.imwrite('camera_ob.png', (img * 255).astype(np.uint8))
                 if self._segmentation_ob:
                     seg = self.render('segmentation')
+                    if len(seg.shape) == 4:
+                        seg = np.concatenate(seg)
                     color_seg = I.color_segmentation(seg)
                     imageio.imwrite('segmentation_ob.png', color_seg)
+
                 if self._depth_ob:
                     imageio.imwrite('depth_ob.png', (depth * 255).astype(np.uint8))
 

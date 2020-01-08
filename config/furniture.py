@@ -68,8 +68,8 @@ def add_argument(parser):
                         help='width of camera image')
     parser.add_argument('--screen_height', type=int, default=500,
                         help='height of camera image')
-    parser.add_argument('--camera_id', type=int, default=0, choices=range(2),
-                        help='MuJoCo camera id')
+    parser.add_argument('--camera_ids', type=str2intlist, default=[0],
+                        help='MuJoCo camera id list')
     parser.add_argument('--render', type=str2bool, default=False,
                         help='whether to render camera')
 
