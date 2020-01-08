@@ -23,7 +23,7 @@ def add_argument(parser):
 
     # mujoco simulation
     parser.add_argument('--control_type', type=str, default='ik',
-                        choices=['ik', 'impedance'],
+                        choices=['ik', 'impedance', 'torque'],
                         help='control type of agent')
     parser.add_argument('--control_freq', type=int, default=10,
                         help='frequency of physic solver steps')
@@ -51,7 +51,6 @@ def add_argument(parser):
     parser.add_argument('--preassembled', type=str2intlist, default=[],
                         help='list of weld equality ids to activate at start')
 
-
     # observations
     parser.add_argument('--robot_ob', type=str2bool, default=True,
                         help='includes agent state in observation')
@@ -73,8 +72,8 @@ def add_argument(parser):
                         help='MuJoCo camera id list')
     parser.add_argument('--render', type=str2bool, default=False,
                         help='whether to render camera')
-    
-    # vr
+
+    # vr controller
     parser.add_argument('--wrist_only', type=str2bool, default=False,
                         help='fix rotation to robot wrist')
 

@@ -8,14 +8,15 @@
         <position ctrllimited="true" ctrlrange="-0.0115 0.020833" joint="r_gripper_r_finger_joint" kp="10000" name="gripper_r_gripper_r_finger_joint" forcelimited="true" forcerange="-20 20"/>
         <position ctrllimited="true" ctrlrange="-0.020833 0.0115" joint="r_gripper_l_finger_joint" kp="10000" name="gripper_r_gripper_l_finger_joint" forcelimited="true" forcerange="-20 20"/>
     </actuator>
-    
+
     <worldbody>
-        <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
+            <!-- <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" /> -->
         <geom size="1e-08 5e-09" type="cylinder" />
         <body name="right_gripper_base" pos="0 0 0.025">
+            <site name="ft_frame" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
             <inertial pos="0 0 0" quat="-0.5 0.5 0.5 0.5" mass="0.3" diaginertia="3e-08 2e-08 2e-08" />
-            <geom name="right_gripper_base_geom" quat="0 0 0.707107 0.707107" type="mesh" contype="0" conaffinity="0" group="1" mesh="electric_gripper_base" />
-            <geom size="0.029 0.05" quat="0 0 0.707107 0.707107" type="cylinder" />
+            <geom name="right_gripper_base_visual" quat="0 0 0.707107 0.707107" type="mesh" contype="0" conaffinity="0" group="1" mesh="electric_gripper_base" />
+            <geom name="right_gripper_base_collision" size="0.029 0.05" quat="0 0 0.707107 0.707107" type="cylinder" />
             <body name="right_gripper" pos="0 0 0.095">
                 <inertial pos="0 0 0" mass="0.0001" diaginertia="0 0 0" />
                 <!-- This site was added for visualization. -->
@@ -35,7 +36,7 @@
 
                 <body name="r_gripper_l_finger_tip" pos="0 0.01725 0.075">
                     <inertial pos="0 0 0" quat="0 0 0 1" mass="0.01" diaginertia="0.01 0.01 0.01" />
-                    <geom name="r_gripper_l_finger_tip_geom" quat="0 0 0 1" type="mesh" contype="0" conaffinity="0" group="1" mesh="half_round_tip" />
+                    <geom name="r_gripper_l_finger_tip_visual" quat="0 0 0 1" type="mesh" contype="0" conaffinity="0" group="1" mesh="half_round_tip" />
                 <!--     <geom size="0.004 0.004 0.0185" pos="0 -0.0045 -0.015" quat="0 0 0 1" type="box"  conaffinity="1" contype="0" name="l_fingertip_g0" friction="0.5 0.005 0.0001"/> -->
                 <geom size="0.004 0.004 0.0185" pos="0 -0.0045 -0.015" quat="0 0 0 1" type="box"  conaffinity="1" contype="0" name="l_fingertip_g0" friction="1 0.5 0.5"/>
 
@@ -49,10 +50,15 @@
                 <geom size="0.005 0.025 0.0085" pos="0.005 0.003 0.0083" type="box" conaffinity="1" contype="0" name="r_finger_g1" friction="0 0 0"/>
                 <body name="r_gripper_r_finger_tip" pos="0 -0.01725 0.075">
                     <inertial pos="0 0 0" mass="0.01" diaginertia="0.01 0.01 0.01" />
-                    <geom name="r_gripper_r_finger_tip_geom" type="mesh" contype="0" conaffinity="0" group="1" mesh="half_round_tip" />
+                    <geom name="r_gripper_r_finger_tip_visual" type="mesh" contype="0" conaffinity="0" group="1" mesh="half_round_tip" />
                     <geom size="0.004 0.004 0.0185" pos="0 0.0045 -0.015" type="box"  conaffinity="1" contype="0" name="r_fingertip_g0" friction="1 0.5 0.5"/>
                 </body>
             </body>
         </body>
     </worldbody>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame"/>
+        <torque name="torque_ee" site="ft_frame"/>
+    </sensor>
 </mujoco>
