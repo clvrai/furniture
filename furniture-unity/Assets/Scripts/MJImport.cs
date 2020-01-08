@@ -42,7 +42,6 @@ using System.IO;
 using System.Xml;
 
 
-using System.Collections.Generic;
 using System;
 
 public class MJImport : MonoBehaviour
@@ -423,6 +422,9 @@ public class MJImport : MonoBehaviour
                 objects[i].layer = 9;
             }
             if (objects[i].name.StartsWith("noviz", StringComparison.Ordinal)) {
+                objects[i].layer = 10;
+            }
+            if (objects[i].name.EndsWith("collision", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
             }
             if (objects[i].name.StartsWith("floor", StringComparison.Ordinal)) {

@@ -28,6 +28,10 @@ class TwoFingerGripperBase(Gripper):
         return ["r_gripper_l_finger_joint", "r_gripper_r_finger_joint"]
 
     @property
+    def sensors(self):
+        return ["force_ee", "torque_ee"]
+
+    @property
     def dof(self):
         return 2
 
@@ -35,6 +39,7 @@ class TwoFingerGripperBase(Gripper):
     def visualization_sites(self):
         return ["grip_site", "grip_site_cylinder"]
 
+    @property
     def contact_geoms(self):
         return [
             "r_finger_g0",
@@ -100,6 +105,7 @@ class LeftTwoFingerGripperBase(Gripper):
     def visualization_sites(self):
         return ["l_g_grip_site", "l_g_grip_site_cylinder"]
 
+    @property
     def contact_geoms(self):
         return [
             "l_g_r_finger_g0",
