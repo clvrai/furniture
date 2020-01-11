@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <name>jaco_description</name>
+  <version>0.0.25</version>
+  <description>3D Model and URDF of the Kinova JACO Arm</description>
+  
+  <maintainer email="dekent@gatech.edu">David Kent</maintainer>
+  <maintainer email="rctoris@wpi.edu">Russell Toris</maintainer>
+  <author email="rctoris@wpi.edu">Russell Toris</author>
+  <author email="dekent@gatech.edu">David Kent</author>
+  <author email="bpwiselybabu@wpi.edu">Benzun Pious Wisely Babu</author>
+
+  <license>BSD</license>
+  
+  <url type="website">http://ros.org/wiki/jaco_description</url>
+  <url type="bugtracker">https://github.com/RIVeR-Lab/wpi_jaco/issues</url>
+  <url type="repository">https://github.com/RIVeR-Lab/wpi_jaco</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>xacro</run_depend>
+  <run_depend>joint_state_publisher</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+</package>
