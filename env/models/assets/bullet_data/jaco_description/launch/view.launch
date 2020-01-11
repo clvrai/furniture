@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find jaco_description)/launch/jaco_description.launch">
+     <arg name="gui" value="true" />
+  </include>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jaco_description)/rviz/view_robot.rviz" required="true" />
+</launch>

@@ -1,0 +1,52 @@
+<mujoco model="jaco(v1.31)_hand">
+    <asset>
+        <mesh file="meshes/jaco_gripper/jaco_link_finger_1.stl"/>
+        <mesh file="meshes/jaco_gripper/jaco_link_finger_2.stl"/>
+        <mesh file="meshes/jaco_gripper/jaco_link_finger_3.stl"/>
+
+        <material name="MatViz" specular="1" shininess=".1" reflectance="0.5" rgba=".07 .07 .1 1"/>
+    </asset>
+
+    <actuator>
+        <velocity ctrllimited="true" ctrlrange="-1. 1." joint='jaco_joint_finger_1' kv="1.1" name='gripper_finger_1'/>
+        <velocity ctrllimited="true" ctrlrange="-1. 1." joint='jaco_joint_finger_2' kv="1.1" name='gripper_finger_2'/>
+        <velocity ctrllimited="true" ctrlrange="-1. 1." joint='jaco_joint_finger_3' kv="1.1" name='gripper_finger_3'/>
+    </actuator>
+
+    <worldbody>
+        <body name="right_gripper" pos="0 0 0">
+
+            <site name="ft_frame" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+
+            <!-- This site was added for visualization. -->
+            <site name="grip_site" pos="0 0 -0.1399" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"/>
+            <!-- This site was added for visualization. -->
+            <site name="grip_site_cylinder" pos="0 0 -0.1399" size="0.005 10" rgba="0 1 0 0.3" type="cylinder" group="1"/>
+
+
+            <body name="jaco_link_finger_1" pos="-0.03978 0 -0.10071" quat="-0.414818 -0.329751 -0.663854 0.52772">
+                <inertial pos="0.0485761 -0.000715511 2.09499e-008" quat="0.507589 0.507348 0.492543 0.492294" mass="0.0379077" diaginertia="4.00709e-005 4.00528e-005 2.156e-006" />
+                <joint name="jaco_joint_finger_1" limited="true" axis="0 0 1" range="0 0.698132"/>
+                <geom name="jaco_link_finger_geom_1" mesh="jaco_link_finger_1" material="MatViz" type="mesh" conaffinity="0" margin="0.001"/>
+            </body>
+
+            <body name="jaco_link_finger_2" pos="0.03569 -0.0216 -0.10071" quat="0.625248 -0.567602 0.434845 0.312735">
+                <inertial pos="0.0485761 -0.000715511 2.09499e-008" quat="0.507589 0.507348 0.492543 0.492294" mass="0.0379077" diaginertia="4.00709e-005 4.00528e-005 2.156e-006" />
+                <joint name="jaco_joint_finger_2" limited="true" axis="0 0 1" range="0 0.698132"/>
+                <geom name="jaco_link_finger_geom_2" mesh="jaco_link_finger_2" material="MatViz" type="mesh" conaffinity="0" margin="0.001"/>
+            </body>
+
+            <body name="jaco_link_finger_3" pos="0.03569 0.0216 -0.10071" quat="0.561254 -0.620653 0.321748 0.443014">
+                <inertial pos="0.0485761 -0.000715511 2.09499e-008" quat="0.507589 0.507348 0.492543 0.492294" mass="0.0379077" diaginertia="4.00709e-005 4.00528e-005 2.156e-006" />
+                <joint name="jaco_joint_finger_3" limited="true" axis="0 0 1" range="0 0.698132"/>
+                <geom name="jaco_link_finger_geom_3" mesh="jaco_link_finger_3" material="MatViz" type="mesh" conaffinity="0" margin="0.001"/>
+            </body>
+
+        </body>
+    </worldbody>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame"/>
+        <torque name="torque_ee" site="ft_frame"/>
+    </sensor>
+</mujoco>

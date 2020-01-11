@@ -6,3 +6,4 @@ from .pushing_gripper import PushingGripper
 from .robotiq_gripper import RobotiqGripper
 from .robotiq_three_finger_gripper import RobotiqThreeFingerGripper
 from .panda_gripper import PandaGripper
+from .jaco_gripper import JacoGripper
