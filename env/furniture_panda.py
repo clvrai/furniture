@@ -1,4 +1,4 @@
-""" Define sawyer environment class FurnitureSawyerEnv. """
+""" Define Panda environment class FurniturePandaEnv. """
 
 from collections import OrderedDict
 
@@ -203,7 +203,7 @@ def main():
     parser = argparse.ArgumentParser()
     furniture_config.add_argument(parser)
 
-    # change default config for Sawyer
+    # change default config for Panda
     parser.add_argument('--seed', type=int, default=123)
     parser.add_argument('--debug', type=str2bool, default=False)
 
