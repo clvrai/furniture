@@ -641,8 +641,18 @@ def up_vector_cos_dist(quat1, quat2):
 
 
 def rotate_vector(v, rotation_axis, angle):
+    """ Returns a vector rotating @v @angle degree along @rotation_axis  """
     v = np.asarray(v)
     k = unit_vector(rotation_axis)
     angle = angle / 180 * _PI
     new_v = np.cos(angle) * v + np.sin(angle) * np.cross(k, v)
+    return new_v
+
+
+def rotate_vector_cos_dist(v, rotation_axis, cos, direction):
+    """ Returns a vector rotating @v an angle of @cos along @rotation_axis """
+    assert direction in [-1, 1]
+    v = np.asarray(v)
+    k = unit_vector(rotation_axis)
+    new_v = cos * v + direction * np.sqrt(1-cos**2) * np.cross(k, v)
     return new_v

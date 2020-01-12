@@ -702,16 +702,16 @@ class FurnitureEnv(metaclass=EnvMeta):
             site1_pairs = site1_name.split(',')[0].split('-')
             for site2_id, site2_name in sites2:
                 site2_pairs = site2_name.split(',')[0].split('-')
+                # first check if already connected
+                if site1_id in self._connected_sites or site2_id in self._connected_sites:
+                    continue
                 if site1_pairs == site2_pairs[::-1]:
                     if self._is_aligned(site1_name, site2_name):
-                        # first check if already connected
-                        if site1_id in self._connected_sites or site2_id in self._connected_sites:
-                            continue
                         logger.debug(f'connect {site1_name} and {site2_name}, {self._connect_step}/{self._num_connect_steps}')
                         if self._connect_step < self._num_connect_steps:
                             # set target as site2 pos
                             site1_pos_quat = self._site_xpos_xquat(site1_name)
-                            site1_quat = site1_pos_quat[3:]
+                            site1_quat = self._target_connector_xquat
                             target_pos = site1_pos_quat[:3]
                             body2id = site_bodyid[site2_id]
                             part2 = body_names[body2id]
@@ -763,7 +763,8 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _is_aligned(self, connector1, connector2):
         """
-        Checks if two sites are connected or not, given the site ids
+        Checks if two sites are connected or not, given the site names, and
+        returns possible rotations
         """
         site1_xpos = self._site_xpos_xquat(connector1)
         site2_xpos = self._site_xpos_xquat(connector2)
@@ -790,15 +791,31 @@ class FurnitureEnv(metaclass=EnvMeta):
         max_rot_dist_forward = rot_dist_forward
         if len(allowed_angles) == 0:
             is_rot_forward_aligned = True
+            cos = T.cos_dist(forward1, forward2)
+            forward1_rotated_pos = T.rotate_vector_cos_dist(forward1, up1, cos, 1)
+            forward1_rotated_neg = T.rotate_vector_cos_dist(forward1, up1, cos, -1)
+            rot_dist_forward_pos = T.cos_dist(forward1_rotated_pos, forward2)
+            rot_dist_forward_neg = T.cos_dist(forward1_rotated_neg, forward2)
+            if rot_dist_forward_pos > rot_dist_forward_neg:
+                forward1_rotated = forward1_rotated_pos
+            else:
+                forward1_rotated = forward1_rotated_neg
+            max_rot_dist_forward = max(rot_dist_forward_pos, rot_dist_forward_neg)
+            self._target_connector_xquat = T.convert_quat(
+                T.lookat_to_quat(up1, forward1_rotated), 'wxyz'
+            )
         else:
             is_rot_forward_aligned = False
             for angle in allowed_angles:
                 forward1_rotated = T.rotate_vector(forward1, up1, angle)
-                #forward2_projected = forward2 - np.dot(forward2, up1) * up1
                 rot_dist_forward = T.cos_dist(forward1_rotated, forward2)
                 max_rot_dist_forward = max(max_rot_dist_forward, rot_dist_forward)
-                is_rot_forward_aligned = is_rot_forward_aligned or \
-                    rot_dist_forward > self._env_config['rot_dist_forward']
+                if rot_dist_forward > self._env_config['rot_dist_forward']:
+                    is_rot_forward_aligned = True
+                    self._target_connector_xquat = T.convert_quat(
+                        T.lookat_to_quat(up1, forward1_rotated), 'wxyz'
+                    )
+                    break
 
         if pos_dist < self._env_config['pos_dist'] and \
                 rot_dist_up > self._env_config['rot_dist_up'] and \
@@ -849,6 +866,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Move connector2 to connector 1
         """
         site1_xpos = self._site_xpos_xquat(connector1)
+        site1_xpos[3:] = self._target_connector_xquat
         self._move_site_to_target(connector2, site1_xpos, gravity)
 
     def _move_site_to_target(self, site, target_qpos, gravity=1):
