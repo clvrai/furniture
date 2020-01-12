@@ -22,7 +22,7 @@ for mesh in root.find('asset'):
 
 for body in root.find('worldbody'):
 	body_pos = body.attrib['pos'].split(' ')
-	body_pos = [str(float(i)*mult)[:6] for i in body_pos]
+	body_pos = [str(float(i)*mult) for i in body_pos]
 	upt_body_pos = ' '.join(body_pos)
 	body.set('pos', upt_body_pos)
 	for child in body.getiterator():
