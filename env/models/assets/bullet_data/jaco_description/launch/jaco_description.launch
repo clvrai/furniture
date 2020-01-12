@@ -1,0 +1,17 @@
+<launch>
+  <!-- Joint state publisher gui -->
+  <arg name="gui" default="false" />
+
+  <!-- Load the URDF file -->
+  <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find jaco_description)/robots/standalone_arm.urdf.xacro'" />
+  <param name="robot_description" command="$(arg urdf_file)" />
+  
+  <!-- State publishers -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50" />
+  </node>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="$(arg gui)" />
+    <rosparam param="source_list">[jaco_arm/joint_states]</rosparam>
+  </node>
+</launch>

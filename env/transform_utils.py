@@ -591,7 +591,7 @@ def euler_to_quat(rotation, quat=None):
 
 def rel_pose(qpos1, qpos2):
     """ Returns relative pose of @qpos2 w.r.t @qpos1 """
-    rel_quat = Quaternion(qpos2[3:]) * Quaternion(qpos1[3:]).inverse
+    rel_quat = Quaternion(qpos1[3:]).inverse * Quaternion(qpos2[3:])
     rel_pos = qpos2[:3] - qpos1[:3]
     rel_pos = Quaternion(qpos1[3:]).inverse.rotate(rel_pos)
     return np.concatenate([rel_pos, list(rel_quat)])
@@ -641,8 +641,18 @@ def up_vector_cos_dist(quat1, quat2):
 
 
 def rotate_vector(v, rotation_axis, angle):
+    """ Returns a vector rotating @v @angle degree along @rotation_axis  """
     v = np.asarray(v)
     k = unit_vector(rotation_axis)
     angle = angle / 180 * _PI
     new_v = np.cos(angle) * v + np.sin(angle) * np.cross(k, v)
+    return new_v
+
+
+def rotate_vector_cos_dist(v, rotation_axis, cos, direction):
+    """ Returns a vector rotating @v an angle of @cos along @rotation_axis """
+    assert direction in [-1, 1]
+    v = np.asarray(v)
+    k = unit_vector(rotation_axis)
+    new_v = cos * v + direction * np.sqrt(1-cos**2) * np.cross(k, v)
     return new_v

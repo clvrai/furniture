@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<robot xmlns:xi="http://www.w3.org/2001/XInclude"
+	xmlns:gazebo="http://playerstage.sourceforge.net/gazebo/xmlschema/#gz"
+	xmlns:model="http://playerstage.sourceforge.net/gazebo/xmlschema/#model"
+	xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+	xmlns:body="http://playerstage.sourceforge.net/gazebo/xmlschema/#body"
+	xmlns:geom="http://playerstage.sourceforge.net/gazebo/xmlschema/#geom"
+	xmlns:joint="http://playerstage.sourceforge.net/gazebo/xmlschema/#joint"
+	xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+	xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+	xmlns:rendering="http://playerstage.sourceforge.net/gazebo/xmlschema/#rendering"
+	xmlns:renderable="http://playerstage.sourceforge.net/gazebo/xmlschema/#renderable"
+	xmlns:physics="http://playerstage.sourceforge.net/gazebo/xmlschema/#physics"
+	xmlns:xacro="http://ros.org/wiki/xacro" name="jaco">
+
+	<xacro:arg name="simple_collisions" default="0" />
+
+	<xacro:include filename="$(find jaco_description)/urdf/jaco_arm.urdf.xacro" />
+
+	<link name="root">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size = "0 0 0" />
+			</geometry>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size = "0 0 0" />
+			</geometry>
+		</collision>
+	</link>
+    
+	<!-- <link name="support"> -->
+    <!--     <inertial> -->
+    <!--         <mass value="1000"/> -->
+    <!--         <inertia ixx="10" ixy="0" ixz="0" iyy="10" iyz="0" izz="10"/> -->
+    <!--         <origin/> -->
+    <!--     </inertial> -->
+	<!-- 	<visual> -->
+	<!-- 		<origin xyz="0 0 -0.1" rpy="0 0 0" /> -->
+	<!-- 		<geometry> -->
+    <!--             <cylinder length="0.2" radius="0.025"/> -->
+	<!-- 		</geometry> -->
+	<!-- 	</visual> -->
+	<!-- 	<collision> -->
+	<!-- 		<origin xyz="0 0 -0.1" rpy="0 0 0" /> -->
+	<!-- 		<geometry> -->
+    <!--             <cylinder length="0.2" radius="0.025"/> -->
+	<!-- 		</geometry> -->
+	<!-- 	</collision> -->
+	<!-- </link> -->
+    
+	<link name="support">
+        <inertial>
+            <mass value="10000"/>
+            <inertia ixx="100" ixy="0" ixz="0" iyy="100" iyz="0" izz="100"/>
+            <origin/>
+        </inertial>
+		<visual>
+			<origin xyz="0 0 0.005" rpy="0 0 0" />
+			<geometry>
+                <cylinder length="0.01" radius="0.1"/>
+			</geometry>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0.005" rpy="0 0 0" />
+			<geometry>
+                <cylinder length="0.01" radius="0.1"/>
+			</geometry>
+		</collision>
+	</link>
+    
+	<joint name="support_joint" type="fixed">
+	  <parent link="root" />
+	  <child link="support" />
+	</joint>
+
+	<xacro:jaco_arm parent="support" xyz="0 0 0.2" rpy="0 0 0" simple_collisions="$(arg simple_collisions)" />
+</robot>

@@ -1,4 +1,4 @@
-""" Define sawyer environment class FurnitureSawyerEnv. """
+""" Define Sawyer environment class FurnitureSawyerEnv. """
 
 from collections import OrderedDict
 

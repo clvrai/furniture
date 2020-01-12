@@ -104,7 +104,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._preassembled = config.preassembled
 
-        if self._agent_type in ['Sawyer', 'Panda', 'Baxter'] and self._control_type == 'ik':
+        if self._agent_type != 'Cursor' and self._control_type == 'ik':
             self._min_gripper_pos = np.array([-1.5, -1.5, 0.])
             self._max_gripper_pos = np.array([1.5, 1.5, 1.5])
             self._action_repeat = 5
@@ -245,7 +245,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._step_discrete(a)
             self._do_simulation(None)
 
-        elif self._agent_type in ['Sawyer', 'Panda', 'Baxter'] and self._control_type == 'ik':
+        elif self._control_type == 'ik':
             self._step_continuous(a)
 
         elif self._control_type == 'torque':
@@ -712,16 +712,16 @@ class FurnitureEnv(metaclass=EnvMeta):
             site1_pairs = site1_name.split(',')[0].split('-')
             for site2_id, site2_name in sites2:
                 site2_pairs = site2_name.split(',')[0].split('-')
+                # first check if already connected
+                if site1_id in self._connected_sites or site2_id in self._connected_sites:
+                    continue
                 if site1_pairs == site2_pairs[::-1]:
                     if self._is_aligned(site1_name, site2_name):
-                        # first check if already connected
-                        if site1_id in self._connected_sites or site2_id in self._connected_sites:
-                            continue
                         logger.debug(f'connect {site1_name} and {site2_name}, {self._connect_step}/{self._num_connect_steps}')
                         if self._connect_step < self._num_connect_steps:
                             # set target as site2 pos
                             site1_pos_quat = self._site_xpos_xquat(site1_name)
-                            site1_quat = site1_pos_quat[3:]
+                            site1_quat = self._target_connector_xquat
                             target_pos = site1_pos_quat[:3]
                             body2id = site_bodyid[site2_id]
                             part2 = body_names[body2id]
@@ -773,7 +773,8 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _is_aligned(self, connector1, connector2):
         """
-        Checks if two sites are connected or not, given the site ids
+        Checks if two sites are connected or not, given the site names, and
+        returns possible rotations
         """
         site1_xpos = self._site_xpos_xquat(connector1)
         site2_xpos = self._site_xpos_xquat(connector2)
@@ -800,15 +801,31 @@ class FurnitureEnv(metaclass=EnvMeta):
         max_rot_dist_forward = rot_dist_forward
         if len(allowed_angles) == 0:
             is_rot_forward_aligned = True
+            cos = T.cos_dist(forward1, forward2)
+            forward1_rotated_pos = T.rotate_vector_cos_dist(forward1, up1, cos, 1)
+            forward1_rotated_neg = T.rotate_vector_cos_dist(forward1, up1, cos, -1)
+            rot_dist_forward_pos = T.cos_dist(forward1_rotated_pos, forward2)
+            rot_dist_forward_neg = T.cos_dist(forward1_rotated_neg, forward2)
+            if rot_dist_forward_pos > rot_dist_forward_neg:
+                forward1_rotated = forward1_rotated_pos
+            else:
+                forward1_rotated = forward1_rotated_neg
+            max_rot_dist_forward = max(rot_dist_forward_pos, rot_dist_forward_neg)
+            self._target_connector_xquat = T.convert_quat(
+                T.lookat_to_quat(up1, forward1_rotated), 'wxyz'
+            )
         else:
             is_rot_forward_aligned = False
             for angle in allowed_angles:
                 forward1_rotated = T.rotate_vector(forward1, up1, angle)
-                #forward2_projected = forward2 - np.dot(forward2, up1) * up1
                 rot_dist_forward = T.cos_dist(forward1_rotated, forward2)
                 max_rot_dist_forward = max(max_rot_dist_forward, rot_dist_forward)
-                is_rot_forward_aligned = is_rot_forward_aligned or \
-                    rot_dist_forward > self._env_config['rot_dist_forward']
+                if rot_dist_forward > self._env_config['rot_dist_forward']:
+                    is_rot_forward_aligned = True
+                    self._target_connector_xquat = T.convert_quat(
+                        T.lookat_to_quat(up1, forward1_rotated), 'wxyz'
+                    )
+                    break
 
         if pos_dist < self._env_config['pos_dist'] and \
                 rot_dist_up > self._env_config['rot_dist_up'] and \
@@ -859,6 +876,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Move connector2 to connector 1
         """
         site1_xpos = self._site_xpos_xquat(connector1)
+        site1_xpos[3:] = self._target_connector_xquat
         self._move_site_to_target(connector2, site1_xpos, gravity)
 
     def _move_site_to_target(self, site, target_qpos, gravity=1):
@@ -895,7 +913,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.data.qvel[qvel_addr] = 0.0
             self.sim.forward()
 
-            if self._agent_type in ["Sawyer", "Panda"]:
+            if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
                 action[:3] = action[:3] * self._move_speed
                 action[:3] = [-action[1], action[0], action[2]]
                 gripper_pos = self.sim.data.get_body_xpos('right_hand')
@@ -934,13 +952,16 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._agent_type in ["Sawyer", "Panda"]:
                 velocities = self._controller.get_control(**input_1)
                 low_action = np.concatenate([velocities, action[7:8]])
+            elif self._agent_type == "Jaco":
+                velocities = self._controller.get_control(**input_1)
+                low_action = np.concatenate([velocities]+[action[7:]]*3)
             elif self._agent_type == "Baxter":
                 input_2 = self._make_input(action[7:14], self._left_hand_quat)
                 velocities = self._controller.get_control(input_1, input_2)
                 low_action = np.concatenate([velocities, action[14:16]])
             else:
                 raise Exception(
-                    "Only Sawyer, Panda, Baxter robot environments are supported for IK "
+                    "Only Sawyer, Panda, Jaco, Baxter robot environments are supported for IK "
                     "control currently."
                 )
 
@@ -953,6 +974,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                     velocities = self._controller.get_control()
                     if self._agent_type in ["Sawyer", "Panda"]:
                         low_action = np.concatenate([velocities, action[7:]])
+                    elif self._agent_type == "Jaco":
+                        low_action = np.concatenate([velocities]+[action[7:]]*3)
                     elif self._agent_type == "Baxter":
                         low_action = np.concatenate([velocities, action[14:]])
                     ctrl = self._setup_action(low_action)
@@ -1127,6 +1150,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         else:
             for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
+
         self._do_simulation(None)
 
         logger.debug('*** furniture initialization ***')
@@ -1160,7 +1184,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._set_qpos(body, pos_init[i], quat_init[i])
 
         if self._load_demo is not None:
-            if self._agent_type in ['Sawyer', 'Panda']:
+            if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
                 self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
                 self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = init_qpos['l_gripper']
             elif self._agent_type == 'Baxter':
@@ -1223,7 +1247,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._record_demo:
             self._store_qpos()
 
-        if self._agent_type in ['Sawyer', 'Panda', 'Baxter']:
+        if self._agent_type in ['Sawyer', 'Panda', "Jaco", 'Baxter']:
             self._initial_right_hand_quat = self._right_hand_quat
             if self._agent_type == 'Baxter':
                 self._initial_left_hand_quat = self._left_hand_quat
@@ -1250,7 +1274,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Initializes robot posision with random noise perturbation
         """
         noise = self._init_random(self.mujoco_robot.init_qpos.shape)
-        if self._agent_type in ['Sawyer', 'Panda']:
+        if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
             self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos + noise
             self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = -self.gripper.init_qpos # open
 
@@ -1267,7 +1291,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Stores current qposition for demonstration
         """
-        if self._agent_type in ['Sawyer', 'Panda']:
+        if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
             qpos = {
                 'qpos': self.sim.data.qpos[self._ref_joint_pos_indexes],
                 'l_gripper': self.sim.data.qpos[self._ref_gripper_joint_pos_indexes]
@@ -1331,7 +1355,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.sim.forward()
 
         # setup mocap for ik control
-        if self._control_type == 'ik':
+        if self._control_type == 'ik' and self._agent_type != 'Cursor':
             import env.models
             if self._agent_type == 'Sawyer':
                 from env.controllers import SawyerIKController as IKController
@@ -1339,6 +1363,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 from env.controllers import BaxterIKController as IKController
             elif self._agent_type == 'Panda':
                 from env.controllers import PandaIKController as IKController
+            elif self._agent_type == 'Jaco':
+                from env.controllers import JacoIKController as IKController
+            else:
+                raise ValueError
 
             self._controller = IKController(
                 bullet_data_path=os.path.join(env.models.assets_root, "bullet_data"),
@@ -1363,6 +1391,15 @@ class FurnitureEnv(metaclass=EnvMeta):
             from env.models.robots import Panda
             self.mujoco_robot = Panda(use_torque=use_torque)
             self.gripper = gripper_factory("PandaGripper")
+            self.gripper.hide_visualization()
+            self.mujoco_robot.add_gripper("right_hand", self.gripper)
+            self.mujoco_robot.set_base_xpos([0, 0.65, -0.7])
+            self.mujoco_robot.set_base_xquat([1, 0, 0, -1])
+
+        elif self._agent_type == 'Jaco':
+            from env.models.robots import Jaco
+            self.mujoco_robot = Jaco(use_torque=use_torque)
+            self.gripper = gripper_factory("JacoGripper")
             self.gripper.hide_visualization()
             self.mujoco_robot.add_gripper("right_hand", self.gripper)
             self.mujoco_robot.set_base_xpos([0, 0.65, -0.7])
@@ -1582,7 +1619,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._set_qpos(body, pos, quat)
                 self._stop_object(body, gravity=0)
             # set robot positions
-            if self._agent_type in ['Sawyer', 'Panda']:
+            if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
                 self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos['qpos']
                 self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = qpos['l_gripper']
             elif self._agent_type == 'Baxter':
@@ -1716,7 +1753,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             # and then one more dim for connect
             if self._agent_type == 'Cursor':
                 action = np.hstack([d_p1[:6], [flag[0]], np.zeros_like(action[:6]), [flag[1], action[7]]])
-            elif self._agent_type in ['Sawyer', 'Panda']:
+            elif self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
                 action[:6] = d_p1[:6]
                 action = action[:8]
                 action[6] = flag[0]
@@ -1824,7 +1861,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         [action[:6], [flag[0]], np.zeros_like(action[:6]), [flag[1], action[7]]]
                     )
             elif self._control_type == 'ik':
-                if self._agent_type in ['Sawyer', 'Panda']:
+                if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
                     action = action[:8]
                     action[6] = flag[0]
                 elif self._agent_type == 'Baxter':
@@ -2046,7 +2083,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns the cursor positions
         """
-        if self._agent_type in ['Sawyer', 'Panda', 'Baxter']:
+        if self._agent_type in ['Sawyer', 'Panda', "Jaco", 'Baxter']:
             return self.sim.data.site_xpos[self.eef_site_id]
         elif self._agent_type == 'Cursor':
             if name:
@@ -2272,7 +2309,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.clip(action, -1, 1)
 
         arm_action = action[: self.mujoco_robot.dof]
-        if self._agent_type in ['Sawyer', 'Panda']:
+        if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
             gripper_action_in = action[
                 self.mujoco_robot.dof : self.mujoco_robot.dof + self.gripper.dof
             ]

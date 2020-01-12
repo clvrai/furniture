@@ -1,0 +1,549 @@
+<?xml version="1.0"?>
+<robot xmlns:xi="http://www.w3.org/2001/XInclude"
+	xmlns:gazebo="http://playerstage.sourceforge.net/gazebo/xmlschema/#gz"
+	xmlns:model="http://playerstage.sourceforge.net/gazebo/xmlschema/#model"
+	xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+	xmlns:body="http://playerstage.sourceforge.net/gazebo/xmlschema/#body"
+	xmlns:geom="http://playerstage.sourceforge.net/gazebo/xmlschema/#geom"
+	xmlns:joint="http://playerstage.sourceforge.net/gazebo/xmlschema/#joint"
+	xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+	xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+	xmlns:rendering="http://playerstage.sourceforge.net/gazebo/xmlschema/#rendering"
+	xmlns:renderable="http://playerstage.sourceforge.net/gazebo/xmlschema/#renderable"
+	xmlns:physics="http://playerstage.sourceforge.net/gazebo/xmlschema/#physics"
+	xmlns:xacro="http://ros.org/wiki/xacro">
+	
+  <xacro:property name="M_SCALE" value="0.0254" />
+	<xacro:property name="M_PI" value="3.1415926535897931" />
+	<xacro:property name="J_LIM" value="${2*M_PI}" />
+	<xacro:property name="link_base" value="jaco_link_base" />
+	<xacro:property name="link" value="jaco_link" />	
+	<xacro:property name="link_1" value="jaco_link_1" />
+	<xacro:property name="link_2" value="jaco_link_2" />
+	<xacro:property name="link_3" value="jaco_link_3" />
+	<xacro:property name="link_hand" value="jaco_link_hand" />
+	<xacro:property name="link_finger" value="jaco_link_finger" />
+	<xacro:property name="link_finger_tip" value="jaco_link_finger_tip" />
+
+	<xacro:property name="joint_base" value="jaco_joint_base" />
+	<xacro:property name="joint_base_axis_xyz" value="0 0 0" />
+
+	<xacro:property name="joint_1" value="jaco_joint_1" />
+  <xacro:property name="joint_1_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_1_origin_xyz" value="0 0 0.1535" />
+  <xacro:property name="joint_1_origin_rpy" value="${M_PI} 0 0" />
+
+  <xacro:property name="joint_2" value="jaco_joint_2" />
+  <xacro:property name="joint_2_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_2_origin_xyz" value="0 0 -0.1185" />
+  <xacro:property name="joint_2_origin_rpy" value="-${M_PI/2} -${M_PI/2} 0" />
+
+  <xacro:property name="joint_3" value="jaco_joint_3" />
+  <xacro:property name="joint_3_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_3_origin_xyz" value="0.41 0 0" />
+  <xacro:property name="joint_3_origin_rpy" value="${M_PI} 0 ${M_PI}" />
+
+  <xacro:property name="joint_4" value="jaco_joint_4" />
+  <xacro:property name="joint_4_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_4_origin_xyz" value="0.207 0 -0.01125" />
+  <xacro:property name="joint_4_origin_rpy" value="0 -${M_PI/2} 0" />
+
+  <xacro:property name="joint_5" value="jaco_joint_5" />
+  <xacro:property name="joint_5_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_5_origin_xyz" value="0.0343 0 -0.06588" />
+  <xacro:property name="joint_5_origin_rpy" value="0 ${M_PI/180*55} ${M_PI}" />
+
+  <xacro:property name="joint_6" value="jaco_joint_6" />
+  <xacro:property name="joint_6_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_6_origin_xyz" value="0.0343 0 -0.06588" />
+  <xacro:property name="joint_6_origin_rpy" value="0 ${M_PI/180*55} ${M_PI}" />
+
+  <xacro:property name="joint_finger_1" value="jaco_joint_finger_1" />
+  <xacro:property name="joint_finger_1_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_finger_1_origin_xyz" value="-0.032578 0.0033 -0.12131" />  
+  <xacro:property name="joint_finger_1_origin_rpy" value="-1.7983 1.117 3.1416" />
+  <xacro:property name="joint_finger_1_lower_limit" value="0" />
+  <xacro:property name="joint_finger_1_upper_limit" value="${M_PI/180*40}" />
+
+  <xacro:property name="joint_finger_3" value="jaco_joint_finger_3" />
+  <xacro:property name="joint_finger_3_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_finger_3_origin_xyz" value="0.027788 -0.0206 -0.12131" />
+  <xacro:property name="joint_finger_3_origin_rpy" value="-1.6222 1.117 -0.23615" />
+  <xacro:property name="joint_finger_3_lower_limit" value="0" />
+  <xacro:property name="joint_finger_3_upper_limit" value="${M_PI/180*40}" />
+
+  <xacro:property name="joint_finger_2" value="jaco_joint_finger_2" />
+  <xacro:property name="joint_finger_2_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_finger_2_origin_xyz" value="0.027788 0.0206 -0.12131" />
+  <xacro:property name="joint_finger_2_origin_rpy" value="-1.5161 1.1459 0.23978" />
+  <xacro:property name="joint_finger_2_lower_limit" value="0" />
+  <xacro:property name="joint_finger_2_upper_limit" value="${M_PI/180*40}" />
+  
+  <xacro:property name="joint_finger_tip_1" value="jaco_joint_finger_tip_1" />
+  <xacro:property name="joint_finger_tip_1_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_finger_tip_1_origin_xyz" value="0.044094 -0.0029 0" />  
+  <xacro:property name="joint_finger_tip_1_origin_rpy" value="0 0 0" />
+  <xacro:property name="joint_finger_tip_1_lower_limit" value="0" />
+  <xacro:property name="joint_finger_tip_1_upper_limit" value="${M_PI/180*40}" />
+  
+  <xacro:property name="joint_finger_tip_2" value="jaco_joint_finger_tip_2" />
+  <xacro:property name="joint_finger_tip_2_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_finger_tip_2_origin_xyz" value="0.044094 -0.0029 0" />  
+  <xacro:property name="joint_finger_tip_2_origin_rpy" value="0 0 0" />
+  <xacro:property name="joint_finger_tip_2_lower_limit" value="0" />
+  <xacro:property name="joint_finger_tip_2_upper_limit" value="${M_PI/180*40}" />
+  
+  <xacro:property name="joint_finger_tip_3" value="jaco_joint_finger_tip_3" />
+  <xacro:property name="joint_finger_tip_3_axis_xyz" value="0 0 1" />
+  <xacro:property name="joint_finger_tip_3_origin_xyz" value="0.044094 -0.0029 0" />  
+  <xacro:property name="joint_finger_tip_3_origin_rpy" value="0 0 0" />
+  <xacro:property name="joint_finger_tip_3_lower_limit" value="0" />
+  <xacro:property name="joint_finger_tip_3_upper_limit" value="${M_PI/180*40}" />
+
+  <!-- Simple collision elements for all links. -->
+  <xacro:property name="link_base_link_data">
+      <link_data>
+          <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.076" />
+            <geometry>
+                <cylinder length="0.154" radius="0.043" />
+            </geometry>
+        </collision>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0.02 0.097" />
+            <geometry>
+                <box size="0.08 0.05 0.052" />
+            </geometry>
+        </collision>
+      </link_data>
+  </xacro:property>
+
+  <xacro:property name="link_1_link_data">
+      <link_data>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 -0.02" />
+                <geometry>
+                    <cylinder length="0.04" radius="0.043" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="${M_PI/2.0} 0 0" xyz="0 ${0.0395/2} -0.11925" />
+                <geometry>
+                    <cylinder length="0.045" radius="0.043" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="${M_PI/2.0} 0 0" xyz="0 ${0.0395/2+0.024} -0.11925" />
+                <geometry>
+                    <cylinder length="0.004" radius="0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0.06 0 0" xyz="0 0.031 -0.07875" />
+                <geometry>
+                    <box size="0.079 0.027 0.080" />
+                </geometry>
+	     </collision>
+	     <collision>
+                <origin rpy="-0.7 0 0" xyz="0 0 -0.044" />
+                <geometry>
+                    <cylinder length="0.035" radius="0.045" />
+                </geometry>
+            </collision>
+      </link_data>
+  </xacro:property>
+
+  <xacro:property name="link_2_link_data">
+      <link_data>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 -0.022" />
+                <geometry>
+                    <cylinder length="0.042" radius="0.043" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 0 0" xyz="0.411 0 -0.022" />
+                <geometry>
+                    <cylinder length="0.042" radius="0.043" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 0 0" xyz="${0.411/2} 0 -0.022" />
+                <geometry>
+                    <box size="0.411 0.082 0.04" />
+                </geometry>
+            </collision>
+        </link_data>
+  </xacro:property>
+
+  <xacro:property name="link_3_link_data">
+      <link_data>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 -0.0225" />
+                <geometry>
+                    <cylinder length="0.045" radius="0.043" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 ${M_PI/2.0} 0" xyz="0.187 0 -0.012" />
+                <geometry>
+                    <cylinder length="0.04" radius="0.034" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.02 0" xyz="${0.25/2-0.02} 0 -0.040" />
+                <geometry>
+                    <box size="0.2 0.03 0.01" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.025 0" xyz="${0.25/2-0.02} 0 -0.035" />
+                <geometry>
+                    <box size="0.2 0.053 0.01" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.05 0" xyz="${0.25/2-0.02} 0 -0.025" />
+                <geometry>
+                    <box size="0.2 0.066 0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.07 0" xyz="${0.25/2-0.02} 0 -0.025" />
+                <geometry>
+                    <box size="0.2 0.066 0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.20 0" xyz="${0.25/2-0.02} 0 -0.013" />
+                <geometry>
+                    <box size="0.18 0.05 0.018" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.26 0" xyz="${0.25/2-0.02} 0 -0.009" />
+                <geometry>
+                    <box size="0.18 0.03 0.016" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.18 0" xyz="0.07 0 -0.025" />
+                <geometry>
+                    <box size="0.13 0.084 0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.18 0" xyz="0.09 0 -0.025" />
+                <geometry>
+                    <box size="0.15 0.072 0.02" />
+                </geometry>
+            </collision>
+        </link_data>
+  </xacro:property>
+
+  <xacro:property name="link_4_5_link_data">
+      <link_data>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 -${0.045/2}" />
+                <geometry>
+                    <cylinder length="0.045" radius="0.034" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 ${-M_PI/8-0.08} 0" xyz="0.008 0 ${-0.03-0.045/4}" />
+                <geometry>
+                    <cylinder length="0.030" radius="0.036" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 ${-M_PI/4-0.16} 0" xyz="0.017 0 ${-0.03-0.045/2}" />
+                <geometry>
+                    <cylinder length="0.045" radius="0.034" />
+                </geometry>
+            </collision>
+        </link_data>
+  </xacro:property>
+
+  <xacro:property name="link_hand_link_data">
+      <link_data>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 -${0.035/2}" />
+                <geometry>
+                    <cylinder length="0.035" radius="0.034" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="-0.05 0.45 0" xyz="-0.022 0 -0.06" />
+                <geometry>
+                    <cylinder length="0.09" radius="0.035" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="-0.05 0.45 0" xyz="-0.022 0 -0.06" />
+                <geometry>
+                    <cylinder length="0.11" radius="0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="-0.25 -0.45 0" xyz="0.018 -0.014 -0.06" />
+                <geometry>
+                    <cylinder length="0.09" radius="0.034" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="-0.25 -0.45 0" xyz="0.018 -0.014 -0.06" />
+                <geometry>
+                    <cylinder length="0.11" radius="0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0.25 -0.45 0" xyz="0.018 0.014 -0.06" />
+                <geometry>
+                    <cylinder length="0.09" radius="0.034" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0.25 -0.45 0" xyz="0.018 0.014 -0.06" />
+                <geometry>
+                    <cylinder length="0.11" radius="0.02" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 -0.45 0" xyz="0.052 0 -0.055" />
+                <geometry>
+                    <box size="0.01 0.03 0.07" />
+                </geometry>
+            </collision>
+            <collision>
+                <origin rpy="0 ${M_PI/2.0-0.0} -0.03" xyz="-0.005 0 -0.065" />
+                <geometry>
+                    <cylinder length="0.032" radius="0.05" />
+                </geometry>
+            </collision>
+        </link_data>
+  </xacro:property>
+
+  <xacro:property name="finger_link_data">
+      <link_data>
+          <collision>
+              <origin rpy="0 0 0" xyz="${0.055/2-0.007} -0.01 0" />
+              <geometry>
+                  <box size="0.055 0.026 0.024" />
+              </geometry>
+          </collision>
+      </link_data>
+  </xacro:property>
+
+  <xacro:property name="finger_tip_link_data">
+      <link_data>
+          <collision>
+              <origin rpy="0 0 0" xyz="${0.045/2} -0.005 0" />
+              <geometry>
+                  <box size="0.045 0.020 0.024" />
+              </geometry>
+          </collision>
+      </link_data>
+  </xacro:property>
+
+  <xacro:property name="large_ring_data">
+      <link_data>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <cylinder length="0.023" radius="0.046" />
+              </geometry>
+          </collision>
+      </link_data>
+  </xacro:property>
+
+   <xacro:property name="small_ring_data">
+      <link_data>
+          <collision>
+              <origin rpy="0 0 0" xyz="0 0 0" />
+              <geometry>
+                  <cylinder length="0.023" radius="0.037" />
+              </geometry>
+          </collision>
+      </link_data>
+  </xacro:property>
+
+	  <xacro:macro name="jaco_link_with_collisions" params="link_name mass:=1.0 suffix:='' suffix_separator:='' file_suffix:='' simple_collisions:=0 **simple_collision_data">
+	    <link name="${link_name}${suffix_separator}${suffix}">
+            <inertial>
+		<mass value="${mass}"/>
+                <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+                <origin/>
+            </inertial>
+			<visual>
+				<geometry>
+					<mesh scale="${M_SCALE} ${M_SCALE} ${M_SCALE}" filename="package://jaco_description/meshes/${link_name}${file_suffix}.min.dae" />
+				</geometry>
+				<material name="carbon_fiber">
+					<color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+				</material>
+			</visual>
+
+			<xacro:unless value="${simple_collisions}">
+			<collision>
+				<geometry>
+					<mesh scale="${M_SCALE} ${M_SCALE} ${M_SCALE}" filename="package://jaco_description/meshes/${link_name}${file_suffix}.stl" />
+				</geometry>
+			</collision>
+			</xacro:unless>
+			
+			<xacro:if value="${simple_collisions}">
+				<xacro:insert_block name="simple_collision_data" />
+			</xacro:if>
+		</link>
+	</xacro:macro>
+
+	<!-- Backwards compatibility macro for calling without collisions specifications. -->
+	<xacro:macro name="jaco_link" params="link_name">
+		<xacro:jaco_link_with_collisions link_name="${link_name}" simple_collisions="0">
+			  <link_data/>
+		</xacro:jaco_link_with_collisions>
+	</xacro:macro>
+
+	<xacro:macro name="jaco_link_suffix" params="link_name suffix">
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_name}" suffix="${suffix}" suffix_separator="_">
+			<link_data/>
+		</xacro:jaco_link_with_collisions>
+	</xacro:macro>
+
+	<xacro:macro name="jaco_link_4_5" params="link_name suffix">
+		<xacro:jaco_link_with_collisions mass="0.5" link_name="${link_name}" suffix="${suffix}" suffix_separator="_" file_suffix="_4_5">
+			<link_data/>
+		</xacro:jaco_link_with_collisions>
+	</xacro:macro>
+
+	<xacro:macro name="jaco_ring_cover" params="suffix size">
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_${size}_ring_cover" suffix="${suffix}" suffix_separator="_">
+			<link_data/>
+		</xacro:jaco_link_with_collisions>
+	</xacro:macro>
+
+
+	<xacro:macro name="jaco_joint" params="joint_name type parent child joint_axis_xyz joint_origin_xyz joint_origin_rpy lower_limit upper_limit">
+		<joint name="${joint_name}" type="${type}">
+			<parent link="${parent}" />
+			<child link="${child}" />
+			<axis xyz="${joint_axis_xyz}" />
+			<origin xyz="${joint_origin_xyz}" rpy="${joint_origin_rpy}" />
+			<limit lower="${lower_limit}" upper="${upper_limit}" effort="30" velocity="5" />
+		</joint>
+	</xacro:macro>    
+
+	<xacro:macro name="jaco_finger_joint" params="joint_name type parent child joint_axis_xyz joint_origin_xyz joint_origin_rpy lower_limit upper_limit">
+		<joint name="${joint_name}" type="${type}">
+			<parent link="${parent}" />
+			<child link="${child}" />
+			<axis xyz="${joint_axis_xyz}" />
+			<origin xyz="${joint_origin_xyz}" rpy="${joint_origin_rpy}" />
+			<limit lower="${lower_limit}" upper="${upper_limit}" effort="30" velocity="5" />
+		</joint>
+	</xacro:macro>
+
+	<xacro:macro name="jaco_transmission" params="joint_name">
+        <transmission name="${joint_name}_transmission">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${joint_name}">
+              <hardwareInterface>PositionJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="${joint_name}_motor">
+              <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+	</xacro:macro>
+    
+	<xacro:macro name="jaco_arm" params="parent xyz rpy simple_collisions:=0 gazebo_robot_name:=robot_description">
+        <gazebo>
+            <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_controller_manager">
+                <!-- <robotNamespace>/</robotNamespace> -->
+		<robotParam>${gazebo_robot_name}</robotParam>
+            </plugin>
+        </gazebo>
+      
+		<xacro:jaco_link_with_collisions link_name="${link_base}" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_base_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_base}" type="fixed" parent="${parent}" child="${link_base}" joint_axis_xyz="${joint_base_axis_xyz}" joint_origin_xyz="${xyz}" joint_origin_rpy="${rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+        
+		<xacro:jaco_link_with_collisions link_name="${link_1}" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_1_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_1}" type="revolute" parent="${link_base}" child="${link_1}" joint_axis_xyz="${joint_1_axis_xyz}" joint_origin_xyz="${joint_1_origin_xyz}" joint_origin_rpy="${joint_1_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+        <xacro:jaco_transmission joint_name="${joint_1}" />
+        
+		<xacro:jaco_link_with_collisions link_name="${link_2}" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_2_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_2}" type="revolute" parent="${link_1}" child="${link_2}" joint_axis_xyz="${joint_2_axis_xyz}" joint_origin_xyz="${joint_2_origin_xyz}" joint_origin_rpy="${joint_2_origin_rpy}" lower_limit="0" upper_limit="${J_LIM}" />
+        <xacro:jaco_transmission joint_name="${joint_2}" />
+        
+		<xacro:jaco_link_with_collisions link_name="${link_3}" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_3_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_3}" type="revolute" parent="${link_2}" child="${link_3}" joint_axis_xyz="${joint_3_axis_xyz}" joint_origin_xyz="${joint_3_origin_xyz}" joint_origin_rpy="${joint_3_origin_rpy}" lower_limit="0" upper_limit="${J_LIM}" />
+        <xacro:jaco_transmission joint_name="${joint_3}" />
+
+		<xacro:jaco_link_with_collisions mass="0.5" link_name="${link}" suffix="4" suffix_separator="_" file_suffix="_4_5" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_4_5_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_4}" type="revolute" parent="${link_3}" child="${link}_4" joint_axis_xyz="${joint_4_axis_xyz}" joint_origin_xyz="${joint_4_origin_xyz}" joint_origin_rpy="${joint_4_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+        <xacro:jaco_transmission joint_name="${joint_4}" />
+        
+		<xacro:jaco_link_with_collisions mass="0.5" link_name="${link}" suffix="5" suffix_separator="_" file_suffix="_4_5" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_4_5_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_5}" type="revolute" parent="${link}_4" child="${link}_5" joint_axis_xyz="${joint_5_axis_xyz}" joint_origin_xyz="${joint_5_origin_xyz}" joint_origin_rpy="${joint_5_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+        <xacro:jaco_transmission joint_name="${joint_5}" />
+        
+		<xacro:jaco_link_with_collisions link_name="${link_hand}" simple_collisions="${simple_collisions}"><xacro:insert_block name="link_hand_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="${joint_6}" type="revolute" parent="${link}_5" child="${link_hand}" joint_axis_xyz="${joint_6_axis_xyz}" joint_origin_xyz="${joint_6_origin_xyz}" joint_origin_rpy="${joint_6_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+        <xacro:jaco_transmission joint_name="${joint_6}" />
+				
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_large_ring_cover" suffix="1" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="large_ring_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="jaco_large_ring_cover_1_joint" type="fixed" parent="${link_base}" child="jaco_large_ring_cover_1" joint_axis_xyz="${joint_1_axis_xyz}" joint_origin_xyz="${joint_1_origin_xyz}" joint_origin_rpy="${joint_1_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_large_ring_cover" suffix="2" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="large_ring_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="jaco_large_ring_cover_2_joint" type="fixed" parent="${link_1}" child="jaco_large_ring_cover_2" joint_axis_xyz="${joint_2_axis_xyz}" joint_origin_xyz="${joint_2_origin_xyz}" joint_origin_rpy="${joint_2_origin_rpy}" lower_limit="0" upper_limit="${J_LIM}" />
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_large_ring_cover" suffix="3" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="large_ring_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="jaco_large_ring_cover_3_joint" type="fixed" parent="${link_2}" child="jaco_large_ring_cover_3" joint_axis_xyz="${joint_3_axis_xyz}" joint_origin_xyz="${joint_3_origin_xyz}" joint_origin_rpy="${joint_3_origin_rpy}" lower_limit="0" upper_limit="${J_LIM}" />
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_small_ring_cover" suffix="1" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="small_ring_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="jaco_large_ring_cover_4_joint" type="fixed" parent="${link_3}" child="jaco_small_ring_cover_1" joint_axis_xyz="${joint_4_axis_xyz}" joint_origin_xyz="${joint_4_origin_xyz}" joint_origin_rpy="${joint_4_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_small_ring_cover" suffix="2" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="small_ring_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="jaco_large_ring_cover_5_joint" type="fixed" parent="${link}_4" child="jaco_small_ring_cover_2" joint_axis_xyz="${joint_5_axis_xyz}" joint_origin_xyz="${joint_5_origin_xyz}" joint_origin_rpy="${joint_5_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+		<xacro:jaco_link_with_collisions mass="0.001" link_name="jaco_small_ring_cover" suffix="3" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="small_ring_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_joint joint_name="jaco_large_ring_cover_6_joint" type="fixed" parent="${link}_5" child="jaco_small_ring_cover_3" joint_axis_xyz="${joint_6_axis_xyz}" joint_origin_xyz="${joint_6_origin_xyz}" joint_origin_rpy="${joint_6_origin_rpy}" lower_limit="-${J_LIM}" upper_limit="${J_LIM}" />
+
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_finger}" suffix="1" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="finger_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_finger_joint joint_name="${joint_finger_1}" type="revolute" parent="${link_hand}" child="${link_finger}_1" joint_axis_xyz="${joint_finger_1_axis_xyz}" joint_origin_xyz="${joint_finger_1_origin_xyz}" joint_origin_rpy="${joint_finger_1_origin_rpy}" lower_limit="${joint_finger_1_lower_limit}" upper_limit="${joint_finger_1_upper_limit}" />
+        <xacro:jaco_transmission joint_name="${joint_finger_1}" />
+        
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_finger}" suffix="2" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="finger_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_finger_joint joint_name="${joint_finger_2}" type="revolute" parent="${link_hand}" child="${link_finger}_2" joint_axis_xyz="${joint_finger_2_axis_xyz}" joint_origin_xyz="${joint_finger_2_origin_xyz}" joint_origin_rpy="${joint_finger_2_origin_rpy}" lower_limit="${joint_finger_2_lower_limit}" upper_limit="${joint_finger_2_upper_limit}" />
+        <xacro:jaco_transmission joint_name="${joint_finger_2}" />
+        
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_finger}" suffix="3" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="finger_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_finger_joint joint_name="${joint_finger_3}" type="revolute" parent="${link_hand}" child="${link_finger}_3" joint_axis_xyz="${joint_finger_3_axis_xyz}" joint_origin_xyz="${joint_finger_3_origin_xyz}" joint_origin_rpy="${joint_finger_3_origin_rpy}" lower_limit="${joint_finger_3_lower_limit}" upper_limit="${joint_finger_3_upper_limit}" />	
+        <xacro:jaco_transmission joint_name="${joint_finger_3}" />
+        
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_finger_tip}" suffix="1" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="finger_tip_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_finger_joint joint_name="${joint_finger_tip_1}" type="revolute" parent="${link_finger}_1" child="${link_finger_tip}_1" joint_axis_xyz="${joint_finger_tip_1_axis_xyz}" joint_origin_xyz="${joint_finger_tip_1_origin_xyz}" joint_origin_rpy="${joint_finger_tip_1_origin_rpy}" lower_limit="${joint_finger_tip_1_lower_limit}" upper_limit="${joint_finger_tip_1_upper_limit}" />
+        <xacro:jaco_transmission joint_name="${joint_finger_tip_1}" />
+        
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_finger_tip}" suffix="2" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="finger_tip_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_finger_joint joint_name="${joint_finger_tip_2}" type="revolute" parent="${link_finger}_2" child="${link_finger_tip}_2" joint_axis_xyz="${joint_finger_tip_2_axis_xyz}" joint_origin_xyz="${joint_finger_tip_2_origin_xyz}" joint_origin_rpy="${joint_finger_tip_2_origin_rpy}" lower_limit="${joint_finger_tip_2_lower_limit}" upper_limit="${joint_finger_tip_2_upper_limit}" />
+        <xacro:jaco_transmission joint_name="${joint_finger_tip_2}" />
+        
+		<xacro:jaco_link_with_collisions mass="0.25" link_name="${link_finger_tip}" suffix="3" suffix_separator="_" simple_collisions="${simple_collisions}"><xacro:insert_block name="finger_tip_link_data" /></xacro:jaco_link_with_collisions>
+		<xacro:jaco_finger_joint joint_name="${joint_finger_tip_3}" type="revolute" parent="${link_finger}_3" child="${link_finger_tip}_3" joint_axis_xyz="${joint_finger_tip_3_axis_xyz}" joint_origin_xyz="${joint_finger_tip_3_origin_xyz}" joint_origin_rpy="${joint_finger_tip_3_origin_rpy}" lower_limit="${joint_finger_tip_3_lower_limit}" upper_limit="${joint_finger_tip_3_upper_limit}" />
+        <xacro:jaco_transmission joint_name="${joint_finger_tip_3}" />
+
+        <gazebo>
+          <gripper name="grasping">
+            <grasp_check>
+              <attach_steps>5</attach_steps>
+              <detach_steps>5</detach_steps>
+              <min_contact_count>1</min_contact_count>
+            </grasp_check>
+            <gripper_link>${link_finger}_1</gripper_link>
+            <gripper_link>${link_finger}_2</gripper_link>
+            <gripper_link>${link_finger}_3</gripper_link>
+            <gripper_link>${link_finger_tip}_1</gripper_link>
+            <gripper_link>${link_finger_tip}_2</gripper_link>
+            <gripper_link>${link_finger_tip}_3</gripper_link>
+            <palm_link>${link_hand}</palm_link>
+            <!-- <gripper_link>${link_hand}</gripper_link> -->
+            <!-- <palm_link>${link_finger_tip}_1</palm_link> -->
+          </gripper>
+        </gazebo>
+	</xacro:macro>
+</robot>

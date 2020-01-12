@@ -7,7 +7,7 @@ class Cursor(Robot):
     """Cursor is an artificial agent with a simple action space."""
 
     def __init__(self):
-        super().__init__(xml_path_completion("robots/cursor.xml"))
+        super().__init__(xml_path_completion("robots/cursor/robot.xml"))
 
     def set_xpos(self, pos):
         """Places the cursor on position @pos."""
