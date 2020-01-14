@@ -95,20 +95,13 @@ public class xmlTool : EditorWindow
 
         // run importer or clear
         EditorGUILayout.Space();
-        GUILayout.BeginHorizontal();
+        // GUILayout.BeginHorizontal();
         if( GUILayout.Button("Import Model", GUILayout.Height(25)) )
              RunImport();
 
-        if( GUILayout.Button("Clear Model", GUILayout.Height(25)) )
-        {
-            // delete MuJoCo hierarchy
-            GameObject top = GameObject.Find("MuJoCo");
-            if( top )
-                DestroyImmediate(top);
-        }
         if( GUILayout.Button("Save Model", GUILayout.Height(25)) )
             SaveModel();          
-        GUILayout.EndHorizontal();
+        // GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
         selectedbody1 = EditorGUILayout.Popup("Body1 (top)", selectedbody1, bodyNames.ToArray()); 
         selectedbody2 = EditorGUILayout.Popup("Body2 (bot)", selectedbody2, bodyNames.ToArray()); 
@@ -823,8 +816,8 @@ public class xmlTool : EditorWindow
         // initialize xml-related stuff 
         doc.PreserveWhitespace = true;
         doc.Load(modelFile);
-        // site_size = doc.GetElementsByTagName("site")[0].Attributes["size"].Value;
-        site_size = "20";
+        site_size = doc.GetElementsByTagName("site")[0].Attributes["size"].Value;
+        // site_size = "20";
         XmlNodeList bodies = doc.SelectNodes(".//body");
         foreach (XmlNode body in bodies)
         {
