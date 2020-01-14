@@ -1,10 +1,10 @@
 <mujoco model="bench_bjursta_0210">
   <asset>
-    <mesh file="0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
-    <mesh file="4.stl" name="part4" scale="0.0005 0.0005 0.0005" />
-    <mesh file="3.stl" name="part3" scale="0.0005 0.0005 0.0005" />
-    <mesh file="2.stl" name="part2" scale="0.0005 0.0005 0.0005" />
-    <mesh file="1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
+    <mesh file="bench_bjursta_0210/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
+    <mesh file="bench_bjursta_0210/4.stl" name="part4" scale="0.0005 0.0005 0.0005" />
+    <mesh file="bench_bjursta_0210/3.stl" name="part3" scale="0.0005 0.0005 0.0005" />
+    <mesh file="bench_bjursta_0210/2.stl" name="part2" scale="0.0005 0.0005 0.0005" />
+    <mesh file="bench_bjursta_0210/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
@@ -14,7 +14,7 @@
   </equality>
   <worldbody>
     <body name="0_part0" pos="0.0 -0.0 0.0" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" mesh="part0" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom conaffinity="0" contype="0" density="100" mesh="part0" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="0_part0_horizontal_radius_site" pos="0.0 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="0_part0_top_site" pos="0.0 0.0 0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="0_part0_bottom_site" pos="0.0 0.0 -0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
@@ -29,7 +29,7 @@
       <site name="0_part0-4_part4,0,180,conn_site" pos="-0.0005 0.0005 0.12695" quat="1 0 0 0" rgba="0.971, 0.1391, 0.1391, 0.3" size="0.02" />
     </body>
     <body name="4_part4" pos="0.3809999879 0.0951000122 0.1206499977" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" mesh="part4" name="4_part4_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom conaffinity="0" contype="0" density="100" mesh="part4" name="4_part4_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="4_part4_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="4_part4_top_site" pos="0.0 0.0 0.019049999249999998" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="4_part4_bottom_site" pos="0.0 0.0 -0.019049999249999998" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
@@ -47,7 +47,7 @@
       <site name="4_part4-1_part1,0,180,conn_site" pos="0.389 -0.09525 0.006850005" quat="1 0 0 0" rgba="0.5726, 0.1757, 0.9695, 0.3" size="0.02" />
     </body>
     <body name="3_part3" pos="0.762 0.1905 0.0" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" mesh="part3" name="3_part3_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom conaffinity="0" contype="0" density="100" mesh="part3" name="3_part3_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="3_part3_horizontal_radius_site" pos="-0.0 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="3_part3_top_site" pos="0.0 0.0 0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="3_part3_bottom_site" pos="0.0 0.0 -0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
@@ -62,7 +62,7 @@
       <site name="3_part3-4_part4,0,180,conn_site" pos="0.005 0.001 0.1265" quat="1 0 0 0" rgba="0.2048, 0.9865, 0.9865, 0.3" size="0.02" />
     </body>
     <body name="2_part2" pos="0.0 0.1905 0.0" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" mesh="part2" name="2_part2_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom conaffinity="0" contype="0" density="100" mesh="part2" name="2_part2_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="2_part2_horizontal_radius_site" pos="0.0 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="2_part2_top_site" pos="0.0 0.0 0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="2_part2_bottom_site" pos="0.0 0.0 -0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
@@ -77,7 +77,7 @@
       <site name="2_part2-4_part4,0,180,conn_site" pos="0.0011 0.00014999390000000002 0.12665" quat="1 0 0 0" rgba="0.5785, 0.9914, 0.1655, 0.3" size="0.02" />
     </body>
     <body name="1_part1" pos="0.762 -0.0 0.0" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" mesh="part1" name="1_part1_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom conaffinity="0" contype="0" density="100" mesh="part1" name="1_part1_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="1_part1_horizontal_radius_site" pos="-0.0 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="1_part1_top_site" pos="0.0 0.0 0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="1_part1_bottom_site" pos="0.0 0.0 -0.127" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />

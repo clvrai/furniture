@@ -15,3 +15,9 @@ def str2list(value):
     else:
         return [num for num in value.split(',')]
 
+
+def str2floatlist(value):
+    if not value:
+        return value
+    else:
+       return [float(num) for num in value.split(',')]

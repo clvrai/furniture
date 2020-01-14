@@ -377,7 +377,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                                       width=self._screen_width,
                                       height=self._screen_height,
                                       depth=False)
-            if len(img.shape) == 4: 
+            if len(img.shape) == 4:
                 img = img[:, ::-1, :, :] / 255.0
             elif len(img.shape) == 3:
                 img = img[::-1, :, :] / 255.0
@@ -396,17 +396,17 @@ class FurnitureEnv(metaclass=EnvMeta):
                     img, depth = camera_obs
                 else:
                     img = camera_obs
-            if len(img.shape) == 4: 
+            if len(img.shape) == 4:
                 img = img[:, ::-1, :, :] / 255.0
             elif len(img.shape) == 3:
                 img = img[::-1, :, :] / 255.0
-                
+
             if depth is not None:
                 # depth map is 0 to 1, with 1 being furthest
                 # infinite depth is 0, so set to 1
                 black_pixels = np.all(depth==[0,0,0], axis=-1)
                 depth[black_pixels] = [255] * 3
-                if len(depth.shape) == 4: 
+                if len(depth.shape) == 4:
                     depth = depth[:, ::-1, :, :] / 255.0
                 elif len(depth.shape) == 3:
                     depth = depth[::-1, :, :] / 255.0
@@ -1224,12 +1224,12 @@ class FurnitureEnv(metaclass=EnvMeta):
 
             # stablize furniture pieces
             for _ in range(100):
-                self._slow_objects()
-                self.sim.forward()
-                self.sim.step()
+               self._slow_objects()
+               self.sim.forward()
+               self.sim.step()
 
             for body in self._object_names:
-                self._stop_object(body, gravity=0)
+               self._stop_object(body, gravity=0)
             for _ in range(500):
                 # gravity compensation
                 if self._agent_type != 'Cursor':
@@ -1883,7 +1883,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     img = np.concatenate(img)
                     if depth is not None:
                         depth = np.concatenate(depth)
-                
+
                 imageio.imwrite('camera_ob.png', (img * 255).astype(np.uint8))
                 if self._segmentation_ob:
                     seg = self.render('segmentation')
