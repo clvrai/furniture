@@ -167,6 +167,7 @@ public class xmlTool : EditorWindow
         XmlElement elem = doc.CreateElement("site");
         XmlAttribute nameAttr = doc.CreateAttribute("name");
         nameAttr.Value = group1 + "-" + group2 + connAngles + ",conn_site" + partCount[group1 + "-" + group2].ToString();
+        partCount[group1 + "-" + group2] -= 1;
         XmlAttribute posAttr = doc.CreateAttribute("pos");
         posAttr.Value = pos;
         XmlAttribute quatAttr = doc.CreateAttribute("quat");

@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import sys
 import argparse
 import colorsys
+import re
 
 def _get_colors(num_colors):
     colors=[]
@@ -26,12 +27,47 @@ parser.add_argument('--path', type=str, default='../models/assets/objects/in_pro
 config, unparsed = parser.parse_known_args()
 tree = ET.parse(config.path) # Path to input file
 root = tree.getroot()
+equality = root.find("equality")
+
+# get count of conn_sites, and get map of groups->bodies
+bodymap = dict()
+connections = set()
 
 num_colors = 0
 for body in root.find('worldbody'):
 	for child in body.getiterator():
-		if child.tag == 'site' and child.attrib['name'].endswith('conn_site'):
+		if child.tag == 'site' and re.search('conn_site', child.attrib['name']):
 			num_colors +=1
+			groupPair = child.attrib['name'].split(',')[0]
+			groupNames = groupPair.split('-')
+			group1 = groupNames[0]
+			group2 = groupNames[1]
+			groupPair2 = group2 + "-" + group1
+			if group1 not in bodymap.keys():
+				bodies = set()
+				bodies.add(body)
+				bodymap[group1] = bodies
+			else:
+				bodymap[group1].add(body)
+			if groupPair not in connections and groupPair2 not in connections:
+				connections.add(groupPair)
+
+
+# add welds to XML
+for groupPair in connections:
+	groupNames = groupPair.split('-')
+	group1 = groupNames[0]
+	group2 = groupNames[1]
+	# n*m welds needed for n bodies in group1 and m bodies in group2
+	for body1 in bodymap[group1]:
+		for body2 in bodymap[group2]:
+			weld = ET.SubElement(equality, 'weld')
+			weld.set('active', 'false')
+			weld.set('body1', body1.attrib['name'])
+			weld.set('body2', body2.attrib['name'])
+			weld.set('solimp', '1 1 0.5')
+			weld.set('solref', '0.01 0.3')
+
 
 num_colors = int(num_colors/2)
 colors, palette = _get_colors(num_colors)
@@ -45,30 +81,25 @@ colors, palette = _get_colors(num_colors)
 for color in colors:
 	print(color)
 
-equality = root.find("equality")
 
 i = 0
 colormap = dict()
 for body in root.find('worldbody'):
 	for child in body.getiterator():
-		if child.tag == 'site' and child.attrib['name'].endswith('conn_site'):
-			sitename = child.attrib['name'].split(',')[0]
-			if sitename not in colormap:
-				bodynames = sitename.split('-')
-				body1 = bodynames[0]
-				body2 = bodynames[1]
-				# add weld to XML
-				weld = ET.SubElement(equality, 'weld')
-				weld.set('active', 'false')
-				weld.set('body1', body1)
-				weld.set('body2', body2)
-				weld.set('solimp', '1 1 0.5')
-				weld.set('solref', '0.01 0.3')
-				colormap[sitename] = colors[i]
-				sitename2 = body2+'-'+body1
-				colormap[sitename2] = colors[i] 
+		if child.tag == 'site' and re.search('conn_site', child.attrib['name']):
+			groupPair = child.attrib['name'].split(',')[0]
+			if groupPair not in colormap:
+				groupNames = groupPair.split('-')
+				group1 = groupNames[0]
+				group2 = groupNames[1]
+				colormap[groupPair] = colors[i]
+				groupPair2 = group2+'-'+group1
+				colormap[groupPair2] = colors[i] 
 				i+=1
 			# change color of conn_site
-			child.set('rgba', colormap[sitename]) 
+			child.set('rgba', colormap[groupPair]) 
+
+
+
 
 tree.write(config.path, encoding='UTF-8')
