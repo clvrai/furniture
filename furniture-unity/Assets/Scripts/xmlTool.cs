@@ -30,6 +30,7 @@ public class xmlTool : EditorWindow
     public string tcpAddress = "127.0.0.1";
     public int tcpPort = 1050;
     public bool noVSync = false;
+    public Dictionary<string, int> partCount = new Dictionary<string, int>();
 
     // Unity element arrays
     Texture2D[] textures;
@@ -42,9 +43,11 @@ public class xmlTool : EditorWindow
     public string site_size = "";
     public List<string> bodyNames = new List<string>();
     public List<GameObject> connSiteObjs = new List<GameObject>();
-    public int selectedbody1 = 0;
-    public int selectedbody2 = 0;
-
+    public int selBody1 = 0;
+    public int selBody2 = 0;
+    public string groupName1 = "";
+    public string groupName2 = "";
+    public string angles = "";
     // create menu item
     [MenuItem("Window/xmlTool")]
     public static void ShowWindow()
@@ -103,9 +106,14 @@ public class xmlTool : EditorWindow
             SaveModel();          
         // GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
-        selectedbody1 = EditorGUILayout.Popup("Body1 (top)", selectedbody1, bodyNames.ToArray()); 
-        selectedbody2 = EditorGUILayout.Popup("Body2 (bot)", selectedbody2, bodyNames.ToArray()); 
+        selBody1 = EditorGUILayout.Popup("Body1 (top)", selBody1, bodyNames.ToArray()); 
+        selBody2 = EditorGUILayout.Popup("Body2 (bot)", selBody2, bodyNames.ToArray()); 
         GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal();
+        groupName1 = EditorGUILayout.TextField("groupName1", groupName1); 
+        groupName2 = EditorGUILayout.TextField("groupName2", groupName2); 
+        GUILayout.EndHorizontal();
+        angles = EditorGUILayout.TextField("Connection Angles", angles);
         if( GUILayout.Button("Add Connection Site", GUILayout.Height(25)) )
             AddSite();    
     }
@@ -116,15 +124,25 @@ public class xmlTool : EditorWindow
         GameObject body1, body2, connSiteObj;
         float x, y, z, size;
         size = float.Parse(site_size); 
-        string body1name = bodyNames[selectedbody1];
-        string body2name = bodyNames[selectedbody2];
+        string bodyname1 = bodyNames[selBody1];
+        string bodyname2 = bodyNames[selBody2];
+        string curGroup1 = groupName1;
+        string curGroup2 = groupName2;
+        string curAngles = angles;
         string siteName = "";
-        body1 = GameObject.Find("MuJoCo/" + body1name + "_bottom_site");
-        body2 = GameObject.Find("MuJoCo/" + body2name + "_top_site");
+        body1 = GameObject.Find("MuJoCo/" + bodyname1 + "_bottom_site");
+        body2 = GameObject.Find("MuJoCo/" + bodyname2 + "_top_site");
         x = (body1.transform.localPosition.x + body2.transform.localPosition.x) / 2;
         y = (body1.transform.localPosition.y + body2.transform.localPosition.y) / 2;
         z = (body1.transform.localPosition.z + body2.transform.localPosition.z) / 2;
-        siteName = body1name + "-" + body2name + ",0,180,conn_site";
+        if(curAngles == ""){
+            siteName = bodyname1 + "-" + bodyname2 + "," + curGroup1 + "-" 
+            + curGroup2 + ",conn_site";
+        }
+        else{
+            siteName = bodyname1 + "-" + bodyname2 + "," + curGroup1 + "-" 
+                + curGroup2 + "," + curAngles + ",conn_site";
+        }
         // Debug.Log("here x=" + x + ", y=" + y + ", z=" + z);     
         connSiteObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         connSiteObj.transform.parent = root.transform;
@@ -132,14 +150,23 @@ public class xmlTool : EditorWindow
         connSiteObj.transform.localScale = new Vector3(size, size, size);
         connSiteObj.name = siteName;
         connSiteObjs.Add(connSiteObj);
+        try
+        {
+            partCount[curGroup1 + "-" + curGroup2] += 1;
+            partCount[curGroup2 + "-" + curGroup1] += 1;
+        }
+        catch (KeyNotFoundException)
+        {
+            partCount.Add(curGroup1 + "-" + curGroup2, 1);
+            partCount.Add(curGroup2 + "-" + curGroup1, 1);
+        }
         // make new site active selection in unity
         Selection.activeGameObject = connSiteObj;
     }
-
-    private unsafe XmlElement createConnSite(string body1, string body2, string pos){
+    private unsafe XmlElement createConnSite(string group1, string group2, string connAngles, string pos){
         XmlElement elem = doc.CreateElement("site");
         XmlAttribute nameAttr = doc.CreateAttribute("name");
-        nameAttr.Value = body1 + "-" + body2 + ",0,180,conn_site";
+        nameAttr.Value = group1 + "-" + group2 + connAngles + ",conn_site" + partCount[group1 + "-" + group2].ToString();
         XmlAttribute posAttr = doc.CreateAttribute("pos");
         posAttr.Value = pos;
         XmlAttribute quatAttr = doc.CreateAttribute("quat");
@@ -166,17 +193,26 @@ public class xmlTool : EditorWindow
     private unsafe void SaveModel()
     {
         float mj_abs_x, mj_abs_y, mj_abs_z, b1_site_x, b1_site_y, b1_site_z, b2_site_x, b2_site_y, b2_site_z;
-        string[] bodyNames, b1_mjpos, b2_mjpos;
-        string b1_sitepos, b2_sitepos;
+        string[] connsiteName, bodyNames, groupNames, b1_mjpos, b2_mjpos;
+        string b1_sitepos, b2_sitepos, connAngles;
+        HashSet<string> validAngles = new HashSet<string>() {"0", "45", "90", "135", "180", "215", "270", "315"};    
         foreach (GameObject connSiteObj in connSiteObjs)
         {
             if(connSiteObj != null){
-                bodyNames = connSiteObj.name.Split(',')[0].Split('-');
+                connsiteName = connSiteObj.name.Split(',');
+                bodyNames = connsiteName[0].Split('-');
+                groupNames = connsiteName[1].Split('-');
                 XmlNode body1 = getBody(bodyNames[0]);
                 XmlNode body2 = getBody(bodyNames[1]); 
                 b1_mjpos = body1.Attributes["pos"].Value.Split(' ');
                 b2_mjpos = body2.Attributes["pos"].Value.Split(' ');
-
+                
+                connAngles = "";
+                foreach(string s in connsiteName){
+                    if(validAngles.Contains(s)){
+                        connAngles = connAngles + "," + s;
+                    }
+                }
                 //convert unity pos to mj pos
                 mj_abs_x = -connSiteObj.transform.localPosition.x;
                 mj_abs_y = -connSiteObj.transform.localPosition.z;
@@ -190,19 +226,14 @@ public class xmlTool : EditorWindow
                 b2_site_z = mj_abs_z - float.Parse(b2_mjpos[2]); 
                 b1_sitepos = b1_site_x.ToString() + " " + b1_site_y.ToString() + " " + b1_site_z.ToString(); 
                 b2_sitepos = b2_site_x.ToString() + " " + b2_site_y.ToString() + " " + b2_site_z.ToString(); 
-                XmlElement b1connSite = createConnSite(bodyNames[0], bodyNames[1], b1_sitepos);
-                XmlElement b2connSite = createConnSite(bodyNames[1], bodyNames[0], b2_sitepos);            
+                XmlElement b1connSite = createConnSite(groupNames[0], groupNames[1], connAngles, b1_sitepos);
+                XmlElement b2connSite = createConnSite(groupNames[1], groupNames[0], connAngles, b2_sitepos);            
                 body1.AppendChild(b1connSite);
                 body2.AppendChild(b2connSite);
             }
         }   
-        // string tempName = "../../furniture-outdated/env/models/assets/objects/in_progress/complete/"
-        //                + fileName  + "/" + fileName + ".xml";
-        // doc.Save(tempName);      
-        // Debug.Log("saving " + tempName + " to " + tempName);
         char[] seperator = {'\\'};
         int count = 1;
-        // Debug.Log("modelFile=" + modelFile);
         string[] subpath = modelFile.Split('/');
         string sourcedir = string.Join("/", subpath, 0, subpath.Length-1);
         string savedir = string.Join("/", subpath, 0, subpath.Length-3) + "/complete/" + fileName + "/";
@@ -809,8 +840,6 @@ public class xmlTool : EditorWindow
         MJP.Initialize();
         MJP.LoadModel(modelFile);
 
-        // TODO
-        // destroy old xml things if present
         bodyNames.Clear();
         connSiteObjs.Clear();
         // initialize xml-related stuff 
