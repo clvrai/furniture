@@ -46,8 +46,14 @@ def assign(num_persons):
     We can assign furniture greedily in descending order of parts such that
     the remainder parts can be taken by the smallest furniture.
     """
-    furn_folders = [ d for d in os.scandir('env/models/assets/objects/complete') if d.is_dir()]
-    furn_folders += [d for d in os.scandir('env/models/assets/objects/incomplete') if d.is_dir()]
+    complete_furn_folders = [ d for d in os.scandir('env/models/assets/objects/complete') if d.is_dir()]
+    complete_furn = set()
+    for folder in complete_furn_folders:
+        for f in os.scandir(folder.path):
+            if f.is_file() and f.path.endswith('xml'):
+                complete_furn.add(f.name)
+
+    furn_folders = complete_furn_folders + [d for d in os.scandir('env/models/assets/objects/incomplete') if d.is_dir()]
     furn_count = defaultdict(list)
     total = 0
     total_parts = 0
@@ -89,7 +95,11 @@ def assign(num_persons):
             rb = remaining_budget[i]
             f.write(f'Person {i}, remaining budget: {rb}\n')
             for furn_name, num_parts in p:
-                f.write(f'{furn_name}, {num_parts} parts\n')
+                line = f'{furn_name}, {num_parts} parts'
+                if furn_name in complete_furn:
+                    line += ', Connection Sites Labeled'
+                f.write(line + '\n')
+
             f.write('-' * 80 + '\n')
 
         f.write('Furn left over\n')
