@@ -47,7 +47,11 @@ public class xmlTool : EditorWindow
     public string groupName1 = "";
     public string groupName2 = "";
     public string angles = "";
-
+    public List<string> geomTypes = new List<string>(){"cube", "cylinder"};
+    public int geomTypeIndex = 0;
+    public int novizBodyIndex; 
+    public List<GameObject> novizGeoms = new List<GameObject>();
+    public Dictionary<GameObject, string> geomType = new Dictionary<GameObject, string>();
     // create menu item
     [MenuItem("Window/xmlTool")]
     public static void ShowWindow()
@@ -94,13 +98,8 @@ public class xmlTool : EditorWindow
 
         // run importer or clear
         EditorGUILayout.Space();
-        // GUILayout.BeginHorizontal();
         if (GUILayout.Button("Import Model", GUILayout.Height(25)))
             RunImport();
-
-        if (GUILayout.Button("Save Model", GUILayout.Height(25)))
-            SaveModel();
-        // GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
         selBody1 = EditorGUILayout.Popup("Body1 (top)", selBody1, bodyNames.ToArray());
         selBody2 = EditorGUILayout.Popup("Body2 (bot)", selBody2, bodyNames.ToArray());
@@ -112,9 +111,14 @@ public class xmlTool : EditorWindow
         angles = EditorGUILayout.TextField("Connection Angles", angles);
         if (GUILayout.Button("Add Connection Site", GUILayout.Height(25)))
             AddSite();
-
+        novizBodyIndex = EditorGUILayout.Popup("collision geom body", novizBodyIndex, bodyNames.ToArray()); 
+        geomTypeIndex = EditorGUILayout.Popup("Geom Type", geomTypeIndex, geomTypes.ToArray());
+        if( GUILayout.Button("Add Collision Geom", GUILayout.Height(25)) )
+            AddNovizGeom();
         if (GUILayout.Button("Test Quat Conversion", GUILayout.Height(25)))
             TestQuat();
+        if (GUILayout.Button("Save Model", GUILayout.Height(25)))
+            SaveModel();
     }
 
     private void TestQuat()
@@ -155,6 +159,48 @@ public class xmlTool : EditorWindow
         Vector3 newz = new Vector3(-temp.transform.up[0], -temp.transform.up[2], temp.transform.up[1]);
         Vector3 newy = new Vector3(temp.transform.forward[0], temp.transform.forward[2], -temp.transform.forward[1]);
         return Quaternion.LookRotation(newz, newy);
+    }
+
+    private unsafe void AddNovizGeom(){
+        GameObject parentbody, cornersite, novizGeom;   
+        float x_scale, y_scale, z_scale, x, y, z;
+        novizGeom = null;
+        //GameObject.gameObject.tag="cube";
+        //GameObject.gameObject.tag="cylinder";
+
+        if(geomTypes[geomTypeIndex] == "cube"){
+            novizGeom = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            geomType.Add(novizGeom, "cube");
+        }
+        else if(geomTypes[geomTypeIndex] == "cylinder"){
+            novizGeom = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            geomType.Add(novizGeom, "cylinder");
+        }
+        if(novizGeom != null){
+            // access body
+            parentbody = GameObject.Find("MuJoCo/" + bodyNames[novizBodyIndex] + "_mesh");
+            // access corner of this body 
+            cornersite = GameObject.Find("MuJoCo/" + bodyNames[novizBodyIndex] + "_corner_site1");
+            // set default scales, pos
+            if(parentbody != null){
+                x = parentbody.transform.localPosition.x;
+                y = parentbody.transform.localPosition.y;
+                z = parentbody.transform.localPosition.z;
+                x_scale = 1;
+                y_scale = 1;
+                z_scale = 1;
+                if(cornersite != null){
+                    x_scale = 2*System.Math.Abs(x - cornersite.transform.localPosition.x);
+                    y_scale = 2*System.Math.Abs(y - cornersite.transform.localPosition.y);
+                    z_scale = 2*System.Math.Abs(z - cornersite.transform.localPosition.z);
+                }
+                novizGeom.transform.localPosition = new Vector3(x, y, z);
+                novizGeom.transform.localScale = new Vector3(x_scale, y_scale, z_scale);
+                //update name
+                novizGeom.name = "noviz_collision_" + parentbody.name.Substring(0,parentbody.name.Length-5);
+            }
+            novizGeoms.Add(novizGeom);
+        }
     }
 
     private unsafe void AddSite()
@@ -198,6 +244,39 @@ public class xmlTool : EditorWindow
         // make new site active selection in unity
         Selection.activeGameObject = connSiteObj;
     }
+//  <geom density="50" euler="0 0 0" name="noviz_collision_1_table_leg1_1" pos="-0.015 0.17 0.0" rgba="1 0 0 1" size="0.012 0.012 0.16" solref="0.001 1" type="box" />
+
+    private unsafe XmlElement createNovizGeom(string name, string pos, string size, Quaternion quat, string type){
+        XmlElement elem = doc.CreateElement("geom");   
+        XmlAttribute densityAttr = doc.CreateAttribute("density");
+        densityAttr.Value = "50";
+        XmlAttribute quatAttr = doc.CreateAttribute("euler");
+        Quaternion mujocoQ = TransformQuaternion(quat);
+        quatAttr.Value = mujocoQ.w + " " + mujocoQ.x + " " + mujocoQ.y + " " + mujocoQ.z;
+        XmlAttribute nameAttr = doc.CreateAttribute("name");
+        //partCount[group1 + "-" + group2] -= 1;
+        XmlAttribute posAttr = doc.CreateAttribute("pos");
+        posAttr.Value = pos;
+        XmlAttribute rgbaAttr = doc.CreateAttribute("rgba");
+        rgbaAttr.Value = "1 0 0 1";
+        XmlAttribute sizeAttr = doc.CreateAttribute("size");
+        sizeAttr.Value = size;
+        XmlAttribute solrefAttr = doc.CreateAttribute("solref");
+        solrefAttr.Value = "0.001 1";
+        XmlAttribute typeAttr = doc.CreateAttribute("type");
+        typeAttr.Value = type;
+        elem.Attributes.Append(densityAttr);
+        elem.Attributes.Append(quatAttr);
+        elem.Attributes.Append(nameAttr);
+        elem.Attributes.Append(posAttr);
+        elem.Attributes.Append(rgbaAttr);
+        elem.Attributes.Append(sizeAttr);
+        elem.Attributes.Append(solrefAttr);
+        elem.Attributes.Append(typeAttr);
+        return elem;
+
+        
+    }
 
     private unsafe XmlElement createConnSite(string group1, string group2, string connAngles, string pos, Quaternion quat)
     {
@@ -229,13 +308,40 @@ public class xmlTool : EditorWindow
         return nodes.Item(0);
     }
 
+    private unsafe string getMJSize(GameObject unityObj){
+        string mj_relsize = "";
+        float mj_size_x, mj_size_y, mj_size_z;
+        mj_size_x = unityObj.transform.localPosition.x;
+        mj_size_y = unityObj.transform.localPosition.z;
+        mj_size_z = unityObj.transform.localPosition.y;
+        mj_relsize = mj_size_x.ToString() + " " + mj_size_y.ToString() + " " + mj_size_z.ToString();
+        return mj_relsize;
+    }
+
+    private unsafe string getMjRelCoords(GameObject unityObj, XmlNode parentBody){
+        string mj_relpos = "";
+        string [] parent_coords;
+        float mj_abs_x, mj_abs_y, mj_abs_z, mj_rel_x, mj_rel_y, mj_rel_z;
+        //convert unity pos to mj pos
+        mj_abs_x = -unityObj.transform.localPosition.x;
+        mj_abs_y = -unityObj.transform.localPosition.z;
+        mj_abs_z = unityObj.transform.localPosition.y;
+        parent_coords = parentBody.Attributes["pos"].Value.Split(' ');
+        //subtract body pos from unity conn pos since mujoco is relative coords
+        mj_rel_x = mj_abs_x - float.Parse(parent_coords[0]);
+        mj_rel_y = mj_abs_y - float.Parse(parent_coords[1]);
+        mj_rel_z = mj_abs_z - float.Parse(parent_coords[2]);
+        mj_relpos = mj_rel_x.ToString() + " " + mj_rel_y.ToString() + " " + mj_rel_z.ToString();
+        return mj_relpos;
+    }
+
     // import renderable objects
     private unsafe void SaveModel()
     {
-        float mj_abs_x, mj_abs_y, mj_abs_z, b1_site_x, b1_site_y, b1_site_z, b2_site_x, b2_site_y, b2_site_z;
-        string[] connsiteName, bodyNames, groupNames, b1_mjpos, b2_mjpos;
-        string b1_sitepos, b2_sitepos, connAngles;
+        string[] connsiteName, bodyNames, groupNames;
+        string b1_sitepos, b2_sitepos, connAngles, parentBodyName;
         HashSet<string> validAngles = new HashSet<string>() { "0", "45", "90", "135", "180", "215", "270", "315" };
+        // connsites
         foreach (GameObject connSiteObj in connSiteObjs) {
             if (connSiteObj != null) {
                 connsiteName = connSiteObj.name.Split(',');
@@ -243,29 +349,15 @@ public class xmlTool : EditorWindow
                 groupNames = connsiteName[1].Split('-');
                 XmlNode body1 = getBody(bodyNames[0]);
                 XmlNode body2 = getBody(bodyNames[1]);
-                b1_mjpos = body1.Attributes["pos"].Value.Split(' ');
-                b2_mjpos = body2.Attributes["pos"].Value.Split(' ');
-
+                b1_sitepos = getMjRelCoords(connSiteObj, body1);
+                b2_sitepos = getMjRelCoords(connSiteObj, body2);
+                // get conn angles
                 connAngles = "";
                 foreach (string s in connsiteName) {
                     if (validAngles.Contains(s)) {
                         connAngles = connAngles + "," + s;
                     }
                 }
-                //convert unity pos to mj pos
-                mj_abs_x = -connSiteObj.transform.localPosition.x;
-                mj_abs_y = -connSiteObj.transform.localPosition.z;
-                mj_abs_z = connSiteObj.transform.localPosition.y;
-                //subtract body pos from unity conn pos since mujoco is relative coords
-                b1_site_x = mj_abs_x - float.Parse(b1_mjpos[0]);
-                b1_site_y = mj_abs_y - float.Parse(b1_mjpos[1]);
-                b1_site_z = mj_abs_z - float.Parse(b1_mjpos[2]);
-                b2_site_x = mj_abs_x - float.Parse(b2_mjpos[0]);
-                b2_site_y = mj_abs_y - float.Parse(b2_mjpos[1]);
-                b2_site_z = mj_abs_z - float.Parse(b2_mjpos[2]);
-                b1_sitepos = b1_site_x.ToString() + " " + b1_site_y.ToString() + " " + b1_site_z.ToString();
-                b2_sitepos = b2_site_x.ToString() + " " + b2_site_y.ToString() + " " + b2_site_z.ToString();
-
                 Quaternion b1_site_quat = connSiteObj.transform.rotation, b2_site_quat = connSiteObj.transform.rotation;
                 XmlElement b1connSite = createConnSite(groupNames[0], groupNames[1], connAngles, b1_sitepos, b1_site_quat);
                 XmlElement b2connSite = createConnSite(groupNames[1], groupNames[0], connAngles, b2_sitepos, b2_site_quat);
@@ -273,6 +365,21 @@ public class xmlTool : EditorWindow
                 body2.AppendChild(b2connSite);
             }
         }
+        // noviz geoms
+        string novizGeomPos, novizGeomSize;
+        foreach (GameObject novizGeom in novizGeoms) {
+            if (novizGeom != null) {
+                parentBodyName = novizGeom.name.Substring(16);
+                Debug.Log("noviz parent body " + parentBodyName);
+                XmlNode parentBody = getBody(parentBodyName);
+                novizGeomPos = getMjRelCoords(novizGeom, parentBody);
+                novizGeomSize = getMJSize(novizGeom);
+                Quaternion novizGeomQuat = novizGeom.transform.rotation;
+                XmlElement geom = createNovizGeom(novizGeom.name, novizGeomPos, novizGeomSize, novizGeomQuat, geomType[novizGeom]);
+                parentBody.AppendChild(geom);
+            }
+        }
+
         char[] seperator = { '\\' };
         int count = 1;
         string[] subpath = modelFile.Split('/');
