@@ -201,6 +201,8 @@ public class xmlTool : EditorWindow
             colGeom = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             geomType.Add(colGeom, "cylinder");
         }
+        MeshRenderer rend = colGeom.GetComponent<MeshRenderer>();
+        rend.sharedMaterial.color = Color.red;
         if(colGeom != null){
             // access body
             parentbody = GameObject.Find("MuJoCo/" + bodyNames[colGeomBodyIndex] + "_mesh");
@@ -673,6 +675,8 @@ public class xmlTool : EditorWindow
 
         // allocate array
         objects = new GameObject[nobject];
+        Color[] colors = new Color[]{Color.black, Color.blue, Color.cyan, Color.gray ,Color.green, Color.magenta, Color.yellow, Color.white};
+        int coloridx = 0;
 
         // process objects
         for (int i = 0; i < nobject; i++) {
@@ -942,24 +946,48 @@ public class xmlTool : EditorWindow
                     }
                     break;
             }
-
-            // existing material
-            if (obj.material >= 0) {
-                // not modified
-                if (obj.color[0] == 0.5f && obj.color[1] == 0.5f && obj.color[2] == 0.5f && obj.color[3] == 1)
-                    rend.sharedMaterial = materials[obj.material];
-
-                // color override
-                else {
-                    rend.sharedMaterial = new Material(materials[obj.material]);
+            Debug.Log("Creating " + name);
+            //// existing material, usually geoms
+            //if (obj.material >= 0) {
+            //    // not modified
+            //    if (obj.color[0] == 0.5f && obj.color[1] == 0.5f && obj.color[2] == 0.5f && obj.color[3] == 1) {
+            //        Debug.Log("Using material");
+            //        rend.sharedMaterial = materials[obj.material];
+            //    }
+            //    // color override
+            //    else {
+            //        Debug.Log("Using color");
+            //        rend.sharedMaterial = new Material(Shader.Find("Standard"));
+            //        var color = colors[coloridx];
+            //        coloridx = (coloridx + 1) % colors.Length;
+            //        AdjustMaterial(rend.sharedMaterial, color[0], color[1], color[2], color[3]);
+            //    }
+            //}
+            //// new material, usually sites
+            //else {
+            //    Debug.Log("Creating new");
+            //    rend.sharedMaterial = new Material(Shader.Find("Standard"));
+            //    AdjustMaterial(rend.sharedMaterial, obj.color[0], obj.color[1], obj.color[2], obj.color[3]);
+            //}
+            string n = name.ToString();
+            if (!n.Contains("perturb")) {
+                if (n.Contains("site")) {
+                    rend.sharedMaterial = new Material(Shader.Find("Standard"));
                     AdjustMaterial(rend.sharedMaterial, obj.color[0], obj.color[1], obj.color[2], obj.color[3]);
+                } else {
+                    rend.sharedMaterial = new Material(Shader.Find("Standard"));
+                    if (n.Contains("collision")) {
+                        rend.sharedMaterial.color = Color.red;
+                    } else {
+                        var color = colors[coloridx];
+                        coloridx = (coloridx + 1) % colors.Length;
+                        AdjustMaterial(rend.sharedMaterial, color[0], color[1], color[2], color[3]);
+                    }
                 }
-            }
-
-            // new material
-            else {
-                rend.sharedMaterial = new Material(Shader.Find("Standard"));
-                AdjustMaterial(rend.sharedMaterial, obj.color[0], obj.color[1], obj.color[2], obj.color[3]);
+                if (n.Contains("conn_site")) {
+                    rend.sharedMaterial = new Material(Shader.Find("Standard"));
+                    rend.sharedMaterial.color = Color.blue;
+                }
             }
 
             // get MuJoCo object transform and set in Unity
