@@ -195,7 +195,7 @@ public class xmlTool : EditorWindow
 
         if(geomTypes[geomTypeIndex] == "cube"){
             colGeom = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            geomType.Add(colGeom, "cube");
+            geomType.Add(colGeom, "box");
         }
         else if(geomTypes[geomTypeIndex] == "cylinder"){
             colGeom = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -279,13 +279,13 @@ public class xmlTool : EditorWindow
         // make new site active selection in unity
         Selection.activeGameObject = connSiteObj;
     }
-//  <geom density="50" euler="0 0 0" name="noviz_collision_1_table_leg1_1" pos="-0.015 0.17 0.0" rgba="1 0 0 1" size="0.012 0.012 0.16" solref="0.001 1" type="box" />
+//  <geom density="50" quat="0 0 0" name="noviz_collision_1_table_leg1_1" pos="-0.015 0.17 0.0" rgba="1 0 0 1" size="0.012 0.012 0.16" solref="0.001 1" type="box" />
 
     private unsafe XmlElement createcolGeom(string name, string pos, string size, Quaternion quat, string type){
         XmlElement elem = doc.CreateElement("geom");
         XmlAttribute densityAttr = doc.CreateAttribute("density");
         densityAttr.Value = "50";
-        XmlAttribute quatAttr = doc.CreateAttribute("euler");
+        XmlAttribute quatAttr = doc.CreateAttribute("quat");
         Quaternion mujocoQ = TransformQuaternion(quat);
         quatAttr.Value = mujocoQ.w + " " + mujocoQ.x + " " + mujocoQ.y + " " + mujocoQ.z;
         XmlAttribute nameAttr = doc.CreateAttribute("name");
@@ -346,9 +346,9 @@ public class xmlTool : EditorWindow
     private unsafe string getMJSize(GameObject unityObj){
         string mj_relsize = "";
         float mj_size_x, mj_size_y, mj_size_z;
-        mj_size_x = unityObj.transform.localPosition.x;
-        mj_size_y = unityObj.transform.localPosition.z;
-        mj_size_z = unityObj.transform.localPosition.y;
+        mj_size_x = unityObj.transform.localScale[0];
+        mj_size_y = unityObj.transform.localScale[2];
+        mj_size_z = unityObj.transform.localScale[1];
         // round to 5 decimal places
         mj_size_x = (float)System.Math.Round((double)mj_size_x, 5);
         mj_size_y = (float)System.Math.Round((double)mj_size_y, 5);
