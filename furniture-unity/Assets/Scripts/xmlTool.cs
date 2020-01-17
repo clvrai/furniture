@@ -350,10 +350,13 @@ public class xmlTool : EditorWindow
         mj_size_y = unityObj.transform.localScale[2];
         mj_size_z = unityObj.transform.localScale[1];
         // round to 5 decimal places
-        mj_size_x = (float)System.Math.Round((double)mj_size_x, 5);
-        mj_size_y = (float)System.Math.Round((double)mj_size_y, 5);
-        mj_size_z = (float)System.Math.Round((double)mj_size_z, 5);
+        mj_size_x = (float)System.Math.Round((double)mj_size_x/2, 5);
+        mj_size_y = (float)System.Math.Round((double)mj_size_y/2, 5);
+        mj_size_z = (float)System.Math.Round((double)mj_size_z/2, 5);
         mj_relsize = mj_size_x.ToString() + " " + mj_size_y.ToString() + " " + mj_size_z.ToString();
+        if(geomType.ContainsKey(unityObj) && geomType[unityObj]=="cylinder"){
+            mj_relsize = mj_size_x.ToString() + " " + mj_size_z.ToString();
+        }
         return mj_relsize;
     }
 
