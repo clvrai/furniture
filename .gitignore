@@ -5,6 +5,7 @@
 # Log
 checkpoint
 log
+furniture-unity/Assets/StreamingAssets
 
 # Vim
 .*.s[a-w][a-z]
