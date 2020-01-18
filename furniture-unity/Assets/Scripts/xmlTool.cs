@@ -357,6 +357,7 @@ public class xmlTool : EditorWindow
         mj_size_z = (float)System.Math.Round((double)mj_size_z/2, 5);
         mj_relsize = mj_size_x.ToString() + " " + mj_size_y.ToString() + " " + mj_size_z.ToString();
         if(geomType.ContainsKey(unityObj) && geomType[unityObj]=="cylinder"){
+            mj_size_z *= 2;
             mj_relsize = mj_size_x.ToString() + " " + mj_size_z.ToString();
         }
         return mj_relsize;
@@ -946,8 +947,7 @@ public class xmlTool : EditorWindow
                     }
                     break;
             }
-            Debug.Log("Creating " + name);
-            //// existing material, usually geoms
+            // existing material, usually geoms
             //if (obj.material >= 0) {
             //    // not modified
             //    if (obj.color[0] == 0.5f && obj.color[1] == 0.5f && obj.color[2] == 0.5f && obj.color[3] == 1) {
