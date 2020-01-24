@@ -40,7 +40,7 @@
       <site name="0_part0_corner_site2" pos="0.0349250183 -0.00508 -0.12065000155" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="0_part0_corner_site1" pos="-0.0349250183 -0.00508 -0.12065000155" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="leg-botpanel,0,180,conn_site2" pos="0.0 -0.005 0.0" quat="0.7071067 -0.7071068 0 0" rgba="0.9716, 0.2198, 0.2198, 0.3" size="0.01" />
-      <site name="leg-sidepanel,0,180,conn_site2" pos="0.035 -0.23900000000000002 0.0" quat="0.7071067 0 0.7071068 0" rgba="0.9797, 0.6535, 0.1643, 0.3" size="0.01" />
+      <site name="leg-sidepanel,0,180,conn_site2" pos="0.035 0 0" quat="0.7071067 0 0.7071068 0" rgba="0.9797, 0.6535, 0.1643, 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_0_part0_0" pos="-0.001155665 0.0 0.003592" quat="1 0 0 0" rgba="1 0 0 1" size="0.033769355 0.00508 0.124242" solref="0.001 1" type="box" />
     </body>
     <body name="7_part7" pos="-0.2247900042 -0.11953875 0.12699999845" quat="1 0 0 0">
@@ -146,7 +146,7 @@
       <site name="2_part2_corner_site2" pos="0.0349250183 -0.00508 -0.12065000155" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="2_part2_corner_site1" pos="-0.0349250183 -0.00508 -0.12065000155" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="leg-botpanel,0,180,conn_site1" pos="0.0 0.0050774999999999995 0.0" quat="0.7071067 0.7071068 0 0" rgba="0.9716, 0.2198, 0.2198, 0.3" size="0.01" />
-      <site name="leg-sidepanel,0,180,conn_site1" pos="0.035 0.2390775 0.0" quat="0.7071067 0 0.7071068 0" rgba="0.9797, 0.6535, 0.1643, 0.3" size="0.01" />
+      <site name="leg-sidepanel,0,180,conn_site1" pos="0.035 0.0000775 0" quat="0.7071067 0 0.7071068 0" rgba="0.9797, 0.6535, 0.1643, 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_2_part2_0" pos="-5e-09 0.0 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.034925015000000004 0.00508 0.12065000000000001" solref="0.001 1" type="box" />
     </body>
     <body name="1_part1" pos="-0.44958000945 0.0 0.0" quat="1 0 0 0">
@@ -163,7 +163,7 @@
       <site name="1_part1_corner_site2" pos="0.0349250107 -0.00508 -0.12065000155" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_corner_site1" pos="-0.0349250107 -0.00508 -0.12065000155" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="leg-botpanel,0,180,conn_site3" pos="-0.000419985 -0.005 0.0" quat="0.7071067 -0.7071068 0 0" rgba="0.9716, 0.2198, 0.2198, 0.3" size="0.01" />
-      <site name="leg-sidepanel,0,180,conn_site3" pos="-0.035419985 0.0 0.0" quat="0.7071067 0 -0.7071068 0" rgba="0.9797, 0.6535, 0.1643, 0.3" size="0.01" />
+      <site name="leg-sidepanel,0,180,conn_site3" pos="0.035419985 0.0 0.0" quat="0.7071067 0 -0.7071068 0" rgba="0.9797, 0.6535, 0.1643, 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_1_part1_0" pos="0.00115567 0.0 0.003592" quat="1 0 0 0" rgba="1 0 0 1" size="0.03608069 0.00508 0.124242" solref="0.001 1" type="box" />
     </body>
   </worldbody>
