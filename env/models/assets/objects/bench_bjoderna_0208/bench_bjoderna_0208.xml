@@ -1,16 +1,16 @@
 <mujoco model="bench_bjoderna_0208">
   <asset>
-    <mesh file="bench_bjoderna_0208/0.stl" name="part0" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/9.stl" name="part9" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/8.stl" name="part8" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/7.stl" name="part7" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/6.stl" name="part6" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/5.stl" name="part5" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/4.stl" name="part4" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/3.stl" name="part3" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/2.stl" name="part2" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/10.stl" name="part10" scale="0.001 0.001 0.001" />
-    <mesh file="bench_bjoderna_0208/1.stl" name="part1" scale="0.001 0.001 0.001" />
+    <mesh file="0.stl" name="part0" scale="0.001 0.001 0.001" />
+    <mesh file="9.stl" name="part9" scale="0.001 0.001 0.001" />
+    <mesh file="8.stl" name="part8" scale="0.001 0.001 0.001" />
+    <mesh file="7.stl" name="part7" scale="0.001 0.001 0.001" />
+    <mesh file="6.stl" name="part6" scale="0.001 0.001 0.001" />
+    <mesh file="5.stl" name="part5" scale="0.001 0.001 0.001" />
+    <mesh file="4.stl" name="part4" scale="0.001 0.001 0.001" />
+    <mesh file="3.stl" name="part3" scale="0.001 0.001 0.001" />
+    <mesh file="2.stl" name="part2" scale="0.001 0.001 0.001" />
+    <mesh file="10.stl" name="part10" scale="0.001 0.001 0.001" />
+    <mesh file="1.stl" name="part1" scale="0.001 0.001 0.001" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="10_part10" solimp="1 1 0.5" solref="0.01 0.3" />
@@ -29,8 +29,7 @@
   <worldbody>
     <body name="0_part0" pos="4e-10 0.0 0.0" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part0" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
-<!--       <geom density="100" rgba="1 0 0 1" name="noviz_collision_0_part0_1" solref = "0.001 1" type="box" size="0.009 0.12" pos="0 0 0" euler="0 0 0" />
- -->      <site name="0_part0_horizontal_radius_site" pos="4e-10 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
+      <site name="0_part0_horizontal_radius_site" pos="4e-10 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="0_part0_top_site" pos="4e-10 1e-10 0.2286000061" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="0_part0_bottom_site" pos="4e-10 1e-10 -0.2286000061" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
       <site name="0_part0_corner_site8" pos="-0.0254000827 0.0254000454 0.2286000061" quat="1 0 0 0" rgba="0 0 1 0" size="0.02" />
