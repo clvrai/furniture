@@ -1,61 +1,59 @@
 <mujoco model="swivel_chair_0700">
-    <asset>
-        <mesh file="swivel_chair_0700/base.stl" name="1_chair_base" scale="0.0006 0.0006 0.0006" />
-        <mesh file="swivel_chair_0700/column.stl" name="2_chair_column" scale="0.0006 0.0006 0.0006" />
-        <mesh file="swivel_chair_0700/seat.stl" name="3_chair_seat" scale="0.0006 0.0006 0.0006" />
-        <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
-        <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
-    </asset>
-    <equality>
-      <weld active="false" body1="1_chair_base" body2="2_chair_column" solimp="1 1 0.5" solref="0.01 0.3" />
-      <weld active="false" body1="2_chair_column" body2="3_chair_seat" solimp="1 1 0.5" solref="0.01 0.3" />
-    </equality>
-
-    <worldbody>
-        <body name="1_chair_base" pos="0.0 0.008 0.0" quat="1 0 0 0">
-            <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="1_chair_base" name="1_chair_base_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-            <geom density="100" euler="1.57 0 0" name="noviz_collision_1_chair_base_1" pos="0.0 0.045 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
-            <geom density="100" euler="1.57 1.256 0" name="noviz_collision_1_chair_base_2" pos="-0.05 0.008 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
-            <geom density="100" euler="1.57 2.512 0" name="noviz_collision_1_chair_base_3" pos="-0.03 -0.05 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
-            <geom density="100" euler="1.57 3.768 0" name="noviz_collision_1_chair_base_4" pos="0.03 -0.05 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
-            <geom density="100" euler="1.57 5.024 0" name="noviz_collision_1_chair_base_5" pos="0.05 0.008 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
-            <site name="base-column,conn_site1" pos="0.0 -0.0096 0.012" quat="1 0 0 0" rgba="1 0 1 0.3" size="0.012" />
-            <site name="1_chair_base_corner_site1" pos="0.0 0.108 0.006" rgba="0 0 1 0.3" size="0.012" />
-            <site name="1_chair_base_corner_site2" pos="-0.12 0.0288 0.006" rgba="0 0 1 0.3" size="0.012" />
-            <site name="1_chair_base_corner_site3" pos="-0.072 -0.108 0.006" rgba="0 0 1 0.3" size="0.012" />
-            <site name="1_chair_base_corner_site4" pos="0.072 -0.108 0.006" rgba="0 0 1 0.3" size="0.012" />
-            <site name="1_chair_base_corner_site5" pos="0.12 0.0288 0.006" rgba="0 0 1 0.3" size="0.012" />
-            <site name="1_chair_base_bottom_site" pos="0.0 0.0 -0.0144" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="1_chair_base_top_site" pos="0.0 0.0 0.012" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="1_chair_base_horizontal_radius_site" pos="0.0 -0.0096 0.0" rgba="0 0 1 0.3" size="0.06" />
-        </body>
-        <body name="2_chair_column" pos="0.0 0.0 0.084" quat="1 0 0 0">
-            <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="2_chair_column" name="2_chair_column_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-            <geom density="100" name="noviz_collision_2_chair_column" pos="0.00 0.00 0.001" rgba="1 0 0 1" size="0.015 0.07" solref="0.001 1" type="cylinder" />
-            <site name="column-base,conn_site1" pos="0.0 0.0 -0.072" quat="1 0 0 0" rgba="1 0 1 0.3" size="0.012" />
-            <site name="column-seat,conn_site2" pos="0.0 0.0 0.072" quat="1 0 0 0" rgba="0 1 1 0.3" size="0.012" />
-            <site name="2_chair_column_corner_site1" pos="0.0 0.0 -0.072" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="2_chair_column_corner_site2" pos="0.0 0.0 0.072" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="2_chair_column_bottom_site" pos="0.0 0.0 -0.072" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="2_chair_column_top_site" pos="0.0 0.0 0.072" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="2_chair_column_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0.3" size="0.012" />
-        </body>
-        <body name="3_chair_seat" pos="0.0 0.0 0.31" quat="1 0 0 0">
-            <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="3_chair_seat" name="3_chair_seat_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-            <geom density="300" name="noviz_collision_3_chair_seat_1" pos="0 -0.005 -0.14" rgba="1 0 0 1" size="0.13 0.12 0.006" solref="0.001 1" type="box" />
-            <geom density="300" euler="1.57 0 0" name="noviz_collision_3_chair_seat_2" pos="0 0.12 0.01" rgba="0 1 0 1" size="0.13 0.14 0.006" solref="0.001 1" type="box" />
-            <site name="seat-column,conn_site2" pos="0.0 0.0 -0.15" quat="1 0 0 0" rgba="0 1 1 0.3" size="0.012" />
-            <site name="3_chair_seat_corner_site1" pos="0.132 -0.13 -0.138" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_corner_site2" pos="0.132 0.12 -0.138" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_corner_site3" pos="-0.132 -0.13 -0.138" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_corner_site4" pos="-0.132 0.12 -0.138" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_corner_site5" pos="0.132 0.12 0.144" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_corner_site6" pos="-0.132 0.12 0.144" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_corner_site7" pos="0.0 0.12 0.144" rgba="0 0 1 0.3" size="0.00684" />
-
-            <site name="3_chair_seat_bottom_site" pos="0.0 0.0 -0.138" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_top_site" pos="0.0 0.0 0.138" rgba="0 0 1 0.3" size="0.00684" />
-            <site name="3_chair_seat_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0.3" size="0.12" />
-        </body>
-    </worldbody>
+  <asset>
+    <mesh file="swivel_chair_0700/base.stl" name="1_chair_base" scale="0.0006 0.0006 0.0006" />
+    <mesh file="swivel_chair_0700/column.stl" name="2_chair_column" scale="0.0006 0.0006 0.0006" />
+    <mesh file="swivel_chair_0700/seat.stl" name="3_chair_seat" scale="0.0006 0.0006 0.0006" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
+  </asset>
+  <equality>
+    <weld active="false" body1="1_chair_base" body2="2_chair_column" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="2_chair_column" body2="3_chair_seat" solimp="1 1 0.5" solref="0.01 0.3" />
+  </equality>
+  <worldbody>
+    <body name="1_chair_base" pos="0.0 0.008 0.0" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="1_chair_base" name="1_chair_base_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" euler="1.57 0 0" name="noviz_collision_1_chair_base_1" pos="0.0 0.045 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="1.57 1.256 0" name="noviz_collision_1_chair_base_2" pos="-0.05 0.008 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="1.57 2.512 0" name="noviz_collision_1_chair_base_3" pos="-0.03 -0.05 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="1.57 3.768 0" name="noviz_collision_1_chair_base_4" pos="0.03 -0.05 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="1.57 5.024 0" name="noviz_collision_1_chair_base_5" pos="0.05 0.008 0.005" rgba="1 0 0 1" size="0.012 0.07" solref="0.001 1" type="cylinder" />
+      <site name="base-column,conn_site1" pos="0.0 -0.0096 0.012" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.012" />
+      <site name="1_chair_base_corner_site1" pos="0.0 0.108 0.006" rgba="0 0 1 0.3" size="0.012" />
+      <site name="1_chair_base_corner_site2" pos="-0.12 0.0288 0.006" rgba="0 0 1 0.3" size="0.012" />
+      <site name="1_chair_base_corner_site3" pos="-0.072 -0.108 0.006" rgba="0 0 1 0.3" size="0.012" />
+      <site name="1_chair_base_corner_site4" pos="0.072 -0.108 0.006" rgba="0 0 1 0.3" size="0.012" />
+      <site name="1_chair_base_corner_site5" pos="0.12 0.0288 0.006" rgba="0 0 1 0.3" size="0.012" />
+      <site name="1_chair_base_bottom_site" pos="0.0 0.0 -0.0144" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="1_chair_base_top_site" pos="0.0 0.0 0.012" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="1_chair_base_horizontal_radius_site" pos="0.0 -0.0096 0.0" rgba="0 0 1 0.3" size="0.06" />
+    </body>
+    <body name="2_chair_column" pos="0.0 0.0 0.084" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="2_chair_column" name="2_chair_column_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_2_chair_column" pos="0.00 0.00 0.001" rgba="1 0 0 1" size="0.015 0.07" solref="0.001 1" type="cylinder" />
+      <site name="column-base,conn_site1" pos="0.0 0.0 -0.072" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.012" />
+      <site name="column-seat,conn_site2" pos="0.0 0.0 0.072" quat="1 0 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.012" />
+      <site name="2_chair_column_corner_site1" pos="0.0 0.0 -0.072" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="2_chair_column_corner_site2" pos="0.0 0.0 0.072" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="2_chair_column_bottom_site" pos="0.0 0.0 -0.072" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="2_chair_column_top_site" pos="0.0 0.0 0.072" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="2_chair_column_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0.3" size="0.012" />
+    </body>
+    <body name="3_chair_seat" pos="0.0 0.0 0.31" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="3_chair_seat" name="3_chair_seat_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="300" name="noviz_collision_3_chair_seat_1" pos="0 -0.005 -0.14" rgba="1 0 0 1" size="0.13 0.12 0.006" solref="0.001 1" type="box" />
+      <geom density="300" euler="1.57 0 0" name="noviz_collision_3_chair_seat_2" pos="0 0.12 0.01" rgba="0 1 0 1" size="0.13 0.14 0.006" solref="0.001 1" type="box" />
+      <site name="seat-column,conn_site2" pos="0.0 0.0 -0.15" quat="1 0 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.012" />
+      <site name="3_chair_seat_corner_site1" pos="0.132 -0.13 -0.138" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_corner_site2" pos="0.132 0.12 -0.138" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_corner_site3" pos="-0.132 -0.13 -0.138" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_corner_site4" pos="-0.132 0.12 -0.138" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_corner_site5" pos="0.132 0.12 0.144" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_corner_site6" pos="-0.132 0.12 0.144" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_corner_site7" pos="0.0 0.12 0.144" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_bottom_site" pos="0.0 0.0 -0.138" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_top_site" pos="0.0 0.0 0.138" rgba="0 0 1 0.3" size="0.00684" />
+      <site name="3_chair_seat_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0.3" size="0.12" />
+    </body>
+  </worldbody>
 </mujoco>

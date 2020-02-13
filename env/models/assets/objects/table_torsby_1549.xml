@@ -6,7 +6,12 @@
     <mesh file="table_torsby_1549/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
   </asset>
   <equality>
-  <weld active="false" body1="0_part0" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" /><weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" /><weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" /><weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" /><weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" /></equality>
+    <weld active="false" body1="0_part0" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
+  </equality>
   <worldbody>
     <body name="0_part0" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part0" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -26,11 +31,11 @@
       <geom density="50" name="noviz_collision_0_part0_2" pos="0.2145 0.0 -0.000147275" quat="1 0 0 0" rgba="1 0 0 1" size="0.010750000000000001 0.2159 0.010983765" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_0_part0_3" pos="0.0 -0.20500000000000002 -0.000147275" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.010750000000000001 0.425 0.010983765" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_0_part0_4" pos="0.0 0.20600000000000002 -0.000147275" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.010750000000000001 0.425 0.010983765" solref="0.001 1" type="box" />
-      <site name="Spine-Top,0,180,conn_site1" pos="-0.0045000000000000005 0.0 0.01095" quat="1 0 0 0" rgba="0.9609, 0.122, 0.122, 0.3" size="0.01" />
-      <site name="Spine1-Side,0,conn_site2" pos="0.427 0.20700000000000002 -0.0035" quat="0.7071067 0 0.7071068 0" rgba="0.8208, 0.9874, 0.1546, 0.3" size="0.01" />
-      <site name="Spine2-Side,0,conn_site2" pos="0.4285 -0.2052 -0.0033" quat="0.7071067 0 0.7071068 0" rgba="0.1837, 0.9851, 0.5043, 0.3" size="0.01" />
-      <site name="Spine2-Side,0,conn_site1" pos="-0.4289 -0.2082 -0.0029" quat="0.7071067 0 -0.7071068 0" rgba="0.1837, 0.9851, 0.5043, 0.3" size="0.01" />
-      <site name="Spine1-Side,0,conn_site1" pos="-0.4265 0.20600000000000002 -0.003" quat="0.7071067 0 -0.7071068 0" rgba="0.8208, 0.9874, 0.1546, 0.3" size="0.01" />
+      <site name="Spine-Top,0,180,conn_site1" pos="-0.0045000000000000005 0.0 0.01095" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="Spine1-Side,0,conn_site2" pos="0.427 0.20700000000000002 -0.0035" quat="0.7071067 0 0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="Spine2-Side,0,conn_site2" pos="0.4285 -0.2052 -0.0033" quat="0.7071067 0 0.7071068 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
+      <site name="Spine2-Side,0,conn_site1" pos="-0.4289 -0.2082 -0.0029" quat="0.7071067 0 -0.7071068 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
+      <site name="Spine1-Side,0,conn_site1" pos="-0.4265 0.20600000000000002 -0.003" quat="0.7071067 0 -0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
     </body>
     <body name="3_part3" pos="0.0 0.0 0.01446530735" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part3" name="3_part3_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -46,7 +51,7 @@
       <site name="3_part3_corner_site2" pos="0.45085000000000003 -0.2159 -0.00333427375" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="3_part3_corner_site1" pos="-0.45085000000000003 -0.2159 -0.00333427375" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_3_part3_0" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.45085000000000003 0.2159 0.003334275" solref="0.001 1" type="box" />
-      <site name="Top-Spine,0,180,conn_site1" pos="-0.0045000000000000005 0.0 -0.0035153050000000003" quat="1 0 0 0" rgba="0.9609, 0.122, 0.122, 0.3" size="0.01" />
+      <site name="Top-Spine,0,180,conn_site1" pos="-0.0045000000000000005 0.0 -0.0035153050000000003" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
     </body>
     <body name="2_part2" pos="0.43988845885 0.0 -0.166045105" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part2" name="2_part2_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -64,8 +69,8 @@
       <geom density="50" name="noviz_collision_2_part2_0" pos="2.4935e-05 -0.20450000000000002 4.5105e-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.01098648 0.010750000000000001 0.17500000000000002" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_2_part2_2" pos="2.4935e-05 0.20600000000000002 4.5105e-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.01098648 0.010750000000000001 0.17500000000000002" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_2_part2_1" pos="2.4935e-05 0.0 0.1670451" quat="1 0 0 0" rgba="1 0 0 1" size="0.01098648 0.2159 0.010750000000000001" solref="0.001 1" type="box" />
-      <site name="Side-Spine1,0,conn_site2" pos="-0.012888460000000001 0.20700000000000002 0.1625451" quat="0.7071067 0 0.7071068 0" rgba="0.8208, 0.9874, 0.1546, 0.3" size="0.01" />
-      <site name="Side-Spine2,0,conn_site2" pos="-0.011388460000000001 -0.2052 0.1627451" quat="0.7071067 0 0.7071068 0" rgba="0.1837, 0.9851, 0.5043, 0.3" size="0.01" />
+      <site name="Side-Spine1,0,conn_site2" pos="-0.012888460000000001 0.20700000000000002 0.1625451" quat="0.7071067 0 0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="Side-Spine2,0,conn_site2" pos="-0.011388460000000001 -0.2052 0.1627451" quat="0.7071067 0 0.7071068 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
     </body>
     <body name="1_part1" pos="-0.439888459 0.0 -0.166045105" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part1" name="1_part1_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -83,8 +88,8 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="2.4935e-05 -0.20450000000000002 4.5105e-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.01098648 0.010750000000000001 0.17500000000000002" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_1_part1_2" pos="2.4935e-05 0.20600000000000002 4.5105e-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.01098648 0.010750000000000001 0.17500000000000002" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_1_part1_1" pos="2.4935e-05 0.0 0.1670451" quat="1 0 0 0" rgba="1 0 0 1" size="0.01098648 0.2159 0.010750000000000001" solref="0.001 1" type="box" />
-      <site name="Side-Spine2,0,conn_site1" pos="0.010988465 -0.2082 0.16314510000000002" quat="0.7071067 0 -0.7071068 0" rgba="0.1837, 0.9851, 0.5043, 0.3" size="0.01" />
-      <site name="Side-Spine1,0,conn_site1" pos="0.013388460000000001 0.20600000000000002 0.1630451" quat="0.7071067 0 -0.7071068 0" rgba="0.8208, 0.9874, 0.1546, 0.3" size="0.01" />
+      <site name="Side-Spine2,0,conn_site1" pos="0.010988465 -0.2082 0.16314510000000002" quat="0.7071067 0 -0.7071068 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
+      <site name="Side-Spine1,0,conn_site1" pos="0.013388460000000001 0.20600000000000002 0.1630451" quat="0.7071067 0 -0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
     </body>
   </worldbody>
 </mujoco>

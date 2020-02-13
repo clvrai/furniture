@@ -1,108 +1,108 @@
 <mujoco model="tvunit_0406">
-    <asset>
-        <mesh file="tvunit_0406/botplane.stl" name="botplane" scale="0.001 0.001 0.001" />
-        <mesh file="tvunit_0406/midplane.stl" name="midplane" scale="0.001 0.001 0.001" />
-        <mesh file="tvunit_0406/sideplane1.stl" name="sideplane1" scale="0.001 0.001 0.001" />
-        <mesh file="tvunit_0406/sideplane2.stl" name="sideplane2" scale="0.001 0.001 0.001" />
-        <mesh file="tvunit_0406/topplane.stl" name="topplane" scale="0.001 0.001 0.001" />
-        <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
-        <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
-    </asset>
-    <equality>
-        <weld active="false" body1="botplane" body2="sideplane1" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="botplane" body2="sideplane2" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="midplane" body2="sideplane1" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="midplane" body2="sideplane2" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="topplane" body2="sideplane1" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="topplane" body2="sideplane2" solimp="1 1 0.5" solref="0.01 0.3" />
-    </equality>
-    <worldbody>
-        <body name="botplane" pos="0.0 0.0 -0.132">
-            <geom density="0" material="pencil-wood" mesh="botplane" name="botplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0" />
-             <geom density="100" name="noviz_collision_botplane_geom" pos="0 0 0" size="0.38 0.19 0.005" solref="0.001 1" type="box" />
-            <site name="botplane_top_site" pos="0.0 0.0 0.005" rgba="0 0 1 0" size="0.005" />
-            <site name="botplane_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.005" />
-            <site name="botplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
-            <site name="botplane-sideplane1,0,conn_site" pos="-0.3375 0.0 0.005" rgba="1 0.5 0 0.3" size="0.012" />
-            <site name="botplane-sideplane2,0,conn_site" pos="0.3375 0.0 0.005" rgba="0 0.5 1 0.3" size="0.012" />
-            <site name="botplane_corner_site1" pos="-0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site2" pos="-0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site3" pos="-0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site4" pos="-0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site5" pos="0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site6" pos="0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site7" pos="0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="botplane_corner_site8" pos="0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-        </body>
-        <body name="midplane" pos="0.0 0.0 0.0">
-            <geom density="0" material="pencil-wood" mesh="midplane" name="midplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0" />
-            <geom density="100" name="noviz_collision_midplane_geom" pos="0 0 0"  solref="0.001 1" type="box" size="0.33 0.19 0.005" />
-            <site name="midplane_top_site" pos="0.0 0.0 0.005" rgba="0 0 1 0" size="0.005" />
-            <site name="midplane_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.005" />
-            <site name="midplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
-            <site name="midplane-sideplane1,0,180,conn_site" pos="-0.331 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1 1 0 0.3" size="0.012" />
-            <site name="midplane-sideplane2,0,180,conn_site" pos="0.331 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1 0 1 0.3" size="0.012" />
-            <site name="midplane_corner_site1" pos="-0.33 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site2" pos="-0.33 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site3" pos="-0.33 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site4" pos="-0.33 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site5" pos="0.33 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site6" pos="0.33 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site7" pos="0.33 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="midplane_corner_site8" pos="0.33 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-        </body>
-        <body name="sideplane1" pos="-0.336 0.0 0.0">
-            <geom density="0" material="pencil-wood" mesh="sideplane1" name="sideplane1_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0" />
-            <geom density="100" name="noviz_collision_sideplane1_geom" pos="0 0 0" size="0.005  0.19  0.125" solref="0.001 1" type="box" />
-            <site name="sideplane1_top_site" pos="0.0 0.0 0.13" rgba="0 0 1 0" size="0.005" />
-            <site name="sideplane1_bottom_site" pos="0.0 0.0 -0.13" rgba="0 0 1 0" size="0.005" />
-            <site name="sideplane1_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
-            <site name="sideplane1-topplane,0,conn_site" pos="0.0 0.0 0.125" rgba="1 0 0 0.3" size="0.012" />
-            <site name="sideplane1-midplane,0,180,conn_site" pos="0.006 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1 1 0 0.3" size="0.012" />
-            <site name="sideplane1-botplane,0,conn_site" pos="0.0 0.0 -0.125" rgba="1 0.5 0 0.3" size="0.012" />
-            <site name="sideplane1_corner_site1" pos="0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site2" pos="0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site3" pos="0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site4" pos="0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site5" pos="-0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site6" pos="-0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site7" pos="-0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane1_corner_site8" pos="-0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-        </body>
-        <body name="sideplane2" pos="0.3372 0.0 0.0">
-            <geom density="0" material="pencil-wood" mesh="sideplane2" name="sideplane2_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0" />
-            <geom density="100" name="noviz_collision_sideplane2_geom" pos="0 0 0" size="0.005  0.19  0.125" solref="0.001 1" type="box" />
-            <site name="sideplane2_top_site" pos="0.0 0.0 0.13" rgba="0 0 1 0" size="0.005" />
-            <site name="sideplane2_bottom_site" pos="0.0 0.0 -0.13" rgba="0 0 1 0" size="0.005" />
-            <site name="sideplane2_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
-            <site name="sideplane2-topplane,0,conn_site" pos="0.0 0.0 0.125" rgba="0 1 0 0.3" size="0.012" />
-            <site name="sideplane2-midplane,0,180,conn_site" pos="-0.006 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1 0 1 0.3" size="0.012" />
-            <site name="sideplane2-botplane,0,conn_site" pos="0.0 0.0 -0.125" rgba="0 0.5 1 0.3" size="0.012" />
-            <site name="sideplane2_corner_site1" pos="0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site2" pos="0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site3" pos="0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site4" pos="0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site5" pos="-0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site6" pos="-0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site7" pos="-0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-            <site name="sideplane2_corner_site8" pos="-0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
-        </body>
-        <body name="topplane" pos="0.0 0.0 0.1348">
-            <geom density="0" material="pencil-wood" mesh="topplane" name="topplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0" />
-            <geom density="100" name="noviz_collision_topplane_geom" pos="0 0 0" size="0.38  0.19  0.005 " solref="0.001 1" type="box" />
-            <site name="topplane_top_site" pos="0.0 0.0 0.005" rgba="0 0 1 0" size="0.005" />
-            <site name="topplane_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.005" />
-            <site name="topplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
-            <site name="topplane-sideplane1,0,conn_site" pos="-0.3375 0.0 -0.005" rgba="1 0 0 0.3" size="0.012" />
-            <site name="topplane-sideplane2,0,conn_site" pos="0.3375 0.0 -0.005" rgba="0 1 0 0.3" size="0.012" />
-            <site name="topplane_corner_site1" pos="-0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site2" pos="-0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site3" pos="-0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site4" pos="-0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site5" pos="0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site6" pos="0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site7" pos="0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-            <site name="topplane_corner_site8" pos="0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
-        </body>
-    </worldbody>
+  <asset>
+    <mesh file="tvunit_0406/botplane.stl" name="botplane" scale="0.001 0.001 0.001" />
+    <mesh file="tvunit_0406/midplane.stl" name="midplane" scale="0.001 0.001 0.001" />
+    <mesh file="tvunit_0406/sideplane1.stl" name="sideplane1" scale="0.001 0.001 0.001" />
+    <mesh file="tvunit_0406/sideplane2.stl" name="sideplane2" scale="0.001 0.001 0.001" />
+    <mesh file="tvunit_0406/topplane.stl" name="topplane" scale="0.001 0.001 0.001" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
+  </asset>
+  <equality>
+    <weld active="false" body1="botplane" body2="sideplane1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="botplane" body2="sideplane2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="midplane" body2="sideplane1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="midplane" body2="sideplane2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="topplane" body2="sideplane1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="topplane" body2="sideplane2" solimp="1 1 0.5" solref="0.01 0.3" />
+  </equality>
+  <worldbody>
+    <body name="botplane" pos="0.0 0.0 -0.132">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="botplane" name="botplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_botplane_geom" pos="0 0 0" size="0.38 0.19 0.005" solref="0.001 1" type="box" />
+      <site name="botplane_top_site" pos="0.0 0.0 0.005" rgba="0 0 1 0" size="0.005" />
+      <site name="botplane_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.005" />
+      <site name="botplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
+      <site name="botplane-sideplane1,0,conn_site" pos="-0.3375 0.0 0.005" rgba="0.9019 0.0980 0.2941 0.3" size="0.012" />
+      <site name="botplane-sideplane2,0,conn_site" pos="0.3375 0.0 0.005" rgba="0.2352 0.7058 0.2941 0.3" size="0.012" />
+      <site name="botplane_corner_site1" pos="-0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site2" pos="-0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site3" pos="-0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site4" pos="-0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site5" pos="0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site6" pos="0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site7" pos="0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="botplane_corner_site8" pos="0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+    </body>
+    <body name="midplane" pos="0.0 0.0 0.0">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="midplane" name="midplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_midplane_geom" pos="0 0 0" size="0.33 0.19 0.005" solref="0.001 1" type="box" />
+      <site name="midplane_top_site" pos="0.0 0.0 0.005" rgba="0 0 1 0" size="0.005" />
+      <site name="midplane_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.005" />
+      <site name="midplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
+      <site name="midplane-sideplane1,0,180,conn_site" pos="-0.331 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1.0 0.8823 0.0980 0.3" size="0.012" />
+      <site name="midplane-sideplane2,0,180,conn_site" pos="0.331 0.0 0.0" quat="0.707 0 -0.707 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.012" />
+      <site name="midplane_corner_site1" pos="-0.33 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site2" pos="-0.33 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site3" pos="-0.33 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site4" pos="-0.33 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site5" pos="0.33 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site6" pos="0.33 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site7" pos="0.33 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="midplane_corner_site8" pos="0.33 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+    </body>
+    <body name="sideplane1" pos="-0.336 0.0 0.0">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="sideplane1" name="sideplane1_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_sideplane1_geom" pos="0 0 0" size="0.005  0.19  0.125" solref="0.001 1" type="box" />
+      <site name="sideplane1_top_site" pos="0.0 0.0 0.13" rgba="0 0 1 0" size="0.005" />
+      <site name="sideplane1_bottom_site" pos="0.0 0.0 -0.13" rgba="0 0 1 0" size="0.005" />
+      <site name="sideplane1_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
+      <site name="sideplane1-topplane,0,conn_site" pos="0.0 0.0 0.125" rgba="0.9607 0.5098 0.1921 0.3" size="0.012" />
+      <site name="sideplane1-midplane,0,180,conn_site" pos="0.006 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1.0 0.8823 0.0980 0.3" size="0.012" />
+      <site name="sideplane1-botplane,0,conn_site" pos="0.0 0.0 -0.125" rgba="0.9019 0.0980 0.2941 0.3" size="0.012" />
+      <site name="sideplane1_corner_site1" pos="0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site2" pos="0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site3" pos="0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site4" pos="0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site5" pos="-0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site6" pos="-0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site7" pos="-0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane1_corner_site8" pos="-0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+    </body>
+    <body name="sideplane2" pos="0.3372 0.0 0.0">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="sideplane2" name="sideplane2_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_sideplane2_geom" pos="0 0 0" size="0.005  0.19  0.125" solref="0.001 1" type="box" />
+      <site name="sideplane2_top_site" pos="0.0 0.0 0.13" rgba="0 0 1 0" size="0.005" />
+      <site name="sideplane2_bottom_site" pos="0.0 0.0 -0.13" rgba="0 0 1 0" size="0.005" />
+      <site name="sideplane2_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
+      <site name="sideplane2-topplane,0,conn_site" pos="0.0 0.0 0.125" rgba="0.5686 0.1176 0.7058 0.3" size="0.012" />
+      <site name="sideplane2-midplane,0,180,conn_site" pos="-0.006 0.0 0.0" quat="0.707 0 -0.707 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.012" />
+      <site name="sideplane2-botplane,0,conn_site" pos="0.0 0.0 -0.125" rgba="0.2352 0.7058 0.2941 0.3" size="0.012" />
+      <site name="sideplane2_corner_site1" pos="0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site2" pos="0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site3" pos="0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site4" pos="0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site5" pos="-0.005 0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site6" pos="-0.005 -0.19 -0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site7" pos="-0.005 0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+      <site name="sideplane2_corner_site8" pos="-0.005 -0.19 0.125" rgba="0 0 1 0.3" size="0.005" />
+    </body>
+    <body name="topplane" pos="0.0 0.0 0.1348">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="topplane" name="topplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_topplane_geom" pos="0 0 0" size="0.38  0.19  0.005 " solref="0.001 1" type="box" />
+      <site name="topplane_top_site" pos="0.0 0.0 0.005" rgba="0 0 1 0" size="0.005" />
+      <site name="topplane_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.005" />
+      <site name="topplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.05" />
+      <site name="topplane-sideplane1,0,conn_site" pos="-0.3375 0.0 -0.005" rgba="0.9607 0.5098 0.1921 0.3" size="0.012" />
+      <site name="topplane-sideplane2,0,conn_site" pos="0.3375 0.0 -0.005" rgba="0.5686 0.1176 0.7058 0.3" size="0.012" />
+      <site name="topplane_corner_site1" pos="-0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site2" pos="-0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site3" pos="-0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site4" pos="-0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site5" pos="0.38 -0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site6" pos="0.38 0.19 -0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site7" pos="0.38 -0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+      <site name="topplane_corner_site8" pos="0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
+    </body>
+  </worldbody>
 </mujoco>

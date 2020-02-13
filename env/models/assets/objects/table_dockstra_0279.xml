@@ -24,7 +24,7 @@
       <site name="0_part0_corner_site3" pos="0.09525 0.09525002335 -0.0285750011" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="0_part0_corner_site2" pos="0.09525 -0.09525002290000001 -0.0285750011" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="0_part0_corner_site1" pos="-0.09525000125 -0.09525002290000001 -0.0285750011" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
-      <site name="base-column,conn_site1" pos="0.0 1e-08 0.01585" quat="0 1 0 0" rgba="0.9939, 0.171, 0.171, 0.3" size="0.01" />
+      <site name="base-column,conn_site1" pos="0.0 1e-08 0.01585" quat="0 1 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_0_part0_0" pos="4.4749999999999995e-06 8.3e-07 -0.0252" quat="1 0 0 0" rgba="1 0 0 1" size="0.09525449999999999 0.003" solref="0.001 1" type="cylinder" />
       <geom density="50" name="noviz_collision_0_part0_1" pos="4.4749999999999995e-06 8.3e-07 -0.00625" quat="1 0 0 0" rgba="1 0 0 1" size="0.01925 0.022" solref="0.001 1" type="cylinder" />
     </body>
@@ -41,8 +41,8 @@
       <site name="3_part3_corner_site3" pos="0.09525 0.09525 -0.026193756100000003" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="3_part3_corner_site2" pos="0.09525 -0.09525 -0.026193756100000003" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="3_part3_corner_site1" pos="-0.09525 -0.09525 -0.026193756100000003" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
-      <site name="topsupp-column,conn_site2" pos="0.0 0.0 -0.01366873" quat="1 0 0 0" rgba="0.0734, 0.9967, 0.0734, 0.3" size="0.01" />
-      <site name="topsupp-topplane,conn_site1" pos="0.0 0.0 0.025399995" quat="1 0 0 0" rgba="0.1543, 0.1543, 0.9695, 0.3" size="0.01" />
+      <site name="topsupp-column,conn_site2" pos="0.0 0.0 -0.01366873" quat="1 0 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="topsupp-topplane,conn_site1" pos="0.0 0.0 0.025399995" quat="1 0 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_3_part3_0" pos="1.1e-07 2e-08 0.02531245" quat="1 0 0 0" rgba="1 0 0 1" size="0.095 0.001" solref="0.001 1" type="cylinder" />
       <geom density="50" name="noviz_collision_3_part3_1" pos="1.1e-07 2e-08 0.00528125" quat="1 0 0 0" rgba="1 0 0 1" size="0.025 0.019" solref="0.001 1" type="cylinder" />
     </body>
@@ -59,7 +59,7 @@
       <site name="2_part2_corner_site3" pos="0.1905 0.1905 -0.0031750061" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="2_part2_corner_site2" pos="0.1905 -0.1905 -0.0031750061" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="2_part2_corner_site1" pos="-0.19050000125 -0.1905 -0.0031750061" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
-      <site name="topplane-topsupp,conn_site1" pos="0.0 0.0 -0.002381255" quat="1 0 0 0" rgba="0.1543, 0.1543, 0.9695, 0.3" size="0.01" />
+      <site name="topplane-topsupp,conn_site1" pos="0.0 0.0 -0.002381255" quat="1 0 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_2_part2_0" pos="-5e-09 0.0 -1.132e-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.1905 0.0031875000000000002" solref="0.001 1" type="cylinder" />
     </body>
     <body name="1_part1" pos="1.25e-09 2.3349999999999997e-08 0.17462500035" quat="1 0 0 0">
@@ -75,8 +75,8 @@
       <site name="1_part1_corner_site3" pos="0.02632229615 0.026322292650000002 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_corner_site2" pos="0.02632229615 -0.026322292650000002 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_corner_site1" pos="-0.02632229615 -0.026322292650000002 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
-      <site name="column-base,conn_site1" pos="0.0 -1e-08 -0.158775" quat="0 1 0 0" rgba="0.9939, 0.171, 0.171, 0.3" size="0.01" />
-      <site name="column-topsupp,conn_site2" pos="0.0 0.0 0.158575" quat="1 0 0 0" rgba="0.0734, 0.9967, 0.0734, 0.3" size="0.01" />
+      <site name="column-base,conn_site1" pos="0.0 -1e-08 -0.158775" quat="0 1 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="column-topsupp,conn_site2" pos="0.0 0.0 0.158575" quat="1 0 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_1_part1_0" pos="-0.00011461 4.5640000000000003e-05 0.000125" quat="1 0 0 0" rgba="1 0 0 1" size="0.0225 0.1585" solref="0.001 1" type="cylinder" />
     </body>
   </worldbody>

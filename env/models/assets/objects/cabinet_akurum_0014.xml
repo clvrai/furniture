@@ -34,7 +34,7 @@
       <site name="0_part0_corner_site3" pos="0.11938 0.00254 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="0_part0_corner_site2" pos="0.11938 -0.00254 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="0_part0_corner_site1" pos="-0.11938 -0.00254 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="longleg-botpanel,0,180,conn_site1" pos="0.0 -0.0009199999999999999 0.013840000000000002" quat="1 0 0 0" rgba="0.9614, 0.193, 0.193, 0.3" size="0.008" />
+      <site name="longleg-botpanel,0,180,conn_site1" pos="0.0 -0.0009199999999999999 0.013840000000000002" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_0_part0_0" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.11938 0.00254 0.013335" solref="0.001 1" type="box" />
     </body>
     <body name="7_part7" pos="-0.0 0.06355368584000001 0.7219949951200001" quat="1 0 0 0">
@@ -50,9 +50,9 @@
       <site name="7_part7_corner_site3" pos="0.12192000003999999 0.07879370116000001 -0.00254001464" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="7_part7_corner_site2" pos="0.12192000003999999 -0.07879370116000001 -0.00254001464" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="7_part7_corner_site1" pos="-0.12191999996 -0.07879370116000001 -0.00254001464" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="toppanel-sidepanel,0,conn_site2" pos="-0.1216 -0.001296852 0.0" quat="0.7071067 0 -0.7071068 0" rgba="0.9845, 0.7238, 0.2025, 0.3" size="0.008" />
-      <site name="toppanel-sidepanel,0,conn_site1" pos="0.12128 -0.001296852 0.0" quat="0.7071067 0 0.7071068 0" rgba="0.9845, 0.7238, 0.2025, 0.3" size="0.008" />
-      <site name="toppanel-backpanel,0,conn_site1" pos="0.0 0.07404632000000001 -0.0015550280000000002" quat="1 0 0 0" rgba="0.7052, 0.9877, 0.1401, 0.3" size="0.008" />
+      <site name="toppanel-sidepanel,0,conn_site2" pos="-0.1216 -0.001296852 0.0" quat="0.7071067 0 -0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.008" />
+      <site name="toppanel-sidepanel,0,conn_site1" pos="0.12128 -0.001296852 0.0" quat="0.7071067 0 0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.008" />
+      <site name="toppanel-backpanel,0,conn_site1" pos="0.0 0.07404632000000001 -0.0015550280000000002" quat="1 0 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_7_part7_0" pos="0.0005976600000000001 0 -0.000132716" quat="1 0 0 0" rgba="1 0 0 1" size="0.12251764000000001 0.08 0.0024073239999999997" solref="0.001 1" type="box" />
     </body>
     <body name="6_part6" pos="0.0 0.06355368584000001 0.015875" quat="1 0 0 0">
@@ -68,12 +68,12 @@
       <site name="6_part6_corner_site3" pos="0.12192000003999999 0.07879370116000001 -0.00254" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="6_part6_corner_site2" pos="0.12192000003999999 -0.07879370116000001 -0.00254" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="6_part6_corner_site1" pos="-0.12191999996 -0.07879370116000001 -0.00254" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="botpanel-backpanel,0,conn_site1" pos="0.0 0.07220632 0.00127" quat="0 1 0 0" rgba="0.1596, 0.9868, 0.1596, 0.3" size="0.008" />
-      <site name="botpanel-sidepanel,0,conn_site2" pos="-0.12224000000000002 -0.001296852 0.0" quat="0.7071067 0 -0.7071068 0" rgba="0.2044, 0.9852, 0.7249, 0.3" size="0.008" />
-      <site name="botpanel-sidepanel,0,conn_site1" pos="0.12196 -0.001296852 -0.000715" quat="0.7071067 0 0.7071068 0" rgba="0.2044, 0.9852, 0.7249, 0.3" size="0.008" />
-      <site name="botpanel-shortleg,0,180,conn_site2" pos="-0.1216 0.00253998 -0.0018750000000000001" quat="1 0 0 0" rgba="0.189, 0.7212, 0.9873, 0.3" size="0.008" />
-      <site name="botpanel-shortleg,0,180,conn_site1" pos="0.12240000000000001 0.00253998 -0.002595" quat="1 0 0 0" rgba="0.189, 0.7212, 0.9873, 0.3" size="0.008" />
-      <site name="botpanel-longleg,0,180,conn_site1" pos="0.0 -0.06447368 -0.0020350000000000004" quat="1 0 0 0" rgba="0.9614, 0.193, 0.193, 0.3" size="0.008" />
+      <site name="botpanel-backpanel,0,conn_site1" pos="0.0 0.07220632 0.00127" quat="0 1 0 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.008" />
+      <site name="botpanel-sidepanel,0,conn_site2" pos="-0.12224000000000002 -0.001296852 0.0" quat="0.7071067 0 -0.7071068 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.008" />
+      <site name="botpanel-sidepanel,0,conn_site1" pos="0.12196 -0.001296852 -0.000715" quat="0.7071067 0 0.7071068 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.008" />
+      <site name="botpanel-shortleg,0,180,conn_site2" pos="-0.1216 0.00253998 -0.0018750000000000001" quat="1 0 0 0" rgba="0.5686 0.1176 0.7058 0.3" size="0.008" />
+      <site name="botpanel-shortleg,0,180,conn_site1" pos="0.12240000000000001 0.00253998 -0.002595" quat="1 0 0 0" rgba="0.5686 0.1176 0.7058 0.3" size="0.008" />
+      <site name="botpanel-longleg,0,180,conn_site1" pos="0.0 -0.06447368 -0.0020350000000000004" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_6_part6_0" pos="7.2e-07 0 0.000100368" quat="1 0 0 0" rgba="1 0 0 1" size="0.12192072000000001 0.08 0.002640368" solref="0.001 1" type="box" />
     </body>
     <body name="5_part5" pos="-0.0 0.1385372956 0.36893500976000004" quat="1 0 0 0">
@@ -89,8 +89,8 @@
       <site name="5_part5_corner_site3" pos="0.127 0.00137731092 -0.35306000976" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="5_part5_corner_site2" pos="0.127 -0.0013773109600000001 -0.35306000976" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="5_part5_corner_site1" pos="-0.127 -0.0013773109600000001 -0.35306000976" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="backpanel-toppanel,0,conn_site1" pos="0.0 -0.000937292 0.351505" quat="1 0 0 0" rgba="0.7052, 0.9877, 0.1401, 0.3" size="0.008" />
-      <site name="backpanel-botpanel,0,conn_site1" pos="0.0 -0.0027772960000000003 -0.35179000000000005" quat="0 1 0 0" rgba="0.1596, 0.9868, 0.1596, 0.3" size="0.008" />
+      <site name="backpanel-toppanel,0,conn_site1" pos="0.0 -0.000937292 0.351505" quat="1 0 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.008" />
+      <site name="backpanel-botpanel,0,conn_site1" pos="0.0 -0.0027772960000000003 -0.35179000000000005" quat="0 1 0 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_5_part5_0" pos="0.0 1.2000000000000002e-08 -2.4000000000000003e-08" quat="1 0 0 0" rgba="1 0 0 1" size="0.127 0.00137732 0.35306" solref="0.001 1" type="box" />
     </body>
     <body name="4_part4" pos="-0.12446 0.06095999312000001 0.36893500244000005" quat="1 0 0 0">
@@ -106,8 +106,8 @@
       <site name="4_part4_corner_site3" pos="0.00254 0.07620000768 -0.35560000488000004" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="4_part4_corner_site2" pos="0.00254 -0.07620000612000001 -0.35560000488000004" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="4_part4_corner_site1" pos="-0.00254 -0.07620000612000001 -0.35560000488000004" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="sidepanel-toppanel,0,conn_site2" pos="0.002859996 0.001296844 0.35306" quat="0.7071067 0 -0.7071068 0" rgba="0.9845, 0.7238, 0.2025, 0.3" size="0.008" />
-      <site name="sidepanel-botpanel,0,conn_site2" pos="0.002219996 0.001296844 -0.35306" quat="0.7071067 0 -0.7071068 0" rgba="0.2044, 0.9852, 0.7249, 0.3" size="0.008" />
+      <site name="sidepanel-toppanel,0,conn_site2" pos="0.002859996 0.001296844 0.35306" quat="0.7071067 0 -0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.008" />
+      <site name="sidepanel-botpanel,0,conn_site2" pos="0.002219996 0.001296844 -0.35306" quat="0.7071067 0 -0.7071068 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_4_part4_0" pos="0.000111804 -3.984400000000001e-05 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.0026518080000000003 0.07616016 0.3556" solref="0.001 1" type="box" />
     </body>
     <body name="3_part3" pos="0.12445999756000002 0.06095999312000001 0.36893500244000005" quat="1 0 0 0">
@@ -123,8 +123,8 @@
       <site name="3_part3_corner_site3" pos="0.00254000244 0.07620000768 -0.35560000488000004" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="3_part3_corner_site2" pos="0.00254000244 -0.07620000612000001 -0.35560000488000004" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="3_part3_corner_site1" pos="-0.00254000244 -0.07620000612000001 -0.35560000488000004" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="sidepanel-toppanel,0,conn_site1" pos="-0.003179992 0.001296844 0.35306" quat="0.7071067 0 0.7071068 0" rgba="0.9845, 0.7238, 0.2025, 0.3" size="0.008" />
-      <site name="sidepanel-botpanel,0,conn_site1" pos="-0.0025 0.001296844 -0.353775" quat="0.7071067 0 0.7071068 0" rgba="0.2044, 0.9852, 0.7249, 0.3" size="0.008" />
+      <site name="sidepanel-toppanel,0,conn_site1" pos="-0.003179992 0.001296844 0.35306" quat="0.7071067 0 0.7071068 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.008" />
+      <site name="sidepanel-botpanel,0,conn_site1" pos="-0.0025 0.001296844 -0.353775" quat="0.7071067 0 0.7071068 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_3_part3_0" pos="-0.000111804 -3.984400000000001e-05 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.0024282 0.07616016 0.3556" solref="0.001 1" type="box" />
     </body>
     <body name="2_part2" pos="0.12192000000000001 0.06863365164000002 -0.0" quat="1 0 0 0">
@@ -140,7 +140,7 @@
       <site name="2_part2_corner_site3" pos="0.00254 0.07117365164 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="2_part2_corner_site2" pos="0.00254 -0.07117365164 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="2_part2_corner_site1" pos="-0.00254 -0.07117365164 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="shortleg-botpanel,0,180,conn_site1" pos="0.000480004 -0.0025399840000000003 0.013280000000000002" quat="1 0 0 0" rgba="0.189, 0.7212, 0.9873, 0.3" size="0.008" />
+      <site name="shortleg-botpanel,0,180,conn_site1" pos="0.000480004 -0.0025399840000000003 0.013280000000000002" quat="1 0 0 0" rgba="0.5686 0.1176 0.7058 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_2_part2_0" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.0025399920000000005 0.07117364000000001 0.013335" solref="0.001 1" type="box" />
     </body>
     <body name="1_part1" pos="-0.12192000000000001 0.06863365164000002 -0.0" quat="1 0 0 0">
@@ -156,7 +156,7 @@
       <site name="1_part1_corner_site3" pos="0.00254 0.07117365164 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="1_part1_corner_site2" pos="0.00254 -0.07117365164 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
       <site name="1_part1_corner_site1" pos="-0.00254 -0.07117365164 -0.013335" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.008" />
-      <site name="shortleg-botpanel,0,180,conn_site2" pos="0.000319996 -0.0025399840000000003 0.014" quat="1 0 0 0" rgba="0.189, 0.7212, 0.9873, 0.3" size="0.008" />
+      <site name="shortleg-botpanel,0,180,conn_site2" pos="0.000319996 -0.0025399840000000003 0.014" quat="1 0 0 0" rgba="0.5686 0.1176 0.7058 0.3" size="0.008" />
       <geom density="50" name="noviz_collision_1_part1_0" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="1 0 0 1" size="0.0025400040000000002 0.07117364000000001 0.013335" solref="0.001 1" type="box" />
     </body>
   </worldbody>

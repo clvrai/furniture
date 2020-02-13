@@ -1,87 +1,87 @@
 <mujoco model="desk_mikael_1064">
-    <asset>
-        <mesh file="desk_mikael_1064/drawer.stl" name="drawer" scale="0.0005 0.0005 0.0005" />
-        <mesh file="desk_mikael_1064/leftplane.stl" name="leftplane" scale="0.0005 0.0005 0.0005" />
-        <mesh file="desk_mikael_1064/rightplane.stl" name="rightplane" scale="0.0005 0.0005 0.0005" />
-        <mesh file="desk_mikael_1064/topplane.stl" name="topplane" scale="0.0005 0.0005 0.0005" />
-        <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
-        <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
-    </asset>
-    <equality>
-        <weld active="false" body1="1_rightplane" body2="4_topplane" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="2_leftplane" body2="4_topplane" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="3_drawer" body2="4_topplane" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="1_rightplane" body2="3_drawer" solimp="1 1 0.5" solref="0.01 0.3" />
-        <weld active="false" body1="2_leftplane" body2="3_drawer" solimp="1 1 0.5" solref="0.01 0.3" />
-    </equality>
-    <worldbody>
-        <body name="2_leftplane" pos="0.34 0.0 0.0">
-            <geom density="0" material="pencil-wood" mesh="leftplane" name="2_leftplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0" />
-            <geom density="100"  name="noviz_collision_2_leftplane_geom" pos="0 0 0" solref="0.001 1" type="box" size="0.01 0.19 0.18" />
-            <site name="leftplane-drawer,0,180,conn_site" pos="-0.01 -0.1 0.135" quat="0.707 0 -0.707 0" rgba="1 1 0 0.3" size="0.01" />
-            <site name="leftplane-topplane,0,conn_site" pos="0.0 0.0 0.185" rgba="0 1 1 0.3" size="0.01" />
-            <site name="2_leftplane_bottom_site" pos="0.0 0.0 -0.18" rgba="0 0 1 0" size="0.005" />
-            <site name="2_leftplane_top_site" pos="0.0 0.0 0.18" rgba="0 0 1 0" size="0.005" />
-            <site name="2_leftplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.1" />
-            <site name="2_leftplane_corner_site1" pos="0.0125 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site2" pos="0.0125 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site3" pos="0.0125 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site4" pos="0.0125 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site5" pos="-0.012 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site6" pos="-0.012 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site7" pos="-0.012 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="2_leftplane_corner_site8" pos="-0.012 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
-        </body>
-        <body name="1_rightplane" pos="-0.34 0.0 0.0">
-            <geom density="0" material="pencil-wood" mesh="rightplane" name="1_rightplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0"/>
-            <geom density="100" name="noviz_collision_1_rightplane_geom" pos="0 0 0"  solref="0.001 1" type="box" size="0.01 0.19 0.18" />
-            <site name="rightplane-drawer,0,180,conn_site" pos="0.01 -0.1 0.135" quat="0.707 0 -0.707 0" rgba="1 0 0 0.3" size="0.01" />
-            <site name="rightplane-topplane,0,conn_site" pos="0.0 0.0 0.185" rgba="0 1 0 0.3" size="0.01" />
-            <site name="1_rightplane_bottom_site" pos="0.0 0.0 -0.18" rgba="0 0 1 0" size="0.005" />
-            <site name="1_rightplane_top_site" pos="0.0 0.0 0.18" rgba="0 0 1 0" size="0.005" />
-            <site name="1_rightplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.1" />
-            <site name="1_rightplane_corner_site1" pos="0.0125 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site2" pos="0.0125 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site3" pos="0.0125 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site4" pos="0.0125 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site5" pos="-0.012 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site6" pos="-0.012 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site7" pos="-0.012 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="1_rightplane_corner_site8" pos="-0.012 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
-        </body>
-        <body name="4_topplane" pos="0.0 0.0 0.19">
-            <geom density="0" material="pencil-wood" mesh="topplane" name="4_topplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 0" solref="0.001 1" type="mesh" contype="0" conaffinity="0"/>
-            <geom density="100" name="noviz_collision_4_topplane_geom" pos="0 0 0" solref="0.001 1" type="box" size="0.35 0.19 0.012" />
-            <site name="topplane-rightplane,0,conn_site" pos="-0.34 0.0 -0.015" rgba="0 1 0 0.3" size="0.01" />
-            <site name="topplane-leftplane,0,conn_site" pos="0.34 0.0 -0.015" rgba="0 1 1 0.3" size="0.01" />
-            <site name="4_topplane_bottom_site" pos="-0.34 0.0 0.0" rgba="0 0 1 0" size="0.005" />
-            <site name="4_topplane_top_site" pos="0.34 0.0 0.0" rgba="0 0 1 0" size="0.005" />
-            <site name="4_topplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.2" />
-            <site name="4_topplane_corner_site1" pos="-0.352 0.1925 0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site2" pos="-0.352 -0.192 0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site3" pos="0.3525 0.1925 0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site4" pos="0.3525 -0.192 0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site5" pos="-0.352 0.1925 -0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site6" pos="-0.352 -0.192 -0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site7" pos="0.3525 0.1925 -0.015" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="4_topplane_corner_site8" pos="0.3525 -0.192 -0.015" rgba="0 0 1 0.3" size="0.0025" />
-        </body>
-        <body name="3_drawer" pos="0.0 -0.1 0.14">
-            <geom density="0" material="pencil-wood" mesh="drawer" name="3_drawer_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" contype="0" conaffinity="0"/>
-            <geom density="100" name="noviz_collision_3_drawer_geom" pos="0 0 0" solref="0.001 1" type="box" size="0.33 0.006 0.04" />
-            <site name="drawer-rightplane,0,180,conn_site" pos="-0.335 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1 0 0 0.3" size="0.01" />
-            <site name="drawer-leftplane,0,180,conn_site" pos="0.335 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1 1 0 0.3" size="0.01" />
-            <site name="3_drawer_bottom_site" pos="-0.35 0.0 0.0" rgba="0 0 1 0" size="0.005" />
-            <site name="3_drawer_top_site" pos="0.35 0.0 0.0" rgba="0 0 1 0" size="0.005" />
-            <site name="3_drawer_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.1" />
-            <site name="3_drawer_corner_site1" pos="-0.335 -0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site2" pos="-0.335 -0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site3" pos="-0.335 0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site4" pos="-0.335 0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site5" pos="0.335 -0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site6" pos="0.335 -0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site7" pos="0.335 0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
-            <site name="3_drawer_corner_site8" pos="0.335 0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
-        </body>
-    </worldbody>
+  <asset>
+    <mesh file="desk_mikael_1064/drawer.stl" name="drawer" scale="0.0005 0.0005 0.0005" />
+    <mesh file="desk_mikael_1064/leftplane.stl" name="leftplane" scale="0.0005 0.0005 0.0005" />
+    <mesh file="desk_mikael_1064/rightplane.stl" name="rightplane" scale="0.0005 0.0005 0.0005" />
+    <mesh file="desk_mikael_1064/topplane.stl" name="topplane" scale="0.0005 0.0005 0.0005" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
+  </asset>
+  <equality>
+    <weld active="false" body1="1_rightplane" body2="4_topplane" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="2_leftplane" body2="4_topplane" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="3_drawer" body2="4_topplane" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_rightplane" body2="3_drawer" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="2_leftplane" body2="3_drawer" solimp="1 1 0.5" solref="0.01 0.3" />
+  </equality>
+  <worldbody>
+    <body name="2_leftplane" pos="0.34 0.0 0.0">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="leftplane" name="2_leftplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_2_leftplane_geom" pos="0 0 0" size="0.01 0.19 0.18" solref="0.001 1" type="box" />
+      <site name="leftplane-drawer,0,180,conn_site" pos="-0.01 -0.1 0.135" quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="leftplane-topplane,0,conn_site" pos="0.0 0.0 0.185" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="2_leftplane_bottom_site" pos="0.0 0.0 -0.18" rgba="0 0 1 0" size="0.005" />
+      <site name="2_leftplane_top_site" pos="0.0 0.0 0.18" rgba="0 0 1 0" size="0.005" />
+      <site name="2_leftplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.1" />
+      <site name="2_leftplane_corner_site1" pos="0.0125 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site2" pos="0.0125 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site3" pos="0.0125 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site4" pos="0.0125 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site5" pos="-0.012 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site6" pos="-0.012 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site7" pos="-0.012 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="2_leftplane_corner_site8" pos="-0.012 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
+    </body>
+    <body name="1_rightplane" pos="-0.34 0.0 0.0">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="rightplane" name="1_rightplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_1_rightplane_geom" pos="0 0 0" size="0.01 0.19 0.18" solref="0.001 1" type="box" />
+      <site name="rightplane-drawer,0,180,conn_site" pos="0.01 -0.1 0.135" quat="0.707 0 -0.707 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
+      <site name="rightplane-topplane,0,conn_site" pos="0.0 0.0 0.185" rgba="0.2627 0.3882 0.8470 0.3" size="0.01" />
+      <site name="1_rightplane_bottom_site" pos="0.0 0.0 -0.18" rgba="0 0 1 0" size="0.005" />
+      <site name="1_rightplane_top_site" pos="0.0 0.0 0.18" rgba="0 0 1 0" size="0.005" />
+      <site name="1_rightplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.1" />
+      <site name="1_rightplane_corner_site1" pos="0.0125 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site2" pos="0.0125 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site3" pos="0.0125 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site4" pos="0.0125 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site5" pos="-0.012 -0.192 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site6" pos="-0.012 0.1925 -0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site7" pos="-0.012 -0.192 0.185" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="1_rightplane_corner_site8" pos="-0.012 0.1925 0.185" rgba="0 0 1 0.3" size="0.0025" />
+    </body>
+    <body name="4_topplane" pos="0.0 0.0 0.19">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="topplane" name="4_topplane_geom" pos="0 0 0" rgba="0.82 0.71 0.55 0" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_4_topplane_geom" pos="0 0 0" size="0.35 0.19 0.012" solref="0.001 1" type="box" />
+      <site name="topplane-rightplane,0,conn_site" pos="-0.34 0.0 -0.015" rgba="0.2627 0.3882 0.8470 0.3" size="0.01" />
+      <site name="topplane-leftplane,0,conn_site" pos="0.34 0.0 -0.015" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="4_topplane_bottom_site" pos="-0.34 0.0 0.0" rgba="0 0 1 0" size="0.005" />
+      <site name="4_topplane_top_site" pos="0.34 0.0 0.0" rgba="0 0 1 0" size="0.005" />
+      <site name="4_topplane_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.2" />
+      <site name="4_topplane_corner_site1" pos="-0.352 0.1925 0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site2" pos="-0.352 -0.192 0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site3" pos="0.3525 0.1925 0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site4" pos="0.3525 -0.192 0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site5" pos="-0.352 0.1925 -0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site6" pos="-0.352 -0.192 -0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site7" pos="0.3525 0.1925 -0.015" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="4_topplane_corner_site8" pos="0.3525 -0.192 -0.015" rgba="0 0 1 0.3" size="0.0025" />
+    </body>
+    <body name="3_drawer" pos="0.0 -0.1 0.14">
+      <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="drawer" name="3_drawer_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" name="noviz_collision_3_drawer_geom" pos="0 0 0" size="0.33 0.006 0.04" solref="0.001 1" type="box" />
+      <site name="drawer-rightplane,0,180,conn_site" pos="-0.335 0.0 0.0" quat="0.707 0 -0.707 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
+      <site name="drawer-leftplane,0,180,conn_site" pos="0.335 0.0 0.0" quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="3_drawer_bottom_site" pos="-0.35 0.0 0.0" rgba="0 0 1 0" size="0.005" />
+      <site name="3_drawer_top_site" pos="0.35 0.0 0.0" rgba="0 0 1 0" size="0.005" />
+      <site name="3_drawer_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.1" />
+      <site name="3_drawer_corner_site1" pos="-0.335 -0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site2" pos="-0.335 -0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site3" pos="-0.335 0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site4" pos="-0.335 0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site5" pos="0.335 -0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site6" pos="0.335 -0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site7" pos="0.335 0.01 0.045" rgba="0 0 1 0.3" size="0.0025" />
+      <site name="3_drawer_corner_site8" pos="0.335 0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
+    </body>
+  </worldbody>
 </mujoco>
