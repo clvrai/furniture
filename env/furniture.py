@@ -377,7 +377,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                                       width=self._screen_width,
                                       height=self._screen_height,
                                       depth=False)
-            if len(img.shape) == 4: 
+            if len(img.shape) == 4:
                 img = img[:, ::-1, :, :] / 255.0
             elif len(img.shape) == 3:
                 img = img[::-1, :, :] / 255.0
@@ -396,17 +396,17 @@ class FurnitureEnv(metaclass=EnvMeta):
                     img, depth = camera_obs
                 else:
                     img = camera_obs
-            if len(img.shape) == 4: 
+            if len(img.shape) == 4:
                 img = img[:, ::-1, :, :] / 255.0
             elif len(img.shape) == 3:
                 img = img[::-1, :, :] / 255.0
-                
+
             if depth is not None:
                 # depth map is 0 to 1, with 1 being furthest
                 # infinite depth is 0, so set to 1
                 black_pixels = np.all(depth==[0,0,0], axis=-1)
                 depth[black_pixels] = [255] * 3
-                if len(depth.shape) == 4: 
+                if len(depth.shape) == 4:
                     depth = depth[:, ::-1, :, :] / 255.0
                 elif len(depth.shape) == 3:
                     depth = depth[::-1, :, :] / 255.0
@@ -779,7 +779,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         site1_xpos = self._site_xpos_xquat(connector1)
         site2_xpos = self._site_xpos_xquat(connector2)
 
-        allowed_angles = connector1.split(',')[1:-1]
+        allowed_angles = [x for x in connector1.split(',')[1:-1] if x]
         for i in range(len(allowed_angles)):
             allowed_angles[i] = float(allowed_angles[i])
 
@@ -1184,16 +1184,26 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._set_qpos(body, pos_init[i], quat_init[i])
 
         if self._load_demo is not None:
-            if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
-                self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = init_qpos['l_gripper']
-            elif self._agent_type == 'Baxter':
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
-                self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = init_qpos['r_gripper']
-                self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = init_qpos['l_gripper']
-            elif self._agent_type == 'Cursor':
-                self._set_pos('cursor0', init_qpos['cursor0'])
-                self._set_pos('cursor1', init_qpos['cursor1'])
+            # if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
+            #     self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
+            #     self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = init_qpos['l_gripper']
+            # elif self._agent_type == 'Baxter':
+            #     self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
+            #     self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = init_qpos['r_gripper']
+            #     self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = init_qpos['l_gripper']
+            # elif self._agent_type == 'Cursor':
+            #     self._set_pos('cursor0', init_qpos['cursor0'])
+            #     self._set_pos('cursor1', init_qpos['cursor1'])
+            # enable robot collision
+            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+                body_name = self.sim.model.body_names[body_id]
+                geom_name = self.sim.model.geom_id2name(geom_id)
+                if body_name not in self._object_names \
+                   and self.mujoco_robot.is_robot_part(geom_name):
+                    contype, conaffinity = robot_col[geom_name]
+                    self.sim.model.geom_contype[geom_id] = contype
+                    self.sim.model.geom_conaffinity[geom_id] = conaffinity
+
             self.sim.forward()
         else:
             # stablize furniture pieces
@@ -1883,7 +1893,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     img = np.concatenate(img)
                     if depth is not None:
                         depth = np.concatenate(depth)
-                
+
                 imageio.imwrite('camera_ob.png', (img * 255).astype(np.uint8))
                 if self._segmentation_ob:
                     seg = self.render('segmentation')

@@ -166,7 +166,8 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
             collision.attrib["name"] = name
             geoms = collision.findall("geom")
             for i in range(len(geoms)):
-                if not geoms[i].get("name").startswith('noviz'):
+                gname = geoms[i].get("name")
+                if not (gname.startswith('noviz') or gname.startswith('collision')):
                     geoms[i].set("name", "{}-{}".format(name, i))
                 geoms[i].set("friction",array_to_string(friction))
         if site:
@@ -191,4 +192,3 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
                 template["name"] = name
             visual.append(ET.Element("site", attrib=template))
         return visual
-
