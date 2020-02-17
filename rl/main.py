@@ -107,4 +107,3 @@ if __name__ == '__main__':
         logger.error('Unparsed argument is detected:\n%s', unparsed)
     else:
         run(args)
-

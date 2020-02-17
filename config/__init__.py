@@ -14,13 +14,18 @@ def argparser():
                         choices=['FurnitureBaxterEnv',
                                  'FurnitureSawyerEnv',
                                  'FurnitureCursorEnv',
-                                 'FurnitureBaxterBlockEnv'],
+                                 'FurnitureBaxterBlockEnv',
+                                 'FurnitureCursorToyTableEnv'],
                         help='Environment name')
     parser.add_argument('--env_args', type=str, default=None)
 
+    args, unparsed = parser.parse_known_args()
     # furniture
     import config.furniture as furniture_config
     furniture_config.add_argument(parser)
+    if args.env == 'FurnitureCursorToyTableEnv':
+        import config.furniture_cursor_toytable as f
+        f.add_argument(parser)
 
     # training algorithm
     parser.add_argument('--algo', type=str, default='sac',
