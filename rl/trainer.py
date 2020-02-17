@@ -75,8 +75,8 @@ class Trainer(object):
             # project name
             project = 'furniture'
 
-            assert entity != 'clvr', "Please change 'entity' with your wandb id" \
-                "or disable wandb by setting os.environ['WANDB_MODE'] = 'dryrun'"
+            #assert entity != 'clvr', "Please change 'entity' with your wandb id" \
+            #    "or disable wandb by setting os.environ['WANDB_MODE'] = 'dryrun'"
 
             wandb.init(
                 resume=config.run_name,
