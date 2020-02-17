@@ -209,14 +209,14 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                 # give rew for minimizing eucl distance between sites
                 site_dist_diff = self._prev_pos_dist - pos_dist
                 if not abs(site_dist_diff) < 0.01:
-                    site_dist_rew = max(0,self._env_config['site_dist_rew'] * site_dist_diff)
+                    site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
                 logger.debug(f'site_dist_rew: {site_dist_rew}')
                 self._prev_pos_dist = pos_dist
 
                 # give rew for making angular dist between sites 1
                 site_up_diff = rot_dist_up - self._prev_rot_dist_up
                 if not abs(site_up_diff) < 0.01:
-                    site_up_rew = max(0, self._env_config['site_up_rew'] * site_up_diff)
+                    site_up_rew = self._env_config['site_up_rew'] * site_up_diff
                 logger.debug(f'site_up_rew: {site_up_rew}')
                 self._prev_rot_dist_up = rot_dist_up
 
