@@ -123,9 +123,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         Returns dict where keys are ob names and values are dimensions.
         """
         ob_space = OrderedDict()
-
+        num_cam = len(self._camera_ids)
         if self._visual_ob:
-            ob_space['camera_ob'] = [self._screen_height, self._screen_width, 3]
+            ob_space['camera_ob'] = [num_cam, self._screen_height, self._screen_width, 3]
 
         if self._object_ob:
             # can be changed to the desired number depending on the task
