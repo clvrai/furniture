@@ -346,4 +346,3 @@ class Trainer(object):
 
         video.write_videofile(path, fps, verbose=False)
         logger.warn("[*] Video saved: {}".format(path))
-

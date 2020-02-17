@@ -126,7 +126,7 @@ class RolloutRunner(object):
         color = (200, 200, 200)
 
         # render video frame
-        frame = self._env.render('rgb_array') * 255.0
+        frame = self._env.render('rgb_array')[0] * 255.0
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 
@@ -158,4 +158,3 @@ class RolloutRunner(object):
                             font_size, (255, 255, 255), thickness, cv2.LINE_AA)
 
         self._record_frames.append(frame)
-
