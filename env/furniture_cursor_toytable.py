@@ -25,7 +25,6 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         super().__init__(config)
         # default values
         self._env_config.update({
-            "success_reward": 100,
             "pos_dist": 0.1,
             "rot_dist_up": 0.9,
             "rot_dist_forward": 0.9,
@@ -34,6 +33,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             "site_up_rew": config.site_up_rew,
             "connect_rew": config.connect_rew,
             "success_rew": config.success_rew,
+            "pick_rew": config.pick_rew,
         })
 
         # turn on the gravity compensation for selected furniture pieces
@@ -164,12 +164,12 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         holding_leg = self._cursor_selected[1] == '2_part2'
         # cursor 0 select table top
         if holding_top and not self._top_picked:
-            pick_rew += 1
+            pick_rew += self._env_config['pick_rew']
             self._top_picked = True
             logger.debug('picked up tabletop')
         # cursor 1 select table leg
         if holding_leg and not self._leg_picked:
-            pick_rew += 1
+            pick_rew += self._env_config['pick_rew']
             self._leg_picked = True
             logger.debug('picked up leg')
 
