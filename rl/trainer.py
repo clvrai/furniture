@@ -31,6 +31,9 @@ def get_agent_by_name(algo):
     elif algo == 'ppo':
         from rl.ppo_agent import PPOAgent
         return PPOAgent
+    elif algo == 'ddpg':
+        from rl.ddpg_agent import DDPGAgent
+        return DDPGAgent
 
 
 class Trainer(object):
@@ -52,7 +55,7 @@ class Trainer(object):
         print('***', ac_space)
 
         # get actor and critic networks
-        actor, critic = get_actor_critic_by_name(config.policy)
+        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
 
         # build up networks
         self._agent = get_agent_by_name(config.algo)(

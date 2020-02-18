@@ -29,7 +29,7 @@ def argparser():
 
     # training algorithm
     parser.add_argument('--algo', type=str, default='sac',
-                        choices=['sac', 'ppo'])
+                        choices=['sac', 'ppo', 'ddpg'])
     parser.add_argument('--policy', type=str, default='mlp',
                         choices=['mlp', 'manual'])
 
@@ -38,6 +38,11 @@ def argparser():
     parser.add_argument('--rl_activation', type=str, default='relu',
                         choices=['relu', 'elu', 'tanh'])
     parser.add_argument('--tanh_policy', type=str2bool, default=True)
+
+    # for ddpg
+    parser.add_argument('--noise_eps', type=float, default=0.2, help='noise eps')
+    parser.add_argument('--random_eps', type=float, default=0.3, help='random eps')
+
 
     # observation normalization
     parser.add_argument('--ob_norm', type=str2bool, default=True)
