@@ -124,4 +124,3 @@ class ActionSpec(object):
         self.size += size
         self.shape[key] = size
         self.dtype[key] = dtype
-

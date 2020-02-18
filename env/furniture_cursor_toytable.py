@@ -190,14 +190,12 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             forward2 = self._get_forward_vector(leg_site_name)
             pos_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
             rot_dist_up = T.cos_dist(up1, up2)
-            rot_dist_forward = T.cos_dist(forward1, forward2)
 
             project1_2 = np.dot(up1, T.unit_vector(leg_site_xpos[:3] - top_site_xpos[:3]))
             project2_1 = np.dot(up2, T.unit_vector(top_site_xpos[:3] - leg_site_xpos[:3]))
 
-            logger.debug(f'pos_dist: {pos_dist:.2f}, '+f'rot_dist_up: {rot_dist_up:.2f}, '+
-                        f'rot_dist_forward: {rot_dist_forward:.2f}, '+
-                        f'project: {project1_2:.2f}, {project2_1:.2f}')
+            #logger.debug(f'pos_dist: {pos_dist:.2f}, '+f'rot_dist_up: {rot_dist_up:.2f}, '+
+            #            f'project: {project1_2:.2f}, {project2_1:.2f}')
 
             # if parts are close together, press connect
             if pos_dist < 0.03 and rot_dist_up > self._env_config['rot_dist_up']:
@@ -219,6 +217,11 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                     site_up_rew = self._env_config['site_up_rew'] * site_up_diff
                 logger.debug(f'site_up_rew: {site_up_rew}')
                 self._prev_rot_dist_up = rot_dist_up
+
+        elif (not holding_top and self._top_picked) or (not holding_leg and self._leg_picked):
+            # give penalty for dropping top or leg
+            pick_rew = -2
+            done = True
 
 
         rew = pick_rew + site_dist_rew + site_up_rew + connect_rew + success_rew
