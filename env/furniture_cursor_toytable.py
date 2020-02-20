@@ -125,8 +125,11 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
             xquat((float * 4) * n_obj): quaternion of the objects
         """
-        pos_init = [[ 0.21250838, -0.1163671 ,  0.02096991], [-0.30491682, -0.09045364,  0.03429339],[ 0.38134436, -0.11249256,  0.02096991],[ 0.12432612, -0.13662719,  0.02096991],[ 0.29537311, -0.12992911,  0.02096991]]
-        quat_init = [[0.706332  , 0.70633192, 0.03309327, 0.03309326], [ 0.00000009, -0.99874362, -0.05011164,  0.00000002], [ 0.70658149,  0.70706735, -0.00748174,  0.0272467 ], [0.70610751, 0.7061078 , 0.03757641, 0.03757635], [0.70668613, 0.70668642, 0.02438253, 0.02438249]]
+        # pos_init = [[ 0.21250838, -0.1163671 ,  0.02096991], [-0.30491682, -0.09045364,  0.03429339],[ 0.38134436, -0.11249256,  0.02096991],[ 0.12432612, -0.13662719,  0.02096991],[ 0.29537311, -0.12992911,  0.02096991]]
+        # quat_init = [[0.706332  , 0.70633192, 0.03309327, 0.03309326], [ 0.00000009, -0.99874362, -0.05011164,  0.00000002], [ 0.70658149,  0.70706735, -0.00748174,  0.0272467 ], [0.70610751, 0.7061078 , 0.03757641, 0.03757635], [0.70668613, 0.70668642, 0.02438253, 0.02438249]]
+
+        pos_init = [[-0.30491682, -0.09045364,  0.03429339],[ 0.12432612, -0.13662719,  0.02096991]]
+        quat_init = [[ 0.00000009, -0.99874362, -0.05011164,  0.00000002],  [0.70610751, 0.7061078 , 0.03757641, 0.03757635]]
 
         return pos_init, quat_init
 
@@ -229,19 +232,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
 
 def main():
-    import argparse
-    import config.furniture as furniture_config
-    from util import str2bool
-
-    parser = argparse.ArgumentParser()
-    furniture_config.add_argument(parser)
-
-    # change default config for Cursors
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
-
-    parser.set_defaults(render=True)
-
+    from config import create_parser
+    parser = create_parser(env="FurnitureCursorToyTableEnv")
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Cursor environment

@@ -2,8 +2,11 @@ import argparse
 
 from util import str2bool, str2list
 
-
-def argparser():
+def create_parser(env=None):
+    """
+    Creates the argparser.  Use this to add additional arguments
+    to the parser later.
+    """
     parser = argparse.ArgumentParser(
         'IKEA Furniture Assembly Environment',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -23,7 +26,7 @@ def argparser():
     # furniture
     import config.furniture as furniture_config
     furniture_config.add_argument(parser)
-    if args.env == 'FurnitureCursorToyTableEnv':
+    if 'FurnitureCursorToyTableEnv' in [env, args.env]:
         import config.furniture_cursor_toytable as f
         f.add_argument(parser)
 
@@ -106,7 +109,13 @@ def argparser():
     parser.add_argument('--notes', type=str, default='')
     parser.add_argument('--seed', type=int, default=123, help='Random seed')
     parser.add_argument('--debug', type=str2bool, default=False)
+    return parser
 
+def argparser():
+    """
+    Directly parses the arguments
+    """
+    parser = create_parser()
     args, unparsed = parser.parse_known_args()
     args.env_args_str = args.env_args
 
