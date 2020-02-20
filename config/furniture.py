@@ -50,7 +50,7 @@ def add_argument(parser):
                         help='enable demo recording')
     parser.add_argument('--preassembled', type=str2intlist, default=[],
                         help='list of weld equality ids to activate at start')
-    parser.add_argument('--max_episode_steps', type=int, default=1000,
+    parser.add_argument('--max_episode_steps', type=int, default=100,
                         help='max number of steps for an episode')
 
     # observations
