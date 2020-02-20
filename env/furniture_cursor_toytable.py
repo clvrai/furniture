@@ -175,16 +175,13 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         if holding_top and not self._top_picked:
             pick_rew += self._env_config['pick_rew']
             self._top_picked = True
-            logger.debug('picked up tabletop')
         # cursor 1 select table leg
         if holding_leg and not self._leg_picked:
             pick_rew += self._env_config['pick_rew']
             self._leg_picked = True
-            logger.debug('picked up leg')
 
         if self._num_connected > 0:
             success_rew = self._env_config['success_rew']
-            logger.debug(f'success rew: {success_rew}')
 
         # if parts are in hand, then give reward for moving parts closer
         elif holding_top and holding_leg:
@@ -242,6 +239,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             done = True
 
         info['phase'] = self._phase
+        info['leg_picked'] = self._leg_picked
+        info['top_picked'] = self._top_picked
         info['pick_rew'] = pick_rew
         info['site_dist_rew'] = site_dist_rew
         info['site_up_rew'] = site_up_rew
