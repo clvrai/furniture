@@ -31,9 +31,11 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             "project_dist": -1,
             "site_dist_rew": config.site_dist_rew,
             "site_up_rew": config.site_up_rew,
+            "aligned_rew": config.aligned_rew,
             "connect_rew": config.connect_rew,
             "success_rew": config.success_rew,
             "pick_rew": config.pick_rew,
+            "ctrl_penalty": config.ctrl_penalty,
         })
 
         # turn on the gravity compensation for selected furniture pieces
@@ -116,6 +118,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         self._prev_pos_dist = pos_dist
         self._prev_rot_dist_up = rot_dist_up
 
+        self._phase = 'align_rot'
+
     def _place_objects(self):
         """
         Returns fixed initial position and rotations of the toy table.
@@ -160,11 +164,13 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         The next stage gives reward for bringing the leg connection site close to the table
         connection site.
         """
-        rew = pick_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = 0
+        rew = pick_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = \
+            aligned_rew = ctrl_penalty = 0
         done = self._num_connected > 0
         info = {}
         holding_top = self._cursor_selected[0] == '4_part4'
         holding_leg = self._cursor_selected[1] == '2_part2'
+        ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action, 2)
         # cursor 0 select table top
         if holding_top and not self._top_picked:
             pick_rew += self._env_config['pick_rew']
@@ -197,37 +203,55 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             project1_2 = np.dot(up1, T.unit_vector(leg_site_xpos[:3] - top_site_xpos[:3]))
             project2_1 = np.dot(up2, T.unit_vector(top_site_xpos[:3] - leg_site_xpos[:3]))
 
-            #logger.debug(f'pos_dist: {pos_dist:.2f}, '+f'rot_dist_up: {rot_dist_up:.2f}, '+
-            #            f'project: {project1_2:.2f}, {project2_1:.2f}')
+            angles_aligned = rot_dist_up > self._env_config['rot_dist_up']
+            dist_aligned = rot_dist_up < self._env_config['pos_dist']
+            if angles_aligned and dist_aligned:
+                self._phase = 'connect'
+            elif angles_aligned:
+                self._phase = 'align_eucl'
+            elif dist_aligned:
+                self._phase = 'align_rot'
 
-            # if parts are close together, press connect
-            if pos_dist < 0.03 and rot_dist_up > self._env_config['rot_dist_up']:
+            if self._phase == 'connect':
                 connect = action[14]
+                # give reward for getting alignment right
+                aligned_rew = self._env_config['aligned_rew']
                 if connect > 0:
-                    connect_rew = self._env_config['connect_rew']
-                logger.debug(f'connect rew: {connect_rew}')
-            else: # else bring parts closer together
-                # give rew for minimizing eucl distance between sites
-                site_dist_diff = self._prev_pos_dist - pos_dist
-                if not abs(site_dist_diff) < 0.01:
-                    site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
-                logger.debug(f'site_dist_rew: {site_dist_rew}')
-                self._prev_pos_dist = pos_dist
+                    connect_rew +=  5 * self._env_config['connect_rew']
 
+            elif self._phase == 'align_rot':
+                # First phase: bring angle distance close together
                 # give rew for making angular dist between sites 1
                 site_up_diff = rot_dist_up - self._prev_rot_dist_up
                 if not abs(site_up_diff) < 0.01:
                     site_up_rew = self._env_config['site_up_rew'] * site_up_diff
-                logger.debug(f'site_up_rew: {site_up_rew}')
                 self._prev_rot_dist_up = rot_dist_up
+
+            elif self._phase == 'align_eucl':
+                # Second phase: bring eucl distance close
+                # give rew for minimizing eucl distance between sites
+                site_dist_diff = self._prev_pos_dist - pos_dist
+                if not abs(site_dist_diff) < 0.01:
+                    site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
+                self._prev_pos_dist = pos_dist
+
 
         elif (not holding_top and self._top_picked) or (not holding_leg and self._leg_picked):
             # give penalty for dropping top or leg
             #pick_rew = -2
             done = True
 
+        info['phase'] = self._phase
+        info['pick_rew'] = pick_rew
+        info['site_dist_rew'] = site_dist_rew
+        info['site_up_rew'] = site_up_rew
+        info['aligned_rew'] = aligned_rew
+        info['connect_rew'] = connect_rew
+        info['success_rew'] = success_rew
+        info['ctrl_penalty'] = ctrl_penalty
 
-        rew = pick_rew + site_dist_rew + site_up_rew + connect_rew + success_rew
+        rew = pick_rew + site_dist_rew + site_up_rew + connect_rew + \
+                + aligned_rew + success_rew + ctrl_penalty
         return rew, done, info
 
 
