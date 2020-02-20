@@ -62,7 +62,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
     @property
     def dof(self):
         """
-        Returns the DoF of the curosr agent.
+        Returns the DoF of the cursor agent.
         """
         assert self._control_type == 'ik'
         dof = (3 + 3 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
@@ -156,6 +156,13 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
         return state
 
+    def _initialize_robot_pos(self):
+        """
+        Initializes cursor position to be on top of parts
+        """
+        self._set_pos('cursor0', [-0.35, -0.125, 0.0125])
+        self._set_pos('cursor1', [0.075, -0.175, 0.0375])
+
     def _compute_reward(self, action):
         """
         Two stage reward.
@@ -170,7 +177,10 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         info = {}
         holding_top = self._cursor_selected[0] == '4_part4'
         holding_leg = self._cursor_selected[1] == '2_part2'
-        ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action, 2)
+        c0_action, c1_action = action[:7], action[7:14]
+        c0_moverotate, c1_moverotate = c0_action[:-1], c1_action[:-1]
+        c0_ctrl_penalty, c1_ctrl_penalty = 2 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
+        ctrl_penalty = -self._env_config['ctrl_penalty'] * (c0_ctrl_penalty + c1_ctrl_penalty)
         # cursor 0 select table top
         if holding_top and not self._top_picked:
             pick_rew += self._env_config['pick_rew']
@@ -248,6 +258,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         info['connect_rew'] = connect_rew
         info['success_rew'] = success_rew
         info['ctrl_penalty'] = ctrl_penalty
+        info['c0_ctrl_penalty'] = c0_ctrl_penalty
+        info['c1_ctrl_penalty'] = c1_ctrl_penalty
 
         rew = pick_rew + site_dist_rew + site_up_rew + connect_rew + \
                 + aligned_rew + success_rew + ctrl_penalty
