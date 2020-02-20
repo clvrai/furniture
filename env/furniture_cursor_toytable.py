@@ -223,7 +223,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
         elif (not holding_top and self._top_picked) or (not holding_leg and self._leg_picked):
             # give penalty for dropping top or leg
-            pick_rew = -2
+            #pick_rew = -2
             done = True
 
 
