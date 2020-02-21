@@ -161,7 +161,10 @@ class Trainer(object):
         """
         if self._config.is_train:
             for k, v in ep_info.items():
-                wandb.log({'test_ep/%s' % k: np.mean(v)}, step=step)
+                if isinstance(v, wandb.Video):
+                    wandb.log({'test_ep/%s' % k: v}, step=step)
+                else:
+                    wandb.log({'test_ep/%s' % k: np.mean(v)}, step=step)
 
     def train(self):
         """ Trains an agent. """
@@ -292,7 +295,8 @@ class Trainer(object):
                 fname = '{}_step_{:011d}_{}_r_{}_{}.mp4'.format(
                     self._env.name, step, idx if idx is not None else i,
                     ep_rew, ep_success)
-                self._save_video(fname, frames)
+                video_path = self._save_video(fname, frames)
+                info['video'] = wandb.Video(video_path, fps=15, format='mp4')
 
             if idx is not None:
                 break
@@ -349,3 +353,4 @@ class Trainer(object):
 
         video.write_videofile(path, fps, verbose=False)
         logger.warn("[*] Video saved: {}".format(path))
+        return path
