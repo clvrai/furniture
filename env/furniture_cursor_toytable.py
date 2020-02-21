@@ -179,7 +179,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         holding_leg = self._cursor_selected[1] == '2_part2'
         c0_action, c1_action = action[:7], action[7:14]
         c0_moverotate, c1_moverotate = c0_action[:-1], c1_action[:-1]
-        c0_ctrl_penalty, c1_ctrl_penalty = 2 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
+        c0_ctrl_penalty, c1_ctrl_penalty = 100 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
         ctrl_penalty = -self._env_config['ctrl_penalty'] * (c0_ctrl_penalty + c1_ctrl_penalty)
         # cursor 0 select table top
         if holding_top and not self._top_picked:
