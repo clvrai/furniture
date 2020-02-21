@@ -232,7 +232,6 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                 site_up_diff = rot_dist_up - self._prev_rot_dist_up
                 if not abs(site_up_diff) < 0.01:
                     site_up_rew = self._env_config['site_up_rew'] * site_up_diff
-                self._prev_rot_dist_up = rot_dist_up
 
             elif self._phase == 'align_eucl':
                 # Second phase: bring eucl distance close
@@ -242,9 +241,9 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                 site_dist_diff = self._prev_pos_dist - pos_dist
                 if not abs(site_dist_diff) < 0.01:
                     site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
-                self._prev_pos_dist = pos_dist
 
-
+            self._prev_pos_dist = pos_dist
+            self._prev_rot_dist_up = rot_dist_up
         elif (not holding_top and self._top_picked) or (not holding_leg and self._leg_picked):
             # give penalty for dropping top or leg
             #pick_rew = -2
