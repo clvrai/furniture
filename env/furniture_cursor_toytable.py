@@ -112,13 +112,14 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         up2 = self._get_up_vector(leg_site_name)
         forward1 = self._get_forward_vector(top_site_name)
         forward2 = self._get_forward_vector(leg_site_name)
-        pos_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-        rot_dist_up = T.cos_dist(up1, up2)
+        # calculate distance between site + z-offset and other site
+        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
+        pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
 
         self._prev_pos_dist = pos_dist
         self._prev_rot_dist_up = rot_dist_up
 
-        self._phase = 'align_rot'
+        self._phase = 'align_eucl'
 
     def _place_objects(self):
         """
@@ -204,7 +205,11 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             up2 = self._get_up_vector(leg_site_name)
             forward1 = self._get_forward_vector(top_site_name)
             forward2 = self._get_forward_vector(leg_site_name)
-            pos_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
+            # calculate distance between site + z-offset and other site
+            point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
+            pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
+            logger.debug(f'leg_site: {leg_site_xpos[:3]}, point_above: {point_above_topsite}')
+            logger.debug(f'pos_dist: {pos_dist}')
             rot_dist_up = T.cos_dist(up1, up2)
 
             project1_2 = np.dot(up1, T.unit_vector(leg_site_xpos[:3] - top_site_xpos[:3]))
@@ -214,10 +219,10 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             dist_aligned = rot_dist_up < self._env_config['pos_dist']
             if angles_aligned and dist_aligned:
                 self._phase = 'connect'
-            elif angles_aligned:
-                self._phase = 'align_eucl'
             elif dist_aligned:
                 self._phase = 'align_rot'
+            elif angles_aligned:
+                self._phase = 'align_eucl'
 
             if self._phase == 'connect':
                 connect = action[14]
@@ -228,6 +233,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
             elif self._phase == 'align_rot':
                 # First phase: bring angle distance close together
+                # give bonus for being done with align_eucl
+                aligned_rew = self._env_config['aligned_rew']/10
                 # give rew for making angular dist between sites 1
                 site_up_diff = rot_dist_up - self._prev_rot_dist_up
                 if not abs(site_up_diff) < 0.01:
@@ -235,8 +242,6 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
             elif self._phase == 'align_eucl':
                 # Second phase: bring eucl distance close
-                # give bonus for being done with align_rot
-                aligned_rew = self._env_config['aligned_rew']/10
                 # give rew for minimizing eucl distance between sites
                 site_dist_diff = self._prev_pos_dist - pos_dist
                 if not abs(site_dist_diff) < 0.01:
