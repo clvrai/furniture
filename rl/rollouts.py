@@ -112,7 +112,7 @@ class RolloutRunner(object):
         # compute average/sum of information
         ep_info = {'len': ep_len, 'rew': ep_rew}
         for key, value in reward_info.items():
-            if isinstance(value[0], (int, float, bool)):
+            if isinstance(value[0], (int, float, bool, np.float32)):
                 if '_mean' in key:
                     ep_info[key] = np.mean(value)
                 else:
