@@ -54,7 +54,7 @@ def create_parser(env=None):
     parser.add_argument('--clip_range', type=float, default=5, help='the clip range after normalization of observation')
 
     # off-policy rl
-    parser.add_argument('--buffer_size', type=int, default=int(1e3), help='the size of the buffer')
+    parser.add_argument('--buffer_size', type=int, default=int(1e6), help='the size of the buffer')
     parser.add_argument('--discount_factor', type=float, default=0.99, help='the discount factor')
     parser.add_argument('--lr_actor', type=float, default=3e-4, help='the learning rate of the actor')
     parser.add_argument('--lr_critic', type=float, default=3e-4, help='the learning rate of the critic')
