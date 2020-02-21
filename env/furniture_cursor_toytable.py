@@ -236,6 +236,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
             elif self._phase == 'align_eucl':
                 # Second phase: bring eucl distance close
+                # give bonus for being done with align_rot
+                aligned_rew = self._env_config['aligned_rew']/10
                 # give rew for minimizing eucl distance between sites
                 site_dist_diff = self._prev_pos_dist - pos_dist
                 if not abs(site_dist_diff) < 0.01:
