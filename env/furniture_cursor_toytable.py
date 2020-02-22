@@ -115,6 +115,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         # calculate distance between site + z-offset and other site
         point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
+        rot_dist_up = T.cos_dist(up1, up2)
 
         self._prev_pos_dist = pos_dist
         self._prev_rot_dist_up = rot_dist_up
@@ -180,7 +181,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         holding_leg = self._cursor_selected[1] == '2_part2'
         c0_action, c1_action = action[:7], action[7:14]
         c0_moverotate, c1_moverotate = c0_action[:-1], c1_action[:-1]
-        c0_ctrl_penalty, c1_ctrl_penalty = 100 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
+        c0_ctrl_penalty, c1_ctrl_penalty = 2 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
         ctrl_penalty = -self._env_config['ctrl_penalty'] * (c0_ctrl_penalty + c1_ctrl_penalty)
         # cursor 0 select table top
         if holding_top and not self._top_picked:
@@ -208,15 +209,15 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             # calculate distance between site + z-offset and other site
             point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
             pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
-            logger.debug(f'leg_site: {leg_site_xpos[:3]}, point_above: {point_above_topsite}')
-            logger.debug(f'pos_dist: {pos_dist}')
+            #logger.debug(f'leg_site: {leg_site_xpos[:3]}, point_above: {point_above_topsite}')
+            #logger.debug(f'pos_dist: {pos_dist}')
             rot_dist_up = T.cos_dist(up1, up2)
 
             project1_2 = np.dot(up1, T.unit_vector(leg_site_xpos[:3] - top_site_xpos[:3]))
             project2_1 = np.dot(up2, T.unit_vector(top_site_xpos[:3] - leg_site_xpos[:3]))
 
             angles_aligned = rot_dist_up > self._env_config['rot_dist_up']
-            dist_aligned = rot_dist_up < self._env_config['pos_dist']
+            dist_aligned = pos_dist < self._env_config['pos_dist']
             if angles_aligned and dist_aligned:
                 self._phase = 'connect'
             elif dist_aligned:
