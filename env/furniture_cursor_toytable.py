@@ -113,10 +113,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
-        forward1 = self._get_forward_vector(top_site_name)
-        forward2 = self._get_forward_vector(leg_site_name)
         # calculate distance between site + z-offset and other site
-        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.125])
+        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_up = T.cos_dist(up1, up2)
@@ -198,10 +196,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
-        forward1 = self._get_forward_vector(top_site_name)
-        forward2 = self._get_forward_vector(leg_site_name)
         # calculate distance between site + z-offset and other site
-        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.125])
+        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_up = T.cos_dist(up1, up2)
@@ -245,7 +241,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                     connect_rew +=  5 * self._env_config['connect_rew']
 
             elif self._phase == 'align_rot':
-                # First phase: bring angle distance close together
+                # Second phase: bring angle distance close together
                 # give bonus for being done with align_eucl
                 aligned_rew = self._env_config['aligned_rew']/10
                 # give rew for making angular dist between sites 1
@@ -254,7 +250,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                     site_up_rew = self._env_config['site_up_rew'] * site_up_diff
 
             elif self._phase == 'align_eucl':
-                # Second phase: bring eucl distance close
+                # First phase: bring eucl distance close
                 aligned_rew = self._env_config['aligned_rew']/10
                 # give rew for minimizing eucl distance between sites
                 site_dist_diff = self._prev_pos_dist - pos_dist
