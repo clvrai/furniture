@@ -8,4 +8,4 @@ def add_argument(parser):
     parser.add_argument('--success_rew', type=float, default=100, help='rew for successful connect')
     parser.add_argument('--pick_rew', type=float, default=0.1, help='rew for successful pick')
     parser.add_argument('--aligned_rew', type=float, default=1, help='rew for successful pick and rot')
-    parser.add_argument('--ctrl_penalty', type=float, default=0.001, help='penalty for moving')
+    parser.add_argument('--ctrl_penalty', type=float, default=0.00001, help='penalty for moving')
