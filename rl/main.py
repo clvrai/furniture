@@ -27,6 +27,7 @@ def run(config):
     config.rank = rank
     config.is_chef = rank == 0
     config.seed = config.seed + rank
+    config.port = config.port + rank
     config.num_workers = MPI.COMM_WORLD.Get_size()
 
     if config.is_chef:
