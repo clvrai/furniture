@@ -131,8 +131,8 @@ class PPOAgent(BaseAgent):
         ret = _to_tensor(transitions['ret']).reshape(bs, 1)
         adv = _to_tensor(transitions['adv']).reshape(bs, 1)
 
-        log_pi, ent = self._actor.act_log(o, a_z, z=z)
-        old_log_pi, _ = self._old_actor.act_log(o, a_z, z=z)
+        log_pi, ent = self._actor.act_log(o, a_z)
+        old_log_pi, _ = self._old_actor.act_log(o, a_z)
         if old_log_pi.min() < -100:
             import ipdb; ipdb.set_trace()
 
@@ -149,11 +149,6 @@ class PPOAgent(BaseAgent):
         info['entropy_loss'] = entropy_loss.cpu().item()
         info['actor_loss'] = actor_loss.cpu().item()
         actor_loss += entropy_loss
-
-        custom_loss = self._actor.custom_loss()
-        if custom_loss is not None:
-            actor_loss += custom_loss * self._config.custom_loss_weight
-            info['custom_loss'] = custom_loss.cpu().item()
 
         # the q loss
         value_pred = self._critic(o)

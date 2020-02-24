@@ -52,7 +52,7 @@ class Trainer(object):
         self._env = make_env(config.env, config)
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
-        print('***', ac_space)
+        logger.info('Action space: ' + str(ac_space))
 
         # get actor and critic networks
         actor, critic = get_actor_critic_by_name(config.policy, config.algo)
