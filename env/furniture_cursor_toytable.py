@@ -126,6 +126,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         self._prev_rot_dist_up = rot_dist_up
 
         self._phase = 'align_eucl'
+        self._num_connect_successes = 0
 
     def _place_objects(self):
         """
@@ -237,8 +238,9 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                 # give reward for getting alignment right
                 aligned_rew = self._env_config['aligned_rew']
                 connect = action[14]
-                if connect > 0:
-                    connect_rew +=  5 * self._env_config['connect_rew']
+                if connect > 0 and self._num_connect_successes < 10:
+                    connect_rew +=  self._env_config['connect_rew']
+                    self._num_connect_successes += 1
 
             elif self._phase == 'align_rot':
                 # Second phase: bring angle distance close together
