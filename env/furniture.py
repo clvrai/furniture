@@ -57,7 +57,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         }
 
         self._debug = config.debug
-        logger.setLevel(logging.INFO)
+        if logger.getEffectiveLevel() != logging.CRITICAL:
+            logger.setLevel(logging.INFO)
         if self._debug:
             logger.setLevel(logging.DEBUG)
         self._rng = np.random.RandomState(config.seed)

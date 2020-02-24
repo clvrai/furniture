@@ -175,15 +175,15 @@ class UnityInterface(object):
             launch_string)
 
         new_env = os.environ.copy()
-        if self._virtual_display:
-            new_env["DISPLAY"] = ":1"
+        if self._virtual_display is not None:
+            new_env["DISPLAY"] = self._virtual_display
 
         os.makedirs('unity-log', exist_ok=True)
         # Launch Unity environment
         self.proc1 = subprocess.Popen(
-            [launch_string, "-logFile", "./unity-log/log" +
-             str(port) + ".txt", '--port', str(port)],
-            env=new_env)
+            " ".join([launch_string, "-logFile", "./unity-log/log" +
+             str(port) + ".txt", '--port', str(port)]),
+            shell=True, env=new_env)
 
     def __delete__(self):
         """ Closes the connection between Unity. """
