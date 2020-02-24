@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 
 from env import make_env
-from env.models import furniture_names, background_names
+from env.models import furniture_names, background_names, furniture_name2id
 from util import str2bool
 from util.video_recorder import VideoRecorder
 
@@ -19,6 +19,7 @@ agent_names = ['Baxter', 'Sawyer', 'Cursor']
 
 # available furnitures
 furniture_names
+# print(furniture_names)
 
 # available background scenes
 background_names
@@ -36,7 +37,7 @@ def argsparser():
     furniture_config.add_argument(parser)
 
     parser.set_defaults(render=True)
-    parser.set_defaults(load_demo='demos/Cursor_7.pkl')
+    parser.set_defaults(load_demo='demos/Cursor_swivel_chair_0700.pkl')
 
     args = parser.parse_args()
     return args
@@ -62,8 +63,8 @@ def main(args):
         print("Let's begin by playing back an existing demonstration.")
         print("We'll use the run_demo function to run a demo passed through --load_demo")
         agent_name = 'Cursor'
-        furniture_id = 7
-        furniture_name = furniture_names[7]
+        furniture_name = '_'.join(args.load_demo[0:-4].split('_')[1:])
+        furniture_id = furniture_name2id[furniture_name]
 
         # set parameters for the environment (env, furniture_id, background)
         env_name = 'Furniture{}Env'.format(agent_name)
@@ -89,16 +90,16 @@ def main(args):
 
     elif choice == 3:
         demo_path = input('Enter the path to your demo (e.g. demos/test.pkl):  ')
-        args.load_demo = demo_path
 
         agent_name = input("What was the agent (Sawyer, Baxter, Cursor)?: ")
         assert agent_name in ['Sawyer', 'Baxter', 'Cursor']
 
-        furniture_id = int(input("What was the furniture id?: "))
-        furniture_name = furniture_names[furniture_id]
+        furniture_name = input("What was the furniture name?: ")
+        furniture_id = furniture_name2id[furniture_name]
 
         # set parameters for the environment (env, furniture_id, background)
         env_name = 'Furniture{}Env'.format(agent_name)
+        args.load_demo = demo_path
         args.env = env_name
         args.furniture_id = furniture_id
         args.background = background_name

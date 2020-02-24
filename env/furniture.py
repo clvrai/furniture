@@ -1646,7 +1646,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
             self.sim.forward()
             self._update_unity()
-            img = self.render('rgb_array')
+            img = self.render('rgb_array')[0]
             vr.add(img)
         vr.save_video('demo.mp4')
 

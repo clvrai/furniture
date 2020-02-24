@@ -11,7 +11,7 @@ import pickle
 import numpy as np
 
 from env import make_env
-from env.models import furniture_names, background_names
+from env.models import furniture_names, background_names, furniture_name2id
 import env.image_utils as I
 from util import str2bool
 from util.video_recorder import VideoRecorder
@@ -51,14 +51,15 @@ def main(args):
     background_name = background_names[1]
 
     # load demo file for playback
-    demo = args.load_demo = input('Input path to demo file, such as demos/Sawyer_7.pkl: ')
+    demo = args.load_demo = input('Input path to demo file, such as demos/Sawyer_swivel_chair_0700.pkl: ')
     if demo == '':
         demo = args.load_demo = 'demos/Sawyer_7.pkl'
 
-    agent_name, furniture_id = demo.split('/')[-1].split('.')[0].split('_')
+    parts = demo.split('/')[-1].split('.')[0].split('_')
+    agent_name = parts[0]
     agent_name = agent_name[0].upper() + agent_name[1:]
-    furniture_id = int(furniture_id)
-    furniture_name = furniture_names[furniture_id]
+    furniture_name = '_'.join(parts[1:])
+    furniture_id = furniture_name2id[furniture_name]
 
     # choose robot observation
     print()
@@ -162,11 +163,11 @@ def main(args):
             env._set_qpos(body, pos, quat)
             env._stop_object(body, gravity=0)
         # set robot positions
-        if env._agent_type == 'Sawyer':
-            env.sim.data.qpos[env._ref_joint_pos_indexes] = qpos['sawyer_qpos']
+        if env._agent_type in ['Sawyer', 'Panda', "Jaco"]:
+            env.sim.data.qpos[env._ref_joint_pos_indexes] = qpos['qpos']
             env.sim.data.qpos[env._ref_gripper_joint_pos_indexes] = qpos['l_gripper']
         elif env._agent_type == 'Baxter':
-            env.sim.data.qpos[env._ref_joint_pos_indexes] = qpos['baxter_qpos']
+            env.sim.data.qpos[env._ref_joint_pos_indexes] = qpos['qpos']
             env.sim.data.qpos[env._ref_gripper_right_joint_pos_indexes] = qpos['r_gripper']
             env.sim.data.qpos[env._ref_gripper_left_joint_pos_indexes] = qpos['l_gripper']
         elif env._agent_type == 'Cursor':
@@ -178,6 +179,14 @@ def main(args):
 
         img, depth = env.render('rgbd_array')
         seg = I.color_segmentation(env.render('segmentation'))
+        #print('rgb_frames', img.shape, 'depth_frames', depth.shape, 'seg_frames', seg.shape)
+        # save first camera only by default
+        if img.ndim == 4:
+            img = img[0]
+        if depth.ndim == 4:
+            depth = depth[0]
+        if seg.ndim == 4:
+            seg = seg[0]
         rgb_frames.append(img)
         depth_frames.append(depth)
         seg_frames.append(seg)
