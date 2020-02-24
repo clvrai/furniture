@@ -13,6 +13,7 @@ from mpi4py import MPI
 from config import argparser
 from rl.trainer import Trainer
 from util.logger import logger
+from util.mpi import mpi_sync
 
 
 np.set_printoptions(precision=3)
@@ -26,9 +27,11 @@ def run(config):
     rank = MPI.COMM_WORLD.Get_rank()
     config.rank = rank
     config.is_chef = rank == 0
+    config.num_workers = MPI.COMM_WORLD.Get_size()
+    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+    config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     config.seed = config.seed + rank
     config.port = config.port + rank
-    config.num_workers = MPI.COMM_WORLD.Get_size()
 
     if config.is_chef:
         logger.warn('Run a base worker.')
@@ -37,6 +40,9 @@ def run(config):
         logger.warn('Run worker %d and disable logger.', config.rank)
         import logging
         logger.setLevel(logging.CRITICAL)
+
+    # syncronize all processes
+    mpi_sync()
 
     def shutdown(signal, frame):
         logger.warn('Received signal %s: exiting', signal)
@@ -72,9 +78,6 @@ def make_log_files(config):
     """
     Sets up log directories and saves git diff and command line.
     """
-    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
-
-    config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     logger.info('Create log directory: %s', config.log_dir)
     os.makedirs(config.log_dir, exist_ok=True)
 
