@@ -157,7 +157,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         )
         return float(horizontal_radius_site.get("size"))
 
-    def get_collision(self, name=None, site=False, friction=(1, .5, .5)):
+    def get_collision(self, name=None, site=False, friction=(1, 10, .5)):
         #collision = copy.deepcopy(self.worldbody.find("./body/body[@name='collision']"))
         self.name = name
         collision = copy.deepcopy(self.worldbody.find("./body[@name='%s']" % name))

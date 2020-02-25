@@ -8,6 +8,7 @@ from env.furniture_sawyer import FurnitureSawyerEnv
 from env.furniture_cursor import FurnitureCursorEnv
 from env.furniture_baxter_block import FurnitureBaxterBlockEnv
 from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
+from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
 
 # OpenAI gym interface
 from gym.envs.registration import register

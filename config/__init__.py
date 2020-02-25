@@ -18,7 +18,8 @@ def create_parser(env=None):
                                  'FurnitureSawyerEnv',
                                  'FurnitureCursorEnv',
                                  'FurnitureBaxterBlockEnv',
-                                 'FurnitureCursorToyTableEnv'],
+                                 'FurnitureCursorToyTableEnv',
+                                 'FurnitureSawyerToyTableEnv'],
                         help='Environment name')
     parser.add_argument('--env_args', type=str, default=None)
 
@@ -28,6 +29,9 @@ def create_parser(env=None):
     furniture_config.add_argument(parser)
     if 'FurnitureCursorToyTableEnv' in [env, args.env]:
         import config.furniture_cursor_toytable as f
+        f.add_argument(parser)
+    elif 'FurnitureSawyerToyTableEnv' in [env, args.env]:
+        import config.furniture_sawyer_toytable as f
         f.add_argument(parser)
 
     # training algorithm
