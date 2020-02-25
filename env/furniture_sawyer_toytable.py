@@ -239,7 +239,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info['phase'] = self._phase
         info['leg_picked'] = self._leg_picked
         info['grip_dist_rew'] = grip_dist_rew
-        info['grip_up_rew'] = pick_rew
+        info['grip_up_rew'] = grip_up_rew
         info['pick_rew'] = pick_rew
         info['site_dist_rew'] = site_dist_rew
         info['site_up_rew'] = site_up_rew
