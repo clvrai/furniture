@@ -29,6 +29,9 @@ def create_parser(env=None):
     if 'FurnitureCursorToyTableEnv' in [env, args.env]:
         import config.furniture_cursor_toytable as f
         f.add_argument(parser)
+    elif 'FurnitureSawyerToyTableEnv' in [env, args.env]:
+        import config.furniture_sawyer_toytable as f
+        f.add_argument(parser)
 
     # training algorithm
     parser.add_argument('--algo', type=str, default='sac',
