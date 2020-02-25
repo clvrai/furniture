@@ -145,7 +145,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         The next stage gives reward for bringing the leg connection site close to the table
         connection site.
         """
-        rew = pick_rew = grip_up_rew = grip_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = \
+        rew = pick_rew = grip_up_rew = grip_dist_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = \
             aligned_rew = ctrl_penalty = 0
         done = self._num_connected > 0
         info = {}
@@ -165,7 +165,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grasp_pos_offset = grasp_pos + np.array([0,0,self._env_config['grip_z_offset']])
             grip_dist = np.linalg.norm(hand_pos - grasp_pos_offset)
             logger.debug(f'grip_dist {grip_dist}')
-            grip_rew = self._prev_grip_dist - grip_dist
+            grip_dist_rew = self._env_config['grip_dist_rew'] * (self._prev_grip_dist - grip_dist)
             self._prev_grip_dist = grip_dist
 
             # up vector of leg and up vector of grip site should be perpendicular
@@ -184,7 +184,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
              # midpoint of the cylinder
             grip_dist = np.linalg.norm(hand_pos - grasp_pos)
             logger.debug(f'grip_dist {grip_dist}')
-            grip_rew = self._prev_grip_dist - grip_dist
+            grip_dist_rew = self._env_config['grip_dist_rew'] * (self._prev_grip_dist - grip_dist)
             self._prev_grip_dist = grip_dist
 
             # up vector of leg and up vector of grip site should be perpendicular
@@ -237,7 +237,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         info['phase'] = self._phase
         info['leg_picked'] = self._leg_picked
-        info['grip_rew'] = pick_rew
+        info['grip_dist_rew'] = grip_dist_rew
         info['grip_up_rew'] = pick_rew
         info['pick_rew'] = pick_rew
         info['site_dist_rew'] = site_dist_rew
@@ -252,7 +252,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         #info['site_dist'] = site_dist
         #info['pos_dist'] = pos_dist
 
-        rew = pick_rew + grip_rew + grip_up_rew + site_dist_rew + site_up_rew + connect_rew + \
+        rew = pick_rew + grip_dist_rew + grip_up_rew + site_dist_rew + site_up_rew + connect_rew + \
                + aligned_rew + success_rew + ctrl_penalty
         return rew, done, info
         #holding_top = self._cursor_selected[0] == '4_part4'

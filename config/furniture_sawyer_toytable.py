@@ -3,6 +3,7 @@ from env.models import furniture_names, furniture_ids, background_names
 
 def add_argument(parser):
     parser.add_argument('--site_dist_rew', type=float, default=2, help='rew for dist between sites')
+    parser.add_argument('--grip_dist_rew', type=float, default=2, help='rew for dist between sites')
     parser.add_argument('--site_up_rew', type=float, default=10, help='rew for angular dist between site up vecs')
     parser.add_argument('--grip_up_rew', type=float, default=2, help='rew for angular dist between grip and site up vecs')
     parser.add_argument('--connect_rew', type=float, default=25, help='rew for connecting')
