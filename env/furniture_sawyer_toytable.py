@@ -31,6 +31,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             "site_dist_rew": config.site_dist_rew,
             "site_up_rew": config.site_up_rew,
             "grip_up_rew": config.grip_up_rew,
+            "grip_dist_rew": config.grip_dist_rew,
             "aligned_rew": config.aligned_rew,
             "connect_rew": config.connect_rew,
             "success_rew": config.success_rew,
