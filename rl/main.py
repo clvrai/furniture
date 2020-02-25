@@ -28,8 +28,8 @@ def run(config):
     config.rank = rank
     config.is_chef = rank == 0
     config.num_workers = MPI.COMM_WORLD.Get_size()
-    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
-    config.log_dir = os.path.join(config.log_root_dir, config.run_name)
+    set_log_path(config)
+
     config.seed = config.seed + rank
     config.port = config.port + rank
 
@@ -74,6 +74,15 @@ def run(config):
         logger.info("Finish evaluating")
 
 
+def set_log_path(config):
+    """
+    Sets paths to log directories.
+    """
+    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+    config.log_dir = os.path.join(config.log_root_dir, config.run_name)
+    config.record_dir = os.path.join(config.log_dir, 'video')
+
+
 def make_log_files(config):
     """
     Sets up log directories and saves git diff and command line.
@@ -81,7 +90,6 @@ def make_log_files(config):
     logger.info('Create log directory: %s', config.log_dir)
     os.makedirs(config.log_dir, exist_ok=True)
 
-    config.record_dir = os.path.join(config.log_dir, 'video')
     logger.info('Create video directory: %s', config.record_dir)
     os.makedirs(config.record_dir, exist_ok=True)
 
