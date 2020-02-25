@@ -18,7 +18,8 @@ def create_parser(env=None):
                                  'FurnitureSawyerEnv',
                                  'FurnitureCursorEnv',
                                  'FurnitureBaxterBlockEnv',
-                                 'FurnitureCursorToyTableEnv'],
+                                 'FurnitureCursorToyTableEnv',
+                                 'FurnitureSawyerToyTableEnv'],
                         help='Environment name')
     parser.add_argument('--env_args', type=str, default=None)
 
