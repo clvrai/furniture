@@ -87,7 +87,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         up2 = self._get_up_vector(leg_site_name)
         # calculate distance between site + z-offset and other site
         point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
-        pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
+        offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_up = T.cos_dist(up1, up2)
 
@@ -106,7 +106,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         grip_up_dist = T.cos_dist(hand_up, grip_site_up)
 
         # offset site dist
-        self._prev_pos_dist = pos_dist
+        self._prev_offset_dist = offset_dist
         # actual site dist
         self._prev_site_dist = site_dist
         self._prev_rot_dist_up = rot_dist_up
@@ -116,6 +116,31 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         self._phase = 'grasp_offset'
         self._num_connect_successes = 0
 
+
+    def _finger_contact(self, obj):
+        """
+        Returns if left, right fingers contact with obj
+        """
+        touch_left_finger = False
+        touch_right_finger = False
+        for j in range(self.sim.data.ncon):
+            c = self.sim.data.contact[j]
+            body1 = self.sim.model.geom_bodyid[c.geom1]
+            body2 = self.sim.model.geom_bodyid[c.geom2]
+            body1_name = self.sim.model.body_id2name(body1)
+            body2_name = self.sim.model.body_id2name(body2)
+
+            if c.geom1 in self.l_finger_geom_ids[0] and body2_name == obj:
+                touch_left_finger = True
+            if c.geom2 in self.l_finger_geom_ids[0] and body1_name == obj:
+                touch_left_finger = True
+
+            if c.geom1 in self.r_finger_geom_ids[0] and body2_name == obj:
+                touch_right_finger = True
+            if c.geom2 in self.r_finger_geom_ids[0] and body1_name == obj:
+                touch_right_finger = True
+
+        return touch_left_finger, touch_right_finger
 
 
 
@@ -151,7 +176,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         done = self._num_connected > 0
         info = {}
 
-        top_site_name = "top-leg,,conn_site4"
+        top_site_name = "top-leg,,conn_site3"
         leg_site_name = "leg-top,,conn_site4"
         top_site_xpos = self._site_xpos_xquat(top_site_name)
         leg_site_xpos = self._site_xpos_xquat(leg_site_name)
@@ -160,6 +185,9 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         hand_pos = self.sim.data.site_xpos[self.eef_site_id]
         hand_up = self._get_up_vector('grip_site')
         grasp_pos = leg_bot_site_xpos[:3] + 0.5 * (leg_top_site_xpos - leg_bot_site_xpos)[:3]
+
+        touch_left, touch_right = self._finger_contact('2_part2')
+        gripped = touch_left and touch_right
 
         if self._phase == 'grasp_offset': # make hand hover over object
             # midpoint of the cylinder
@@ -201,31 +229,40 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 self._phase = 'grip_leg'
 
         elif self._phase == 'grip_leg': # close the gripper
-            touch_left_finger = False
-            touch_right_finger = False
-            for j in range(self.sim.data.ncon):
-                c = self.sim.data.contact[j]
-                body1 = self.sim.model.geom_bodyid[c.geom1]
-                body2 = self.sim.model.geom_bodyid[c.geom2]
-                body1_name = self.sim.model.body_id2name(body1)
-                body2_name = self.sim.model.body_id2name(body2)
-
-                if c.geom1 in self.l_finger_geom_ids[0] and body2_name == '2_part2':
-                    touch_left_finger = True
-                if c.geom2 in self.l_finger_geom_ids[0] and body1_name == '2_part2':
-                    touch_left_finger = True
-
-                if c.geom1 in self.r_finger_geom_ids[0] and body2_name == '2_part2':
-                    touch_right_finger = True
-                if c.geom2 in self.r_finger_geom_ids[0] and body1_name == '2_part2':
-                    touch_right_finger = True
-
-            if touch_left_finger and touch_right_finger:
+            if gripped:
                 logger.warning('Gripped leg')
                 pick_rew = self._env_config['pick_rew']
                 self._phase = 'move_leg'
                 self._leg_picked = True
-                done = True
+
+        elif self._leg_picked and not gripped: # dropped the leg
+            done = True
+
+        elif self._phase == 'move_leg': # move leg to offset
+            point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
+            offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
+            site_dist_diff = self._prev_offset_dist - offset_dist
+            site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
+            self._prev_offset_dist = offset_dist
+
+            if offset_dist < self._env_config['pos_dist']:
+                self._phase = 'rot_up'
+                aligned_rew = self._env_config['aligned_rew']
+                logger.warning('leg aligned with offset')
+
+        elif self._phase == 'rot_up':
+            up1 = self._get_up_vector(top_site_name)
+            up2 = self._get_up_vector(leg_site_name)
+            rot_dist_up = T.cos_dist(up1, up2)
+            site_up_diff = rot_dist_up - self._prev_rot_dist_up
+            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+            self._prev_rot_dist_up = rot_dist_up
+
+            if rot_dist_up > self._env_config['rot_dist_up']:
+                self._phase = 'move_leg_2'
+                aligned_rew = self._env_config['aligned_rew']
+                logger.warning('leg rot is aligned')
+
 
 
         # 2nd phase is to move the site close to the offset
@@ -243,7 +280,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info['pick_rew'] = pick_rew
         info['site_dist_rew'] = site_dist_rew
         info['site_up_rew'] = site_up_rew
-        #info['aligned_rew'] = aligned_rew
+        info['aligned_rew'] = aligned_rew
         #info['connect_rew'] = connect_rew
         #info['success_rew'] = success_rew
         #info['ctrl_penalty'] = ctrl_penalty
