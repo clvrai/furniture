@@ -206,12 +206,15 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grip_dist = np.linalg.norm(hand_pos - grasp_pos_offset)
             logger.debug(f'grip_dist {grip_dist}')
             grip_dist_rew = self._env_config['grip_dist_rew'] * (self._prev_grip_dist - grip_dist)
+            self._prev_grip_dist = grip_dist
 
             # up vector of leg and up vector of grip site should be perpendicular
             grip_site_up = self._get_up_vector('2_part2_top_site')
             grip_up_dist = np.abs(T.cos_dist(hand_up, grip_site_up))
             logger.debug(f'grip_up_dist {grip_up_dist}')
             grip_up_rew = self._env_config['grip_up_rew'] * (self._prev_grip_up_dist -grip_up_dist)
+            self._prev_grip_up_dist = grip_up_dist
+
 
             if grip_dist < 0.03 and grip_up_dist < 0.15:
                 logger.debug('Done with grasp offset alignment')
