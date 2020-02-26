@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import signal
 import time
 import atexit
 import glob
@@ -182,8 +183,8 @@ class UnityInterface(object):
         # Launch Unity environment
         self.proc1 = subprocess.Popen(
             " ".join([launch_string, "-logFile", "./unity-log/log" +
-             str(port) + ".txt", '--port', str(port)]),
-            shell=True, env=new_env)
+                      str(port) + ".txt", '--port', str(port)]),
+            shell=True, env=new_env, preexec_fn=os.setsid)
 
     def __delete__(self):
         """ Closes the connection between Unity. """
@@ -192,5 +193,5 @@ class UnityInterface(object):
     def close(self):
         """ Kills the unity app. """
         if self.proc1 is not None:
-            self.proc1.kill()
+            os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)
 

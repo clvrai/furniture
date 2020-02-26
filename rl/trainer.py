@@ -285,6 +285,9 @@ class Trainer(object):
             step: the number of environment steps.
             record: whether to record video or not.
         """
+        logger.info('Run %d evaluations at step=%d',
+                    self._config.num_record_samples, step)
+
         for i in range(self._config.num_record_samples):
             rollout, info, frames = \
                 self._runner.run_episode(is_train=False, record=record)
@@ -342,6 +345,7 @@ class Trainer(object):
     def _save_video(self, fname, frames, fps=15.):
         """ Saves @frames into a video with file name @fname. """
         path = os.path.join(self._config.record_dir, fname)
+        logger.warn("[*] Generating video: {}".format(path))
 
         def f(t):
             frame_length = len(frames)
