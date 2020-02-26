@@ -233,8 +233,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grip_up_dist = np.abs(T.cos_dist(hand_up, grip_site_up))
             logger.debug(f'grip_up_dist {grip_up_dist}')
             logger.debug(f'grip z dist {hand_pos[-1] - grasp_pos[-1]}')
-            grip_up_rew = self._env_config['grip_up_rew'] * (self._prev_grip_dist - grip_up_dist)
-            self._prev_grip_dist = grip_up_dist
+            grip_up_rew = self._env_config['grip_up_rew'] * (self._prev_grip_up_dist - grip_up_dist)
+            self._prev_grip_up_dist = grip_up_dist
 
             if grip_dist < 0.03 and (hand_pos[-1] - grasp_pos[-1]) < 0.001 and grip_up_dist < 0.15:
                 logger.debug('Done with grasp leg alignment')
@@ -289,12 +289,6 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             if self._num_connected > 0:
                 success_rew = self._env_config['success_rew']
                 # done = True
-
-        self._prev_grip_up_dist = grip_up_dist
-        self._prev_grip_dist = grip_dist
-        self._prev_offset_dist = offset_dist
-        self._prev_site_dist = site_dist
-        self._prev_rot_dist_up = rot_dist_up
 
 
         info['phase'] = self._phase
