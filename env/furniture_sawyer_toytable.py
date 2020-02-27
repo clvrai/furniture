@@ -90,6 +90,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_up = T.cos_dist(up1, up2)
+        rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
+        rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         leg_top_site_xpos = self._site_xpos_xquat("2_part2_top_site")
         leg_bot_site_xpos = self._site_xpos_xquat("2_part2_bottom_site")
@@ -110,6 +112,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         # actual site dist
         self._prev_site_dist = site_dist
         self._prev_rot_dist_up = rot_dist_up
+        self._prev_rot_dist_project1_2 = rot_dist_project1_2
+        self._prev_rot_dist_project2_1 = rot_dist_project2_1
         self._prev_grip_up_dist = grip_up_dist
 
         self._prev_grip_dist = grip_dist
@@ -194,8 +198,11 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
         rot_dist_up = T.cos_dist(up1, up2)
+        rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
+        rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
+
 
         point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
@@ -236,7 +243,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grip_up_rew = self._env_config['grip_up_rew'] * (self._prev_grip_up_dist - grip_up_dist)
             self._prev_grip_up_dist = grip_up_dist
 
-            if grip_dist < 0.03 and (hand_pos[-1] - grasp_pos[-1]) < 0.001 and grip_up_dist < 0.15:
+            if grip_dist < 0.03 and (hand_pos[-1] - grasp_pos[-1]) < 0.001 and grip_up_dist < 0.12:
                 logger.debug('Done with grasp leg alignment')
                 self._phase = 'grip_leg'
 
@@ -244,11 +251,22 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             if gripped:
                 logger.debug('Gripped leg')
                 pick_rew = self._env_config['pick_rew']
-                self._phase = 'move_leg'
+                self._phase = 'move_leg_up'
                 self._leg_picked = True
+                # set the grip pos offset to above this grip point
+                self._grip_pos_offset = hand_pos + np.array([0, 0, 0.15])
+                self._prev_grip_pos_offset_dist = np.linalg.norm(hand_pos - self._grip_pos_offset)
 
         elif self._leg_picked and not gripped: # dropped the leg
             done = True
+        elif self._phase == 'move_leg_up': # move the leg up
+
+            grip_dist = np.linalg.norm(hand_pos - self._grip_pos_offset)
+            grip_dist_rew = self._env_config['grip_dist_rew'] * (self._prev_grip_pos_offset_dist - grip_dist)
+            self._prev_grip_pos_offset_dist = grip_dist
+            if grip_dist < 0.03:
+                logger.warning('Done with move leg up')
+                self._phase = 'move_leg'
 
         elif self._phase == 'move_leg': # move leg to offset
 
@@ -256,28 +274,51 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
             self._prev_offset_dist = offset_dist
             logger.debug(f'offset_dist: {offset_dist}')
-            if offset_dist < self._env_config['pos_dist']:
-                self._phase = 'rot_up'
+
+            # give rew for making angular dist between sites
+            site_up_diff = rot_dist_up - self._prev_rot_dist_up
+            site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
+            site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
+            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+            logger.debug(f'offset rotation dist: {site_up_diff}')
+            self._prev_rot_dist_up = rot_dist_up
+            self._prev_rot_dist_project1_2 = rot_dist_project1_2
+            self._prev_rot_dist_project2_1 = rot_dist_project2_1
+
+            if offset_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
+                and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
+                self._phase = 'move_leg_2'
                 aligned_rew = self._env_config['aligned_rew']
                 logger.debug('leg aligned with offset')
 
-        elif self._phase == 'rot_up':
+        #elif self._phase == 'rot_up':
 
-            site_up_diff = rot_dist_up - self._prev_rot_dist_up
-            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
-            self._prev_rot_dist_up = rot_dist_up
-            logger.debug(f'rot_dist_up: {rot_dist_up}')
-            if rot_dist_up > self._env_config['rot_dist_up']:
-                self._phase = 'move_leg_2'
-                aligned_rew = self._env_config['aligned_rew']
-                logger.debug('leg rot is aligned')
+        #    site_up_diff = rot_dist_up - self._prev_rot_dist_up
+        #    site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+        #    self._prev_rot_dist_up = rot_dist_up
+        #    logger.debug(f'rot_dist_up: {rot_dist_up}')
+        #    if rot_dist_up > self._env_config['rot_dist_up']:
+        #        self._phase = 'move_leg_2'
+        #        aligned_rew = self._env_config['aligned_rew']
+        #        logger.debug('leg rot is aligned')
 
         elif self._phase == 'move_leg_2':
             site_dist_diff = self._prev_site_dist - site_dist
             site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
             self._prev_site_dist = site_dist
             logger.debug(f'site_dist: {site_dist}')
-            if site_dist < self._env_config['pos_dist']:
+
+            # give rew for making angular dist between sites
+            site_up_diff = rot_dist_up - self._prev_rot_dist_up
+            site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
+            site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
+            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+            self._prev_rot_dist_up = rot_dist_up
+            self._prev_rot_dist_project1_2 = rot_dist_project1_2
+            self._prev_rot_dist_project2_1 = rot_dist_project2_1
+
+            if site_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
+                and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
                 self._phase = 'connect'
                 aligned_rew = self._env_config['aligned_rew']
                 logger.debug('leg aligned with site')
