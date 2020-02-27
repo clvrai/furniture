@@ -11,12 +11,12 @@ import argparse
 import numpy as np
 
 from env import make_env
-from env.models import furniture_names, background_names
+from env.models import furniture_names, background_names, agent_names 
 from util import str2bool
 
 
 # available agents
-agent_names = ['Baxter', 'Sawyer', 'Cursor']
+agent_names 
 
 # available furnitures
 furniture_names

@@ -11,14 +11,14 @@ import pickle
 import numpy as np
 
 from env import make_env
-from env.models import furniture_names, background_names, furniture_name2id
+from env.models import furniture_names, background_names, furniture_name2id, agent_names
 import env.image_utils as I
 from util import str2bool
 from util.video_recorder import VideoRecorder
 
 
 # available agents
-agent_names = ['Baxter', 'Sawyer', 'Cursor']
+agent_names 
 
 # available furnitures
 furniture_names

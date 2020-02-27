@@ -21,3 +21,6 @@ furniture_ids = [i for i in range(len(furniture_names))]
 
 # list of background names
 background_names = ['Simple', 'Industrial', 'Lab', 'Garage', 'Ambient', 'NightTime', 'Interior']
+
+# list of robot agent names
+agent_names = ['Baxter', 'Sawyer', 'Cursor', 'Panda', 'Jaco']
