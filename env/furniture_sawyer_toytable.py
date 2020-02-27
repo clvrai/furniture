@@ -186,7 +186,10 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         leg_site_xpos = self._site_xpos_xquat(leg_site_name)
         leg_top_site_xpos = self._site_xpos_xquat("2_part2_top_site")
         leg_bot_site_xpos = self._site_xpos_xquat("2_part2_bottom_site")
-        ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action[:6])
+        if self._config.control_type == 'ik':
+            ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action[:6])
+        else:
+            ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action[:8])
 
         hand_pos = self.sim.data.site_xpos[self.eef_site_id]
         hand_up = self._get_up_vector('grip_site')
@@ -259,6 +262,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         elif self._leg_picked and not gripped: # dropped the leg
             done = True
+            pick_rew = -self._env_config['pick_rew'] / 2
+
         elif self._phase == 'move_leg_up': # move the leg up
 
             grip_dist = np.linalg.norm(hand_pos - self._grip_pos_offset)
