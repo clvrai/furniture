@@ -32,3 +32,8 @@ def mpi_sum(x):
     else:
         return _mpi_sum(np.array(x))
 
+
+# Syncronize all processes.
+def mpi_sync():
+    mpi_sum(0)
+

@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import signal
 import time
 import atexit
 import glob
@@ -114,7 +115,7 @@ class UnityInterface(object):
     def set_qpos(self, qpos):
         """ Changes qpos of the scene. """
         self._remote.setqpos(qpos)
-    
+
     def set_camera_pose(self, cam_id, pose):
         """Sets xyz, wxyz of camera pose. """
         self._remote.setcamerapose(cam_id, pose)
@@ -175,15 +176,15 @@ class UnityInterface(object):
             launch_string)
 
         new_env = os.environ.copy()
-        if self._virtual_display:
-            new_env["DISPLAY"] = ":1"
+        if self._virtual_display is not None:
+            new_env["DISPLAY"] = self._virtual_display
 
         os.makedirs('unity-log', exist_ok=True)
         # Launch Unity environment
         self.proc1 = subprocess.Popen(
-            [launch_string, "-logFile", "./unity-log/log" +
-             str(port) + ".txt", '--port', str(port)],
-            env=new_env)
+            " ".join([launch_string, "-logFile", "./unity-log/log" +
+                      str(port) + ".txt", '--port', str(port)]),
+            shell=True, env=new_env, preexec_fn=os.setsid)
 
     def __delete__(self):
         """ Closes the connection between Unity. """
@@ -192,5 +193,5 @@ class UnityInterface(object):
     def close(self):
         """ Kills the unity app. """
         if self.proc1 is not None:
-            self.proc1.kill()
+            os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)
 

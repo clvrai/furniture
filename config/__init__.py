@@ -18,7 +18,8 @@ def create_parser(env=None):
                                  'FurnitureSawyerEnv',
                                  'FurnitureCursorEnv',
                                  'FurnitureBaxterBlockEnv',
-                                 'FurnitureCursorToyTableEnv'],
+                                 'FurnitureCursorToyTableEnv',
+                                 'FurnitureSawyerToyTableEnv'],
                         help='Environment name')
     parser.add_argument('--env_args', type=str, default=None)
 
@@ -29,6 +30,9 @@ def create_parser(env=None):
     if 'FurnitureCursorToyTableEnv' in [env, args.env]:
         import config.furniture_cursor_toytable as f
         f.add_argument(parser)
+    elif 'FurnitureSawyerToyTableEnv' in [env, args.env]:
+        import config.furniture_sawyer_toytable as f
+        f.add_argument(parser)
 
     # training algorithm
     parser.add_argument('--algo', type=str, default='sac',
@@ -37,7 +41,7 @@ def create_parser(env=None):
                         choices=['mlp', 'manual'])
 
     # vanilla rl
-    parser.add_argument('--rl_hid_size', type=int, default=64)
+    parser.add_argument('--rl_hid_size', type=int, default=128)
     parser.add_argument('--rl_activation', type=str, default='relu',
                         choices=['relu', 'elu', 'tanh'])
     parser.add_argument('--tanh_policy', type=str2bool, default=True)
@@ -67,7 +71,7 @@ def create_parser(env=None):
     parser.add_argument('--batch_size', type=int, default=256,
                         help='the sample batch size')
     parser.add_argument('--max_grad_norm', type=float, default=100)
-    parser.add_argument('--max_global_step', type=int, default=int(2e6))
+    parser.add_argument('--max_global_step', type=int, default=int(5e6))
     parser.add_argument('--gpu', type=int, default=None)
 
     # sac
@@ -101,7 +105,7 @@ def create_parser(env=None):
                         help='number of trajectories to collect during eval')
     parser.add_argument('--save_qpos', type=str2bool, default=False,
                         help='save entire qpos history of success rollouts to file (for idle primitive training)')
-    parser.add_argument('--save_success_qpos', type=str2bool, default=True,
+    parser.add_argument('--save_success_qpos', type=str2bool, default=False,
                         help='save later segment of success rollouts to file (for moving and placing primitie trainings)')
 
     # misc
