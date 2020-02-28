@@ -17,7 +17,7 @@ except ImportError as e:
 
 from env.base import EnvMeta
 from env.unity_interface import UnityInterface
-from env.models import furniture_xmls, furniture_name2id, background_names
+from env.models import furniture_xmls, furniture_name2id, background_names, furniture_names
 from env.models.objects import MujocoXMLObject
 from env.models.grippers import gripper_factory
 from env.action_spec import ActionSpec
@@ -47,7 +47,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "init_randomness": 0.001,
+            "init_randomness": 0.01,
             "unstable_penalty": 100,
             "boundary": 1.5, # XYZ cube boundary
             "pos_dist": 0.1,
@@ -212,10 +212,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.concatenate([action[key] for key in self.action_space.shape.keys()])
         ob, reward, done, info = self._step(action)
         done, info, penalty = self._after_step(reward, done, info)
+        reward += penalty
         if self._record_demo:
             self._store_qpos()
-            self._demo.add(action=action)
-        return ob, reward + penalty, done, info
+            self._demo.add(action=action, reward=reward)
+        return ob, reward, done, info
 
     def _before_step(self):
         """
@@ -1493,11 +1494,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._rng,
         )
 
-    def save_demo(self, fname='test.pkl'):
+    def save_demo(self):
         """
         Saves the demonstration into a file
         """
-        self._demo.save(fname)
+        agent = self._agent_type
+        furniture_name = furniture_names[self._furniture_id]
+        self._demo.save(agent+'_'+self._furniture_name)
 
     def key_callback(self, window, key, scancode, action, mods):
         """
