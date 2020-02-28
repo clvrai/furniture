@@ -10,7 +10,7 @@ import numpy as np
 
 from env import make_env
 from env.models import furniture_names, background_names, furniture_name2id
-from util import str2bool, parseDemoName
+from util import str2bool, pasre_demo_file_name
 from util.video_recorder import VideoRecorder
 
 
@@ -37,7 +37,7 @@ def argsparser():
     furniture_config.add_argument(parser)
 
     parser.set_defaults(render=True)
-    parser.set_defaults(load_demo='demos/Cursor_swivel_chair_0700.pkl')
+    parser.set_defaults(load_demo='demos/Cursor_swivel_chair_0700_0000.pkl')
 
     args = parser.parse_args()
     return args
@@ -62,7 +62,7 @@ def main(args):
         print()
         print("Let's begin by playing back an existing demonstration.")
         print("We'll use the run_demo function to run a demo passed through --load_demo")
-        agent_name, furniture_name = parseDemoName(parser.load_demo)
+        agent_name, furniture_name = pasre_demo_file_name(parser.load_demo)
         furniture_id = furniture_name2id[furniture_name]
 
         # set parameters for the environment (env, furniture_id, background)

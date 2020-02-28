@@ -47,7 +47,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "init_randomness": 0.01,
+            "init_randomness": 0.001,
             "unstable_penalty": 100,
             "boundary": 1.5, # XYZ cube boundary
             "pos_dist": 0.1,
@@ -1500,7 +1500,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         agent = self._agent_type
         furniture_name = furniture_names[self._furniture_id]
-        self._demo.save(agent+'_'+self._furniture_name)
+        self._demo.save(agent + "_" + self._furniture_name)
 
     def key_callback(self, window, key, scancode, action, mods):
         """
