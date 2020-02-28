@@ -13,7 +13,7 @@ import numpy as np
 from env import make_env
 from env.models import furniture_names, background_names, furniture_name2id, agent_names
 import env.image_utils as I
-from util import str2bool
+from util import str2bool, parseDemoName
 from util.video_recorder import VideoRecorder
 
 
@@ -55,10 +55,7 @@ def main(args):
     if demo == '':
         demo = args.load_demo = 'demos/Sawyer_7.pkl'
 
-    parts = demo.split('/')[-1].split('.')[0].split('_')
-    agent_name = parts[0]
-    agent_name = agent_name[0].upper() + agent_name[1:]
-    furniture_name = '_'.join(parts[1:])
+    agent_name, furniture_name = parseDemoName(demo)
     furniture_id = furniture_name2id[furniture_name]
 
     # choose robot observation

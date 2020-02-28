@@ -113,6 +113,9 @@ def create_parser(env=None):
     parser.add_argument('--notes', type=str, default='')
     parser.add_argument('--seed', type=int, default=123, help='Random seed')
     parser.add_argument('--debug', type=str2bool, default=False)
+
+    #il 
+    parser.add_argument('--bc_lr', type=float, default=1e-4, help='learning rate for bc')
     return parser
 
 def argparser():
