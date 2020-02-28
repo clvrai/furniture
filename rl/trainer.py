@@ -1,4 +1,7 @@
-""" Base code for RL training. Collects rollouts and updates policy networks. """
+"""
+Base code for RL and IL training.
+Collects rollouts and updates policy networks.
+"""
 
 import os
 from time import time
@@ -23,22 +26,28 @@ from env import make_env
 
 def get_agent_by_name(algo):
     """
-    Returns SAC agent or PPO agent.
+    Returns RL or IL agent.
     """
-    if algo == 'sac':
+    if algo == "sac":
         from rl.sac_agent import SACAgent
         return SACAgent
-    elif algo == 'ppo':
+    elif algo == "ppo":
         from rl.ppo_agent import PPOAgent
         return PPOAgent
-    elif algo == 'ddpg':
+    elif algo == "ddpg":
         from rl.ddpg_agent import DDPGAgent
         return DDPGAgent
+    elif config.algo == "bc":
+        from il.bc_agent import BCAgent
+        return BCAgent
+    elif config.algo == "gail":
+        from il.gail_agent import GAILAgent
+        return GAILAgent
 
 
 class Trainer(object):
     """
-    Trainer class for SAC and PPO in PyTorch.
+    Trainer class for SAC, PPO, DDPG, BC, and GAIL in PyTorch.
     """
 
     def __init__(self, config):
@@ -168,8 +177,69 @@ class Trainer(object):
 
     def train(self):
         """ Trains an agent. """
+        if self._config in ["il", "gail"]:
+            train_il()
+        else:
+            train_rl()
+
+    def train_il(self):
+        """ Trains an IL agent. """
+
         config = self._config
-        num_batches = config.num_batches
+
+        # load checkpoint
+        step, update_iter = self._load_ckpt()
+
+        # sync the networks across the cpus
+        self._agent.sync_networks()
+
+        logger.info("Start training at step=%d", step)
+        if self._is_chef:
+            pbar = tqdm(initial=step, total=config.max_global_step, desc=config.run_name)
+
+        st_time = time()
+        st_step = step
+        while step < config.max_global_step:
+            # train an agent
+            logger.info('Update networks %d', update_iter)
+            train_info = self._agent.train()
+            step_per_batch = mpi_sum(config.num_batches * config.batch_size)
+
+            logger.info('Update networks done')
+
+            if step < config.max_ob_norm_step:
+                self._update_normalizer(rollout)
+
+            step += step_per_batch
+            update_iter += 1
+
+            # log training and episode information or evaluate
+            if self._is_chef:
+                pbar.update(step_per_batch)
+
+                if update_iter % config.log_interval == 0:
+                    train_info.update({
+                        'sec': (time() - st_time) / config.log_interval,
+                        'steps_per_sec': (step - st_step) / (time() - st_time),
+                        'update_iter': update_iter
+                    })
+                    st_time = time()
+                    st_step = step
+                    self._log_train(step, train_info, {})
+
+                if update_iter % config.evaluate_interval == 1:
+                    logger.info('Evaluate at %d', update_iter)
+                    rollout, info = self._evaluate(step=step, record=config.record)
+                    self._log_test(step, info)
+
+                if update_iter % config.ckpt_interval == 0:
+                    self._save_ckpt(step, update_iter)
+
+        logger.info('Reached %s steps. worker %d stopped.', step, config.rank)
+
+    def train_rl(self):
+        """ Trains an RL agent. """
+        config = self._config
 
         # load checkpoint
         step, update_iter = self._load_ckpt()

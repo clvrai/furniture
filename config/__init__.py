@@ -36,7 +36,7 @@ def create_parser(env=None):
 
     # training algorithm
     parser.add_argument('--algo', type=str, default='sac',
-                        choices=['sac', 'ppo', 'ddpg'])
+                        choices=['sac', 'ppo', 'ddpg', 'bc', 'gail'])
     parser.add_argument('--policy', type=str, default='mlp',
                         choices=['mlp', 'manual'])
 
@@ -114,6 +114,7 @@ def create_parser(env=None):
     parser.add_argument('--seed', type=int, default=123, help='Random seed')
     parser.add_argument('--debug', type=str2bool, default=False)
     return parser
+
 
 def argparser():
     """
