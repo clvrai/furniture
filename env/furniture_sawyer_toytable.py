@@ -176,8 +176,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
     def _ctrl_reward(self, action):
         if self._config.control_type == 'ik':
             a = np.linalg.norm(action[:6])
-        else:
-            a = np.linalg.norm(action[:8])
+        elif self._config.control_type == 'impedance':
+            a = np.linalg.norm(action[:7])
 
         # grasp_offset, grasp_leg, grip_leg
         ctrl_penalty = -self._env_config['ctrl_penalty'] * a
@@ -217,6 +217,12 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         touch_left, touch_right = self._finger_contact('2_part2')
         gripped = touch_left and touch_right
+        # penalize letting go if holding leg
+        grip_penalty = 0
+        if gripped: # move slower when moving leg
+            gripper_force = action[-2] #-1 for open 1 for completely closed
+            grip_penalty = (1 - gripper_force) * -10
+            ctrl_penalty += grip_penalty
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
@@ -310,13 +316,36 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                     self._phase = 'move_leg'
 
         elif self._phase == 'move_leg': # move leg to offset
+            # give rew for moving sites
+            site_dist_diff = self._prev_offset_dist - offset_dist
+            site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
+            self._prev_offset_dist = offset_dist
+            logger.debug(f'offset_dist: {offset_dist}')
+
+            # give smaller rew for making angular dist between sites
+            site_up_diff = rot_dist_up - self._prev_rot_dist_up
+            site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
+            site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
+            site_up_rew = 0.25 * self._env_config['site_up_rew'] * site_up_diff
+            logger.debug(f'offset rotation dist: {site_up_diff}')
+            self._prev_rot_dist_up = rot_dist_up
+            self._prev_rot_dist_project1_2 = rot_dist_project1_2
+            self._prev_rot_dist_project2_1 = rot_dist_project2_1
+
+            if offset_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
+                and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
+                self._phase = 'align_leg'
+                aligned_rew = self._env_config['aligned_rew']
+                logger.warning('leg aligned with offset')
+
+        elif self._phase == 'align_leg': # focus more on angular alignment
 
             site_dist_diff = self._prev_offset_dist - offset_dist
             site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
             self._prev_offset_dist = offset_dist
             logger.debug(f'offset_dist: {offset_dist}')
 
-            # give rew for making angular dist between sites
+            # give more rew for making angular dist between sites
             site_up_diff = rot_dist_up - self._prev_rot_dist_up
             site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
             site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
@@ -332,16 +361,6 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 aligned_rew = self._env_config['aligned_rew']
                 logger.warning('leg aligned with offset')
 
-        #elif self._phase == 'rot_up':
-
-        #    site_up_diff = rot_dist_up - self._prev_rot_dist_up
-        #    site_up_rew = self._env_config['site_up_rew'] * site_up_diff
-        #    self._prev_rot_dist_up = rot_dist_up
-        #    logger.debug(f'rot_dist_up: {rot_dist_up}')
-        #    if rot_dist_up > self._env_config['rot_dist_up']:
-        #        self._phase = 'move_leg_2'
-        #        aligned_rew = self._env_config['aligned_rew']
-        #        logger.debug('leg rot is aligned')
 
         elif self._phase == 'move_leg_2':
             site_dist_diff = self._prev_site_dist - site_dist
@@ -384,6 +403,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info['aligned_rew'] = aligned_rew
         info['connect_rew'] = connect_rew
         info['success_rew'] = success_rew
+        info['grip_penalty'] = grip_penalty
         info['ctrl_penalty'] = ctrl_penalty
         info['rot_dist_up'] = rot_dist_up
         info['site_dist'] = site_dist

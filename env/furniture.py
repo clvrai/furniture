@@ -1500,7 +1500,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         agent = self._agent_type
         furniture_name = furniture_names[self._furniture_id]
-        self._demo.save(agent + "_" + self._furniture_name)
+        self._demo.save(agent + "_" + furniture_name)
 
     def key_callback(self, window, key, scancode, action, mods):
         """
