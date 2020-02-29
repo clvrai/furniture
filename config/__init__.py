@@ -45,6 +45,7 @@ def create_parser(env=None):
     parser.add_argument('--rl_activation', type=str, default='relu',
                         choices=['relu', 'elu', 'tanh'])
     parser.add_argument('--tanh_policy', type=str2bool, default=True)
+    parser.add_argument('--rl_gaussian', type=str2bool, default=True)
 
     # for ddpg
     parser.add_argument('--noise_eps', type=float, default=0.2, help='noise eps')
@@ -116,8 +117,8 @@ def create_parser(env=None):
     parser.add_argument('--debug', type=str2bool, default=False)
 
     # il
-    parser.add_argument('--max_epoch', type=float, default=100, help='training epoch for behavior cloning')
-    parser.add_argument('--lr_bc', type=float, default=1e-4, help='learning rate for bc')
+    parser.add_argument('--max_epoch', type=int, default=10000, help='training epoch for behavior cloning')
+    parser.add_argument('--lr_bc', type=float, default=3e-3, help='learning rate for bc')
     parser.add_argument('--demo_path', type=str, default=None, help='path to demos')
 
     return parser

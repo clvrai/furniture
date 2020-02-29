@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from rl.policies.distributions import FixedCategorical, FixedNormal, \
-    MixedDistribution
+    Identity, MixedDistribution
 from rl.policies.utils import MLP
 from util.pytorch import to_tensor
 
@@ -17,6 +17,7 @@ class Actor(nn.Module):
         self._config = config
         self._activation_fn = getattr(F, config.rl_activation)
         self._tanh = tanh_policy
+        self._gaussian = config.rl_gaussian
 
     @property
     def info(self):
@@ -30,7 +31,10 @@ class Actor(nn.Module):
         dists = OrderedDict()
         for k in self._ac_space.keys():
             if self._ac_space.is_continuous(k):
-                dists[k] = FixedNormal(means[k], stds[k])
+                if self._gaussian:
+                    dists[k] = FixedNormal(means[k], stds[k])
+                else:
+                    dists[k] = Identity(means[k])
             else:
                 dists[k] = FixedCategorical(logits=means[k])
 
@@ -107,6 +111,39 @@ class Actor(nn.Module):
             return actions, log_probs_
         else:
             return log_probs_, ents
+
+    def act_backprop(self, ob):
+        self._ob = ob.copy()
+        means, stds = self.forward(ob)
+
+        dists = OrderedDict()
+        actions = OrderedDict()
+        for k in self._ac_space.keys():
+            if self._ac_space.is_continuous(k):
+                if self._gaussian:
+                    dists[k] = FixedNormal(means[k], stds[k])
+                else:
+                    dists[k] = Identity(means[k])
+            else:
+                dists[k] = FixedCategorical(logits=means[k])
+
+        mixed_dist = MixedDistribution(dists)
+
+        activations_ = mixed_dist.rsample()
+        for k in activations_.keys():
+            if len(activations_[k].shape) == 1:
+                activations_[k] = activations_[k].unsqueeze(0)
+
+        for k in self._ac_space.keys():
+            z = activations_[k]
+            if self._tanh and self._ac_space.is_continuous(k):
+                action = torch.tanh(z)
+            else:
+                action = z
+
+            actions[k] = action
+
+        return actions
 
     def act_log_debug(self, ob, activations=None):
         means, stds = self.forward(ob)

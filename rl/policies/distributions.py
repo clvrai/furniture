@@ -43,6 +43,21 @@ normal_rsample = FixedNormal.rsample
 FixedNormal.rsample = lambda self: normal_rsample(self).float()
 
 
+# Identity
+class Identity(object):
+    def __init__(self, mean):
+        self._mean = mean
+
+    def mode(self):
+        return self._mean
+
+    def sample(self):
+        return self._mean
+
+    def rsample(self):
+        return self._mean
+
+
 def init(module, weight_init, bias_init, gain=1):
     weight_init(module.weight.data, gain=gain)
     bias_init(module.bias.data)

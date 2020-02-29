@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -24,8 +26,10 @@ class BCAgent(BaseAgent):
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_bc)
 
         self._dataset = ILDataset(config.demo_path)
-        import ipdb; ipdb.set_trace()
-
+        self._data_loader = torch.utils.data.DataLoader(self._dataset,
+                                                        batch_size=self._config.batch_size,
+                                                        shuffle=True,
+                                                        num_workers=8)
         self._log_creation()
 
     def _log_creation(self):
@@ -56,11 +60,7 @@ class BCAgent(BaseAgent):
 
     def train(self):
         train_info = {}
-        data_loader = torch.utils.data.DataLoader(self._dataset,
-                                                  batch_size=self._config.batch_size,
-                                                  shuffle=True,
-                                                  num_workers=2)
-        for transitions in data_loader:
+        for transitions in self._data_loader:
             _train_info = self._update_network(transitions)
             train_info.update(_train_info)
 
@@ -83,7 +83,13 @@ class BCAgent(BaseAgent):
         ac = _to_tensor(transitions['ac'])
 
         # the actor loss
-        pred_ac, _ = self._actor(o)
+        pred_ac = self._actor.act_backprop(o)
+        if isinstance(pred_ac, OrderedDict):
+            pred_ac = list(pred_ac.values())
+            if len(pred_ac[0].shape) == 1:
+                pred_ac = [x.unsqueeze(0) for x in pred_ac]
+            pred_ac = torch.cat(pred_ac, dim=-1)
+
         actor_loss = (ac - pred_ac).pow(2).mean()
         info['actor_loss'] = actor_loss.cpu().item()
 

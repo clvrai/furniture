@@ -114,10 +114,11 @@ class Trainer(object):
         torch.save(state_dict, ckpt_path)
         logger.warn('Save checkpoint: %s', ckpt_path)
 
-        replay_path = os.path.join(self._config.log_dir, 'replay_%08d.pkl' % ckpt_num)
-        with gzip.open(replay_path, 'wb') as f:
-            replay_buffers = {'replay': self._agent.replay_buffer()}
-            pickle.dump(replay_buffers, f)
+        if self._config.algo in ['sac', 'ddpg']:
+            replay_path = os.path.join(self._config.log_dir, 'replay_%08d.pkl' % ckpt_num)
+            with gzip.open(replay_path, 'wb') as f:
+                replay_buffers = {'replay': self._agent.replay_buffer()}
+                pickle.dump(replay_buffers, f)
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
         """
@@ -208,11 +209,12 @@ class Trainer(object):
             # train an agent
             logger.info('Update networks %d', update_iter)
             train_info = self._agent.train()
+            logger.info('loss: %f', train_info['actor_loss'])
             step_per_batch = mpi_sum(config.num_batches * config.batch_size)
 
             logger.info('Update networks done')
 
-            if step < config.max_ob_norm_step:
+            if config.algo not in ["bc"] and step < config.max_ob_norm_step:
                 self._update_normalizer(rollout)
 
             step += step_per_batch
@@ -220,7 +222,7 @@ class Trainer(object):
 
             # log training and episode information or evaluate
             if self._is_chef:
-                pbar.update(step_per_batch)
+                pbar.update(1)
 
                 if update_iter % config.log_interval == 0:
                     train_info.update({

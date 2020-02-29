@@ -37,8 +37,6 @@ class ILDataset(Dataset):
                     for rew in demo['rewards']:
                         self._rews.append(rew)
 
-        assert len(self._obs) == len(self._acs) + 1
-
     def _get_demo_files(self, tgtfilestr):
         demos = []
         for f in glob.glob(tgtfilestr + "_*"):
@@ -56,11 +54,10 @@ class ILDataset(Dataset):
         ob, ac = self._obs[index], self._acs[index]
 
         if len(self._rews) > index:
-            rew = self._obs[index], self._acs[index], self._rews[index]
+            rew = self._rews[index]
             return {'ob': ob, 'ac': ac, 'rew': rew}
         else:
             return {'ob': ob, 'ac': ac}
-
 
     def __len__(self):
         return len(self._acs)
