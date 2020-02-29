@@ -22,7 +22,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         config.furniture_id = furniture_name2id["toy_table"]
 
         super().__init__(config)
-        # default values
+        # default values for rew function
         self._env_config.update({
             "pos_dist": 0.06,
             "rot_dist_up": 0.97,
@@ -44,11 +44,16 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         # requires multiple connection actions to make connection between two
         # parts.
         self._num_connect_steps = 0
+        self._discretize_grip = config.discretize_grip
 
     def _step(self, a):
         """
         Takes a simulation step with @a and computes reward.
         """
+        # discretize gripper action
+        if self._discretize_grip:
+            a[-2] = -1 if a[-2] < 0 else 1
+
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
