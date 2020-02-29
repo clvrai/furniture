@@ -177,7 +177,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._render_mode == 'human' and not self._unity:
             self._viewer = self._get_viewer()
         self._after_reset()
-        return self._get_obs()
+
+        ob = self._get_obs()
+        if self._record_demo:
+            self._demo.add(ob=ob)
+
+        return ob
 
     def _init_random(self, size, name):
         """
@@ -213,14 +218,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, dict):
             action = np.concatenate([action[key] for key in self.action_space.shape.keys()])
-        if self._record_demo:
-            self._demo.add(ob=ob)
         ob, reward, done, info = self._step(action)
         done, info, penalty = self._after_step(reward, done, info)
         reward += penalty
         if self._record_demo:
             self._store_qpos()
-            self._demo.add(action=action, reward=reward)
+            self._demo.add(ob=ob, action=action, reward=reward)
         return ob, reward, done, info
 
     def _before_step(self):
