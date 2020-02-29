@@ -63,6 +63,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             pose  = self._get_qpos(body)
             logger.debug(f'{body} {pose[:3]} {pose[3:]}')
 
+        info['ac'] = a
+
         return ob, reward, done, info
 
     def _reset(self, furniture_id=None, background=None):
