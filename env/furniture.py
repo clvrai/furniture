@@ -1652,7 +1652,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._update_unity()
             img = self.render('rgb_array')[0]
             vr.add(img)
-        vr.save_video('demo.mp4')
+        if self._config.record:
+            vr.save_video('demo.mp4')
 
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
@@ -1869,7 +1870,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 action[3] = 1
 
             if self.action == 'record':
-                vr.save_video('video.mp4')
+                if self._config.record:
+                    vr.save_video('video.mp4')
 
             if self._agent_type == 'Cursor':
                 if cursor_idx:
@@ -1925,7 +1927,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             if done:
                 t = 0
                 flag = [-1, -1]
-                if config.debug: vr.save_video('test.mp4')
+                if config.debug and self._config.record:
+                    vr.save_video('test.mp4')
+                self.save_demo()
                 self.reset(config.furniture_id, config.background)
                 if self._config.record:
                     vr.add(self.render('rgb_array'))
