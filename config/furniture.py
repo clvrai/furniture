@@ -54,6 +54,7 @@ def add_argument(parser):
                         help='max number of steps for an episode')
 
     # observations
+    parser.add_argument('--agent_init_randomness', type=float, default=0.001, help='initial randomness of scene')
     parser.add_argument('--robot_ob', type=str2bool, default=True,
                         help='includes agent state in observation')
     parser.add_argument('--object_ob', type=str2bool, default=True,
@@ -86,6 +87,7 @@ def add_argument(parser):
                         help='turns off agent collision')
     parser.add_argument('--assembled', type=str2bool, default=False,
                         help='initialize with assembled furniture')
+    
 
 
 def get_default_config():

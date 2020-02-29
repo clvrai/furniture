@@ -41,13 +41,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         Initializes class with the configuration.
         """
         self._config = config
-
         # default env config
         self._env_config = {
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "init_randomness": 0.001,
+            "agent_init_randomness": config.agent_init_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5, # XYZ cube boundary
             "pos_dist": 0.1,
@@ -183,7 +182,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns initial random distribution.
         """
-        r = self._env_config["init_randomness"]
+        r = self._env_config["agent_init_randomness"]
         return self._rng.uniform(low=-r, high=r, size=size)
 
     def _after_reset(self):
