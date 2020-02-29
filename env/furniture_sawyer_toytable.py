@@ -38,6 +38,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             "pick_rew": config.pick_rew,
             "ctrl_penalty": config.ctrl_penalty,
             "grip_z_offset": config.grip_z_offset,
+            "hold_duration": config.hold_duration,
         })
         self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
@@ -104,8 +105,12 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         # grip up dist
         hand_up = self._get_up_vector('grip_site')
+        hand_forward = self._get_forward_vector('grip_site')
+        hand_left = self._get_left_vector('grip_site')
+
         grip_site_up = self._get_up_vector('2_part2_top_site')
         grip_up_dist = T.cos_dist(hand_up, grip_site_up)
+        grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
 
         # offset site dist
         self._prev_offset_dist = offset_dist
@@ -115,10 +120,12 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         self._prev_rot_dist_project1_2 = rot_dist_project1_2
         self._prev_rot_dist_project2_1 = rot_dist_project2_1
         self._prev_grip_up_dist = grip_up_dist
+        self._prev_grip_left_dist = grip_left_dist
 
         self._prev_grip_dist = grip_dist
         self._phase = 'grasp_offset'
         self._num_connect_successes = 0
+        self._held_leg = 0
 
 
     def _finger_contact(self, obj):
@@ -166,6 +173,19 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         return pos_init, quat_init
 
+    def _ctrl_reward(self, action):
+        if self._config.control_type == 'ik':
+            a = np.linalg.norm(action[:6])
+        else:
+            a = np.linalg.norm(action[:8])
+
+        # grasp_offset, grasp_leg, grip_leg
+        ctrl_penalty = -self._env_config['ctrl_penalty'] * a
+        if self._phase in ['move_leg_up', 'move_leg', 'connect']: # move slower when moving leg
+            ctrl_penalty *= 10
+
+        return ctrl_penalty
+
 
     def _compute_reward(self, action):
         """
@@ -180,19 +200,19 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         done = self._num_connected > 0
         info = {}
 
+        ctrl_penalty = self._ctrl_reward(action)
+
         top_site_name = "top-leg,,conn_site3"
         leg_site_name = "leg-top,,conn_site4"
         top_site_xpos = self._site_xpos_xquat(top_site_name)
         leg_site_xpos = self._site_xpos_xquat(leg_site_name)
         leg_top_site_xpos = self._site_xpos_xquat("2_part2_top_site")
         leg_bot_site_xpos = self._site_xpos_xquat("2_part2_bottom_site")
-        if self._config.control_type == 'ik':
-            ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action[:6])
-        else:
-            ctrl_penalty = -self._env_config['ctrl_penalty'] * np.linalg.norm(action[:8])
 
         hand_pos = self.sim.data.site_xpos[self.eef_site_id]
         hand_up = self._get_up_vector('grip_site')
+        hand_forward = self._get_forward_vector('grip_site')
+        hand_left = self._get_left_vector('grip_site')
         grasp_pos = leg_bot_site_xpos[:3] + 0.5 * (leg_top_site_xpos - leg_bot_site_xpos)[:3]
 
         touch_left, touch_right = self._finger_contact('2_part2')
@@ -200,6 +220,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
+
         rot_dist_up = T.cos_dist(up1, up2)
         rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
         rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
@@ -223,11 +244,17 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grip_up_dist = np.abs(T.cos_dist(hand_up, grip_site_up))
             logger.debug(f'grip_up_dist {grip_up_dist}')
             grip_up_rew = self._env_config['grip_up_rew'] * (self._prev_grip_up_dist -grip_up_dist)
+
+            #up vector of leg and left vector of grip site should be parallel
+            grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
+            logger.debug(f'grip_left_dist {grip_left_dist}')
+            grip_up_rew += self._env_config['grip_up_rew'] * (grip_left_dist - self._prev_grip_left_dist)
+
+            self._prev_grip_left_dist = grip_left_dist
             self._prev_grip_up_dist = grip_up_dist
 
-
-            if grip_dist < 0.03 and grip_up_dist < 0.15:
-                logger.debug('Done with grasp offset alignment')
+            if grip_dist < 0.03 and grip_up_dist < 0.15 and grip_left_dist > 0.9:
+                logger.warning('Done with grasp offset alignment')
                 self._phase = 'grasp_leg'
                 self._prev_grip_dist = np.linalg.norm(hand_pos - grasp_pos)
 
@@ -244,10 +271,16 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             logger.debug(f'grip_up_dist {grip_up_dist}')
             logger.debug(f'grip z dist {hand_pos[-1] - grasp_pos[-1]}')
             grip_up_rew = self._env_config['grip_up_rew'] * (self._prev_grip_up_dist - grip_up_dist)
+
+            #up vector of leg and left vector of grip site should be parallel
+            grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
+            grip_up_rew += self._env_config['grip_up_rew'] * (grip_left_dist - self._prev_grip_left_dist)
+
+            self._prev_grip_left_dist = grip_left_dist
             self._prev_grip_up_dist = grip_up_dist
 
-            if grip_dist < 0.03 and (hand_pos[-1] - grasp_pos[-1]) < 0.001 and grip_up_dist < 0.12:
-                logger.debug('Done with grasp leg alignment')
+            if grip_dist < 0.03 and (hand_pos[-1] - grasp_pos[-1]) < 0.001 and grip_up_dist < 0.12 and grip_left_dist > 0.9:
+                logger.warning('Done with grasp leg alignment')
                 self._phase = 'grip_leg'
 
         elif self._phase == 'grip_leg': # close the gripper
@@ -265,13 +298,16 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             pick_rew = -self._env_config['pick_rew'] / 2
 
         elif self._phase == 'move_leg_up': # move the leg up
-
             grip_dist = np.linalg.norm(hand_pos - self._grip_pos_offset)
             grip_dist_rew = self._env_config['grip_dist_rew'] * (self._prev_grip_pos_offset_dist - grip_dist)
             self._prev_grip_pos_offset_dist = grip_dist
-            if grip_dist < 0.03:
-                logger.warning('Done with move leg up')
-                self._phase = 'move_leg'
+            if grip_dist < 0.03: #TODO: add rotation condition?
+                self._held_leg += 1
+                # give bonus for being near offset
+                aligned_rew = self._env_config['aligned_rew']
+                if self._held_leg > self._env_config['hold_duration']:
+                    logger.warning('Held leg for some time')
+                    self._phase = 'move_leg'
 
         elif self._phase == 'move_leg': # move leg to offset
 
@@ -294,7 +330,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
                 self._phase = 'move_leg_2'
                 aligned_rew = self._env_config['aligned_rew']
-                logger.debug('leg aligned with offset')
+                logger.warning('leg aligned with offset')
 
         #elif self._phase == 'rot_up':
 
@@ -326,7 +362,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
                 self._phase = 'connect'
                 aligned_rew = self._env_config['aligned_rew']
-                logger.debug('leg aligned with site')
+                logger.warning('leg aligned with site')
 
         elif self._phase == 'connect':
             connect = action[-1]
@@ -339,6 +375,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         info['phase'] = self._phase
         info['leg_picked'] = self._leg_picked
+        info['held_leg'] = self._held_leg
         info['grip_dist_rew'] = grip_dist_rew
         info['grip_up_rew'] = grip_up_rew
         info['pick_rew'] = pick_rew
@@ -355,119 +392,6 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         rew = pick_rew + grip_dist_rew + grip_up_rew + site_dist_rew + site_up_rew + connect_rew + \
                + aligned_rew + success_rew + ctrl_penalty
         return rew, done, info
-        #holding_top = self._cursor_selected[0] == '4_part4'
-        #holding_leg = self._cursor_selected[1] == '2_part2'
-        #c0_action, c1_action = action[:7], action[7:14]
-        #c0_moverotate, c1_moverotate = c0_action[:-1], c1_action[:-1]
-        #c0_ctrl_penalty, c1_ctrl_penalty = 2 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
-        #ctrl_penalty = -self._env_config['ctrl_penalty'] * (c0_ctrl_penalty + c1_ctrl_penalty)
-
-        #top_site_name = "top-leg,,conn_site4"
-        #leg_site_name = "leg-top,,conn_site4"
-        #top_site_xpos = self._site_xpos_xquat(top_site_name)
-        #leg_site_xpos = self._site_xpos_xquat(leg_site_name)
-
-        #up1 = self._get_up_vector(top_site_name)
-        #up2 = self._get_up_vector(leg_site_name)
-        ## calculate distance between site + z-offset and other site
-        #point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
-        #pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
-        #site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-        #rot_dist_up = T.cos_dist(up1, up2)
-
-        ## cursor 0 select table top
-        #if holding_top and not self._top_picked:
-        #    pick_rew += self._env_config['pick_rew']
-        #    self._top_picked = True
-        ## cursor 1 select table leg
-        #if holding_leg and not self._leg_picked:
-        #    pick_rew += self._env_config['pick_rew']
-        #    self._leg_picked = True
-
-        #if self._num_connected > 0:
-        #    success_rew = self._env_config['success_rew']
-
-        ## if parts are in hand, then give reward for moving parts closer
-        #elif holding_top and holding_leg:
-
-        #    project1_2 = np.dot(up1, T.unit_vector(leg_site_xpos[:3] - top_site_xpos[:3]))
-        #    project2_1 = np.dot(up2, T.unit_vector(top_site_xpos[:3] - leg_site_xpos[:3]))
-
-        #    angles_aligned = rot_dist_up > self._env_config['rot_dist_up']
-        #    dist_aligned = pos_dist < 0.1
-        #    sites_aligned = site_dist < self._env_config['pos_dist']
-
-        #    if angles_aligned and dist_aligned and sites_aligned:
-        #        self._phase = 'connect'
-        #    elif angles_aligned and dist_aligned:
-        #        self._phase = 'align_eucl_2'
-        #    elif dist_aligned:
-        #        self._phase = 'align_rot'
-        #    elif angles_aligned:
-        #        self._phase = 'align_eucl'
-
-        #    if self._phase == 'connect':
-        #        # give reward for getting alignment right
-        #        aligned_rew = self._env_config['aligned_rew']
-        #        connect = action[14]
-        #        if connect > 0 and self._num_connect_successes < 10:
-        #            connect_rew +=  self._env_config['connect_rew']
-        #            self._num_connect_successes += 1
-
-        #    elif self._phase == 'align_rot':
-        #        # Second phase: bring angle distance close together
-        #        # give bonus for being done with align_eucl
-        #        aligned_rew = self._env_config['aligned_rew']/10
-        #        # give rew for making angular dist between sites 1
-        #        site_up_diff = rot_dist_up - self._prev_rot_dist_up
-        #        if not abs(site_up_diff) < 0.01:
-        #            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
-
-        #    elif self._phase == 'align_eucl':
-        #        # First phase: bring eucl distance close
-        #        aligned_rew = self._env_config['aligned_rew']/10
-        #        # give rew for minimizing eucl distance between sites
-        #        site_dist_diff = self._prev_pos_dist - pos_dist
-        #        if not abs(site_dist_diff) < 0.01:
-        #            site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
-
-        #    elif self._phase == 'align_eucl_2':
-        #        # Third phase: bring sites close together
-        #        # give reward for getting alignment right
-        #        aligned_rew = self._env_config['aligned_rew']/5
-        #        # give reward for minimizing eucl distance between sites
-        #        site_dist_diff = self._prev_site_dist - site_dist
-        #        if not abs(site_dist_diff) < 0.01:
-        #            site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
-
-
-        #    self._prev_site_dist = site_dist
-        #    self._prev_pos_dist = pos_dist
-        #    self._prev_rot_dist_up = rot_dist_up
-        #elif (not holding_top and self._top_picked) or (not holding_leg and self._leg_picked):
-        #    # give penalty for dropping top or leg
-        #    #pick_rew = -2
-        #    done = True
-
-        #info['phase'] = self._phase
-        #info['leg_picked'] = self._leg_picked
-        #info['top_picked'] = self._top_picked
-        #info['pick_rew'] = pick_rew
-        #info['site_dist_rew'] = site_dist_rew
-        #info['site_up_rew'] = site_up_rew
-        #info['aligned_rew'] = aligned_rew
-        #info['connect_rew'] = connect_rew
-        #info['success_rew'] = success_rew
-        #info['ctrl_penalty'] = ctrl_penalty
-        #info['c0_ctrl_penalty'] = c0_ctrl_penalty
-        #info['c1_ctrl_penalty'] = c1_ctrl_penalty
-        #info['rot_dist_up'] = rot_dist_up
-        #info['site_dist'] = site_dist
-        #info['pos_dist'] = pos_dist
-
-        #rew = pick_rew + site_dist_rew + site_up_rew + connect_rew + \
-        #        + aligned_rew + success_rew + ctrl_penalty
-        #return rew, done, info
 
 
 def main():
