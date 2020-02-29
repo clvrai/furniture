@@ -3,34 +3,97 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from il.base_agent import BaseAgent
+from il.bc_dataset import ILDataset
+from rl.base_agent import BaseAgent
 from util.logger import logger
 from util.mpi import mpi_average
-from il.BCDataset import BCDataset
-from il.BCModel import *
 from util.pytorch import optimizer_cuda, count_parameters, \
     compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
 
 
 class BCAgent(BaseAgent):
-    def __init__(self, config, ob_space, ac_space):
+    def __init__(self, config, ob_space, ac_space, actor, critic):
         super().__init__(config, ob_space)
-        self._config = config
 
-        self.net = getBCModel(ob_space, ac_space, weights_path=self._config.saved_weights)
+        self._ob_space = ob_space
+        self._ac_space = ac_space
+
+        self._actor = actor(self._config, self._ob_space, self._ac_space,
+                            self._config.tanh_policy)
+        self._network_cuda(config.device)
+        self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_bc)
+
+        self._dataset = ILDataset(config.demo_path)
+        import ipdb; ipdb.set_trace()
+
         self._log_creation()
 
     def _log_creation(self):
         if self._config.is_chef:
-            # logger.info('Creating a DDPG agent')
-            # logger.info('The actor has %d parameters', count_parameters(self._actor))
-            # logger.info('The critic has %d parameters', count_parameters(self._critic))
+            logger.info('Creating a BC agent')
+            logger.info('The actor has %d parameters', count_parameters(self._actor))
 
-    def store_episode(self, rollouts):
-        self._buffer.store_episode(rollouts)
+    def state_dict(self):
+        return {
+            'actor_state_dict': self._actor.state_dict(),
+            'actor_optim_state_dict': self._actor_optim.state_dict(),
+            'ob_norm_state_dict': self._ob_norm.state_dict(),
+        }
 
-    def act(self, ob, is_train=False):
-        actions = self._net(ob)
-        return actions
+    def load_state_dict(self, ckpt):
+        self._actor.load_state_dict(ckpt['actor_state_dict'])
+        self._ob_norm.load_state_dict(ckpt['ob_norm_state_dict'])
+        self._network_cuda(self._config.device)
 
-        
+        self._actor_optim.load_state_dict(ckpt['actor_optim_state_dict'])
+        optimizer_cuda(self._actor_optim, self._config.device)
+
+    def _network_cuda(self, device):
+        self._actor.to(device)
+
+    def sync_networks(self):
+        sync_networks(self._actor)
+
+    def train(self):
+        train_info = {}
+        data_loader = torch.utils.data.DataLoader(self._dataset,
+                                                  batch_size=self._config.batch_size,
+                                                  shuffle=True,
+                                                  num_workers=2)
+        for transitions in data_loader:
+            _train_info = self._update_network(transitions)
+            train_info.update(_train_info)
+
+        train_info.update({
+            'actor_grad_norm': np.mean(compute_gradient_norm(self._actor)),
+            'actor_weight_norm': np.mean(compute_weight_norm(self._actor)),
+        })
+        return train_info
+
+    def _update_network(self, transitions):
+        info = {}
+
+        # pre-process observations
+        o = transitions['ob']
+        o = self.normalize(o)
+
+        bs = len(transitions['ac'])
+        _to_tensor = lambda x: to_tensor(x, self._config.device)
+        o = _to_tensor(o)
+        ac = _to_tensor(transitions['ac'])
+
+        # the actor loss
+        pred_ac, _ = self._actor(o)
+        actor_loss = (ac - pred_ac).pow(2).mean()
+        info['actor_loss'] = actor_loss.cpu().item()
+
+        # update the actor
+        self._actor_optim.zero_grad()
+        actor_loss.backward()
+        #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+        sync_grads(self._actor)
+        self._actor_optim.step()
+
+        return mpi_average(info)
+
+

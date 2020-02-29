@@ -50,6 +50,7 @@ class MlpActor(Actor):
 
         return means, stds
 
+
 class NoisyMlpActor(Actor):
     def __init__(self, config, ob_space, ac_space, tanh_policy):
         super().__init__(config, ob_space, ac_space, tanh_policy)
@@ -107,6 +108,7 @@ class NoisyMlpActor(Actor):
             raise NotImplementedError()
         else:
             return actions, None
+
 
 class MlpCritic(Critic):
     def __init__(self, config, ob_space, ac_space=None):

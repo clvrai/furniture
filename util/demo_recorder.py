@@ -5,6 +5,7 @@ import glob
 
 class DemoRecorder(object):
     def __init__(self, demo_dir='./'):
+        self._obs = []
         self._actions = []
         self._qpos = []
         self._rewards = []
@@ -13,11 +14,14 @@ class DemoRecorder(object):
         os.makedirs(demo_dir, exist_ok=True)
 
     def reset(self):
+        self._obs = []
         self._actions = []
         self._qpos = []
         self._rewards = []
 
-    def add(self, qpos=None, action=None, reward=None):
+    def add(self, ob=None, qpos=None, action=None, reward=None):
+        if ob is not None:
+            self._obs.append(ob)
         if action is not None:
             self._actions.append(action)
         if qpos is not None:
@@ -30,6 +34,7 @@ class DemoRecorder(object):
         fname = prefix + '_{:04d}.pkl'.format(count)
         path = os.path.join(self._demo_dir, fname)
         demo = {'qpos': self._qpos,
+                'obs': self._obs,
                 'actions': self._actions,
                 'rewards': self._rewards}
         with open(path, 'wb') as f:

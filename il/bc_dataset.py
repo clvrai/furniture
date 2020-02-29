@@ -1,62 +1,48 @@
 import os
 import pickle
+import glob
 
 import torch
 from torch.utils.data import Dataset
-
-from env.models import furniture_names, agent_names
 
 
 class ILDataset(Dataset):
     """ Dataset class for Imitation Learning. """
 
-    def __init__(self, agent_name, furniture_name, train=True, transform=None, target_transform=None, download=False):
-        self.root = 'demos/'
+    def __init__(self, path, train=True, transform=None, target_transform=None, download=False):
         self.train = train  # training set or test set
         # TODO: split dataset into train/val
-
-        assert agent_name in agent_names
-        assert furniture_name in furniture_names
 
         self._obs = []
         self._acs = []
         self._rews = []
-        self._obs_space = None
-        self._action_space = None
 
-        demo_files = self._get_demo_files(agent_name + '_' + furniture_name)
+        demo_files = self._get_demo_files(path)
 
         # now load the picked numpy arrays
-        for demo_file in demo_files:
-            file_path = os.path.join(self.root, demo_file)
+        for file_path in demo_files:
             with open(file_path, 'rb') as f:
                 demo = pickle.load(f)
 
                 # add observations
-                for ob in demo['qpos']:
-                    qpos = []
-                    for x in ob.values():
-                        qpos.extend(x)
-                    if self._obs_space is None:
-                        self._obs_space = len(qpos)
-                    self._data.append(torch.tensor(qpos, dtype=torch.double))
+                for ob in demo['obs']:
+                    self._obs.append(ob)
 
                 # add actions
                 for ac in demo['actions']:
-                    if self._action_space is None:
-                        self._action_space = len(ac)
-                    self._acs.append(torch.tensor(ac, dtype=torch.double))
+                    self._acs.append(ac)
 
                 # add rewards
-                for rew in demo['rewards']:
-                    self._rews.append(torch.tensor(rew, dtype=torch.double))
+                if 'rewards' in demo:
+                    for rew in demo['rewards']:
+                        self._rews.append(rew)
 
         assert len(self._obs) == len(self._acs) + 1
 
     def _get_demo_files(self, tgtfilestr):
         demos = []
-        for f in os.listdir(self.root):
-            if os.path.isfile(os.path.join(self.root, f)) and tgtfilestr in f:
+        for f in glob.glob(tgtfilestr + "_*"):
+            if os.path.isfile(f):
                 demos.append(f)
         return demos
 
@@ -67,9 +53,14 @@ class ILDataset(Dataset):
         Returns:
             tuple: (ob, ac) where target is index of the target class.
         """
-        ob, ac, rew = self._obs[index], self._acs[index], self._rews[index]
+        ob, ac = self._obs[index], self._acs[index]
 
-        return ob, ac, rew
+        if len(self._rews) > index:
+            rew = self._obs[index], self._acs[index], self._rews[index]
+            return {'ob': ob, 'ac': ac, 'rew': rew}
+        else:
+            return {'ob': ob, 'ac': ac}
+
 
     def __len__(self):
         return len(self._acs)

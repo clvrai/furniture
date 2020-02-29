@@ -37,10 +37,10 @@ def get_agent_by_name(algo):
     elif algo == "ddpg":
         from rl.ddpg_agent import DDPGAgent
         return DDPGAgent
-    elif config.algo == "bc":
+    elif algo == "bc":
         from il.bc_agent import BCAgent
         return BCAgent
-    elif config.algo == "gail":
+    elif algo == "gail":
         from il.gail_agent import GAILAgent
         return GAILAgent
 
@@ -177,12 +177,12 @@ class Trainer(object):
 
     def train(self):
         """ Trains an agent. """
-        if self._config in ["il", "gail"]:
-            train_il()
+        if self._config.algo in ["bc", "gail"]:
+            self._train_il()
         else:
-            train_rl()
+            self._train_rl()
 
-    def train_il(self):
+    def _train_il(self):
         """ Trains an IL agent. """
 
         config = self._config
@@ -195,11 +195,11 @@ class Trainer(object):
 
         logger.info("Start training at step=%d", step)
         if self._is_chef:
-            pbar = tqdm(initial=step, total=config.max_global_step, desc=config.run_name)
+            pbar = tqdm(initial=update_iter, total=config.max_epoch, desc=config.run_name)
 
         st_time = time()
         st_step = step
-        while step < config.max_global_step:
+        while update_iter < config.max_epoch:
             # train an agent
             logger.info('Update networks %d', update_iter)
             train_info = self._agent.train()
@@ -237,7 +237,7 @@ class Trainer(object):
 
         logger.info('Reached %s steps. worker %d stopped.', step, config.rank)
 
-    def train_rl(self):
+    def _train_rl(self):
         """ Trains an RL agent. """
         config = self._config
 

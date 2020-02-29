@@ -215,7 +215,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         reward += penalty
         if self._record_demo:
             self._store_qpos()
-            self._demo.add(action=action, reward=reward)
+            self._demo.add(ob=ob, action=action, reward=reward)
         return ob, reward, done, info
 
     def _before_step(self):

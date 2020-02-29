@@ -80,16 +80,12 @@ class RolloutRunner(object):
         self._record_frames = []
         if record: self._store_frame()
 
-        # buffer to save qpos
-        saved_qpos = []
-
         # run rollout
         while not done and ep_len < max_step:
             # sample action from policy
             ac, ac_before_activation = pi.act(ob, is_train=is_train)
 
             rollout.add({'ob': ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
-            saved_qpos.append(env.sim.get_state().qpos.copy())
 
             # take a step
             ob, reward, done, info = env.step(ac)
@@ -107,7 +103,6 @@ class RolloutRunner(object):
 
         # last frame
         rollout.add({'ob': ob})
-        saved_qpos.append(env.sim.get_state().qpos.copy())
 
         # compute average/sum of information
         ep_info = {'len': ep_len, 'rew': ep_rew}
@@ -117,7 +112,6 @@ class RolloutRunner(object):
                     ep_info[key] = np.mean(value)
                 else:
                     ep_info[key] = np.sum(value)
-        ep_info['saved_qpos'] = saved_qpos
 
         return rollout.get(), ep_info, self._record_frames
 

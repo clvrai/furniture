@@ -114,8 +114,11 @@ def create_parser(env=None):
     parser.add_argument('--seed', type=int, default=123, help='Random seed')
     parser.add_argument('--debug', type=str2bool, default=False)
 
-    #il 
-    parser.add_argument('--bc_lr', type=float, default=1e-4, help='learning rate for bc')
+    # il
+    parser.add_argument('--max_epoch', type=float, default=100, help='training epoch for behavior cloning')
+    parser.add_argument('--lr_bc', type=float, default=1e-4, help='learning rate for bc')
+    parser.add_argument('--demo_path', type=str, default=None, help='path to demos')
+
     return parser
 
 
