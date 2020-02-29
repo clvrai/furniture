@@ -13,3 +13,4 @@ def add_argument(parser):
     parser.add_argument('--ctrl_penalty', type=float, default=0.00001, help='penalty for moving')
     parser.add_argument('--grip_z_offset', type=float, default=0.06, help='z offset for grip site')
     parser.add_argument('--hold_duration', type=int, default=5, help='number of frames to hold leg')
+    parser.add_argument('--discretize_grip', type=str2bool, default=False, help='make grip dimension discrete action')

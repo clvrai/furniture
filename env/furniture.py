@@ -41,13 +41,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         Initializes class with the configuration.
         """
         self._config = config
-
         # default env config
         self._env_config = {
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "init_randomness": 0.001,
+            "init_randomness": config.init_randomness,
+            "furn_init_randomness": config.furn_init_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5, # XYZ cube boundary
             "pos_dist": 0.1,
@@ -179,11 +179,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._after_reset()
         return self._get_obs()
 
-    def _init_random(self, size):
+    def _init_random(self, size, name):
         """
         Returns initial random distribution.
         """
-        r = self._env_config["init_randomness"]
+        if name == 'furniture':
+            r = self._env_config["furn_init_randomness"]
+        else:
+            r = self._env_config["init_randomness"]
         return self._rng.uniform(low=-r, high=r, size=size)
 
     def _after_reset(self):
@@ -1289,7 +1292,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Initializes robot posision with random noise perturbation
         """
-        noise = self._init_random(self.mujoco_robot.init_qpos.shape)
+        noise = self._init_random(self.mujoco_robot.init_qpos.shape, 'agent')
         if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
             self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos + noise
             self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = -self.gripper.init_qpos # open
@@ -1652,7 +1655,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._update_unity()
             img = self.render('rgb_array')[0]
             vr.add(img)
-        vr.save_video('demo.mp4')
+        if self._config.record:
+            vr.save_video('demo.mp4')
 
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
@@ -1797,8 +1801,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         from util.video_recorder import VideoRecorder
         vr = VideoRecorder()
-        vr.add(self.render('rgb_array'))
-
+        if self._config.record:
+            vr.add(self.render('rgb_array'))
+        else:
+            self.render('rgb_array')
         if not config.unity:
             # override keyboard callback function of viewer
             import glfw
@@ -1867,7 +1873,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 action[3] = 1
 
             if self.action == 'record':
-                vr.save_video('video.mp4')
+                if self._config.record:
+                    vr.save_video('video.mp4')
 
             if self._agent_type == 'Cursor':
                 if cursor_idx:
@@ -1891,8 +1898,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             ob, reward, done, info = self.step(action)
             logger.info(f'Action: {action}')
 
-            vr.add(self.render('rgb_array'))
-
+            if self._config.record:
+                vr.add(self.render('rgb_array'))
+            else:
+                self.render('rgb_array')
             if self.action == 'screenshot':
                 import imageio
                 img, depth = self.render('rgbd_array')
@@ -1921,10 +1930,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             if done:
                 t = 0
                 flag = [-1, -1]
-                if config.debug: vr.save_video('test.mp4')
+                if config.debug and self._config.record:
+                    vr.save_video('test.mp4')
+                self.save_demo()
                 self.reset(config.furniture_id, config.background)
-                vr.add(self.render('rgb_array'))
-
+                if self._config.record:
+                    vr.add(self.render('rgb_array'))
+                else:
+                    self.render('rgb_array')
     def _get_reference(self):
         """
         Store ids / keys of objects, connector sites, and collision data in the scene

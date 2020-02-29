@@ -8,6 +8,7 @@ from env.models import furniture_name2id
 from env.furniture_sawyer import FurnitureSawyerEnv
 import env.transform_utils as T
 from util.logger import logger
+from util import str2bool
 
 class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
     """
@@ -22,7 +23,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         config.furniture_id = furniture_name2id["toy_table"]
 
         super().__init__(config)
-        # default values
+        # default values for rew function
         self._env_config.update({
             "pos_dist": 0.06,
             "rot_dist_up": 0.97,
@@ -44,11 +45,16 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         # requires multiple connection actions to make connection between two
         # parts.
         self._num_connect_steps = 0
+        self._discretize_grip = config.discretize_grip
 
     def _step(self, a):
         """
         Takes a simulation step with @a and computes reward.
         """
+        # discretize gripper action
+        if self._discretize_grip:
+            a[-2] = -1 if a[-2] < 0 else 1
+
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
@@ -167,8 +173,11 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         """
         # pos_init = [[ 0.21250838, -0.1163671 ,  0.02096991], [-0.30491682, -0.09045364,  0.03429339],[ 0.38134436, -0.11249256,  0.02096991],[ 0.12432612, -0.13662719,  0.02096991],[ 0.29537311, -0.12992911,  0.02096991]]
         # quat_init = [[0.706332  , 0.70633192, 0.03309327, 0.03309326], [ 0.00000009, -0.99874362, -0.05011164,  0.00000002], [ 0.70658149,  0.70706735, -0.00748174,  0.0272467 ], [0.70610751, 0.7061078 , 0.03757641, 0.03757635], [0.70668613, 0.70668642, 0.02438253, 0.02438249]]
-
         pos_init = [[-0.34684698 + 0.05, -0.12887974,  0.03418991],[0.03472849 - 0.0285, 0.11868485 - 0.05, 0.02096991]]
+        noise = self._init_random(3*len(pos_init), 'furniture')
+        for i in range(len(pos_init)):
+            for j in range(3):
+                pos_init[i][j] += noise[3*i +j]
         quat_init = [[ 0.00000009, -0.99874362, -0.05011164,  0.00000002],  [-0.70610751, 0.7061078 , -0.03757641, 0.03757635]]
 
         return pos_init, quat_init
@@ -221,11 +230,11 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         grip_penalty = 0
         if gripped and self._phase not in ['grasp_offset', 'grasp_leg', 'grip_leg']: # move slower when moving leg
             gripper_force = action[-2] #-1 for open 1 for completely closed
-            grip_penalty = (1 - gripper_force) * -1
+            grip_penalty = (1 - gripper_force) * -0.5
             ctrl_penalty += grip_penalty
         else: # make gripper open
             gripper_force = action[-2] #-1 for open 1 for completely closed
-            grip_penalty = (gripper_force + 1) * -1
+            grip_penalty = (gripper_force + 1) * -0.5
             ctrl_penalty += grip_penalty
 
         up1 = self._get_up_vector(top_site_name)
