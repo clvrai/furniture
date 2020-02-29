@@ -28,8 +28,7 @@ class BCAgent(BaseAgent):
         self._dataset = ILDataset(config.demo_path)
         self._data_loader = torch.utils.data.DataLoader(self._dataset,
                                                         batch_size=self._config.batch_size,
-                                                        shuffle=True,
-                                                        num_workers=8)
+                                                        shuffle=True)
         self._log_creation()
 
     def _log_creation(self):
