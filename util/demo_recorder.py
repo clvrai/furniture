@@ -42,5 +42,4 @@ class DemoRecorder(object):
         self.reset()
 
     def _get_demo_count(self, prefix):
-        return len(glob.glob(os.path.join(self.demo_dir, prefix) + "_*"))
-
+        return len(glob.glob(os.path.join(self._demo_dir, prefix) + "_*"))
