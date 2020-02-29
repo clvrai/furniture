@@ -46,7 +46,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "agent_init_randomness": config.agent_init_randomness,
+            "init_randomness": config.init_randomness,
+            "furn_init_randomness": config.furn_init_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5, # XYZ cube boundary
             "pos_dist": 0.1,
@@ -178,11 +179,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._after_reset()
         return self._get_obs()
 
-    def _init_random(self, size):
+    def _init_random(self, size, name):
         """
         Returns initial random distribution.
         """
-        r = self._env_config["agent_init_randomness"]
+        if name == 'furniture':
+            r = self._env_config["furn_init_randomness"]
+        else:
+            r = self._env_config["init_randomness"]
         return self._rng.uniform(low=-r, high=r, size=size)
 
     def _after_reset(self):
@@ -1288,7 +1292,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Initializes robot posision with random noise perturbation
         """
-        noise = self._init_random(self.mujoco_robot.init_qpos.shape)
+        noise = self._init_random(self.mujoco_robot.init_qpos.shape, 'agent')
         if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
             self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos + noise
             self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = -self.gripper.init_qpos # open
