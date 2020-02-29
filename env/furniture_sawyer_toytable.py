@@ -29,6 +29,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             "rot_dist_up": 0.97,
             "rot_dist_forward": 0.9,
             "project_dist": -1,
+            "furn_init_randomness": 0,
+            "init_randomness": 0,
             "site_dist_rew": config.site_dist_rew,
             "site_up_rew": config.site_up_rew,
             "grip_up_rew": config.grip_up_rew,
@@ -235,10 +237,10 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             gripper_force = action[-2] #-1 for open 1 for completely closed
             grip_penalty = (1 - gripper_force) * -self._env_config['grip_penalty']
             ctrl_penalty += grip_penalty
-        else: # make gripper open
-            gripper_force = action[-2] #-1 for open 1 for completely closed
-            grip_penalty = (gripper_force + 1) * -self._env_config['grip_penalty']
-            ctrl_penalty += grip_penalty
+        #else: # make gripper open
+        #    gripper_force = action[-2] #-1 for open 1 for completely closed
+        #    grip_penalty = (gripper_force + 1) * -self._env_config['grip_penalty']
+        #    ctrl_penalty += grip_penalty
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
@@ -270,7 +272,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             #up vector of leg and left vector of grip site should be parallel
             grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
             logger.debug(f'grip_left_dist {grip_left_dist}')
-            grip_up_rew += self._env_config['grip_up_rew'] * (grip_left_dist - self._prev_grip_left_dist)
+            grip_up_rew += 0.5 * self._env_config['grip_up_rew'] * (grip_left_dist - self._prev_grip_left_dist)
 
             self._prev_grip_left_dist = grip_left_dist
             self._prev_grip_up_dist = grip_up_dist
@@ -296,7 +298,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
             #up vector of leg and left vector of grip site should be parallel
             grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
-            grip_up_rew += self._env_config['grip_up_rew'] * (grip_left_dist - self._prev_grip_left_dist)
+            grip_up_rew += 0.5 * self._env_config['grip_up_rew'] * (grip_left_dist - self._prev_grip_left_dist)
 
             self._prev_grip_left_dist = grip_left_dist
             self._prev_grip_up_dist = grip_up_dist
@@ -307,7 +309,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         elif self._phase == 'grip_leg': # close the gripper
             if gripped:
-                logger.debug('Gripped leg')
+                logger.warning('Gripped leg')
                 pick_rew = self._env_config['pick_rew']
                 self._phase = 'move_leg_up'
                 self._leg_picked = True
