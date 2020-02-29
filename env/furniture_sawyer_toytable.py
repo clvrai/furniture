@@ -223,6 +223,10 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             gripper_force = action[-2] #-1 for open 1 for completely closed
             grip_penalty = (1 - gripper_force) * -1
             ctrl_penalty += grip_penalty
+        else: # make gripper open
+            gripper_force = action[-2] #-1 for open 1 for completely closed
+            grip_penalty = (gripper_force + 1) * -1
+            ctrl_penalty += grip_penalty
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
