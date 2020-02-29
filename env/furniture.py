@@ -244,17 +244,17 @@ class FurnitureEnv(metaclass=EnvMeta):
             a = np.zeros(self.dof)
 
         if self._agent_type == 'Cursor':
-            self._step_discrete(a)
+            self._step_discrete(a.copy())
             self._do_simulation(None)
 
         elif self._control_type == 'ik':
-            self._step_continuous(a)
+            self._step_continuous(a.copy())
 
         elif self._control_type == 'torque':
-            self._step_continuous(a)
+            self._step_continuous(a.copy())
 
         elif self._control_type == 'impedance':
-            a = self._setup_action(a)
+            a = self._setup_action(a.copy())
             self._do_simulation(a)
 
         else:
