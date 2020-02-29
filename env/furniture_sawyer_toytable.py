@@ -226,11 +226,11 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         grip_penalty = 0
         if gripped and self._phase not in ['grasp_offset', 'grasp_leg', 'grip_leg']: # move slower when moving leg
             gripper_force = action[-2] #-1 for open 1 for completely closed
-            grip_penalty = (1 - gripper_force) * -1
+            grip_penalty = (1 - gripper_force) * -0.5
             ctrl_penalty += grip_penalty
         else: # make gripper open
             gripper_force = action[-2] #-1 for open 1 for completely closed
-            grip_penalty = (gripper_force + 1) * -1
+            grip_penalty = (gripper_force + 1) * -0.5
             ctrl_penalty += grip_penalty
 
         up1 = self._get_up_vector(top_site_name)
