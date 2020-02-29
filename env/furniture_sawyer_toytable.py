@@ -333,7 +333,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._prev_rot_dist_project2_1 = rot_dist_project2_1
 
             if offset_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
-                and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
+                and rot_dist_project1_2 > 0.4 and rot_dist_project2_1 > 0.4:
                 self._phase = 'align_leg'
                 aligned_rew = self._env_config['aligned_rew']
                 logger.warning('leg aligned with offset')
