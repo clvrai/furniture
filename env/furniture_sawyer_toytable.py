@@ -219,7 +219,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         gripped = touch_left and touch_right
         # penalize letting go if holding leg
         grip_penalty = 0
-        if gripped: # move slower when moving leg
+        if gripped and self._phase not in ['grasp_offset', 'grasp_leg', 'grip_leg']: # move slower when moving leg
             gripper_force = action[-2] #-1 for open 1 for completely closed
             grip_penalty = (1 - gripper_force) * -1
             ctrl_penalty += grip_penalty
