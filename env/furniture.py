@@ -1797,8 +1797,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         from util.video_recorder import VideoRecorder
         vr = VideoRecorder()
-        vr.add(self.render('rgb_array'))
-
+        if self._config.record:
+            vr.add(self.render('rgb_array'))
+        else:
+            self.render('rgb_array')
         if not config.unity:
             # override keyboard callback function of viewer
             import glfw
@@ -1891,8 +1893,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             ob, reward, done, info = self.step(action)
             logger.info(f'Action: {action}')
 
-            vr.add(self.render('rgb_array'))
-
+            if self._config.record:
+                vr.add(self.render('rgb_array'))
+            else:
+                self.render('rgb_array')
             if self.action == 'screenshot':
                 import imageio
                 img, depth = self.render('rgbd_array')
@@ -1923,8 +1927,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 flag = [-1, -1]
                 if config.debug: vr.save_video('test.mp4')
                 self.reset(config.furniture_id, config.background)
-                vr.add(self.render('rgb_array'))
-
+                if self._config.record:
+                    vr.add(self.render('rgb_array'))
+                else:
+                    self.render('rgb_array')
     def _get_reference(self):
         """
         Store ids / keys of objects, connector sites, and collision data in the scene
