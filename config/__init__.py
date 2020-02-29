@@ -73,6 +73,7 @@ def create_parser(env=None):
     parser.add_argument('--max_grad_norm', type=float, default=100)
     parser.add_argument('--max_global_step', type=int, default=int(5e6))
     parser.add_argument('--gpu', type=int, default=None)
+    parser.add_argument('--init_ckpt_path', type=str, default=None)
 
     # sac
     parser.add_argument('--reward_scale', type=float, default=1.0, help='reward scale')
