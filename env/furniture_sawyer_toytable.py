@@ -358,8 +358,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
             self._prev_rot_dist_project2_1 = rot_dist_project2_1
 
-            if offset_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
-                and rot_dist_project1_2 > 0.8:
+            if offset_dist < 0.03 and rot_dist_up > self._env_config['rot_dist_up'] \
+                and rot_dist_project1_2 > 0.8 and rot_dist_project2_1 > 0.8:
                 self._phase = 'move_leg_2'
                 aligned_rew = self._env_config['aligned_rew']
                 logger.warning('leg aligned with offset')
@@ -377,12 +377,14 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
             self._prev_rot_dist_project2_1 = rot_dist_project2_1
 
-
-            aligned_rew = self._env_config['aligned_rew'] / 10
             site_dist_diff = self._prev_site_dist - site_dist
             site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
             self._prev_site_dist = site_dist
             logger.debug(f'site_dist: {site_dist}')
+            if site_dist < 0.1:
+                aligned_rew = self._env_config['aligned_rew']/10
+                site_up_rew *= 10
+                site_dist_rew *= 10
 
             if rot_dist_up > self._env_config['rot_dist_up'] and rot_dist_project1_2 > 0.95 and rot_dist_project2_1 > 0.95 \
                 and site_dist < self._env_config['pos_dist'] :
