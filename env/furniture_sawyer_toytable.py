@@ -244,7 +244,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         # give reward for holding site stably
         grip_up_dist = grip_left_dist = 0
-        if gripped and self._phase in ['grasp_offset', 'grasp_leg', 'grip_leg', 'move_leg_up','move_leg','move_leg_2']:
+        if gripped or self._phase in ['grasp_offset', 'grasp_leg', 'grip_leg', 'move_leg_up','move_leg','move_leg_2']:
             # up vector of leg and up vector of grip site should be perpendicular
             grip_site_up = self._get_up_vector('2_part2_top_site')
             grip_up_dist = np.abs(T.cos_dist(hand_up, grip_site_up))
