@@ -275,7 +275,6 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-\
         point_above_topsite = top_site_xpos[:3] + np.array([0,0,self._env_config['topsite_z_offset']])
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
 
