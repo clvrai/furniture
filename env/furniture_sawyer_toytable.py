@@ -323,7 +323,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 self._prev_grip_pos_offset_dist = np.linalg.norm(hand_pos - self._grip_pos_offset)
 
         elif self._leg_picked and not gripped: # dropped the leg
-            done = True
+            #done = True
             pick_rew = -self._env_config['pick_rew'] / 2
 
         elif self._phase == 'move_leg_up': # move the leg up
