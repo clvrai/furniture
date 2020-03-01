@@ -25,20 +25,19 @@ class Info(object):
     def clear(self):
         self._info = defaultdict(list)
 
-    def get_dict(self, only_scalar=False):
+    def get_dict(self, reduction="mean", only_scalar=False):
         ret = {}
         for k, v in self._info.items():
             if np.isscalar(v):
                 ret[k] = v
             #elif hassattr(v[0], "shape") and len(v[0].shape) == 1:
-            elif isinstance(v[0], (int, float, bool, np.float32)):
-                if '_mean' in k:
+            elif isinstance(v[0], (int, float, bool, np.float32, np.int64)):
+                if '_mean' in k or reduction == "mean":
                     ret[k] = np.mean(v)
-                else:
+                elif reduction == "sum":
                     ret[k] = np.sum(v)
             elif not only_scalar:
                 ret[k] = v
-
         self.clear()
         return ret
 

@@ -120,7 +120,7 @@ class RolloutRunner(object):
             ep_info.add({'len': ep_len, 'rew': ep_rew})
             if gail:
                 ep_info.add({"rew_gail": ep_rew_gail})
-            reward_info_dict = reward_info.get_dict(only_scalar=True)
+            reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
 
             logger.info('rollout: %s',
