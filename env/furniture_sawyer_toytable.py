@@ -136,6 +136,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         self._phase = 'grasp_offset'
         if self._config.load_demo:
             self._phase = 'move_leg'
+            self._leg_picked = True
+            
         self._num_connect_successes = 0
         self._held_leg = 0
 
