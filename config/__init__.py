@@ -118,8 +118,9 @@ def create_parser(env=None):
 
     # il
     parser.add_argument('--max_epoch', type=int, default=10000, help='training epoch for behavior cloning')
-    parser.add_argument('--lr_bc', type=float, default=3e-3, help='learning rate for bc')
+    parser.add_argument('--lr_bc', type=float, default=1e-3, help='learning rate for bc')
     parser.add_argument('--demo_path', type=str, default=None, help='path to demos')
+    parser.add_argument('--gail_entropy_loss_coeff', type=float, default=1e-3)
 
     return parser
 
