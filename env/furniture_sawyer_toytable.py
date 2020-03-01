@@ -39,6 +39,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             "pick_rew": config.pick_rew,
             "ctrl_penalty": config.ctrl_penalty,
             "grip_z_offset": config.grip_z_offset,
+            "topsite_z_offset":config.topsite_z_offset,
             "hold_duration": config.hold_duration,
             "grip_penalty": config.grip_penalty,
         })
@@ -97,7 +98,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
         # calculate distance between site + z-offset and other site
-        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
+        point_above_topsite = top_site_xpos[:3] + np.array([0,0,self._env_config['topsite_z_offset']])
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_up = T.cos_dist(up1, up2)
@@ -275,7 +276,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
 
-        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.15])
+        point_above_topsite = top_site_xpos[:3] + np.array([0,0,self._env_config['topsite_z_offset']])
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
 
         if self._phase == 'grasp_offset': # make hand hover over object
@@ -348,14 +349,15 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._prev_offset_dist = offset_dist
             logger.debug(f'offset_dist: {offset_dist}')
 
-            # give smaller rew for making angular dist between sites
+           # give rew for making angular dist between sites
             site_up_diff = 0.5 * clamp(rot_dist_up - self._prev_rot_dist_up, -0.2, 0.2)
             site_up1_diff = 0.5 * clamp(rot_dist_project1_2 - self._prev_rot_dist_project1_2, -0.2,0.2)
-            site_up_diff +=  site_up1_diff
-            site_up_rew = 0.5 * self._env_config['site_up_rew'] * site_up_diff
-            logger.debug(f'offset rotation dist: {site_up_diff}')
+            site_up2_diff = 0.5 * clamp(rot_dist_project2_1 - self._prev_rot_dist_project2_1, -0.2, 0.2)
+            site_up_diff +=  (site_up1_diff + site_up2_diff)
+            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
             self._prev_rot_dist_up = rot_dist_up
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
+            self._prev_rot_dist_project2_1 = rot_dist_project2_1
 
             if offset_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
                 and rot_dist_project1_2 > 0.8:
@@ -386,7 +388,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             if rot_dist_up > self._env_config['rot_dist_up'] and rot_dist_project1_2 > 0.95 and rot_dist_project2_1 > 0.95 \
                 and site_dist < self._env_config['pos_dist'] :
                 self._phase = 'connect'
-                aligned_rew = self._env_config['aligned_rew']
+                aligned_rew = 10 * self._env_config['aligned_rew']
                 logger.warning('leg aligned with site')
 
         elif self._phase == 'connect':
