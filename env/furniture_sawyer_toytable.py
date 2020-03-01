@@ -275,7 +275,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-
+\
         point_above_topsite = top_site_xpos[:3] + np.array([0,0,self._env_config['topsite_z_offset']])
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
 
@@ -323,7 +323,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 self._grip_pos_offset = hand_pos + np.array([0, 0, 0.15])
                 self._prev_grip_pos_offset_dist = np.linalg.norm(hand_pos - self._grip_pos_offset)
 
-        elif self._leg_picked and not gripped: # dropped the leg
+        elif self._leg_picked and not gripped and np.linalg.norm(hand_pos - grasp_pos) > 0.3: # dropped the leg on the ground and hand is far away
             done = True
             pick_rew = -self._env_config['pick_rew'] / 2
 
