@@ -363,9 +363,9 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 aligned_rew = self._env_config['aligned_rew']
                 logger.warning('leg aligned with offset')
 
-        elif self._phase == 'move_leg_2':
+        elif self._phase == 'move_leg_2': # multiple site rews by 2 for faster conv
             site_dist_diff = self._prev_site_dist - site_dist
-            site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
+            site_dist_rew = 2 * self._env_config['site_dist_rew'] * site_dist_diff
             self._prev_site_dist = site_dist
             logger.debug(f'site_dist: {site_dist}')
 
@@ -373,7 +373,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             site_up_diff = 0.5 * clamp(rot_dist_up - self._prev_rot_dist_up, -0.2, 0.2)
             site_up1_diff = 0.5 * clamp(rot_dist_project1_2 - self._prev_rot_dist_project1_2, -0.2,0.2)
             site_up_diff +=  site_up1_diff
-            site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+            site_up_rew = 2 * self._env_config['site_up_rew'] * site_up_diff
             self._prev_rot_dist_up = rot_dist_up
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
 
