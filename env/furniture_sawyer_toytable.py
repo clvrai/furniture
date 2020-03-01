@@ -26,7 +26,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         # default values for rew function
         self._env_config.update({
             "pos_dist": 0.06,
-            "rot_dist_up": 0.97,
+            "rot_dist_up": 0.95,
             "rot_dist_forward": 0.9,
             "project_dist": -1,
             "site_dist_rew": config.site_dist_rew,
@@ -249,7 +249,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         # give reward for holding site stably
         grip_up_dist = grip_left_dist = grip_rew = 0
-        if gripped or self._phase in ['grasp_offset', 'grasp_leg', 'grip_leg', 'move_leg_up','move_leg','move_leg_2']:
+        if gripped or self._phase in ['grasp_offset', 'grasp_leg', 'grip_leg', 'move_leg_up','move_leg']:
             # up vector of leg and up vector of grip site should be perpendicular
             grip_site_up = self._get_up_vector('2_part2_top_site')
             grip_up_dist = np.abs(T.cos_dist(hand_up, grip_site_up))
@@ -375,7 +375,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
 
             if rot_dist_up > self._env_config['rot_dist_up'] \
-                and rot_dist_project1_2 > 0.97:
+                and rot_dist_project1_2 > 0.95:
                 aligned_rew = self._env_config['aligned_rew']
                 site_dist_diff = self._prev_site_dist - site_dist
                 site_dist_rew = 2 * self._env_config['site_dist_rew'] * site_dist_diff
@@ -393,7 +393,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 connect_rew +=  self._env_config['connect_rew']
             if self._num_connected > 0:
                 success_rew = self._env_config['success_rew']
-                # done = True
+                done = True
 
 
         info['phase'] = self._phase
