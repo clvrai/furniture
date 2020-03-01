@@ -137,7 +137,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         if self._config.load_demo:
             self._phase = 'move_leg'
             self._leg_picked = True
-            
+
         self._num_connect_successes = 0
         self._held_leg = 0
 
@@ -364,10 +364,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 logger.warning('leg aligned with offset')
 
         elif self._phase == 'move_leg_2': # multiple site rews by 2 for faster conv
-            site_dist_diff = self._prev_site_dist - site_dist
-            site_dist_rew = 2 * self._env_config['site_dist_rew'] * site_dist_diff
-            self._prev_site_dist = site_dist
-            logger.debug(f'site_dist: {site_dist}')
+
 
             # give rew for making angular dist between sites
             site_up_diff = 0.5 * clamp(rot_dist_up - self._prev_rot_dist_up, -0.2, 0.2)
@@ -377,11 +374,18 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._prev_rot_dist_up = rot_dist_up
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
 
-            if site_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
-                and rot_dist_project1_2 > 0.98:
-                self._phase = 'connect'
+            if rot_dist_up > self._env_config['rot_dist_up'] \
+                and rot_dist_project1_2 > 0.97:
                 aligned_rew = self._env_config['aligned_rew']
-                logger.warning('leg aligned with site')
+                site_dist_diff = self._prev_site_dist - site_dist
+                site_dist_rew = 2 * self._env_config['site_dist_rew'] * site_dist_diff
+                self._prev_site_dist = site_dist
+                logger.debug(f'site_dist: {site_dist}')
+
+                if site_dist < self._env_config['pos_dist'] :
+                    self._phase = 'connect'
+                    aligned_rew = self._env_config['aligned_rew']
+                    logger.warning('leg aligned with site')
 
         elif self._phase == 'connect':
             connect = action[-1]
