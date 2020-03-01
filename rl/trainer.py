@@ -203,13 +203,37 @@ class Trainer(object):
         if self._is_chef:
             pbar = tqdm(initial=update_iter, total=config.max_epoch, desc=config.run_name)
 
+        # decide how many episodes or how long rollout to collect
+        run_ep_max = 1
+        run_step_max = self._config.rollout_length
+        if self._config.algo in ['ppo', 'gail']:
+            run_ep_max = 1000
+        elif self._config.algo == 'sac':
+            run_step_max = 10000
+
+        # dummy run for preventing weird error in a cold run
+        self._runner.run_episode()
+
         st_time = time()
         st_step = step
         while update_iter < config.max_epoch:
+            # collect rollouts
+            run_ep = 0
+            run_step = 0
+            while run_step < run_step_max and run_ep < run_ep_max:
+                rollout, info, _ = \
+                    self._runner.run_episode()
+                run_step += info['len']
+                run_ep += 1
+                self._save_success_qpos(info)
+                logger.info('rollout: %s', {k: v for k, v in info.items() if not 'qpos' in k})
+                self._agent.store_episode(rollout)
+
+            step_per_batch = mpi_sum(run_step)
+
             # train an agent
             logger.info('Update networks %d', update_iter)
             train_info = self._agent.train()
-            logger.info('loss: %f', train_info['actor_loss'])
             step_per_batch = mpi_sum(config.num_batches * config.batch_size)
 
             logger.info('Update networks done')

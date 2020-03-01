@@ -66,6 +66,7 @@ class RolloutRunner(object):
         device = config.device
         env = self._env
         pi = self._pi
+        gail = config.algo == "gail"
 
         # initialize rollout buffer
         rollout = Rollout()
@@ -75,6 +76,8 @@ class RolloutRunner(object):
         done = False
         ep_len = 0
         ep_rew = 0
+        if gail:
+            ep_rew_gail = 0
         ob = self._env.reset()
 
         self._record_frames = []
@@ -87,18 +90,27 @@ class RolloutRunner(object):
 
             rollout.add({'ob': ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
 
+            if gail:
+                reward_gail = pi.predict_reward(ob, ac)
+
             # take a step
             ob, reward, done, info = env.step(ac)
 
-            rollout.add({'done': done, 'rew': reward})
+            rollout.add({'done': done,
+                         'rew': reward_gail if gail else reward})
             acs.append(ac)
             ep_len += 1
             ep_rew += reward
+            if gail:
+                ep_rew_gail += reward_gail
 
             for key, value in info.items():
                 reward_info[key].append(value)
             if record:
                 frame_info = info.copy()
+                if gail:
+                    frame_info.update({"ep_rew_gail": ep_rew_gail,
+                                       "rew_gail": reward_gail})
                 self._store_frame(frame_info)
 
         # last frame
@@ -106,6 +118,8 @@ class RolloutRunner(object):
 
         # compute average/sum of information
         ep_info = {'len': ep_len, 'rew': ep_rew}
+        if gail:
+            ep_info["rew_gail"] = ep_rew_gail
         for key, value in reward_info.items():
             if isinstance(value[0], (int, float, bool, np.float32)):
                 if '_mean' in key:
