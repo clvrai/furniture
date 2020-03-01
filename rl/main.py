@@ -31,7 +31,7 @@ def run(config):
     set_log_path(config)
 
     config.seed = config.seed + rank
-    config.port = config.port + rank
+    # config.port = config.port + rank * 2 # training env + evaluation env
 
     if config.is_chef:
         logger.warn('Run a base worker.')

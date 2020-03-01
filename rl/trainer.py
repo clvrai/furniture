@@ -9,6 +9,7 @@ from collections import defaultdict, OrderedDict
 import gzip
 import pickle
 import h5py
+import copy
 
 import torch
 import wandb
@@ -56,8 +57,12 @@ class Trainer(object):
         """
         self._config = config
         self._is_chef = config.is_chef
+        self._is_rl = config.algo in ['ppo', 'sac']
 
-        # create a new environment
+        # create environment
+        self._env_eval = make_env(config.env, copy.copy(config)) if self._is_chef else None
+
+        config.unity = False # disable Unity for training
         self._env = make_env(config.env, config)
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
@@ -73,7 +78,7 @@ class Trainer(object):
 
         # build rollout runner
         self._runner = RolloutRunner(
-            config, self._env, self._agent
+            config, self._env, self._env_eval, self._agent
         )
 
         # setup log
@@ -181,14 +186,13 @@ class Trainer(object):
 
     def train(self):
         """ Trains an agent. """
-        if self._config.algo in ["bc", "gail"]:
-            self._train_il()
-        else:
+        if self._is_rl:
             self._train_rl()
+        else:
+            self._train_il()
 
     def _train_il(self):
         """ Trains an IL agent. """
-
         config = self._config
 
         # load checkpoint
@@ -204,37 +208,25 @@ class Trainer(object):
             pbar = tqdm(initial=update_iter, total=config.max_epoch, desc=config.run_name)
 
         # decide how many episodes or how long rollout to collect
-        run_ep_max = 1
-        run_step_max = self._config.rollout_length
-        if self._config.algo in ['ppo', 'gail']:
-            run_ep_max = 1000
-        elif self._config.algo == 'sac':
-            run_step_max = 10000
-
-        # dummy run for preventing weird error in a cold run
-        self._runner.run_episode()
+        if self._config.algo == 'gail':
+            runner = self._runner.run(every_steps=self._config.rollout_length)
+        elif self._config.algo == 'bc':
+            runner = None
 
         st_time = time()
         st_step = step
         while update_iter < config.max_epoch:
             # collect rollouts
-            run_ep = 0
-            run_step = 0
-            while run_step < run_step_max and run_ep < run_ep_max:
-                rollout, info, _ = \
-                    self._runner.run_episode()
-                run_step += info['len']
-                run_ep += 1
-                self._save_success_qpos(info)
-                logger.info('rollout: %s', {k: v for k, v in info.items() if not 'qpos' in k})
+            if runner:
+                rollout, info = next(runner)
                 self._agent.store_episode(rollout)
-
-            step_per_batch = mpi_sum(run_step)
+                step_per_batch = mpi_sum(len(rollout['ac']))
+            else:
+                step_per_batch = mpi_sum(1)
 
             # train an agent
             logger.info('Update networks %d', update_iter)
             train_info = self._agent.train()
-            step_per_batch = mpi_sum(config.num_batches * config.batch_size)
 
             logger.info('Update networks done')
 
@@ -286,32 +278,19 @@ class Trainer(object):
             ep_info = defaultdict(list)
 
         # decide how many episodes or how long rollout to collect
-        run_ep_max = 1
-        run_step_max = self._config.rollout_length
         if self._config.algo == 'ppo':
-            run_ep_max = 1000
+            runner = self._runner.run(every_steps=self._config.rollout_length)
         elif self._config.algo == 'sac':
-            run_step_max = 10000
-
-        # dummy run for preventing weird error in a cold run
-        self._runner.run_episode()
+            runner = self._runner.run(every_steps=1)
 
         st_time = time()
         st_step = step
         while step < config.max_global_step:
             # collect rollouts
-            run_ep = 0
-            run_step = 0
-            while run_step < run_step_max and run_ep < run_ep_max:
-                rollout, info, _ = \
-                    self._runner.run_episode()
-                run_step += info['len']
-                run_ep += 1
-                self._save_success_qpos(info)
-                logger.info('rollout: %s', {k: v for k, v in info.items() if not 'qpos' in k})
-                self._agent.store_episode(rollout)
+            rollout, info = next(runner)
+            self._agent.store_episode(rollout)
 
-            step_per_batch = mpi_sum(run_step)
+            step_per_batch = mpi_sum(len(rollout['ac']))
 
             # train an agent
             logger.info('Update networks %d', update_iter)
@@ -360,25 +339,6 @@ class Trainer(object):
         if self._config.ob_norm:
             self._agent.update_normalizer(rollout['ob'])
 
-    def _save_success_qpos(self, info):
-        """ Saves the final qpos of successful trajectory. """
-        if self._config.save_qpos and info['episode_success']:
-            path = os.path.join(self._config.record_dir, 'qpos.p')
-            with h5py.File(path, 'a') as f:
-                key_id = len(f.keys())
-                num_qpos = len(info['saved_qpos'])
-                for qpos_to_save in info['saved_qpos']:
-                    f['{}'.format(key_id)] = qpos_to_save
-                    key_id += 1
-        if self._config.save_success_qpos and info['episode_success']:
-            path = os.path.join(self._config.record_dir, 'success_qpos.p')
-            with h5py.File(path, 'a') as f:
-                key_id = len(f.keys())
-                num_qpos = len(info['saved_qpos'])
-                for qpos_to_save in info['saved_qpos'][int(num_qpos / 2):]:
-                    f['{}'.format(key_id)] = qpos_to_save
-                    key_id += 1
-
     def _evaluate(self, step=None, record=False, idx=None):
         """
         Runs one rollout if in eval mode (@idx is not None).
@@ -408,7 +368,6 @@ class Trainer(object):
                 break
 
         logger.info('rollout: %s', {k: v for k, v in info.items() if not 'qpos' in k})
-        self._save_success_qpos(info)
         return rollout, info
 
     def evaluate(self):

@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 
 from util.logger import logger
+from util.info_dict import Info
 
 
 class Rollout(object):
@@ -41,7 +42,7 @@ class RolloutRunner(object):
     Run rollout given environment and policy.
     """
 
-    def __init__(self, config, env, pi):
+    def __init__(self, config, env, env_eval, pi):
         """
         Args:
             config: configurations for the environment.
@@ -51,7 +52,86 @@ class RolloutRunner(object):
 
         self._config = config
         self._env = env
+        self._env_eval = env_eval
         self._pi = pi
+
+    def run(self, is_train=True, every_steps=None, every_episodes=None):
+        """
+        Collects trajectories and yield every @every_steps/@every_episodes.
+
+        Args:
+            is_train: whether rollout is for training or evaluation.
+            every_steps: if not None, returns rollouts @every_steps
+            every_episodes: if not None, returns rollouts @every_epiosdes
+        """
+        if every_steps is None and every_episodes is None:
+            raise ValueError("Both every_steps and every_episodes cannot be None")
+
+        config = self._config
+        device = config.device
+        env = self._env if is_train else self._env_eval
+        pi = self._pi
+        gail = config.algo == "gail"
+
+        # initialize rollout buffer
+        rollout = Rollout()
+        reward_info = Info()
+        ep_info = Info()
+        step = 0
+        episode = 0
+
+        while True:
+            done = False
+            ep_len = 0
+            ep_rew = 0
+            if gail:
+                ep_rew_gail = 0
+            ob = env.reset()
+
+            # run rollout
+            while not done:
+                # sample action from policy
+                ac, ac_before_activation = pi.act(ob, is_train=is_train)
+
+                rollout.add({'ob': ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
+
+                if gail:
+                    reward_gail = pi.predict_reward(ob, ac)
+
+                # take a step
+                ob, reward, done, info = env.step(ac)
+
+                rollout.add({'done': done,
+                             'rew': reward_gail if gail else reward})
+                step += 1
+                ep_len += 1
+                ep_rew += reward
+                if gail:
+                    ep_rew_gail += reward_gail
+
+                reward_info.add(info)
+
+                if every_steps is not None and step % every_steps == 0:
+                    # last frame
+                    rollout.add({'ob': ob})
+                    yield rollout.get(), ep_info.get_dict(only_scalar=True)
+
+            # compute average/sum of information
+            ep_info.add({'len': ep_len, 'rew': ep_rew})
+            if gail:
+                ep_info.add({"rew_gail": ep_rew_gail})
+            reward_info_dict = reward_info.get_dict(only_scalar=True)
+            ep_info.add(reward_info_dict)
+
+            logger.info('rollout: %s',
+                        {k: v for k, v in reward_info_dict.items()
+                         if not 'qpos' in k and np.isscalar(v)})
+
+            episode += 1
+            if every_episodes is not None and episode % every_episodes == 0:
+                # last frame
+                rollout.add({'ob': ob})
+                yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
     def run_episode(self, max_step=10000, is_train=True, record=False):
         """
@@ -64,24 +144,23 @@ class RolloutRunner(object):
         """
         config = self._config
         device = config.device
-        env = self._env
+        env = self._env if is_train else self._env_eval
         pi = self._pi
         gail = config.algo == "gail"
 
         # initialize rollout buffer
         rollout = Rollout()
         reward_info = defaultdict(list)
-        acs = []
 
         done = False
         ep_len = 0
         ep_rew = 0
         if gail:
             ep_rew_gail = 0
-        ob = self._env.reset()
+        ob = env.reset()
 
         self._record_frames = []
-        if record: self._store_frame()
+        if record: self._store_frame(env)
 
         # run rollout
         while not done and ep_len < max_step:
@@ -98,7 +177,6 @@ class RolloutRunner(object):
 
             rollout.add({'done': done,
                          'rew': reward_gail if gail else reward})
-            acs.append(ac)
             ep_len += 1
             ep_rew += reward
             if gail:
@@ -111,10 +189,7 @@ class RolloutRunner(object):
                 if gail:
                     frame_info.update({"ep_rew_gail": ep_rew_gail,
                                        "rew_gail": reward_gail})
-                self._store_frame(frame_info)
-
-        # last frame
-        rollout.add({'ob': ob})
+                self._store_frame(env, frame_info)
 
         # compute average/sum of information
         ep_info = {'len': ep_len, 'rew': ep_rew}
@@ -129,19 +204,19 @@ class RolloutRunner(object):
 
         return rollout.get(), ep_info, self._record_frames
 
-    def _store_frame(self, info={}):
+    def _store_frame(self, env, info={}):
         """ Renders a frame and stores in @self._record_frames. """
         color = (200, 200, 200)
 
         # render video frame
-        frame = self._env.render('rgb_array')[0] * 255.0
+        frame = env.render('rgb_array')[0] * 255.0
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 
         if self._config.record_caption:
             # add caption to video frame
-            text = "{:4} {}".format(self._env._episode_length,
-                                    self._env._episode_reward)
+            text = "{:4} {}".format(env._episode_length,
+                                    env._episode_reward)
             font_size = 0.4
             thickness = 1
             offset = 12

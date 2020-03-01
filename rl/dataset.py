@@ -7,45 +7,51 @@ import numpy as np
 class ReplayBuffer:
     def __init__(self, keys, buffer_size, sample_func):
         self._size = buffer_size
-
-        # memory management
-        self._idx = 0
-        self._current_size = 0
         self._sample_func = sample_func
 
         # create the buffer to store info
         self._keys = keys
-        self._buffers = defaultdict(list)
+        self.clear()
 
     def clear(self):
         self._idx = 0
         self._current_size = 0
-        self._buffers = defaultdict(list)
+        self._new_episode = True
+        self._buffer = defaultdict(list)
 
     # store the episode
     def store_episode(self, rollout):
-        idx = self._idx = (self._idx + 1) % self._size
-        self._current_size += 1
-
-        if self._current_size > self._size:
+        if self._new_episode:
             for k in self._keys:
-                self._buffers[k][idx] = rollout[k]
+                if self._current_size < self._size:
+                    self._buffer[k].append(rollout[k])
+                else:
+                    self._buffer[k][self._idx] = rollout[k]
         else:
             for k in self._keys:
-                self._buffers[k].append(rollout[k])
+                if k == 'ob':
+                    self._buffer[k][self._idx].append(rollout[k][1:])
+                else:
+                    self._buffer[k][self._idx].append(rollout[k])
+
+        assert len(self._buffer['ob'][self._idx]) == len(self._buffer['ac'][self._idx]) + 1
+        if rollout['done'][-1]:
+            self._idx = (self._idx + 1) % self._size
+            self._current_size += 1
+            self._new_episode = True
 
     # sample the data from the replay buffer
     def sample(self, batch_size):
         # sample transitions
-        transitions = self._sample_func(self._buffers, batch_size)
+        transitions = self._sample_func(self._buffer, batch_size)
         return transitions
 
     def state_dict(self):
-        return self._buffers
+        return self._buffer
 
     def load_state_dict(self, state_dict):
-        self._buffers = state_dict
-        self._current_size = len(self._buffers['ac'])
+        self._buffer = state_dict
+        self._current_size = len(self._buffer['ac'])
 
 
 class RandomSampler:

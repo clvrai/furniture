@@ -27,6 +27,7 @@ class ILDataset(Dataset):
                 # add observations
                 for ob in demo['obs']:
                     self._obs.append(ob)
+                self._obs.pop()
 
                 # add actions
                 for ac in demo['actions']:
@@ -36,6 +37,8 @@ class ILDataset(Dataset):
                 if 'rewards' in demo:
                     for rew in demo['rewards']:
                         self._rews.append(rew)
+
+                assert len(demo['obs']) == len(demo['actions']) + 1
 
     def _get_demo_files(self, tgtfilestr):
         demos = []

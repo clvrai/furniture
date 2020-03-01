@@ -105,10 +105,6 @@ def create_parser(env=None):
     parser.add_argument('--record_caption', type=str2bool, default=True)
     parser.add_argument('--num_record_samples', type=int, default=1,
                         help='number of trajectories to collect during eval')
-    parser.add_argument('--save_qpos', type=str2bool, default=False,
-                        help='save entire qpos history of success rollouts to file (for idle primitive training)')
-    parser.add_argument('--save_success_qpos', type=str2bool, default=False,
-                        help='save later segment of success rollouts to file (for moving and placing primitie trainings)')
 
     # misc
     parser.add_argument('--prefix', type=str, default='test')
