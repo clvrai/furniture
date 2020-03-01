@@ -376,7 +376,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
             if rot_dist_up > self._env_config['rot_dist_up'] \
                 and rot_dist_project1_2 > 0.95:
-                aligned_rew = self._env_config['aligned_rew']
+                aligned_rew = self._env_config['aligned_rew'] / 10
                 site_dist_diff = self._prev_site_dist - site_dist
                 site_dist_rew = 2 * self._env_config['site_dist_rew'] * site_dist_diff
                 self._prev_site_dist = site_dist
