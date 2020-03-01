@@ -56,6 +56,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         """
         # discretize gripper action
         if self._discretize_grip:
+            a = a.copy()
             a[-2] = -1 if a[-2] < 0 else 1
 
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
@@ -243,7 +244,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         #    ctrl_penalty += grip_penalty
 
         # give reward for holding site stably
-        grip_up_dist = grip_left_dist = 0
+        grip_up_dist = grip_left_dist = grip_rew = 0
         if gripped or self._phase in ['grasp_offset', 'grasp_leg', 'grip_leg', 'move_leg_up','move_leg','move_leg_2']:
             # up vector of leg and up vector of grip site should be perpendicular
             grip_site_up = self._get_up_vector('2_part2_top_site')
@@ -300,8 +301,14 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             if grip_dist < 0.02 and (hand_pos[-1] - grasp_pos[-1]) < 0.001 and grip_up_dist < 0.12 and grip_left_dist > 0.9:
                 logger.warning('Done with grasp leg alignment')
                 self._phase = 'grip_leg'
+                aligned_rew = self._env_config['aligned_rew']
 
         elif self._phase == 'grip_leg': # close the gripper
+            # give reward for closing the gripper
+            gripper_force = action[-2] #-1 for open 1 for completely closed
+            grip_rew = (gripper_force + 1) * 0.5
+            pick_rew += grip_rew
+
             if gripped:
                 logger.warning('Gripped leg')
                 pick_rew = self._env_config['pick_rew']
@@ -416,6 +423,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info['aligned_rew'] = aligned_rew
         info['connect_rew'] = connect_rew
         info['success_rew'] = success_rew
+        info['grip_rew'] = grip_rew
         info['grip_penalty'] = grip_penalty
         info['ctrl_penalty'] = ctrl_penalty
         info['rot_dist_up'] = rot_dist_up
