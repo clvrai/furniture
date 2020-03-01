@@ -161,7 +161,7 @@ class PPOAgent(BaseAgent):
         # update the actor
         self._actor_optim.zero_grad()
         actor_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
         sync_grads(self._actor)
         self._actor_optim.step()
 

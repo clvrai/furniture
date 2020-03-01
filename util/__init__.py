@@ -24,3 +24,5 @@ def parse_demo_file_name(file_path):
     furniture_name = '_'.join(parts[1:-1])
     return agent_name, furniture_name
 
+def clamp(num, low, high):
+    return max(low, min(num, high))
