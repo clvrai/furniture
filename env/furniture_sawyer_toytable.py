@@ -210,6 +210,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         rew = pick_rew = grip_up_rew = grip_dist_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = \
             aligned_rew = ctrl_penalty = 0
         done = self._num_connected > 0
+        if done:
+            logger.warning("Success")
         info = {}
 
         ctrl_penalty = self._ctrl_reward(action)
@@ -437,7 +439,21 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerToyTableEnv(config)
-    env.run_manual(config)
+    #env.run_manual(config)
+
+    import pickle
+    with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
+        demo = pickle.load(f)
+    env.reset()
+    print(len(demo['actions']))
+
+    from util.video_recorder import VideoRecorder
+    vr = VideoRecorder()
+    vr.add(env.render('rgb_array')[0])
+    for ac in demo['actions']:
+        env.step(ac)
+        vr.add(env.render('rgb_array')[0])
+    vr.save_video('test.mp4')
 
 
 if __name__ == "__main__":
