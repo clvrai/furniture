@@ -136,6 +136,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         self._prev_grip_dist = grip_dist
         self._phase = 'grasp_offset'
+        if self._config.load_demo:
+            self._phase = 'move_leg'
         self._num_connect_successes = 0
         self._held_leg = 0
 
@@ -358,30 +360,6 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 self._phase = 'move_leg_2'
                 aligned_rew = self._env_config['aligned_rew']
                 logger.warning('leg aligned with offset')
-
-        # elif self._phase == 'align_leg': # focus more on angular alignment
-
-        #     site_dist_diff = self._prev_offset_dist - offset_dist
-        #     site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
-        #     self._prev_offset_dist = offset_dist
-        #     logger.debug(f'offset_dist: {offset_dist}')
-
-        #     # give more rew for making angular dist between sites
-        #     site_up_diff = rot_dist_up - self._prev_rot_dist_up
-        #     site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
-        #     site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
-        #     site_up_rew = self._env_config['site_up_rew'] * site_up_diff
-        #     logger.debug(f'offset rotation dist: {site_up_diff}')
-        #     self._prev_rot_dist_up = rot_dist_up
-        #     self._prev_rot_dist_project1_2 = rot_dist_project1_2
-        #     self._prev_rot_dist_project2_1 = rot_dist_project2_1
-
-        #     if offset_dist < self._env_config['pos_dist'] and rot_dist_up > self._env_config['rot_dist_up'] \
-        #         and rot_dist_project1_2 > 0.98 and rot_dist_project2_1 > 0.98:
-        #         self._phase = 'move_leg_2'
-        #         aligned_rew = self._env_config['aligned_rew']
-        #         logger.warning('leg aligned with offset')
-
 
         elif self._phase == 'move_leg_2':
             site_dist_diff = self._prev_site_dist - site_dist
