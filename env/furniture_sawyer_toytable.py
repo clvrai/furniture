@@ -25,7 +25,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         super().__init__(config)
         # default values for rew function
         self._env_config.update({
-            "pos_dist": 0.06,
+            "pos_dist": 0.04,
             "rot_dist_up": 0.95,
             "rot_dist_forward": 0.9,
             "project_dist": -1,
@@ -406,7 +406,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 self._prev_z_dist = z_dist
 
             if rot_dist_up > self._env_config['rot_dist_up'] and rot_dist_project1_2 > 0.95 and rot_dist_project2_1 > 0.95 \
-                and site_dist < self._env_config['pos_dist'] and xy_dist <= 0.005:
+                and z_dist < 0.03 and xy_dist <= 0.005:
                 # self._phase = 'connect'
                 aligned_rew = 10 * self._env_config['aligned_rew']
                 logger.warning('leg aligned with site')
