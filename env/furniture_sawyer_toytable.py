@@ -42,6 +42,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             "topsite_z_offset":config.topsite_z_offset,
             "hold_duration": config.hold_duration,
             "grip_penalty": config.grip_penalty,
+            "xy_dist_rew": config.xy_dist_rew,
+            "z_dist_rew": config.z_dist_rew,
         })
         self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
@@ -142,6 +144,12 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         self._num_connect_successes = 0
         self._held_leg = 0
 
+        xy_dist = T.l2_dist(top_site_xpos[:2], leg_site_xpos[:2])
+        self._prev_xy_dist = xy_dist
+
+        z_dist = np.abs(top_site_xpos[2] - leg_site_xpos[2])
+        self._prev_z_dist = z_dist
+
 
     def _finger_contact(self, obj):
         """
@@ -214,7 +222,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         connection site.
         """
         rew = pick_rew = grip_up_rew = grip_dist_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = \
-            aligned_rew = ctrl_penalty = 0
+            aligned_rew = ctrl_penalty = xy_dist_rew = z_dist_rew = 0
         done = self._num_connected > 0
         if done:
             logger.warning("Success")
@@ -380,14 +388,25 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             site_dist_diff = self._prev_site_dist - site_dist
             site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
             self._prev_site_dist = site_dist
-            logger.debug(f'site_dist: {site_dist}')
-            if site_dist < 0.1:
-                aligned_rew = self._env_config['aligned_rew']/10
-                site_up_rew *= 10
-                site_dist_rew *= 10
+            # logger.debug(f'site_dist: {site_dist}')
+            # logger.debug(f'xy dist: {T.l2_dist(top_site_xpos[:2], leg_site_xpos[:2])}')
+            # logger.debug(f'z dist: {top_site_xpos[2] - leg_site_xpos[2]}')
+            # minimize the xy distance, and if xy distance is beneath some threshold
+            # then give z reward
+            xy_dist = T.l2_dist(top_site_xpos[:2], leg_site_xpos[:2])
+            xy_dist_offset = self._prev_xy_dist - xy_dist
+            xy_dist_rew = self._env_config['xy_dist_rew'] * xy_dist_offset
+            self._prev_xy_dist = xy_dist
+            # logger.warning(f'xy_dist {xy_dist}')
+            if xy_dist <= 0.005:
+                z_dist = np.abs(top_site_xpos[2] -  leg_site_xpos[2])
+                z_dist_offset = self._prev_z_dist - z_dist
+                z_dist_rew = self._env_config['z_dist_rew'] * z_dist_offset
+                logger.warning(f'xy_dist_rew {xy_dist_rew}, z_dist_rew {z_dist_rew}')
+                self._prev_z_dist = z_dist
 
             if rot_dist_up > self._env_config['rot_dist_up'] and rot_dist_project1_2 > 0.95 and rot_dist_project2_1 > 0.95 \
-                and site_dist < self._env_config['pos_dist'] :
+                and site_dist < self._env_config['pos_dist'] and xy_dist <= 0.005:
                 self._phase = 'connect'
                 aligned_rew = 10 * self._env_config['aligned_rew']
                 logger.warning('leg aligned with site')
@@ -409,6 +428,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info['pick_rew'] = pick_rew
         info['site_dist_rew'] = site_dist_rew
         info['site_up_rew'] = site_up_rew
+        info['xy_dist_rew'] = xy_dist_rew
+        info['z_dist_rew'] = z_dist_rew
         info['aligned_rew'] = aligned_rew
         info['connect_rew'] = connect_rew
         info['success_rew'] = success_rew
@@ -420,7 +441,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info['offset_dist'] = offset_dist
 
         rew = pick_rew + grip_dist_rew + grip_up_rew + site_dist_rew + site_up_rew + connect_rew + \
-               + aligned_rew + success_rew + ctrl_penalty
+               + aligned_rew + success_rew + ctrl_penalty + xy_dist_rew + z_dist_rew
         return rew, done, info
 
 
