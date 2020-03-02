@@ -7,7 +7,7 @@ def add_argument(parser):
     parser.add_argument('--site_up_rew', type=float, default=10, help='rew for angular dist between site up vecs')
     parser.add_argument('--grip_up_rew', type=float, default=2, help='rew for angular dist between grip and site up vecs')
     parser.add_argument('--connect_rew', type=float, default=25, help='rew for connecting')
-    parser.add_argument('--success_rew', type=float, default=100, help='rew for successful connect')
+    parser.add_argument('--success_rew', type=float, default=5000, help='rew for successful connect')
     parser.add_argument('--pick_rew', type=float, default=10, help='rew for successful pick')
     parser.add_argument('--aligned_rew', type=float, default=10, help='rew for successful pick and rot')
     parser.add_argument('--ctrl_penalty', type=float, default=0.00001, help='penalty for moving')

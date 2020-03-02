@@ -407,17 +407,17 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
             if rot_dist_up > self._env_config['rot_dist_up'] and rot_dist_project1_2 > 0.95 and rot_dist_project2_1 > 0.95 \
                 and site_dist < self._env_config['pos_dist'] and xy_dist <= 0.005:
-                self._phase = 'connect'
+                # self._phase = 'connect'
                 aligned_rew = 10 * self._env_config['aligned_rew']
                 logger.warning('leg aligned with site')
+        # elif self._phase == 'connect':
+                connect = action[-1]
+                if connect > 0:
+                    connect_rew +=  self._env_config['connect_rew']
 
-        elif self._phase == 'connect':
-            connect = action[-1]
-            if connect > 0:
-                connect_rew +=  self._env_config['connect_rew']
-            if self._num_connected > 0:
-                success_rew = self._env_config['success_rew']
-                done = True
+    if self._num_connected > 0:
+        success_rew = self._env_config['success_rew']
+        done = True
 
 
         info['phase'] = self._phase
