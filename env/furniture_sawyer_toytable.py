@@ -415,9 +415,9 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 if connect > 0:
                     connect_rew +=  self._env_config['connect_rew']
 
-    if self._num_connected > 0:
-        success_rew = self._env_config['success_rew']
-        done = True
+        if self._num_connected > 0:
+            success_rew = self._env_config['success_rew']
+            done = True
 
 
         info['phase'] = self._phase
