@@ -16,4 +16,5 @@ def add_argument(parser):
     parser.add_argument('--topsite_z_offset', type=float, default=0.07, help='z offset for above top site')
     parser.add_argument('--hold_duration', type=int, default=1, help='number of frames to hold leg')
     parser.add_argument('--discretize_grip', type=str2bool, default=False, help='make grip dimension discrete action')
-    parser.add_argument('--xy_dist_rew', type=float, default=50, help='rew for successful xy dist')  parser.add_argument('--z_dist_rew', type=float, default=50, help='rew for successful z')
+    parser.add_argument('--xy_dist_rew', type=float, default=50, help='rew for successful xy dist')
+    parser.add_argument('--z_dist_rew', type=float, default=50, help='rew for successful z')
