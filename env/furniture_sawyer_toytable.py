@@ -399,8 +399,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                 xy_dist_rew = self._env_config['xy_dist_rew'] * xy_dist_offset
                 self._prev_xy_dist = xy_dist
                 # logger.warning(f'xy_dist {xy_dist}')
+                z_dist = np.abs(top_site_xpos[2] -  leg_site_xpos[2])
                 if xy_dist <= 0.005:
-                    z_dist = np.abs(top_site_xpos[2] -  leg_site_xpos[2])
                     z_dist_offset = self._prev_z_dist - z_dist
                     z_dist_rew = self._env_config['z_dist_rew'] * z_dist_offset
                     logger.warning(f'xy_dist_rew {xy_dist_rew}, z_dist_rew {z_dist_rew}')
