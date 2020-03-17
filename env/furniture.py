@@ -1085,7 +1085,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _place_objects(self):
         """
-        Returns the fixed initial positions and rotations of furniture parts.
+        Returns the randomly distributed initial positions and rotations of furniture parts.
 
         Returns:
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
@@ -1117,9 +1117,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         # reset simulation data and clear buffers
         self.sim.reset()
 
-        # store robot's condim and contype
-        robot_col = {}
+        # store robot's contype, conaffinity (search MuJoCo XML API for details)
         # disable robot collision
+        robot_col = {}
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
             body_name = self.sim.model.body_names[body_id]
             geom_name = self.sim.model.geom_id2name(geom_id)
@@ -1154,7 +1154,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         # initialize weld constraints
         eq_obj1id = self.sim.model.eq_obj1id
         eq_obj2id = self.sim.model.eq_obj2id
-        p = self._preassembled
+        p = self._preassembled # list of weld equality ids to activate 
         if len(p) > 0:
             for eq_id in p:
                 self.sim.model.eq_active[eq_id] = 1
@@ -1176,7 +1176,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.sim.step()
 
         logger.debug('*** furniture initialization ***')
-        # load demo from path and initialize furniture and robot
+        # load demonstration from filepath, initialize furniture and robot
         if self._load_demo is not None:
             pos_init = []
             quat_init = []
@@ -1184,25 +1184,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 qpos = self._init_qpos[body]
                 pos_init.append(qpos[:3])
                 quat_init.append(qpos[3:])
-        else:
-            pos_init, quat_init = self._place_objects()
-
-            if self._config.fix_init and self._pos_init is not None:
-                pos_init = self._pos_init
-                quat_init = self._quat_init
-
-            self._pos_init = pos_init
-            self._quat_init = quat_init
-
-        # set furniture positions
-        for i, body in enumerate(self._object_names):
-            logger.debug(f'{body} {pos_init[i]} {quat_init[i]}')
-            if self._config.assembled:
-                self._object_group[i] = 0
-            else:
-                self._set_qpos(body, pos_init[i], quat_init[i])
-
-        if self._load_demo is not None:
             if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
                 if 'l_gripper' in self._init_qpos and 'r_gripper' not in self._init_qpos and 'qpos' in self._init_qpos:
                     self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos['qpos']
@@ -1216,17 +1197,32 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if 'cursor0' in self._init_qpos and 'cursor1' in self._init_qpos:
                     self._set_pos('cursor0', self._init_qpos['cursor0'])
                     self._set_pos('cursor1', self._init_qpos['cursor1'])
-
             # enable robot collision
             for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
                 body_name = self.sim.model.body_names[body_id]
                 geom_name = self.sim.model.geom_id2name(geom_id)
-                if body_name not in self._object_names \
-                   and self.mujoco_robot.is_robot_part(geom_name):
+                if body_name not in self._object_names and self.mujoco_robot.is_robot_part(geom_name):
                     contype, conaffinity = robot_col[geom_name]
                     self.sim.model.geom_contype[geom_id] = contype
                     self.sim.model.geom_conaffinity[geom_id] = conaffinity
+        else:
+            if self._config.fix_init and self._pos_init is not None:
+                pos_init = self._pos_init
+                quat_init = self._quat_init
+            else:
+                pos_init, quat_init = self._place_objects()            
+            self._pos_init = pos_init
+            self._quat_init = quat_init
 
+        # set furniture positions
+        for i, body in enumerate(self._object_names):
+            logger.debug(f'{body} {pos_init[i]} {quat_init[i]}')
+            if self._config.assembled:
+                self._object_group[i] = 0
+            else:
+                self._set_qpos(body, pos_init[i], quat_init[i])
+
+        if self._load_demo is not None:
             self.sim.forward()
         else:
             # stablize furniture pieces
@@ -1804,7 +1800,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def run_manual(self, config):
         """
-        Runs the environment under manual (keyboard) control
+        Run the environment under manual (keyboard) control
         """
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
@@ -2090,7 +2086,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         selected_idx.append(self._find_group(obj_name))
                 for obj_name in self._object_names:
                     if self._find_group(obj_name) in selected_idx:
-                        self._stop_object(obj_name)
+                        self._stop_object(obj_name, gravity=1)
                     else:
                         self._stop_object(obj_name, gravity=0)
 
