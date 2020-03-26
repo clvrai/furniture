@@ -378,10 +378,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                                       width=self._screen_width,
                                       height=self._screen_height,
                                       depth=False)
-            if len(img.shape) == 4:
-                img = img[:, ::-1, :, :] / 255.0
-            elif len(img.shape) == 3:
-                img = img[::-1, :, :] / 255.0
+                img = np.expand_dims(img, axis=0)
+            assert len(img.shape) == 4
+            img = img[:, ::-1, :, :] / 255.0
             return img
 
         elif mode == 'rgbd_array':
