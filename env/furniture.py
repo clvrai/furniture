@@ -2172,17 +2172,16 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _get_next_subtask(self):
         eq_obj1id = self.sim.model.eq_obj1id
-        if eq_obj1id is None:
-            return
-        for i, (id1, id2) in enumerate(
-            zip(self.sim.model.eq_obj1id, self.sim.model.eq_obj2id)
-        ):
-            object_name1 = self._object_body_id2name[id1]
-            object_name2 = self._object_body_id2name[id2]
-            if self._find_group(object_name1) != self._find_group(object_name2):
-                self._subtask_part1 = self._object_name2id[object_name1]
-                self._subtask_part2 = self._object_name2id[object_name2]
-                return
+        if eq_obj1id is not None:
+            for i, (id1, id2) in enumerate(
+                zip(self.sim.model.eq_obj1id, self.sim.model.eq_obj2id)
+            ):
+                object_name1 = self._object_body_id2name[id1]
+                object_name2 = self._object_body_id2name[id2]
+                if self._find_group(object_name1) != self._find_group(object_name2):
+                    self._subtask_part1 = self._object_name2id[object_name1]
+                    self._subtask_part2 = self._object_name2id[object_name2]
+                    return
         self._subtask_part1 = -1
         self._subtask_part2 = -1
 
