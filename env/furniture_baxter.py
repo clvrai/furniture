@@ -227,17 +227,11 @@ class FurnitureBaxterEnv(FurnitureEnv):
 
 def main():
     import argparse
-    import config.furniture as furniture_config
+    from config import create_parser
     from util import str2bool
 
-    parser = argparse.ArgumentParser()
-    furniture_config.add_argument(parser)
-
-    # change default config for Baxter
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
-
-    parser.set_defaults(render=True)
+    parser = create_parser(env='FurnitureBaxterEnv')
+    parser.set_defaults(render=True, record_demo=True)
 
     config, unparsed = parser.parse_known_args()
 
