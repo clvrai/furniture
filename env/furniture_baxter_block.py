@@ -1,11 +1,8 @@
 """ Define baxter block picking up environment class FurnitureBaxterBlockEnv. """
-
-from collections import OrderedDict
-
 import numpy as np
 
-from env.furniture_baxter import FurnitureBaxterEnv
 import env.transform_utils as T
+from env.furniture_baxter import FurnitureBaxterEnv
 from util.logger import logger
 
 
@@ -25,22 +22,24 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
 
         super().__init__(config)
 
-        self._env_config.update({
-            "max_episode_steps": 50,
-            "success_reward": 10,
-            "gripper_rot_reward": 5,
-            "arm_move_reward": 500,
-            "obj_hand_dist_reward": 200,
-            "gripper_open_reward": 2,
-            "arm_stable_reward": 20,
-            "finger_pos_reward": 30,
-            "gripper_height_reward": 500,
-            "obj_pos_reward": 100,
-            "obj_rot_reward": 1,
-            "pass_reward": 400,
-            "init_randomness": 0.0,
-            "train": [True, False],
-        })
+        self._env_config.update(
+            {
+                "max_episode_steps": 50,
+                "success_reward": 10,
+                "gripper_rot_reward": 5,
+                "arm_move_reward": 500,
+                "obj_hand_dist_reward": 200,
+                "gripper_open_reward": 2,
+                "arm_stable_reward": 20,
+                "finger_pos_reward": 30,
+                "gripper_height_reward": 500,
+                "obj_pos_reward": 100,
+                "obj_rot_reward": 1,
+                "pass_reward": 400,
+                "init_randomness": 0.0,
+                "train": [True, False],
+            }
+        )
 
     def _step(self, a):
         """
@@ -53,11 +52,11 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
         reward, done, info = self._compute_reward(a)
 
         if self._success:
-            logger.info('Success!')
+            logger.info("Success!")
 
-        info['right_action'] = a[0:6]
-        info['left_action'] = a[6:12]
-        info['gripper'] = a[12:]
+        info["right_action"] = a[0:6]
+        info["left_action"] = a[6:12]
+        info["gripper"] = a[12:]
 
         return ob, reward, done, info
 
@@ -75,7 +74,8 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
         id1 = self.sim.model.eq_obj1id[0]
         id2 = self.sim.model.eq_obj2id[0]
         self._target_body = [
-            self.sim.model.body_id2name(id1), self.sim.model.body_id2name(id2)
+            self.sim.model.body_id2name(id1),
+            self.sim.model.body_id2name(id2),
         ]
 
         # subtask phase
@@ -88,27 +88,31 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
         # target rotations
         self._target_up = [
             self._get_up_vector(self._target_body[0]),
-            self._get_up_vector(self._target_body[1])
+            self._get_up_vector(self._target_body[1]),
         ]
         self._target_forward = [
             self._get_forward_vector(self._target_body[0]),
-            self._get_forward_vector(self._target_body[1])
+            self._get_forward_vector(self._target_body[1]),
         ]
 
         # initial rotation of grippers
-        self._gripper_up = [self._get_up_vector('r_fingertip_g0'),
-                            self._get_up_vector('l_g_r_fingertip_g0')]
-        self._gripper_forward = [self._get_forward_vector('r_fingertip_g0'),
-                                 self._get_forward_vector('l_g_r_fingertip_g0')]
+        self._gripper_up = [
+            self._get_up_vector("r_fingertip_g0"),
+            self._get_up_vector("l_g_r_fingertip_g0"),
+        ]
+        self._gripper_forward = [
+            self._get_forward_vector("r_fingertip_g0"),
+            self._get_forward_vector("l_g_r_fingertip_g0"),
+        ]
 
         # initial position of grippers
         hand_pos = [
             np.array(self.sim.data.site_xpos[self.right_eef_site_id]),
-            np.array(self.sim.data.site_xpos[self.left_eef_site_id])
+            np.array(self.sim.data.site_xpos[self.left_eef_site_id]),
         ]
         self._dist = [
             T.l2_dist(hand_pos[0], self._above_target[0]),
-            T.l2_dist(hand_pos[1], self._above_target[1])
+            T.l2_dist(hand_pos[1], self._above_target[1]),
         ]
 
         self._height = 0.05
@@ -133,36 +137,36 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
 
         # control penalty
         ctrl_reward = self._ctrl_reward(a)
-        info['reward_ctrl'] = ctrl_reward
+        info["reward_ctrl"] = ctrl_reward
 
         # reward for successful assembly
         success_reward = self._env_config["success_reward"] * self._num_connected
-        info['reward_success'] = success_reward
+        info["reward_success"] = success_reward
 
         reward = ctrl_reward + success_reward
 
         # compute positions and rotations for reward function
         hand_pos = [
             np.array(self.sim.data.site_xpos[self.right_eef_site_id]),
-            np.array(self.sim.data.site_xpos[self.left_eef_site_id])
+            np.array(self.sim.data.site_xpos[self.left_eef_site_id]),
         ]
-        info['right_hand'] = hand_pos[0]
-        info['left_hand'] = hand_pos[1]
+        info["right_hand"] = hand_pos[0]
+        info["left_hand"] = hand_pos[1]
 
         finger_pos = [
-            [self._get_pos('r_fingertip_g0'), self._get_pos('l_fingertip_g0')],
-            [self._get_pos('l_g_r_fingertip_g0'), self._get_pos('l_g_l_fingertip_g0')]
+            [self._get_pos("r_fingertip_g0"), self._get_pos("l_fingertip_g0")],
+            [self._get_pos("l_g_r_fingertip_g0"), self._get_pos("l_g_l_fingertip_g0")],
         ]
-        info['right_r_finger'] = finger_pos[0][0]
-        info['right_l_finger'] = finger_pos[0][1]
+        info["right_r_finger"] = finger_pos[0][0]
+        info["right_l_finger"] = finger_pos[0][1]
 
         gripper_up = [
-            self._get_up_vector('r_fingertip_g0'),
-            self._get_up_vector('l_g_r_fingertip_g0')
+            self._get_up_vector("r_fingertip_g0"),
+            self._get_up_vector("l_g_r_fingertip_g0"),
         ]
         gripper_forward = [
-            self._get_forward_vector('r_fingertip_g0'),
-            self._get_forward_vector('l_g_r_fingertip_g0')
+            self._get_forward_vector("r_fingertip_g0"),
+            self._get_forward_vector("l_g_r_fingertip_g0"),
         ]
 
         # check whether grippers touch the blocks or not
@@ -176,14 +180,26 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             body2_name = self.sim.model.body_id2name(body2)
 
             for i in range(2):
-                if c.geom1 in self.l_finger_geom_ids[i] and body2_name == self._target_body[i]:
+                if (
+                    c.geom1 in self.l_finger_geom_ids[i]
+                    and body2_name == self._target_body[i]
+                ):
                     touch_left_finger[i] = True
-                if body1_name == self._target_body[i] and c.geom2 in self.l_finger_geom_ids[i]:
+                if (
+                    body1_name == self._target_body[i]
+                    and c.geom2 in self.l_finger_geom_ids[i]
+                ):
                     touch_left_finger[i] = True
 
-                if c.geom1 in self.r_finger_geom_ids[i] and body2_name == self._target_body[i]:
+                if (
+                    c.geom1 in self.r_finger_geom_ids[i]
+                    and body2_name == self._target_body[i]
+                ):
                     touch_right_finger[i] = True
-                if body1_name == self._target_body[i] and c.geom2 in self.r_finger_geom_ids[i]:
+                if (
+                    body1_name == self._target_body[i]
+                    and c.geom2 in self.r_finger_geom_ids[i]
+                ):
                     touch_right_finger[i] = True
 
         # compute reward for each arm
@@ -205,12 +221,14 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
 
             # block position
             pos = self._get_pos(self._target_body[arm_i])
-            info['target_pos_%d' % arm_i] = pos
+            info["target_pos_%d" % arm_i] = pos
 
             # encourage gripper not to rotate
             gripper_rot_reward = self._env_config["gripper_rot_reward"] * (
-                T.cos_dist(self._gripper_up[arm_i], gripper_up[arm_i]) - 0.8 +
-                T.cos_dist(self._gripper_forward[arm_i], gripper_forward[arm_i]) - 0.8
+                T.cos_dist(self._gripper_up[arm_i], gripper_up[arm_i])
+                - 0.8
+                + T.cos_dist(self._gripper_forward[arm_i], gripper_forward[arm_i])
+                - 0.8
             )
             gripper_rot_reward = max(gripper_rot_reward, -2)
 
@@ -232,7 +250,9 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             elif self._phase == 1:
                 # lower down arm closer to the block
                 dist = T.l2_dist(hand_pos[arm_i][:2], self._above_target[arm_i][:2])
-                arm_stable_reward = -self._env_config["arm_stable_reward"] * min(dist, 0.2)
+                arm_stable_reward = -self._env_config["arm_stable_reward"] * min(
+                    dist, 0.2
+                )
 
                 r_finger_dis = pos[1] - 0.021 - finger_pos[arm_i][0][1]
                 l_finger_dis = finger_pos[arm_i][1][1] - (pos[1] + 0.021)
@@ -247,12 +267,20 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 if r_finger_dis > 0 and l_finger_dis > 0:
                     finger_pos_reward = 2
 
-                gripper_height_reward += (self._dist[arm_i] - min(0.2, max(0.02, hand_pos[arm_i][2]))) * self._env_config["gripper_height_reward"]
+                gripper_height_reward += (
+                    self._dist[arm_i] - min(0.2, max(0.02, hand_pos[arm_i][2]))
+                ) * self._env_config["gripper_height_reward"]
                 self._dist[arm_i] = min(0.2, max(0.02, hand_pos[arm_i][2]))
 
                 gripper_open_reward -= self._env_config["gripper_open_reward"] * a[-3]
 
-                if r_finger_dis > 0 and l_finger_dis > 0 and dist < 0.05 and hand_pos[arm_i][2] < 0.11 and pos[2] > 0.04:
+                if (
+                    r_finger_dis > 0
+                    and l_finger_dis > 0
+                    and dist < 0.05
+                    and hand_pos[arm_i][2] < 0.11
+                    and pos[2] > 0.04
+                ):
                     self._phase = 2
                     pass_reward = self._env_config["pass_reward"]
                     self._dist[arm_i] = hand_pos[arm_i][2]
@@ -260,7 +288,9 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             elif self._phase == 2:
                 # lower down arm and put the block between fingers
                 dist = T.l2_dist(hand_pos[arm_i][:2], self._above_target[arm_i][:2])
-                arm_stable_reward = -self._env_config["arm_stable_reward"] * min(dist, 0.1)
+                arm_stable_reward = -self._env_config["arm_stable_reward"] * min(
+                    dist, 0.1
+                )
 
                 r_finger_dis = pos[1] - 0.025 - finger_pos[arm_i][0][1]
                 l_finger_dis = finger_pos[arm_i][1][1] - (pos[1] + 0.025)
@@ -275,12 +305,20 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 if r_finger_dis > 0 and l_finger_dis > 0:
                     finger_pos_reward = 2
 
-                gripper_height_reward += (self._dist[arm_i] - min(0.2, max(0.02, hand_pos[arm_i][2]))) * self._env_config["gripper_height_reward"]
+                gripper_height_reward += (
+                    self._dist[arm_i] - min(0.2, max(0.02, hand_pos[arm_i][2]))
+                ) * self._env_config["gripper_height_reward"]
                 self._dist[arm_i] = min(0.2, max(0.02, hand_pos[arm_i][2]))
 
                 gripper_open_reward -= self._env_config["gripper_open_reward"] * a[-3]
 
-                if r_finger_dis > 0 and l_finger_dis > 0 and dist < 0.05 and hand_pos[arm_i][2] < 0.09 and pos[2] > 0.04:
+                if (
+                    r_finger_dis > 0
+                    and l_finger_dis > 0
+                    and dist < 0.05
+                    and hand_pos[arm_i][2] < 0.09
+                    and pos[2] > 0.04
+                ):
                     self._phase = 3
                     pass_reward = self._env_config["pass_reward"]
                     self._dist[arm_i] = hand_pos[arm_i][2]
@@ -288,7 +326,9 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             elif self._phase == 3:
                 # lower down arm even more while place the block between fingers
                 dist = T.l2_dist(hand_pos[arm_i][:2], self._above_target[arm_i][:2])
-                arm_stable_reward = -self._env_config["arm_stable_reward"] * min(dist, 0.1)
+                arm_stable_reward = -self._env_config["arm_stable_reward"] * min(
+                    dist, 0.1
+                )
 
                 r_finger_dis = pos[1] - 0.025 - finger_pos[arm_i][0][1]
                 l_finger_dis = finger_pos[arm_i][1][1] - (pos[1] + 0.025)
@@ -303,21 +343,33 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 if r_finger_dis > 0 and l_finger_dis > 0:
                     finger_pos_reward = 2
 
-                gripper_height_reward += (self._dist[arm_i] - min(0.2, max(0.02, hand_pos[arm_i][2]))) * self._env_config["gripper_height_reward"]
+                gripper_height_reward += (
+                    self._dist[arm_i] - min(0.2, max(0.02, hand_pos[arm_i][2]))
+                ) * self._env_config["gripper_height_reward"]
                 self._dist[arm_i] = min(0.2, max(0.02, hand_pos[arm_i][2]))
 
                 gripper_open_reward -= self._env_config["gripper_open_reward"] * a[-3]
 
-                if r_finger_dis > 0 and l_finger_dis > 0 and dist < 0.05 and hand_pos[arm_i][2] < 0.05 and pos[2] > 0.04:
+                if (
+                    r_finger_dis > 0
+                    and l_finger_dis > 0
+                    and dist < 0.05
+                    and hand_pos[arm_i][2] < 0.05
+                    and pos[2] > 0.04
+                ):
                     self._phase = 4
                     pass_reward = self._env_config["pass_reward"]
 
             elif self._phase == 4:
                 # hold the block
-                gripper_open_reward += self._env_config["gripper_open_reward"] * a[-3] * 5
+                gripper_open_reward += (
+                    self._env_config["gripper_open_reward"] * a[-3] * 5
+                )
 
                 dist = T.l2_dist(hand_pos[arm_i], pos)
-                obj_hand_dist_reward -= self._env_config["obj_hand_dist_reward"] * max(0, dist - 0.02)
+                obj_hand_dist_reward -= self._env_config["obj_hand_dist_reward"] * max(
+                    0, dist - 0.02
+                )
 
                 if a[-3] > 0.5:
                     self._phase = 5
@@ -327,16 +379,26 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             elif self._phase == 5:
                 # pick up the block
                 dist = T.l2_dist(self._above_target[arm_i], pos)
-                obj_pos_reward = self._env_config["obj_pos_reward"] * (self._dist[arm_i] - dist) * 10
+                obj_pos_reward = (
+                    self._env_config["obj_pos_reward"] * (self._dist[arm_i] - dist) * 10
+                )
                 self._dist[arm_i] = dist
 
-                obj_pos_reward += self._env_config["obj_pos_reward"] * max(min(pos[2], 0.15) - self._height, 0) * 40
+                obj_pos_reward += (
+                    self._env_config["obj_pos_reward"]
+                    * max(min(pos[2], 0.15) - self._height, 0)
+                    * 40
+                )
                 self._height = max(self._height, pos[2])
 
-                gripper_open_reward += self._env_config["gripper_open_reward"] * a[-3] * 5
+                gripper_open_reward += (
+                    self._env_config["gripper_open_reward"] * a[-3] * 5
+                )
 
                 dist = T.l2_dist(hand_pos[arm_i], pos)
-                obj_hand_dist_reward -= self._env_config["obj_hand_dist_reward"] * max(0, dist - 0.02)
+                obj_hand_dist_reward -= self._env_config["obj_hand_dist_reward"] * max(
+                    0, dist - 0.02
+                )
 
                 dist = T.l2_dist(self._above_target[arm_i], pos)
                 if dist < 0.05:
@@ -350,15 +412,25 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 gripper_open_reward += self._env_config["gripper_open_reward"] * a[-3]
 
                 dist = T.l2_dist(pos, self._target_pos[arm_i])
-                obj_pos_reward = self._env_config["obj_pos_reward"] * (self._dist[arm_i] - dist) * 10
-                self._dist[arm_i] =  dist
+                obj_pos_reward = (
+                    self._env_config["obj_pos_reward"] * (self._dist[arm_i] - dist) * 10
+                )
+                self._dist[arm_i] = dist
 
                 dist = T.l2_dist(hand_pos[arm_i], pos)
-                obj_hand_dist_reward -= self._env_config["obj_hand_dist_reward"] * max(0, dist - 0.02)
+                obj_hand_dist_reward -= self._env_config["obj_hand_dist_reward"] * max(
+                    0, dist - 0.02
+                )
 
                 obj_rot_reward = self._env_config["obj_rot_reward"] * (
-                    T.cos_dist(self._get_up_vector(self._target_body[arm_i]), self._target_up[arm_i]) +
-                    T.cos_dist(self._get_forward_vector(self._target_body[arm_i]), self._target_forward[arm_i])
+                    T.cos_dist(
+                        self._get_up_vector(self._target_body[arm_i]),
+                        self._target_up[arm_i],
+                    )
+                    + T.cos_dist(
+                        self._get_forward_vector(self._target_body[arm_i]),
+                        self._target_forward[arm_i],
+                    )
                 )
 
             if self._phase == 10:
@@ -377,22 +449,31 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 if pos[2] < 0.04:
                     obj_stable_reward = -1
 
-                reward += gripper_rot_reward + arm_move_reward + gripper_open_reward + \
-                    arm_stable_reward + finger_pos_reward + gripper_height_reward + \
-                    obj_hand_dist_reward + obj_pos_reward + obj_rot_reward + pass_reward
+                reward += (
+                    gripper_rot_reward
+                    + arm_move_reward
+                    + gripper_open_reward
+                    + arm_stable_reward
+                    + finger_pos_reward
+                    + gripper_height_reward
+                    + obj_hand_dist_reward
+                    + obj_pos_reward
+                    + obj_rot_reward
+                    + pass_reward
+                )
 
-            info['phase'] = self._phase
-            info['reward_gripper_rot_%d' % arm_i] = gripper_rot_reward
-            info['reward_arm_move_%d' % arm_i] = arm_move_reward
-            info['reward_gripper_open_%d' % arm_i] = gripper_open_reward
-            info['reward_arm_stable_%d' % arm_i] = arm_stable_reward
-            info['reward_finger_pos_%d' % arm_i] = finger_pos_reward
-            info['reward_gripper_height_%d' % arm_i] = gripper_height_reward
-            info['reward_obj_stable_%d' % arm_i] = obj_stable_reward
-            info['reward_obj_hand_dist_%d' % arm_i] = obj_hand_dist_reward
-            info['reward_obj_pos_%d' % arm_i] = obj_pos_reward
-            info['reward_obj_rot_%d' % arm_i] = obj_rot_reward
-            info['reward_pass_%d' % arm_i] = pass_reward
+            info["phase"] = self._phase
+            info["reward_gripper_rot_%d" % arm_i] = gripper_rot_reward
+            info["reward_arm_move_%d" % arm_i] = arm_move_reward
+            info["reward_gripper_open_%d" % arm_i] = gripper_open_reward
+            info["reward_arm_stable_%d" % arm_i] = arm_stable_reward
+            info["reward_finger_pos_%d" % arm_i] = finger_pos_reward
+            info["reward_gripper_height_%d" % arm_i] = gripper_height_reward
+            info["reward_obj_stable_%d" % arm_i] = obj_stable_reward
+            info["reward_obj_hand_dist_%d" % arm_i] = obj_hand_dist_reward
+            info["reward_obj_pos_%d" % arm_i] = obj_pos_reward
+            info["reward_obj_rot_%d" % arm_i] = obj_rot_reward
+            info["reward_pass_%d" % arm_i] = pass_reward
 
         done = False
 
@@ -400,21 +481,10 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
 
 
 def main():
-    import argparse
-    import config.furniture as furniture_config
-    from util import str2bool
+    from config import create_parser
 
-    parser = argparse.ArgumentParser()
-    furniture_config.add_argument(parser)
-
-    # change default config for Baxter
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
-
-    parser.set_defaults(render=True)
-    parser.set_defaults(debug=True)
-    # fix the initialization of furniture parts
-    parser.set_defaults(fix_init=True)
+    parser = create_parser(env="FurnitureBaxterEnv")
+    parser.set_defaults(render=True, record_demo=True)
 
     config, unparsed = parser.parse_known_args()
 
