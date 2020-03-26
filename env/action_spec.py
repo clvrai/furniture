@@ -69,6 +69,12 @@ class ActionSpec(object):
         """
         return self.shape.keys()
 
+    def values(self):
+        """
+        Returns values of the action space.
+        """
+        return self.shape.values()
+
     def is_continuous(self, key):
         """
         Returns whether the action space is continuous or not.

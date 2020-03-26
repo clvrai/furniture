@@ -36,7 +36,7 @@ def create_parser(env=None):
 
     # training algorithm
     parser.add_argument('--algo', type=str, default='sac',
-                        choices=['sac', 'ppo', 'ddpg'])
+                        choices=['sac', 'ppo', 'ddpg', 'bc', 'gail'])
     parser.add_argument('--policy', type=str, default='mlp',
                         choices=['mlp', 'manual'])
 
@@ -45,6 +45,7 @@ def create_parser(env=None):
     parser.add_argument('--rl_activation', type=str, default='relu',
                         choices=['relu', 'elu', 'tanh'])
     parser.add_argument('--tanh_policy', type=str2bool, default=True)
+    parser.add_argument('--rl_gaussian', type=str2bool, default=True)
 
     # for ddpg
     parser.add_argument('--noise_eps', type=float, default=0.2, help='noise eps')
@@ -73,6 +74,7 @@ def create_parser(env=None):
     parser.add_argument('--max_grad_norm', type=float, default=100)
     parser.add_argument('--max_global_step', type=int, default=int(5e6))
     parser.add_argument('--gpu', type=int, default=None)
+    parser.add_argument('--init_ckpt_path', type=str, default=None)
 
     # sac
     parser.add_argument('--reward_scale', type=float, default=1.0, help='reward scale')
@@ -103,17 +105,21 @@ def create_parser(env=None):
     parser.add_argument('--record_caption', type=str2bool, default=True)
     parser.add_argument('--num_record_samples', type=int, default=1,
                         help='number of trajectories to collect during eval')
-    parser.add_argument('--save_qpos', type=str2bool, default=False,
-                        help='save entire qpos history of success rollouts to file (for idle primitive training)')
-    parser.add_argument('--save_success_qpos', type=str2bool, default=False,
-                        help='save later segment of success rollouts to file (for moving and placing primitie trainings)')
 
     # misc
     parser.add_argument('--prefix', type=str, default='test')
     parser.add_argument('--notes', type=str, default='')
     parser.add_argument('--seed', type=int, default=123, help='Random seed')
     parser.add_argument('--debug', type=str2bool, default=False)
+
+    # il
+    parser.add_argument('--max_epoch', type=int, default=10000, help='training epoch for behavior cloning')
+    parser.add_argument('--lr_bc', type=float, default=1e-3, help='learning rate for bc')
+    parser.add_argument('--demo_path', type=str, default=None, help='path to demos')
+    parser.add_argument('--gail_entropy_loss_coeff', type=float, default=1e-3)
+
     return parser
+
 
 def argparser():
     """

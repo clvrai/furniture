@@ -24,7 +24,7 @@ class MlpActor(Actor):
 
         for k, size in ac_space.shape.items():
             self.fc_means.update({k: MLP(config, config.rl_hid_size, size)})
-            if ac_space.is_continuous(k):
+            if ac_space.is_continuous(k) and self._gaussian:
                 self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, size)})
 
     def forward(self, ob):
@@ -38,7 +38,7 @@ class MlpActor(Actor):
         means, stds = OrderedDict(), OrderedDict()
         for k in self._ac_space.keys():
             mean = self.fc_means[k](out)
-            if self._ac_space.is_continuous(k):
+            if self._ac_space.is_continuous(k) and self._gaussian:
                 log_std = self.fc_log_stds[k](out)
                 log_std = torch.clamp(log_std, -10, 2)
                 std = torch.exp(log_std.double())
@@ -49,6 +49,7 @@ class MlpActor(Actor):
             stds[k] = std
 
         return means, stds
+
 
 class NoisyMlpActor(Actor):
     def __init__(self, config, ob_space, ac_space, tanh_policy):
@@ -107,6 +108,7 @@ class NoisyMlpActor(Actor):
             raise NotImplementedError()
         else:
             return actions, None
+
 
 class MlpCritic(Critic):
     def __init__(self, config, ob_space, ac_space=None):

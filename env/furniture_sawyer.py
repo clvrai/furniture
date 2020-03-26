@@ -49,7 +49,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         """
         dof = 0 # 'No' Agent
         if self._control_type == 'impedance':
-            dof = 7 + 2
+            dof = 7 + 2 # 7 joints, select, connect
         elif self._control_type == 'ik':
             dof = 3 + 3 + 1 + 1 # move, rotate, select, connect
         return dof

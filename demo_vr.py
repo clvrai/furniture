@@ -4,13 +4,13 @@ import openvr
 import argparse
 
 from env import make_env
-from env.models import furniture_names, background_names
+from env.models import furniture_names, background_names, agent_names
 from util import str2bool
 from util.triad_openvr import triad_openvr
 
 
 # available agents
-agent_names = ['Baxter', 'Sawyer', 'Cursor']
+agent_names 
 def main(args):
     """
     Inputs types of agent, furniture model, and background and simulates the environment.

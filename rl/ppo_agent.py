@@ -68,6 +68,9 @@ class PPOAgent(BaseAgent):
 
         # update rollouts
         rollouts['adv'] = ((adv - adv.mean()) / adv.std()).tolist()
+        if len(adv) == 1:
+            rollouts['adv'] = [-1]
+
         rollouts['ret'] = ret.tolist()
 
     def state_dict(self):
@@ -161,7 +164,7 @@ class PPOAgent(BaseAgent):
         # update the actor
         self._actor_optim.zero_grad()
         actor_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
         sync_grads(self._actor)
         self._actor_optim.step()
 

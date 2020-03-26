@@ -1,4 +1,7 @@
-""" Base code for RL training. Collects rollouts and updates policy networks. """
+"""
+Base code for RL and IL training.
+Collects rollouts and updates policy networks.
+"""
 
 import os
 from time import time
@@ -6,6 +9,7 @@ from collections import defaultdict, OrderedDict
 import gzip
 import pickle
 import h5py
+import copy
 
 import torch
 import wandb
@@ -23,22 +27,28 @@ from env import make_env
 
 def get_agent_by_name(algo):
     """
-    Returns SAC agent or PPO agent.
+    Returns RL or IL agent.
     """
-    if algo == 'sac':
+    if algo == "sac":
         from rl.sac_agent import SACAgent
         return SACAgent
-    elif algo == 'ppo':
+    elif algo == "ppo":
         from rl.ppo_agent import PPOAgent
         return PPOAgent
-    elif algo == 'ddpg':
+    elif algo == "ddpg":
         from rl.ddpg_agent import DDPGAgent
         return DDPGAgent
+    elif algo == "bc":
+        from il.bc_agent import BCAgent
+        return BCAgent
+    elif algo == "gail":
+        from il.gail_agent import GAILAgent
+        return GAILAgent
 
 
 class Trainer(object):
     """
-    Trainer class for SAC and PPO in PyTorch.
+    Trainer class for SAC, PPO, DDPG, BC, and GAIL in PyTorch.
     """
 
     def __init__(self, config):
@@ -47,8 +57,12 @@ class Trainer(object):
         """
         self._config = config
         self._is_chef = config.is_chef
+        self._is_rl = config.algo in ['ppo', 'sac']
 
-        # create a new environment
+        # create environment
+        self._env_eval = make_env(config.env, copy.copy(config)) if self._is_chef else None
+
+        config.unity = False # disable Unity for training
         self._env = make_env(config.env, config)
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
@@ -64,7 +78,7 @@ class Trainer(object):
 
         # build rollout runner
         self._runner = RolloutRunner(
-            config, self._env, self._agent
+            config, self._env, self._env_eval, self._agent
         )
 
         # setup log
@@ -105,24 +119,28 @@ class Trainer(object):
         torch.save(state_dict, ckpt_path)
         logger.warn('Save checkpoint: %s', ckpt_path)
 
-        replay_path = os.path.join(self._config.log_dir, 'replay_%08d.pkl' % ckpt_num)
-        with gzip.open(replay_path, 'wb') as f:
-            replay_buffers = {'replay': self._agent.replay_buffer()}
-            pickle.dump(replay_buffers, f)
+        if self._config.algo in ['sac', 'ddpg']:
+            replay_path = os.path.join(self._config.log_dir, 'replay_%08d.pkl' % ckpt_num)
+            with gzip.open(replay_path, 'wb') as f:
+                replay_buffers = {'replay': self._agent.replay_buffer()}
+                pickle.dump(replay_buffers, f)
 
-    def _load_ckpt(self, ckpt_num=None):
+    def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
         """
-        Loads checkpoint with index number @ckpt_num. If @ckpt_num is None,
+        Loads checkpoint with path @ckpt_path or index number @ckpt_num. If @ckpt_num is None,
         it loads and returns the checkpoint with the largest index number.
         """
-        ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
+        if ckpt_path is None:
+            ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
+        else:
+            ckpt_num = int(ckpt_path.rsplit('_', 1)[-1].split('.')[0])
 
         if ckpt_path is not None:
             logger.warn('Load checkpoint %s', ckpt_path)
             ckpt = torch.load(ckpt_path)
             self._agent.load_state_dict(ckpt['agent'])
 
-            if self._config.is_train:
+            if self._config.is_train and self._config.algo in ['sac', 'ddpg']:
                 replay_path = os.path.join(self._config.log_dir, 'replay_%08d.pkl' % ckpt_num)
                 logger.warn('Load replay_buffer %s', replay_path)
                 with gzip.open(replay_path, 'rb') as f:
@@ -168,11 +186,88 @@ class Trainer(object):
 
     def train(self):
         """ Trains an agent. """
+        if self._is_rl:
+            self._train_rl()
+        else:
+            self._train_il()
+
+    def _train_il(self):
+        """ Trains an IL agent. """
         config = self._config
-        num_batches = config.num_batches
 
         # load checkpoint
         step, update_iter = self._load_ckpt()
+        if config.init_ckpt_path:
+            self._load_ckpt(ckpt_path=config.init_ckpt_path)
+
+        # sync the networks across the cpus
+        self._agent.sync_networks()
+
+        logger.info("Start training at step=%d", step)
+        if self._is_chef:
+            pbar = tqdm(initial=update_iter, total=config.max_epoch, desc=config.run_name)
+
+        # decide how many episodes or how long rollout to collect
+        if self._config.algo == 'gail':
+            runner = self._runner.run(every_steps=self._config.rollout_length)
+        elif self._config.algo == 'bc':
+            runner = None
+
+        st_time = time()
+        st_step = step
+        while update_iter < config.max_epoch:
+            # collect rollouts
+            if runner:
+                rollout, info = next(runner)
+                self._agent.store_episode(rollout)
+                step_per_batch = mpi_sum(len(rollout['ac']))
+            else:
+                step_per_batch = mpi_sum(1)
+
+            # train an agent
+            logger.info('Update networks %d', update_iter)
+            train_info = self._agent.train()
+
+            logger.info('Update networks done')
+
+            if config.algo not in ["bc"] and step < config.max_ob_norm_step:
+                self._update_normalizer(rollout)
+
+            step += step_per_batch
+            update_iter += 1
+
+            # log training and episode information or evaluate
+            if self._is_chef:
+                pbar.update(1)
+
+                if update_iter % config.log_interval == 0:
+                    train_info.update({
+                        'sec': (time() - st_time) / config.log_interval,
+                        'steps_per_sec': (step - st_step) / (time() - st_time),
+                        'update_iter': update_iter
+                    })
+                    st_time = time()
+                    st_step = step
+                    self._log_train(step, train_info, {})
+
+                if update_iter % config.evaluate_interval == 1:
+                    logger.info('Evaluate at %d', update_iter)
+                    rollout, info = self._evaluate(step=step, record=config.record)
+                    self._log_test(step, info)
+
+                if update_iter % config.ckpt_interval == 0:
+                    self._save_ckpt(step, update_iter)
+
+        logger.info('Reached %s steps. worker %d stopped.', step, config.rank)
+
+    def _train_rl(self):
+        """ Trains an RL agent. """
+        config = self._config
+
+        # load checkpoint
+        step, update_iter = self._load_ckpt()
+        if config.init_ckpt_path:
+            self._load_ckpt(ckpt_path=config.init_ckpt_path)
 
         # sync the networks across the cpus
         self._agent.sync_networks()
@@ -183,32 +278,19 @@ class Trainer(object):
             ep_info = defaultdict(list)
 
         # decide how many episodes or how long rollout to collect
-        run_ep_max = 1
-        run_step_max = self._config.rollout_length
         if self._config.algo == 'ppo':
-            run_ep_max = 1000
+            runner = self._runner.run(every_steps=self._config.rollout_length)
         elif self._config.algo == 'sac':
-            run_step_max = 10000
-
-        # dummy run for preventing weird error in a cold run
-        self._runner.run_episode()
+            runner = self._runner.run(every_steps=1)
 
         st_time = time()
         st_step = step
         while step < config.max_global_step:
             # collect rollouts
-            run_ep = 0
-            run_step = 0
-            while run_step < run_step_max and run_ep < run_ep_max:
-                rollout, info, _ = \
-                    self._runner.run_episode()
-                run_step += info['len']
-                run_ep += 1
-                self._save_success_qpos(info)
-                logger.info('rollout: %s', {k: v for k, v in info.items() if not 'qpos' in k})
-                self._agent.store_episode(rollout)
+            rollout, info = next(runner)
+            self._agent.store_episode(rollout)
 
-            step_per_batch = mpi_sum(run_step)
+            step_per_batch = mpi_sum(len(rollout['ac']))
 
             # train an agent
             logger.info('Update networks %d', update_iter)
@@ -257,25 +339,6 @@ class Trainer(object):
         if self._config.ob_norm:
             self._agent.update_normalizer(rollout['ob'])
 
-    def _save_success_qpos(self, info):
-        """ Saves the final qpos of successful trajectory. """
-        if self._config.save_qpos and info['episode_success']:
-            path = os.path.join(self._config.record_dir, 'qpos.p')
-            with h5py.File(path, 'a') as f:
-                key_id = len(f.keys())
-                num_qpos = len(info['saved_qpos'])
-                for qpos_to_save in info['saved_qpos']:
-                    f['{}'.format(key_id)] = qpos_to_save
-                    key_id += 1
-        if self._config.save_success_qpos and info['episode_success']:
-            path = os.path.join(self._config.record_dir, 'success_qpos.p')
-            with h5py.File(path, 'a') as f:
-                key_id = len(f.keys())
-                num_qpos = len(info['saved_qpos'])
-                for qpos_to_save in info['saved_qpos'][int(num_qpos / 2):]:
-                    f['{}'.format(key_id)] = qpos_to_save
-                    key_id += 1
-
     def _evaluate(self, step=None, record=False, idx=None):
         """
         Runs one rollout if in eval mode (@idx is not None).
@@ -305,7 +368,6 @@ class Trainer(object):
                 break
 
         logger.info('rollout: %s', {k: v for k, v in info.items() if not 'qpos' in k})
-        self._save_success_qpos(info)
         return rollout, info
 
     def evaluate(self):

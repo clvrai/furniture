@@ -31,7 +31,7 @@ def run(config):
     set_log_path(config)
 
     config.seed = config.seed + rank
-    config.port = config.port + rank
+    # config.port = config.port + rank * 2 # training env + evaluation env
 
     if config.is_chef:
         logger.warn('Run a base worker.')
@@ -78,9 +78,11 @@ def set_log_path(config):
     """
     Sets paths to log directories.
     """
-    config.run_name = 'rl.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+    method = "il" if config.algo in ["bc", "gail"] else "rl"
+    config.run_name = "{}.{}.{}.{}.{}".format(method, config.env, config.algo,
+                                              config.prefix, config.seed)
     config.log_dir = os.path.join(config.log_root_dir, config.run_name)
-    config.record_dir = os.path.join(config.log_dir, 'video')
+    config.record_dir = os.path.join(config.log_dir, "video")
 
 
 def make_log_files(config):

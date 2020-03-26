@@ -6,13 +6,9 @@ demonstrations and 2) recording and playback of their own demos.
 
 import argparse
 
-import numpy as np
-
 from env import make_env
 from env.models import furniture_names, background_names, furniture_name2id
-from util import str2bool
-from util.video_recorder import VideoRecorder
-
+from util import str2bool, parse_demo_file_name
 
 # available agents
 agent_names = ['Baxter', 'Sawyer', 'Cursor']
@@ -37,7 +33,7 @@ def argsparser():
     furniture_config.add_argument(parser)
 
     parser.set_defaults(render=True)
-    parser.set_defaults(load_demo='demos/Cursor_swivel_chair_0700.pkl')
+    parser.set_defaults(load_demo='demos/Cursor_swivel_chair_0700_0000.pkl')
 
     args = parser.parse_args()
     return args
@@ -62,8 +58,7 @@ def main(args):
         print()
         print("Let's begin by playing back an existing demonstration.")
         print("We'll use the run_demo function to run a demo passed through --load_demo")
-        agent_name = 'Cursor'
-        furniture_name = '_'.join(args.load_demo[0:-4].split('_')[1:])
+        agent_name, furniture_name = parse_demo_file_name(args.load_demo)
         furniture_id = furniture_name2id[furniture_name]
 
         # set parameters for the environment (env, furniture_id, background)

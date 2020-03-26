@@ -17,7 +17,7 @@ except ImportError as e:
 
 from env.base import EnvMeta
 from env.unity_interface import UnityInterface
-from env.models import furniture_xmls, furniture_name2id, background_names
+from env.models import furniture_xmls, furniture_name2id, background_names, furniture_names
 from env.models.objects import MujocoXMLObject
 from env.models.grippers import gripper_factory
 from env.action_spec import ActionSpec
@@ -41,13 +41,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         Initializes class with the configuration.
         """
         self._config = config
-
         # default env config
         self._env_config = {
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "init_randomness": 0.001,
+            "init_randomness": config.init_randomness,
+            "furn_init_randomness": config.furn_init_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5, # XYZ cube boundary
             "pos_dist": 0.1,
@@ -93,6 +93,12 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._action_on = False
         self._load_demo = config.load_demo
+        self._init_qpos = None
+        if self._load_demo:
+            with open(self._load_demo, 'rb') as f:
+                demo = pickle.load(f)
+                self._init_qpos = demo['qpos'][-1]
+
         self._record_demo = config.record_demo
         if self._record_demo:
             self._demo = DemoRecorder(config.demo_dir)
@@ -177,13 +183,21 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._render_mode == 'human' and not self._unity:
             self._viewer = self._get_viewer()
         self._after_reset()
-        return self._get_obs()
 
-    def _init_random(self, size):
+        ob = self._get_obs()
+        if self._record_demo:
+            self._demo.add(ob=ob)
+
+        return ob
+
+    def _init_random(self, size, name):
         """
         Returns initial random distribution.
         """
-        r = self._env_config["init_randomness"]
+        if name == 'furniture':
+            r = self._env_config["furn_init_randomness"]
+        else:
+            r = self._env_config["init_randomness"]
         return self._rng.uniform(low=-r, high=r, size=size)
 
     def _after_reset(self):
@@ -212,10 +226,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.concatenate([action[key] for key in self.action_space.shape.keys()])
         ob, reward, done, info = self._step(action)
         done, info, penalty = self._after_step(reward, done, info)
+        reward += penalty
         if self._record_demo:
             self._store_qpos()
-            self._demo.add(action=action)
-        return ob, reward + penalty, done, info
+            self._demo.add(ob=ob, action=action, reward=reward)
+        return ob, reward, done, info
 
     def _before_step(self):
         """
@@ -243,17 +258,17 @@ class FurnitureEnv(metaclass=EnvMeta):
             a = np.zeros(self.dof)
 
         if self._agent_type == 'Cursor':
-            self._step_discrete(a)
+            self._step_discrete(a.copy())
             self._do_simulation(None)
 
         elif self._control_type == 'ik':
-            self._step_continuous(a)
+            self._step_continuous(a.copy())
 
         elif self._control_type == 'torque':
-            self._step_continuous(a)
+            self._step_continuous(a.copy())
 
         elif self._control_type == 'impedance':
-            a = self._setup_action(a)
+            a = self._setup_action(a.copy())
             self._do_simulation(a)
 
         else:
@@ -1069,7 +1084,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _place_objects(self):
         """
-        Returns the fixed initial positions and rotations of furniture parts.
+        Returns the randomly distributed initial positions and rotations of furniture parts.
 
         Returns:
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
@@ -1101,9 +1116,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         # reset simulation data and clear buffers
         self.sim.reset()
 
-        # store robot's condim and contype
-        robot_col = {}
+        # store robot's contype, conaffinity (search MuJoCo XML API for details)
         # disable robot collision
+        robot_col = {}
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
             body_name = self.sim.model.body_names[body_id]
             geom_name = self.sim.model.geom_id2name(geom_id)
@@ -1138,7 +1153,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         # initialize weld constraints
         eq_obj1id = self.sim.model.eq_obj1id
         eq_obj2id = self.sim.model.eq_obj2id
-        p = self._preassembled
+        p = self._preassembled # list of weld equality ids to activate 
         if len(p) > 0:
             for eq_id in p:
                 self.sim.model.eq_active[eq_id] = 1
@@ -1152,26 +1167,49 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
         self._do_simulation(None)
+        # stablize furniture pieces
+        for _ in range(100):
+            for obj_name in self._object_names:
+                self._stop_object(obj_name, gravity=0)
+            self.sim.forward()
+            self.sim.step()
 
         logger.debug('*** furniture initialization ***')
-        # load demo from path and initialize furniture and robot
+        # load demonstration from filepath, initialize furniture and robot
         if self._load_demo is not None:
-            with open(self._load_demo, 'rb') as f:
-                demo = pickle.load(f)
-                init_qpos = demo['qpos'][-1]
             pos_init = []
             quat_init = []
             for body in self._object_names:
-                qpos = init_qpos[body]
+                qpos = self._init_qpos[body]
                 pos_init.append(qpos[:3])
                 quat_init.append(qpos[3:])
+            if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
+                if 'l_gripper' in self._init_qpos and 'r_gripper' not in self._init_qpos and 'qpos' in self._init_qpos:
+                    self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos['qpos']
+                    self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = self._init_qpos['l_gripper']
+            elif self._agent_type == 'Baxter':
+                if 'l_gripper' in self._init_qpos and 'r_gripper' in self._init_qpos and 'qpos' in self._init_qpos:
+                    self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos['qpos']
+                    self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = self._init_qpos['r_gripper']
+                    self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = self._init_qpos['l_gripper']
+            elif self._agent_type == 'Cursor':
+                if 'cursor0' in self._init_qpos and 'cursor1' in self._init_qpos:
+                    self._set_pos('cursor0', self._init_qpos['cursor0'])
+                    self._set_pos('cursor1', self._init_qpos['cursor1'])
+            # enable robot collision
+            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+                body_name = self.sim.model.body_names[body_id]
+                geom_name = self.sim.model.geom_id2name(geom_id)
+                if body_name not in self._object_names and self.mujoco_robot.is_robot_part(geom_name):
+                    contype, conaffinity = robot_col[geom_name]
+                    self.sim.model.geom_contype[geom_id] = contype
+                    self.sim.model.geom_conaffinity[geom_id] = conaffinity
         else:
-            pos_init, quat_init = self._place_objects()
-
             if self._config.fix_init and self._pos_init is not None:
                 pos_init = self._pos_init
                 quat_init = self._quat_init
-
+            else:
+                pos_init, quat_init = self._place_objects()            
             self._pos_init = pos_init
             self._quat_init = quat_init
 
@@ -1184,30 +1222,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._set_qpos(body, pos_init[i], quat_init[i])
 
         if self._load_demo is not None:
-            if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
-                if 'l_gripper' in init_qpos and 'r_gripper' not in init_qpos and 'qpos' in init_qpos:
-                    self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
-                    self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = init_qpos['l_gripper']
-            elif self._agent_type == 'Baxter':
-                if 'l_gripper' in init_qpos and 'r_gripper' in init_qpos and 'qpos' in init_qpos:
-                    self.sim.data.qpos[self._ref_joint_pos_indexes] = init_qpos['qpos']
-                    self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = init_qpos['r_gripper']
-                    self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = init_qpos['l_gripper']
-            elif self._agent_type == 'Cursor':
-                if 'cursor0' in init_qpos and 'cursor1' in init_qpos:
-                    self._set_pos('cursor0', init_qpos['cursor0'])
-                    self._set_pos('cursor1', init_qpos['cursor1'])
-
-            # enable robot collision
-            for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
-                body_name = self.sim.model.body_names[body_id]
-                geom_name = self.sim.model.geom_id2name(geom_id)
-                if body_name not in self._object_names \
-                   and self.mujoco_robot.is_robot_part(geom_name):
-                    contype, conaffinity = robot_col[geom_name]
-                    self.sim.model.geom_contype[geom_id] = contype
-                    self.sim.model.geom_conaffinity[geom_id] = conaffinity
-
             self.sim.forward()
         else:
             # stablize furniture pieces
@@ -1287,7 +1301,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Initializes robot posision with random noise perturbation
         """
-        noise = self._init_random(self.mujoco_robot.init_qpos.shape)
+        noise = self._init_random(self.mujoco_robot.init_qpos.shape, 'agent')
         if self._agent_type in ['Sawyer', 'Panda', "Jaco"]:
             self.sim.data.qpos[self._ref_joint_pos_indexes] = self.mujoco_robot.init_qpos + noise
             self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = -self.gripper.init_qpos # open
@@ -1492,11 +1506,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._rng,
         )
 
-    def save_demo(self, fname='test.pkl'):
+    def save_demo(self):
         """
         Saves the demonstration into a file
         """
-        self._demo.save(fname)
+        agent = self._agent_type
+        furniture_name = furniture_names[self._furniture_id]
+        self._demo.save(agent + "_" + furniture_name)
 
     def key_callback(self, window, key, scancode, action, mods):
         """
@@ -1648,7 +1664,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._update_unity()
             img = self.render('rgb_array')[0]
             vr.add(img)
-        vr.save_video('demo.mp4')
+        if self._config.record:
+            vr.save_video('demo.mp4')
 
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
@@ -1782,7 +1799,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def run_manual(self, config):
         """
-        Runs the environment under manual (keyboard) control
+        Run the environment under manual (keyboard) control
         """
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
@@ -1793,8 +1810,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         from util.video_recorder import VideoRecorder
         vr = VideoRecorder()
-        vr.add(self.render('rgb_array'))
-
+        if self._config.record:
+            vr.add(self.render('rgb_array'))
+        else:
+            self.render('rgb_array')
         if not config.unity:
             # override keyboard callback function of viewer
             import glfw
@@ -1863,7 +1882,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 action[3] = 1
 
             if self.action == 'record':
-                vr.save_video('video.mp4')
+                if self._config.record:
+                    vr.save_video('video.mp4')
 
             if self._agent_type == 'Cursor':
                 if cursor_idx:
@@ -1887,8 +1907,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             ob, reward, done, info = self.step(action)
             logger.info(f'Action: {action}')
 
-            vr.add(self.render('rgb_array'))
-
+            if self._config.record:
+                vr.add(self.render('rgb_array'))
+            else:
+                self.render('rgb_array')
             if self.action == 'screenshot':
                 import imageio
                 img, depth = self.render('rgbd_array')
@@ -1917,10 +1939,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             if done:
                 t = 0
                 flag = [-1, -1]
-                if config.debug: vr.save_video('test.mp4')
+                if config.debug and self._config.record:
+                    vr.save_video('test.mp4')
+                self.save_demo()
                 self.reset(config.furniture_id, config.background)
-                vr.add(self.render('rgb_array'))
-
+                if self._config.record:
+                    vr.add(self.render('rgb_array'))
+                else:
+                    self.render('rgb_array')
     def _get_reference(self):
         """
         Store ids / keys of objects, connector sites, and collision data in the scene
@@ -2059,7 +2085,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         selected_idx.append(self._find_group(obj_name))
                 for obj_name in self._object_names:
                     if self._find_group(obj_name) in selected_idx:
-                        self._stop_object(obj_name)
+                        self._stop_object(obj_name, gravity=1)
                     else:
                         self._stop_object(obj_name, gravity=0)
 
