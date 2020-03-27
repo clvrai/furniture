@@ -2133,8 +2133,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                     if self._depth_ob:
                         imageio.imwrite("depth_ob.png", (depth * 255).astype(np.uint8))
 
-                # if self.action == 'save' and self._record_demo:
-                #     self.save_demo()
+                if self.action == 'save' and self._record_demo:
+                    self.save_demo()
 
                 self._action_on = False
                 t += 1
