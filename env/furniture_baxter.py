@@ -4,8 +4,8 @@ from collections import OrderedDict
 
 import numpy as np
 
-from env.furniture import FurnitureEnv
 import env.transform_utils as T
+from env.furniture import FurnitureEnv
 from util.logger import logger
 
 
@@ -19,13 +19,11 @@ class FurnitureBaxterEnv(FurnitureEnv):
         Args:
             config: configurations for the environment.
         """
-        config.agent_type = 'Baxter'
+        config.agent_type = "Baxter"
 
         super().__init__(config)
 
-        self._env_config.update({
-            "success_reward": 100,
-        })
+        self._env_config.update({"success_reward": 100})
 
     @property
     def observation_space(self):
@@ -35,10 +33,10 @@ class FurnitureBaxterEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            if self._control_type == 'impedance':
-                ob_space['robot_ob'] = [64]
-            elif self._control_type == 'ik':
-                ob_space['robot_ob'] = [(3 + 4 + 3 + 3 + 1) * 2]
+            if self._control_type == "impedance":
+                ob_space["robot_ob"] = [64]
+            elif self._control_type == "ik":
+                ob_space["robot_ob"] = [(3 + 4 + 3 + 3 + 1) * 2]
 
         return ob_space
 
@@ -48,10 +46,10 @@ class FurnitureBaxterEnv(FurnitureEnv):
         Returns the DoF of the robot.
         """
         dof = 0  # 'No' Agent
-        if self._control_type == 'impedance':
+        if self._control_type == "impedance":
             dof = (7 + 2) * 2
-        elif self._control_type == 'ik':
-            dof = (3 + 3 + 1) * 2 + 1 # (move, rotate, select) * 2 + connect
+        elif self._control_type == "ik":
+            dof = (3 + 3 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
         return dof
 
     def _step(self, a):
@@ -65,13 +63,13 @@ class FurnitureBaxterEnv(FurnitureEnv):
         reward, done, info = self._compute_reward()
 
         ctrl_reward = self._ctrl_reward(a)
-        info['reward_ctrl'] = ctrl_reward
+        info["reward_ctrl"] = ctrl_reward
 
         connect_reward = reward - prev_reward
-        info['reward_connect'] = connect_reward
+        info["reward_connect"] = connect_reward
 
         if self._success:
-            logger.info('Success!')
+            logger.info("Success!")
 
         reward = ctrl_reward + connect_reward
 
@@ -102,7 +100,7 @@ class FurnitureBaxterEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            if self._control_type == 'impedance':
+            if self._control_type == "impedance":
                 robot_states["joint_pos"] = np.array(
                     [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes]
                 )
@@ -110,32 +108,60 @@ class FurnitureBaxterEnv(FurnitureEnv):
                     [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes]
                 )
                 robot_states["right_gripper_qpos"] = np.array(
-                    [self.sim.data.qpos[x] for x in self._ref_gripper_right_joint_pos_indexes]
+                    [
+                        self.sim.data.qpos[x]
+                        for x in self._ref_gripper_right_joint_pos_indexes
+                    ]
                 )
                 robot_states["right_gripper_qvel"] = np.array(
-                    [self.sim.data.qvel[x] for x in self._ref_gripper_right_joint_vel_indexes]
+                    [
+                        self.sim.data.qvel[x]
+                        for x in self._ref_gripper_right_joint_vel_indexes
+                    ]
                 )
                 robot_states["left_gripper_qpos"] = np.array(
-                    [self.sim.data.qpos[x] for x in self._ref_gripper_left_joint_pos_indexes]
+                    [
+                        self.sim.data.qpos[x]
+                        for x in self._ref_gripper_left_joint_pos_indexes
+                    ]
                 )
                 robot_states["left_gripper_qvel"] = np.array(
-                    [self.sim.data.qvel[x] for x in self._ref_gripper_left_joint_vel_indexes]
+                    [
+                        self.sim.data.qvel[x]
+                        for x in self._ref_gripper_left_joint_vel_indexes
+                    ]
                 )
 
-            right_gripper_qpos = [self.sim.data.qpos[x] for x in self._ref_gripper_right_joint_pos_indexes]
-            left_gripper_qpos = [self.sim.data.qpos[x] for x in self._ref_gripper_left_joint_pos_indexes]
+            right_gripper_qpos = [
+                self.sim.data.qpos[x] for x in self._ref_gripper_right_joint_pos_indexes
+            ]
+            left_gripper_qpos = [
+                self.sim.data.qpos[x] for x in self._ref_gripper_left_joint_pos_indexes
+            ]
             robot_states["right_gripper_dis"] = np.array(
                 [abs(right_gripper_qpos[0] - right_gripper_qpos[1])]
             )
             robot_states["left_gripper_dis"] = np.array(
                 [abs(left_gripper_qpos[0] - left_gripper_qpos[1])]
             )
-            robot_states["right_eef_pos"] = np.array(self.sim.data.site_xpos[self.right_eef_site_id])
-            robot_states["right_eef_velp"] = np.array(self.sim.data.site_xvelp[self.right_eef_site_id]) # 3-dim
-            robot_states["right_eef_velr"] = self.sim.data.site_xvelr[self.right_eef_site_id] # 3-dim
-            robot_states["left_eef_pos"] = np.array(self.sim.data.site_xpos[self.left_eef_site_id])
-            robot_states["left_eef_velp"] = np.array(self.sim.data.site_xvelp[self.left_eef_site_id]) # 3-dim
-            robot_states["left_eef_velr"] = self.sim.data.site_xvelr[self.left_eef_site_id] # 3-dim
+            robot_states["right_eef_pos"] = np.array(
+                self.sim.data.site_xpos[self.right_eef_site_id]
+            )
+            robot_states["right_eef_velp"] = np.array(
+                self.sim.data.site_xvelp[self.right_eef_site_id]
+            )  # 3-dim
+            robot_states["right_eef_velr"] = self.sim.data.site_xvelr[
+                self.right_eef_site_id
+            ]  # 3-dim
+            robot_states["left_eef_pos"] = np.array(
+                self.sim.data.site_xpos[self.left_eef_site_id]
+            )
+            robot_states["left_eef_velp"] = np.array(
+                self.sim.data.site_xvelp[self.left_eef_site_id]
+            )  # 3-dim
+            robot_states["left_eef_velr"] = self.sim.data.site_xvelr[
+                self.left_eef_site_id
+            ]  # 3-dim
 
             robot_states["right_eef_quat"] = T.convert_quat(
                 self.sim.data.get_body_xquat("right_hand"), to="xyzw"
@@ -144,7 +170,7 @@ class FurnitureBaxterEnv(FurnitureEnv):
                 self.sim.data.get_body_xquat("left_hand"), to="xyzw"
             )
 
-            state['robot_ob'] = np.concatenate(
+            state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
 
@@ -157,12 +183,24 @@ class FurnitureBaxterEnv(FurnitureEnv):
         super()._get_reference()
 
         self.l_finger_geom_ids = [
-            [self.sim.model.geom_name2id(x) for x in self.gripper_left.left_finger_geoms],
-            [self.sim.model.geom_name2id(x) for x in self.gripper_right.left_finger_geoms]
+            [
+                self.sim.model.geom_name2id(x)
+                for x in self.gripper_left.left_finger_geoms
+            ],
+            [
+                self.sim.model.geom_name2id(x)
+                for x in self.gripper_right.left_finger_geoms
+            ],
         ]
         self.r_finger_geom_ids = [
-            [self.sim.model.geom_name2id(x) for x in self.gripper_left.right_finger_geoms],
-            [self.sim.model.geom_name2id(x) for x in self.gripper_right.right_finger_geoms]
+            [
+                self.sim.model.geom_name2id(x)
+                for x in self.gripper_left.right_finger_geoms
+            ],
+            [
+                self.sim.model.geom_name2id(x)
+                for x in self.gripper_right.right_finger_geoms
+            ],
         ]
 
         # indices for joints in qpos, qvel
@@ -226,13 +264,9 @@ class FurnitureBaxterEnv(FurnitureEnv):
 
 
 def main():
-    import argparse
     from config import create_parser
-    from util import str2bool
 
-    parser = create_parser(env='FurnitureBaxterEnv')
-    parser.set_defaults(render=True, record_demo=True)
-
+    parser = create_parser(env="FurnitureBaxterEnv")
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Baxter environment
