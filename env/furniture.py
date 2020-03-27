@@ -299,7 +299,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         ob = self._get_obs()
         done = False
-        if self._num_connected == len(self._object_names) - 1:
+        if (
+            self._num_connected == len(self._object_names) - 1
+            and len(self._object_names) > 1
+        ):
             self._success = True
             done = True
 
@@ -1279,10 +1282,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 object_name2 = self._object_body_id2name[object_body_id2]
                 self._merge_groups(object_name1, object_name2)
         elif eq_obj1id is not None:
-            print(eq_obj1id)
-            import ipdb
-
-            ipdb.set_trace()
             for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
@@ -1728,7 +1727,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif key == glfw.KEY_T:
             action = "screenshot"
         elif key == glfw.KEY_Y:
-            action = "save"
+            action = 'save'
         elif key == glfw.KEY_ESCAPE:
             self.reset()
             return
@@ -1809,37 +1808,39 @@ class FurnitureEnv(metaclass=EnvMeta):
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
             all_qpos = demo["qpos"]
-        for qpos in all_qpos:
-            # set furniture part positions
-            for i, body in enumerate(self._object_names):
-                pos = qpos[body][:3]
-                quat = qpos[body][3:]
-                self._set_qpos(body, pos, quat)
-                self._stop_object(body, gravity=0)
-            # set robot positions
-            if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos["qpos"]
-                self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = qpos[
-                    "l_gripper"
-                ]
-            elif self._agent_type == "Baxter":
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos["qpos"]
-                self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = qpos[
-                    "r_gripper"
-                ]
-                self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = qpos[
-                    "l_gripper"
-                ]
-            elif self._agent_type == "Cursor":
-                self._set_pos("cursor0", qpos["cursor0"])
-                self._set_pos("cursor1", qpos["cursor1"])
+        try:
+            for qpos in all_qpos:
+                # set furniture part positions
+                for i, body in enumerate(self._object_names):
+                    pos = qpos[body][:3]
+                    quat = qpos[body][3:]
+                    self._set_qpos(body, pos, quat)
+                    self._stop_object(body, gravity=0)
+                # set robot positions
+                if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+                    self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos["qpos"]
+                    self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = qpos[
+                        "l_gripper"
+                    ]
+                elif self._agent_type == "Baxter":
+                    self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos["qpos"]
+                    self.sim.data.qpos[
+                        self._ref_gripper_right_joint_pos_indexes
+                    ] = qpos["r_gripper"]
+                    self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = qpos[
+                        "l_gripper"
+                    ]
+                elif self._agent_type == "Cursor":
+                    self._set_pos("cursor0", qpos["cursor0"])
+                    self._set_pos("cursor1", qpos["cursor1"])
 
-            self.sim.forward()
-            self._update_unity()
-            img = self.render("rgb_array")[0]
-            vr.add(img)
-        if self._config.record:
-            vr.save_video("demo.mp4")
+                self.sim.forward()
+                self._update_unity()
+                img = self.render("rgb_array")[0]
+                if self._config.record:
+                    vr.capture_frame(img)
+        finally:
+            vr.close()
 
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
@@ -1988,11 +1989,13 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         from util.video_recorder import VideoRecorder
 
-        vr = VideoRecorder()
+        vr = None
         if self._config.record:
-            vr.add(self.render("rgb_array"))
+            # print('capture_frame here')
+            vr = VideoRecorder()
+            vr.capture_frame(self.render("rgb_array")[0])
         else:
-            self.render("rgb_array")
+            self.render()
         if not config.unity:
             # override keyboard callback function of viewer
             import glfw
@@ -2002,146 +2005,153 @@ class FurnitureEnv(metaclass=EnvMeta):
         cursor_idx = 0
         flag = [-1, -1]
         t = 0
-        while True:
-            if config.unity:
-                self.key_input_unity()
+        try:
+            while True:
+                if config.unity:
+                    self.key_input_unity()
 
-            if config.render:
-                self.render()
+                if config.render:
+                    self.render()
 
-            if not self._action_on:
-                time.sleep(0.1)
-                continue
+                if not self._action_on:
+                    time.sleep(0.1)
+                    continue
 
-            action = np.zeros((8,))
+                action = np.zeros((8,))
 
-            if self.action == "switch1":
-                cursor_idx = 0
-                self._action_on = False
-                continue
-            if self.action == "switch2":
-                cursor_idx = 1
-                self._action_on = False
-                continue
+                if self.action == "switch1":
+                    cursor_idx = 0
+                    self._action_on = False
+                    continue
+                if self.action == "switch2":
+                    cursor_idx = 1
+                    self._action_on = False
+                    continue
 
-            # pick
-            if self.action == "sel":
-                flag[cursor_idx] = 1
-            if self.action == "des":
-                flag[cursor_idx] = -1
+                # pick
+                if self.action == "sel":
+                    flag[cursor_idx] = 1
+                if self.action == "des":
+                    flag[cursor_idx] = -1
 
-            # connect
-            if self.action == "connect":
-                action[7] = 1
+                # connect
+                if self.action == "connect":
+                    action[7] = 1
 
-            # move
-            if self.action == "m_f":
-                action[1] = 1
-            if self.action == "m_b":
-                action[1] = -1
-            if self.action == "m_u":
-                action[2] = 1
-            if self.action == "m_d":
-                action[2] = -1
-            if self.action == "m_l":
-                action[0] = -1
-            if self.action == "m_r":
-                action[0] = 1
-            # rotate
-            if self.action == "r_f":
-                action[4] = 1
-            if self.action == "r_b":
-                action[4] = -1
-            if self.action == "r_u":
-                action[5] = 1
-            if self.action == "r_d":
-                action[5] = -1
-            if self.action == "r_l":
-                action[3] = -1
-            if self.action == "r_r":
-                action[3] = 1
+                # move
+                if self.action == "m_f":
+                    action[1] = 1
+                if self.action == "m_b":
+                    action[1] = -1
+                if self.action == "m_u":
+                    action[2] = 1
+                if self.action == "m_d":
+                    action[2] = -1
+                if self.action == "m_l":
+                    action[0] = -1
+                if self.action == "m_r":
+                    action[0] = 1
+                # rotate
+                if self.action == "r_f":
+                    action[4] = 1
+                if self.action == "r_b":
+                    action[4] = -1
+                if self.action == "r_u":
+                    action[5] = 1
+                if self.action == "r_d":
+                    action[5] = -1
+                if self.action == "r_l":
+                    action[3] = -1
+                if self.action == "r_r":
+                    action[3] = 1
 
-            if self.action == "record":
-                if self._config.record:
-                    vr.save_video("video.mp4")
+                if self.action == "record":
+                    pass
+                    # no longer needed to save, each frame is appeneded by default if self._config.record==True
+                    #     if self._config.record:
+                    #     vr.save_video('video.mp4')
 
-            if self._agent_type == "Cursor":
-                if cursor_idx:
-                    action = np.hstack(
-                        [
-                            np.zeros_like(action[:6]),
-                            [flag[0]],
-                            action[:6],
-                            [flag[1], action[7]],
-                        ]
-                    )
-                else:
-                    action = np.hstack(
-                        [
-                            action[:6],
-                            [flag[0]],
-                            np.zeros_like(action[:6]),
-                            [flag[1], action[7]],
-                        ]
-                    )
-            elif self._control_type == "ik":
-                if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-                    action = action[:8]
-                    action[6] = flag[0]
-                elif self._agent_type == "Baxter":
+                if self._agent_type == "Cursor":
                     if cursor_idx:
                         action = np.hstack(
-                            [np.zeros(6), action[:6], [flag[0], flag[1], action[7]]]
+                            [
+                                np.zeros_like(action[:6]),
+                                [flag[0]],
+                                action[:6],
+                                [flag[1], action[7]],
+                            ]
                         )
                     else:
                         action = np.hstack(
-                            [action[:6], np.zeros(6), [flag[0], flag[1], action[7]]]
+                            [
+                                action[:6],
+                                [flag[0]],
+                                np.zeros_like(action[:6]),
+                                [flag[1], action[7]],
+                            ]
                         )
+                elif self._control_type == "ik":
+                    if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+                        action = action[:8]
+                        action[6] = flag[0]
+                    elif self._agent_type == "Baxter":
+                        if cursor_idx:
+                            action = np.hstack(
+                                [np.zeros(6), action[:6], [flag[0], flag[1], action[7]]]
+                            )
+                        else:
+                            action = np.hstack(
+                                [action[:6], np.zeros(6), [flag[0], flag[1], action[7]]]
+                            )
 
-            ob, reward, done, info = self.step(action)
-            logger.info(f"Action: {action}")
+                ob, reward, done, info = self.step(action)
+                logger.info(f"Action: {action}")
 
-            if self._config.record:
-                vr.add(self.render("rgb_array"))
-            else:
-                self.render("rgb_array")
-            if self.action == "screenshot":
-                import imageio
-
-                img, depth = self.render("rgbd_array")
-
-                if len(img.shape) == 4:
-                    img = np.concatenate(img)
-                    if depth is not None:
-                        depth = np.concatenate(depth)
-
-                imageio.imwrite("camera_ob.png", (img * 255).astype(np.uint8))
-                if self._segmentation_ob:
-                    seg = self.render("segmentation")
-                    if len(seg.shape) == 4:
-                        seg = np.concatenate(seg)
-                    color_seg = color_segmentation(seg)
-                    imageio.imwrite("segmentation_ob.png", color_seg)
-
-                if self._depth_ob:
-                    imageio.imwrite("depth_ob.png", (depth * 255).astype(np.uint8))
-
-            if self.action == "save":
-                self.save_demo()
-
-            self._action_on = False
-            t += 1
-            if done:
-                t = 0
-                flag = [-1, -1]
-                if config.debug and self._config.record:
-                    vr.save_video("test.mp4")
-                self.save_demo()
-                self.reset(config.furniture_id, config.background)
                 if self._config.record:
-                    vr.add(self.render("rgb_array"))
+                    # print('capture_frame2')
+                    vr.capture_frame(self.render("rgb_array")[0])
                 else:
                     self.render("rgb_array")
+                if self.action == "screenshot":
+                    import imageio
+
+                    img, depth = self.render("rgbd_array")
+
+                    if len(img.shape) == 4:
+                        img = np.concatenate(img)
+                        if depth is not None:
+                            depth = np.concatenate(depth)
+
+                    imageio.imwrite("camera_ob.png", (img * 255).astype(np.uint8))
+                    if self._segmentation_ob:
+                        seg = self.render("segmentation")
+                        if len(seg.shape) == 4:
+                            seg = np.concatenate(seg)
+                        color_seg = color_segmentation(seg)
+                        imageio.imwrite("segmentation_ob.png", color_seg)
+
+                    if self._depth_ob:
+                        imageio.imwrite("depth_ob.png", (depth * 255).astype(np.uint8))
+
+                if self.action == 'save' and self._record_demo:
+                    self.save_demo()
+
+                self._action_on = False
+                t += 1
+                if done:
+                    t = 0
+                    flag = [-1, -1]
+                    if self._record_demo:
+                        self.save_demo()
+                    self.reset(config.furniture_id, config.background)
+                    if self._config.record:
+                        # print('capture_frame3')
+                        vr.capture_frame(self.render("rgb_array")[0])
+                    else:
+                        self.render("rgb_array")
+        finally:
+            if self._config.record:
+                vr.close()
 
     def _get_reference(self):
         """

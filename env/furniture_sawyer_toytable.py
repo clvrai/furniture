@@ -508,7 +508,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             + site_dist_rew
             + site_up_rew
             + connect_rew
-            + +aligned_rew
+            + aligned_rew
             + success_rew
             + ctrl_penalty
             + xy_dist_rew
