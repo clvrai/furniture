@@ -10,10 +10,10 @@ import numpy as np
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
 
-import env.image_utils as I
 import env.transform_utils as T
 from env.action_spec import ActionSpec
 from env.base import EnvMeta
+from env.image_utils import color_segmentation
 from env.mjcf_utils import xml_path_completion
 from env.models import (background_names, furniture_name2id, furniture_names,
                         furniture_xmls)
@@ -1926,7 +1926,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.render()
 
             action = np.zeros((8,))
-            action_2 = np.zeros((8,))
+            # action_2 = np.zeros((8,))
 
             states = [s1, s2] if self._agent_type == "Baxter" else [s1]
             reset = False
@@ -2120,7 +2120,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     seg = self.render("segmentation")
                     if len(seg.shape) == 4:
                         seg = np.concatenate(seg)
-                    color_seg = I.color_segmentation(seg)
+                    color_seg = color_segmentation(seg)
                     imageio.imwrite("segmentation_ob.png", color_seg)
 
                 if self._depth_ob:

@@ -103,19 +103,19 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
 
         return touch_left_finger, touch_right_finger
 
-    # def _place_objects(self):
-    #     """
-    #     Returns fixed initial position and rotations of the toy table.
-    #     The first case has the table top on the left and legs on the right.
+    def _place_objects(self):
+        """
+        Returns fixed initial position and rotations of the toy table.
+        The first case has the table top on the left and legs on the right.
 
-    #     Returns:
-    #         xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-    #         xquat((float * 4) * n_obj): quaternion of the objects
-    #     """
-    #     pos_init = []
-    #     quat_init = []
+        Returns:
+            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
+            xquat((float * 4) * n_obj): quaternion of the objects
+        """
+        pos_init = [0.04521311, 0.04596679, 0.11724173]
+        quat_init = [0.51919501, 0.52560512, 0.47367611, 0.47938163]
 
-    #     return pos_init, quat_init
+        return pos_init, quat_init
 
     def _ctrl_reward(self, action):
         if self._config.control_type == "ik":
@@ -140,6 +140,51 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         info = {}
         return rew, done, info
 
+    def place_block(self, config):
+        """
+        1. Move to xy location and release block
+        2. Move gripper in z direction above block to avoid collision
+        2. Move to original starting point
+        """
+        ob = self.reset(config.furniture_id, config.background)
+        if config.render:
+            self.render()
+
+        done = False
+        original_hand_pos = self._get_pos("grip_site")
+        ground_pos = np.random.uniform(
+            low=[-0.01, -0.01, 0.005], high=[0.01, 0.01, 0.015], size=3
+        )
+        above_block_pos = None
+        phase = 1
+        while not done:
+            action = np.zeros((8,))
+            hand_pos = self._get_pos("grip_site")
+            if phase == 1:
+                action[6] = 1  # always grip
+                d = ground_pos - hand_pos
+                if np.linalg.norm(d) > 0.005:
+                    action[:3] = d
+                else:
+                    phase = 2
+                    above_block_pos = self._get_pos("1_block_l") + [0, 0, 0.03]
+            elif phase == 2:
+                action[6] = -1  # release block
+                d = above_block_pos - hand_pos
+                if np.linalg.norm(d) > 0.005:
+                    action[:3] = d
+                else:
+                    phase = 3
+            elif phase == 3:
+                action[6] = -1  # release block
+                d = original_hand_pos - hand_pos
+                if np.linalg.norm(d) > 0.005:
+                    action[:3] = d
+                else:
+                    phase = 4
+            ob, reward, done, info = self.step(action)
+            self.render()
+
 
 def main():
     from config import create_parser
@@ -149,7 +194,7 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerPlaceEnv(config)
-    env.run_manual(config)
+    env.place_block(config)
 
     # import pickle
     # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
