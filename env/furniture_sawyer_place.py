@@ -1,8 +1,10 @@
 import numpy as np
+from tqdm import tqdm
 
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import furniture_name2id
 from util.logger import logger
+from util.old_video_recorder import VideoRecorder
 
 
 class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
@@ -60,11 +62,11 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        for i, body in enumerate(self._object_names):
-            pose = self._get_qpos(body)
-            logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        # for i, body in enumerate(self._object_names):
+        #     pose = self._get_qpos(body)
+        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
-        info["ac"] = a
+        # info["ac"] = a
 
         return ob, reward, done, info
 
@@ -77,31 +79,7 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
             background: name of the background scene to reset.
         """
         super()._reset(furniture_id, background)
-
-    def _finger_contact(self, obj):
-        """
-        Returns if left, right fingers contact with obj
-        """
-        touch_left_finger = False
-        touch_right_finger = False
-        for j in range(self.sim.data.ncon):
-            c = self.sim.data.contact[j]
-            body1 = self.sim.model.geom_bodyid[c.geom1]
-            body2 = self.sim.model.geom_bodyid[c.geom2]
-            body1_name = self.sim.model.body_id2name(body1)
-            body2_name = self.sim.model.body_id2name(body2)
-
-            if c.geom1 in self.l_finger_geom_ids[0] and body2_name == obj:
-                touch_left_finger = True
-            if c.geom2 in self.l_finger_geom_ids[0] and body1_name == obj:
-                touch_left_finger = True
-
-            if c.geom1 in self.r_finger_geom_ids[0] and body2_name == obj:
-                touch_right_finger = True
-            if c.geom2 in self.r_finger_geom_ids[0] and body1_name == obj:
-                touch_right_finger = True
-
-        return touch_left_finger, touch_right_finger
+        self._phase = 1
 
     def _place_objects(self):
         """
@@ -136,54 +114,66 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
 
     def _compute_reward(self, action):
         rew = 0
-        done = False
+        done = self._phase == 4
+        self._success = self._phase == 4
         info = {}
         return rew, done, info
 
-    def place_block(self, config):
+    def generate_demos(self, num_demos):
         """
         1. Move to xy location and release block
         2. Move gripper in z direction above block to avoid collision
         2. Move to original starting point
         """
-        ob = self.reset(config.furniture_id, config.background)
-        if config.render:
-            self.render()
+        cfg = self._config
+        for i in tqdm(num_demos):
+            ob = self.reset(cfg.furniture_id, cfg.background)
+            if cfg.render:
+                self.render()
+            vr = None
+            if cfg.record:
+                vr = VideoRecorder()
+                vr.capture_frame(self.render("rgb_array")[0])
+            done = False
+            original_hand_pos = self._get_pos("grip_site")
+            # set the ground target to a zone under the hand position
+            ground_pos = np.random.uniform(
+                low=[-0.1, -0.1, 0.005], high=[0.05, 0.05, 0.015], size=3
+            )
+            ground_pos[:2] += original_hand_pos[:2]
+            above_block_pos = None
+            while not done:
+                action = np.zeros((8,))
+                hand_pos = self._get_pos("grip_site")
+                if self._phase == 1:
+                    action[6] = 1  # always grip
+                    d = ground_pos - hand_pos
+                    if np.linalg.norm(d) > 0.005:
+                        action[:3] = d
+                    else:
+                        self._phase = 2
+                        above_block_pos = self._get_pos("1_block_l") + [0, 0, 0.03]
+                elif self._phase == 2:
+                    action[6] = -1  # release block
+                    d = above_block_pos - hand_pos
+                    if np.linalg.norm(d) > 0.005:
+                        action[:3] = d
+                    else:
+                        self._phase = 3
+                elif self._phase == 3:
+                    action[6] = -1  # release block
+                    d = original_hand_pos - hand_pos
+                    if np.linalg.norm(d) > 0.005:
+                        action[:3] = d
+                    else:
+                        self._phase = 4
+                ob, reward, done, info = self.step(action)
+                self.render()
+                if cfg.record:
+                    vr.capture_frame(self.render("rgb_array")[0])
 
-        done = False
-        original_hand_pos = self._get_pos("grip_site")
-        ground_pos = np.random.uniform(
-            low=[-0.01, -0.01, 0.005], high=[0.01, 0.01, 0.015], size=3
-        )
-        above_block_pos = None
-        phase = 1
-        while not done:
-            action = np.zeros((8,))
-            hand_pos = self._get_pos("grip_site")
-            if phase == 1:
-                action[6] = 1  # always grip
-                d = ground_pos - hand_pos
-                if np.linalg.norm(d) > 0.005:
-                    action[:3] = d
-                else:
-                    phase = 2
-                    above_block_pos = self._get_pos("1_block_l") + [0, 0, 0.03]
-            elif phase == 2:
-                action[6] = -1  # release block
-                d = above_block_pos - hand_pos
-                if np.linalg.norm(d) > 0.005:
-                    action[:3] = d
-                else:
-                    phase = 3
-            elif phase == 3:
-                action[6] = -1  # release block
-                d = original_hand_pos - hand_pos
-                if np.linalg.norm(d) > 0.005:
-                    action[:3] = d
-                else:
-                    phase = 4
-            ob, reward, done, info = self.step(action)
-            self.render()
+            if cfg.record:
+                vr.save_video(f"place_{i}.mp4")
 
 
 def main():
@@ -194,7 +184,7 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerPlaceEnv(config)
-    env.place_block(config)
+    env.generate_demos(1000)
 
     # import pickle
     # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
