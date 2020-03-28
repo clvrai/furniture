@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import tqdm
 
 from env.furniture_sawyer import FurnitureSawyerEnv
-from env.models import furniture_name2id
+from env.models import background_names, furniture_name2id, furniture_xmls
 from util.logger import logger
 from util.old_video_recorder import VideoRecorder
 
@@ -23,25 +23,12 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         # default values for rew function
         self._env_config.update(
             {
-                "pos_dist": 0.04,
-                "rot_dist_up": 0.95,
-                "rot_dist_forward": 0.9,
-                "project_dist": -1,
-                "site_dist_rew": config.site_dist_rew,
-                "site_up_rew": config.site_up_rew,
-                "grip_up_rew": config.grip_up_rew,
-                "grip_dist_rew": config.grip_dist_rew,
-                "aligned_rew": config.aligned_rew,
-                "connect_rew": config.connect_rew,
                 "success_rew": config.success_rew,
                 "pick_rew": config.pick_rew,
                 "ctrl_penalty": config.ctrl_penalty,
-                "grip_z_offset": config.grip_z_offset,
-                "topsite_z_offset": config.topsite_z_offset,
                 "hold_duration": config.hold_duration,
-                "grip_penalty": config.grip_penalty,
-                "xy_dist_rew": config.xy_dist_rew,
-                "z_dist_rew": config.z_dist_rew,
+                "rand_start_range": config.rand_start_range,
+                "rand_block_range": config.rand_block_range,
             }
         )
         self._gravity_compensation = 1
@@ -72,14 +59,164 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
 
     def _reset(self, furniture_id=None, background=None):
         """
-        Resets simulation.
+        Resets simulation. Initialize with block in robot hand.
+        Take a random step to increase diversity of starting states.
 
         Args:
             furniture_id: ID of the furniture model to reset.
             background: name of the background scene to reset.
         """
-        super()._reset(furniture_id, background)
         self._phase = 1
+        if self._config.furniture_name == "Random":
+            furniture_id = self._rng.randint(len(furniture_xmls))
+        if self._furniture_id is None or (
+            self._furniture_id != furniture_id and furniture_id is not None
+        ):
+            # construct mujoco xml for furniture_id
+            if furniture_id is None:
+                self._furniture_id = self._config.furniture_id
+            else:
+                self._furniture_id = furniture_id
+            self._reset_internal()
+
+        # reset simulation data and clear buffers
+        self.sim.reset()
+
+        # store robot's contype, conaffinity (search MuJoCo XML API for details)
+        # disable robot collision
+        robot_col = {}
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
+            ):
+                robot_col[geom_name] = (
+                    self.sim.model.geom_contype[geom_id],
+                    self.sim.model.geom_conaffinity[geom_id],
+                )
+                self.sim.model.geom_contype[geom_id] = 0
+                self.sim.model.geom_conaffinity[geom_id] = 0
+
+        # initialize collision for non-mesh geoms
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name in self._object_names and "collision" in geom_name:
+                self.sim.model.geom_contype[geom_id] = 1
+                self.sim.model.geom_conaffinity[geom_id] = 1
+
+        # initialize group
+        self._object_group = list(range(len(self._object_names)))
+
+        # initialize member variables
+        self._connect_step = 0
+        self._connected_sites = set()
+        self._connected_body1 = None
+        self._connected_body1_pos = None
+        self._connected_body1_quat = None
+        self._num_connected = 0
+        if self._agent_type == "Cursor":
+            self._cursor_selected = [None, None]
+
+        self._do_simulation(None)
+        # stablize furniture pieces
+        for _ in range(100):
+            for obj_name in self._object_names:
+                self._stop_object(obj_name, gravity=0)
+            self.sim.forward()
+            self.sim.step()
+
+        logger.debug("*** furniture initialization ***")
+        # load demonstration from filepath, initialize furniture and robot
+        self._init_qpos = {
+            "qpos": [
+                -0.39438281,
+                -0.54315495,
+                0.33605859,
+                1.64807696,
+                -0.56130881,
+                0.56099085,
+                2.12105571,
+            ],
+            "l_gripper": [0.00373706, -0.00226879],
+            "1_block_l": [
+                0.04521311,
+                0.04596679,
+                0.11724173,
+                0.51919501,
+                0.52560512,
+                0.47367611,
+                0.47938163,
+            ],
+        }
+        pos_init = []
+        quat_init = []
+
+        for body in self._object_names:
+            qpos = self._init_qpos[body]
+            pos_init.append(qpos[:3])
+            quat_init.append(qpos[3:])
+        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+            if (
+                "l_gripper" in self._init_qpos
+                and "r_gripper" not in self._init_qpos
+                and "qpos" in self._init_qpos
+            ):
+                self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
+                    "qpos"
+                ]
+                self.sim.data.qpos[
+                    self._ref_gripper_joint_pos_indexes
+                ] = self._init_qpos["l_gripper"]
+
+        # enable robot collision
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
+            ):
+                contype, conaffinity = robot_col[geom_name]
+                self.sim.model.geom_contype[geom_id] = contype
+                self.sim.model.geom_conaffinity[geom_id] = conaffinity
+
+        # set furniture positions
+        for i, body in enumerate(self._object_names):
+            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
+            self._set_qpos(body, pos_init[i], quat_init[i])
+
+        self.sim.forward()
+
+        # store qpos of furniture and robot
+        if self._record_demo:
+            self._store_qpos()
+
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+            self._initial_right_hand_quat = self._right_hand_quat
+            if self._control_type == "ik":
+                # set up ik controller
+                self._controller.sync_state()
+
+        # set next subtask
+        self._get_next_subtask()
+
+        # set object positions in unity
+        if self._unity:
+            if background is None and self._background is None:
+                background = self._config.background
+            if self._config.background == "Random":
+                background = self._rng.choice(background_names)
+            if background and background != self._background:
+                self._background = background
+                self._unity.set_background(background)
+
+        # take some random step away from starting state
+        action = np.zeros((8,))
+        r = self._env_config["rand_start_range"]
+        action[:3] = self._rng.uniform(-r, r, size=3)
+        action[6] = 1  # grip block
+        self._step_continuous(action)
 
     def _place_objects(self):
         """
@@ -126,7 +263,7 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         2. Move to original starting point
         """
         cfg = self._config
-        for i in tqdm(num_demos):
+        for i in tqdm(range(num_demos)):
             ob = self.reset(cfg.furniture_id, cfg.background)
             if cfg.render:
                 self.render()
@@ -137,10 +274,10 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
             done = False
             original_hand_pos = self._get_pos("grip_site")
             # set the ground target to a zone under the hand position
-            ground_pos = np.random.uniform(
-                low=[-0.1, -0.1, 0.005], high=[0.05, 0.05, 0.015], size=3
-            )
-            ground_pos[:2] += original_hand_pos[:2]
+            r = self._env_config["rand_block_range"]
+            ground_pos = original_hand_pos.copy()
+            ground_pos[:2] += self._rng.uniform(-r, r, size=2)
+            ground_pos[2] = 0.005
             above_block_pos = None
             while not done:
                 action = np.zeros((8,))
@@ -166,12 +303,18 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
                     if np.linalg.norm(d) > 0.005:
                         action[:3] = d
                     else:
+                        # save block pose for demonstration
+                        self._demo._metadata = {
+                            "block_pos": self._get_pos("1_block_l"),
+                            "block_quat": self._get_quat("1_block_l"),
+                        }
                         self._phase = 4
                 ob, reward, done, info = self.step(action)
                 self.render()
                 if cfg.record:
                     vr.capture_frame(self.render("rgb_array")[0])
 
+            self.save_demo()
             if cfg.record:
                 vr.save_video(f"place_{i}.mp4")
 

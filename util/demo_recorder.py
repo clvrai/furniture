@@ -1,14 +1,15 @@
+import glob
 import os
 import pickle
-import glob
 
 
 class DemoRecorder(object):
-    def __init__(self, demo_dir='./'):
+    def __init__(self, demo_dir="./", metadata=None):
         self._obs = []
         self._actions = []
         self._qpos = []
         self._rewards = []
+        self._metadata = metadata
 
         self._demo_dir = demo_dir
         os.makedirs(demo_dir, exist_ok=True)
@@ -31,13 +32,16 @@ class DemoRecorder(object):
 
     def save(self, prefix):
         count = min(9999, self._get_demo_count(prefix))
-        fname = prefix + '_{:04d}.pkl'.format(count)
+        fname = prefix + "_{:04d}.pkl".format(count)
         path = os.path.join(self._demo_dir, fname)
-        demo = {'qpos': self._qpos,
-                'obs': self._obs,
-                'actions': self._actions,
-                'rewards': self._rewards}
-        with open(path, 'wb') as f:
+        demo = {
+            "qpos": self._qpos,
+            "obs": self._obs,
+            "actions": self._actions,
+            "rewards": self._rewards,
+            "metadata": self._metadata,
+        }
+        with open(path, "wb") as f:
             pickle.dump(demo, f)
         self.reset()
 
