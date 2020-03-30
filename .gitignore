@@ -76,3 +76,6 @@ wandb/
 
 ## flake8
 .flake8
+
+## VSCode
+.vscode
