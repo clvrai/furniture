@@ -1803,8 +1803,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
-
-        vr = VideoRecorder()
+        if self._config.record:
+            video_prefix = self._agent_type+'_'+ furniture_names[config.furniture_id]+'_' 
+            if self._record_demo:
+                vr = VideoRecorder(video_prefix=video_prefix, demo_dir=config.demo_dir)
+            else:
+                vr = VideoRecorder(video_prefix=video_prefix)
+            vr.capture_frame((255*self.render("rgb_array")[0]).astype('uint8'))
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
             all_qpos = demo["qpos"]
@@ -1838,7 +1843,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._update_unity()
                 img = self.render("rgb_array")[0]
                 if self._config.record:
-                    vr.capture_frame(img)
+                    vr.capture_frame((255*img).astype('uint8'))
         finally:
             vr.close()
 
@@ -1977,7 +1982,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             t += 1
 
     def run_manual(self, config):
-        """
+        """ 
         Run the environment under manual (keyboard) control
         """
         if config.furniture_name is not None:
@@ -1991,9 +1996,12 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         vr = None
         if self._config.record:
-            # print('capture_frame here')
-            vr = VideoRecorder()
-            vr.capture_frame(self.render("rgb_array")[0])
+            video_prefix = self._agent_type+'_'+ furniture_names[config.furniture_id]+'_' 
+            if self._record_demo:
+                vr = VideoRecorder(video_prefix=video_prefix, demo_dir=config.demo_dir)
+            else:
+                vr = VideoRecorder(video_prefix=video_prefix)
+            vr.capture_frame((255*self.render("rgb_array")[0]).astype('uint8'))
         else:
             self.render()
         if not config.unity:
@@ -2108,8 +2116,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 logger.info(f"Action: {action}")
 
                 if self._config.record:
-                    # print('capture_frame2')
-                    vr.capture_frame(self.render("rgb_array")[0])
+                    vr.capture_frame((255*self.render("rgb_array")[0]).astype('uint8'))
                 else:
                     self.render("rgb_array")
                 if self.action == "screenshot":
@@ -2146,7 +2153,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self.reset(config.furniture_id, config.background)
                     if self._config.record:
                         # print('capture_frame3')
-                        vr.capture_frame(self.render("rgb_array")[0])
+                        vr.capture_frame((255*self.render("rgb_array")[0]).astype('uint8'))
                     else:
                         self.render("rgb_array")
         finally:

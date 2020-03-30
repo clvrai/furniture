@@ -1,4 +1,5 @@
 import os
+import glob
 import subprocess
 import tempfile
 import os.path
@@ -6,16 +7,30 @@ import distutils.spawn, distutils.version
 import numpy as np
 from six import StringIO
 import six
+from util.demo_recorder import DemoRecorder
 
 class VideoRecorder(object):
-    def __init__(self, video_dir='./', frames_per_sec=15, output_frames_per_sec=15):
+    def __init__(self, video_dir='./videos', video_prefix='default', demo_dir=None, frames_per_sec=15, output_frames_per_sec=15):
         self._video_dir = video_dir
         os.makedirs(video_dir, exist_ok=True)
-        self.video_name = 'default.mp4' # TODO, find vars to fix name
-        self.outfile = os.path.join(self._video_dir, self.video_name)
+        if demo_dir:
+            #make video filename same as corresponding demo filename
+            count = min(9999, self._get_demo_count(demo_dir))
+        else:
+            #make seperate video only filename
+            prefix = video_prefix + 'vidonly'
+            count = min(9999, self._get_vid_count(prefix))
+        video_name = outfile = prefix + '_{:04d}.mp4'.format(count)
+        self.outfile = os.path.join(self._video_dir, video_name)
         self.frames_per_sec = frames_per_sec
         self.output_frames_per_sec = output_frames_per_sec
         self.encoder = None
+
+    def _get_demo_count(self, prefix, demo_dir):
+        return len(glob.glob(os.path.join(demo_dir, prefix) + "_*"))
+
+    def _get_vid_count(self, prefix):
+        return len(glob.glob(os.path.join(self._video_dir, prefix) + "_*"))
 
     def capture_frame(self, frame, render_mode='rgb_array'):
         """Render the given `env` and add the resulting frame to the video."""
@@ -39,7 +54,7 @@ class VideoRecorder(object):
         if self.encoder is not None:
             self.encoder.close()
             self.encoder = None
-            print('closed vr')
+            print('closed vr, video at', self.outfile)
         else:
             # No frames captured. Set metadata, and remove the empty output file.
             os.remove(self.outfile) 
@@ -64,6 +79,7 @@ class ImageEncoder(object):
             self.backend = 'ffmpeg'
         else:
             raise ImportError('Could not find ffmpeg executable. On OS X, you can install ffmpeg via `brew install ffmpeg`. On most Ubuntu variants, `sudo apt-get install ffmpeg` should do it.') 
+        print('starting')
         self.start()
 
     def start(self):
@@ -96,13 +112,16 @@ class ImageEncoder(object):
 
     def capture_frame(self, frame):
         if not isinstance(frame, (np.ndarray, np.generic)):
+            print('type error')
             raise TypeError('Wrong type {} for {} (must be np.ndarray or np.generic)'.format(type(frame), frame))
         if frame.shape != self.frame_shape:
+            print('shape error')
             raise ShapeError("Your frame has shape {}, but the VideoRecorder is configured for shape {}.".format(frame.shape, self.frame_shape))
         if frame.dtype != np.uint8:
+            print('Your frame has data type {}, but we require uint8 (i.e. RGB values from 0-255).'.format(frame.dtype))
             raise TypeError("Your frame has data type {}, but we require uint8 (i.e. RGB values from 0-255).".format(frame.dtype))
-
         if distutils.version.LooseVersion(np.__version__) >= distutils.version.LooseVersion('1.9.0'):
+            # print('writing')
             self.proc.stdin.write(frame.tobytes())
         else:
             self.proc.stdin.write(frame.tostring())
