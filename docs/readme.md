@@ -22,7 +22,7 @@
 * [Assembly Configuration](configurations.md#assembly-configuration)
 
 ## XML Schema and Furniture Details
-* [Weld Constraints and Meshes] (furniture_details.md)
+* [Weld Constraints and Meshes](furniture_details.md)
 * [Converting a New Furniture Model](converting_furniture_model.md)
 * [Furniture Database](furniture_database.md)
 
