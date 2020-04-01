@@ -18,16 +18,12 @@ The task is completed when all parts are connected.
 
 The IKEA Furniture Assembly environment provides:
 - Comprehensive modeling of **furniture assembly** task
-- Multiple furniture models, backgrounds, lighting, textures, and more
-- Realistic robot simulation (Baxter, Sawyer, and more)
+- 60 Furniture models
+- Configurable and randomized backgrounds, lighting, textures
+- Realistic robot simulation for Baxter, Sawyer, Jaco, Panda and more
 - Gym interface for easy RL training
-
-## A more comprehensive version will come in December, 2019
-- [ ] 80+ Furniture models
-- [ ] More robots and grippers (e.g. Jaco, Fetch)
-- [ ] Reinforcement learning and imitation learning benchmark
-- [ ] 3D mouse/VR controller
-- [ ] Programmatic changes in lighting and textures
+- Reinforcement learning and imitation learning benchmarks
+- 3D mouse/VR controller
 
 <br>
 
