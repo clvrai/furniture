@@ -1,7 +1,7 @@
-|ID|Furniture Name 		 |# of Parts| Notes      			      | Image                                                     |
+|ID    |Furniture Name 		 |Number of Parts| Notes      			      | Image                                                     |
 | :---:| :---         		 |     :---:|      :--- 			      | :---:											                                |
 |0     |block   					 |2  			  |toy example	|<img src="img/env/block.png" width="150">              |
-|1     |chair_agne_0007     |3  			  |seat not grippable 	  |<img src="img/env/chair_agne_007.png" width="150">     |
+|1     |chair_agne_0007    |3  			  |seat not grippable 	  |<img src="img/env/chair_agne_007.png" width="150">     |
 |2		 |chair_bernhard_0146|3  			  |						            |<img src="img/env/chair_bernhard_0146.png" width="150">|
 |3		 |chair_bertil_0148  |5        |seat not grippable |<img src="img/env/chair_bertil_0148.png" width="150">	|
 |4		 |desk_mikael_1064   |4  			  |table top not grippable|<img src="img/env/desk_mikael_1064.png" width="150">   |
