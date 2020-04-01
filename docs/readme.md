@@ -14,7 +14,7 @@
 * [RL Training](overview.md#rl-training)
 * [Build Unity Binary](build_unity.md)
 
-## Configure Environments
+## Environments Configuration and Details
 
 * [Robots](configurations.md#robots)
 * [Furniture Models](configurations.md#furniture-models)
