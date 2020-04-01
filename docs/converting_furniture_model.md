@@ -8,6 +8,6 @@ The general steps to adding new furniture are:
 
 ## 3D models
 
-# Creating mujoco XML
+## Creating mujoco XML
 
 
