@@ -8,7 +8,7 @@
 
 |![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
 | :---: | :---: | :---: |
-| Sawyer | Baxter | Cursors |
+| Sawyer | Baxter | Cursors | Jaco | Panda |
 
 
 We are announcing the launch of the **IKEA Furniture Assembly environment** as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes.
