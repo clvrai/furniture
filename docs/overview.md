@@ -27,7 +27,7 @@ The Cursor, Sawyer, and Baxter share a common control scheme. In general, the co
 - __Attach:__ C will attach two parts together. The environment requires  multiple attach actions to fully attach the parts together.
 - __Release:__ The enter (return) key releases any objects held by the Cursor. For Sawyer and Baxter, the enter key opens the grippers.
 - __Screenshot:__ T key will save the screen in `furniture/camera_ob.png`.
-- __Record video:__ setting flag '--record True' in the command line args will record a video.
+- __Record video:__ setting flag `--record True` in the command line args will record a video.
 - __Record trajectory:__ To save the current episode to a pickle file, press Y. Make sure the `--record_demo` flag is `True`. The scene will be saved in the demo directory as `test.pkl`. You can load this scene using `--load_demo`. Demonstration playback is supported through the `run_demo` function of [`furniture/env/furniture.py`](../env/furniture.py).
 
 
