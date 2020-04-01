@@ -8,11 +8,16 @@ To switch between agent configuration, simply select the corresponding python sc
 # sawyer
 $ python -m env.furniture_sawyer ...
 
-# baxter
-$ python -m env.furniture_baxter ...
-
 # cursor
 $ python -m env.furniture_cursor ...
+```
+OR use the demo_<task>.py script for your task
+  ```
+# manipulating agent manually
+$ python -m demo_manual ...
+
+# RL training
+$ python -m demo_rl ...
 ```
 
 ## Furniture Models
