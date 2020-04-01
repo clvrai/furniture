@@ -1,7 +1,7 @@
 # More Information
 
 
-## Rendering qualtiy
+## Rendering Quality
 
 |<img src="img/quality/camera_ob_0_200.png" width="150"/>|<img src="img/quality/camera_ob_0_500.png" width="150"/>|<img src="img/quality/camera_ob_4_200.png" width="150"/>|<img src="img/quality/camera_ob_4_500.png" width="150"/>|
 | :----------: | :--------: | :----------------: | :---------: |
