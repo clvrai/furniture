@@ -7,7 +7,9 @@ The general steps to adding new furniture are:
 1. Generate a mujoco XML with [welds](furniture_details.md#Connectors-Welding)    
 
 ## 3D models
-
+### Convex Mesh 
+### Individual Parts
+### Quality and Performance
 ## Creating mujoco XML
 
 
