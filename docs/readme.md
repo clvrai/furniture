@@ -14,19 +14,20 @@
 * [RL Training](overview.md#rl-training)
 * [Build Unity Binary](build_unity.md)
 
-## Environments Configuration and Details
+## Environments Configuration
 
 * [Robots](configurations.md#robots)
 * [Furniture Models](configurations.md#furniture-models)
 * [Background Scenes](configurations.md#background-scenes)
 * [Assembly Configuration](configurations.md#assembly-configuration)
 
-## Creating an RL Task
-* [Creating a new task or environment](creating_task.md)
-
-## Creating Furniture Models
+## XML Schema and Furniture Details
+* [Weld Constraints and Meshes]
 * [Converting a New Furniture Model](converting_furniture_model.md)
 * [Furniture Database](furniture_database.md)
+
+## Creating an RL Task
+* [Creating a new task or environment](creating_task.md)
 
 ## Performance Benchmarks
 
