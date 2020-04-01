@@ -21,7 +21,7 @@ $ python -m demo_rl ...
 ```
 
 ## Furniture Models
-Use `--furniture_name` or `--furniture_id` argument to choose a furniture model. The ids are determined dynamically by sorting the xml files in the directory. Therefore, if you add additional furniture, the IDs may change. Use the `furniture_name` argument to get the exact furniture you want. See [`furniture/env/models/__init__.py`](../env/models/__init__.py) for more details.
+Preferably use the `--furniture_name` argument to choose a furniture model. `--furniture_id` may also be used but is not recommended, because the ids are determined dynamically by sorting the xml files in the directory. Therefore, if more furniture is added, the IDs may change. Use the `furniture_name` argument to get the exact furniture you want. See [`furniture/env/models/__init__.py`](../env/models/__init__.py) for more details.
 
 Some furniture pieces (e.g. flat plane) are difficult to grasp using grippers we currently support.
 This can be addressed by initializing the difficult parts in a predefined, easy to grasp way. See
