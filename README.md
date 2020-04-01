@@ -6,8 +6,8 @@
 [[Environment website (https://clvrai.com/furniture)](https://clvrai.com/furniture)]
 [[arXiv Paper](https://arxiv.org/abs/1911.07246)]
 
-|![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
-| :---: | :---: | :---: |
+|![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|![](docs/img/agents/video_cursor_round_table.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
+| :---: | :---: | :---: |:---: |:---: |
 | Sawyer | Baxter | Cursors | Jaco | Panda |
 
 
