@@ -30,10 +30,8 @@
 * [Creating a new task or environment](creating_task.md)
 
 ## Performance Benchmarks
-
 * [Rendering Quality](more_info.md#rendering-quality)
 * [FPS](more_info.md#fps)
 
 ## Others
 * [Troubleshooting](more_info.md#troubleshooting)
-
