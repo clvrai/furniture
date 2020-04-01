@@ -25,8 +25,8 @@
 * [Creating a new task or environment](creating_task.md)
 
 ## Creating Furniture Models
-
 * [Converting a New Furniture Model](converting_furniture_model.md)
+* [Furniture Database](furniture_database.md)
 
 ## Performance Benchmarks
 
