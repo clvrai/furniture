@@ -48,9 +48,17 @@ class VideoRecorder(object):
         return len(glob.glob(os.path.join(self._video_dir, prefix) + "_*"))
 
     def capture_frame(self, frame, render_mode="from_env_render"):
-        """Render the given `env` and add the resulting frame to the video."""
+        """``
+        Render the given `env` and add the resulting frame to the video.
+        render_mode: from_env_render or rgb_array
+        if data is from env.render(), we will need to convert it to 0-255
+        if data is rgb array, then no need to convert
+        """
         if self._record_mode == "RAM":
-            self._frames.append(255 * frame)
+            if render_mode == "rgb_array":
+                self._frames.append(frame)
+            elif render_mode == "from_env_render":
+                self._frames.append(255 * frame)
         elif self._record_mode == "file":
             if render_mode == "rgb_array":
                 self._encode_image_frame(frame)
@@ -73,7 +81,7 @@ class VideoRecorder(object):
 
     def close(self, name=None):
         """
-        Closes the video file, and optionally renames it. 
+        Closes the video file, and optionally renames it.
         Make sure to manually close, or else you'll leak the encoder process
         """
         if name is not None:

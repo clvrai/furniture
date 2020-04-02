@@ -1,13 +1,11 @@
 import numpy as np
-from tqdm import tqdm
 
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from util.logger import logger
-from util.video_recorder import VideoRecorder
 
 
-class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
+class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
     """
     Sawyer environment for placing a block onto table.
     """
@@ -58,6 +56,14 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         return ob, reward, done, info
 
     def _reset(self, furniture_id=None, background=None):
+        """
+        Initialize robot at starting point of demonstration.
+        Take a random step to increase diversity of starting states.
+
+        Args:
+            furniture_id: ID of the furniture model to reset.
+            background: name of the background scene to reset.
+        """
         """
         Resets simulation. Initialize with block in robot hand.
         Take a random step to increase diversity of starting states.
@@ -217,6 +223,7 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         action[:3] = self._rng.uniform(-r, r, size=3)
         action[6] = 1  # grip block
         self._step_continuous(action)
+        super()._reset(furniture_id, background)
 
     def _place_objects(self):
         """
@@ -256,78 +263,16 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         info = {}
         return rew, done, info
 
-    def generate_demos(self, num_demos):
-        """
-        1. Move to xy location and release block
-        2. Move gripper in z direction above block to avoid collision
-        2. Move to original starting point
-        """
-        cfg = self._config
-        for i in tqdm(range(num_demos)):
-            ob = self.reset(cfg.furniture_id, cfg.background)
-            if cfg.render:
-                self.render()
-            vr = None
-            if cfg.record:
-                vr = VideoRecorder()
-                vr.capture_frame(self.render("rgb_array")[0])
-            done = False
-            original_hand_pos = self._get_pos("grip_site")
-            # set the ground target to a zone under the hand position
-            r = self._env_config["rand_block_range"]
-            ground_pos = original_hand_pos.copy()
-            ground_pos[:2] += self._rng.uniform(-r, r, size=2)
-            ground_pos[2] = 0.005
-            above_block_pos = None
-            while not done:
-                action = np.zeros((8,))
-                hand_pos = self._get_pos("grip_site")
-                if self._phase == 1:
-                    action[6] = 1  # always grip
-                    d = ground_pos - hand_pos
-                    if np.linalg.norm(d) > 0.005:
-                        action[:3] = d
-                    else:
-                        self._phase = 2
-                        above_block_pos = self._get_pos("1_block_l") + [0, 0, 0.03]
-                elif self._phase == 2:
-                    action[6] = -1  # release block
-                    d = above_block_pos - hand_pos
-                    if np.linalg.norm(d) > 0.005:
-                        action[:3] = d
-                    else:
-                        self._phase = 3
-                elif self._phase == 3:
-                    action[6] = -1  # release block
-                    d = original_hand_pos - hand_pos
-                    if np.linalg.norm(d) > 0.005:
-                        action[:3] = d
-                    else:
-                        # save block pose for demonstration
-                        self._demo._metadata = {
-                            "block_pos": self._get_pos("1_block_l"),
-                            "block_quat": self._get_quat("1_block_l"),
-                        }
-                        self._phase = 4
-                ob, reward, done, info = self.step(action)
-                self.render()
-                if cfg.record:
-                    vr.capture_frame(self.render("rgb_array")[0])
-
-            self.save_demo()
-            if cfg.record:
-                vr.close(f"place_{i}.mp4")
-
 
 def main():
     from config import create_parser
 
-    parser = create_parser(env="FurnitureSawyerPlaceEnv")
+    parser = create_parser(env="FurnitureSawyerPickEnv")
     config, unparsed = parser.parse_known_args()
 
     # generate placing demonstrations
-    env = FurnitureSawyerPlaceEnv(config)
-    env.generate_demos(1000)
+    env = FurnitureSawyerPickEnv(config)
+    env.run_manual()
 
 
 if __name__ == "__main__":

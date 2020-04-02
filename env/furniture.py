@@ -15,12 +15,8 @@ from env.action_spec import ActionSpec
 from env.base import EnvMeta
 from env.image_utils import color_segmentation
 from env.mjcf_utils import xml_path_completion
-from env.models import (
-    background_names,
-    furniture_name2id,
-    furniture_names,
-    furniture_xmls,
-)
+from env.models import (background_names, furniture_name2id, furniture_names,
+                        furniture_xmls)
 from env.models.grippers import gripper_factory
 from env.models.objects import MujocoXMLObject
 from env.unity_interface import UnityInterface
@@ -1987,7 +1983,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             t += 1
 
     def run_manual(self, config):
-        """ 
+        """
         Run the environment under manual (keyboard) control
         """
         if config.furniture_name is not None:
