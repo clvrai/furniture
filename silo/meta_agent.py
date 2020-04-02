@@ -10,8 +10,14 @@ from her.her_policy import CNN, MLP
 from her.dataset import MetaReplayBuffer, PrioritizedReplayBuffer
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import optimizer_cuda, count_parameters, \
-    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads
+from util.pytorch import (
+    optimizer_cuda,
+    count_parameters,
+    compute_gradient_norm,
+    compute_weight_norm,
+    sync_networks,
+    sync_grads,
+)
 from util import slack_msg
 from time import time
 
@@ -28,8 +34,8 @@ class MetaActor(nn.Module):
             self._cnn_encoder = CNN(config)
             input_dim = self._cnn_encoder.output_size
         else:
-            input_dim = np.prod(ob_space['object_ob'])
-        input_dim += np.prod(ob_space['robot_ob']) if config.robot_ob else 0
+            input_dim = np.prod(ob_space["object_ob"])
+        input_dim += np.prod(ob_space["robot_ob"]) if config.robot_ob else 0
 
         # goal
         input_dim += np.prod(goal_space)
@@ -40,29 +46,31 @@ class MetaActor(nn.Module):
         inp = []
 
         if self._config.robot_ob:
-            r = ob['robot_ob']
-            if len(r.shape) == 1: r = r.unsqueeze(0)
+            r = ob["robot_ob"]
+            if len(r.shape) == 1:
+                r = r.unsqueeze(0)
             inp.append(r)
 
         if self._config.visual_ob:
-            o = ob['normal']
-            if len(o.shape) == 3: o = o.unsqueeze(0)
+            o = ob["normal"]
+            if len(o.shape) == 3:
+                o = o.unsqueeze(0)
             o = o.permute(0, 3, 1, 2)
             o = self._activation_fn(self._cnn_encoder(o))
         else:
-            o = ob['object_ob']
-            if len(o.shape) == 1: o = o.unsqueeze(0)
+            o = ob["object_ob"]
+            if len(o.shape) == 1:
+                o = o.unsqueeze(0)
         inp.append(o)
         inp = torch.cat(inp, dim=-1)
 
-        if len(g.shape) == 2: g = g.unsqueeze(0)
+        if len(g.shape) == 2:
+            g = g.unsqueeze(0)
 
         out = []
         decay = 1.0
         for i in range(self._config.meta_window):
-            out.append(
-                decay * self.fc(torch.cat([inp, g[:, i, :]], dim=-1))
-            )
+            out.append(decay * self.fc(torch.cat([inp, g[:, i, :]], dim=-1)))
             decay *= self._config.meta_reward_decay
 
         out = torch.cat(out, dim=-1)
@@ -72,16 +80,17 @@ class MetaActor(nn.Module):
     def _to_tensor(self, x):
         if isinstance(x, dict):
             return {
-                k: torch.tensor(v).to(self._config.device, dtype=torch.float32) for k, v in x.items()
+                k: torch.tensor(v).to(self._config.device, dtype=torch.float32)
+                for k, v in x.items()
             }
         return torch.tensor(x, dtype=torch.float32).to(self._config.device)
 
     def act(self, ob, g, demo_i, is_train=True):
         if len(g) - demo_i - 2 <= 0:
             return len(g) - demo_i - 2
-        if self._config.meta_agent == 'sequential':
+        if self._config.meta_agent == "sequential":
             return 0
-        elif self._config.meta_agent == 'random':
+        elif self._config.meta_agent == "random":
             return np.random.randint(min(len(g) - demo_i - 1, self._config.meta_window))
 
         ob = self._to_tensor(ob)
@@ -104,7 +113,7 @@ class MetaActor(nn.Module):
 
     def update_eps(self):
         self.eps -= self._config.epsilon_decay
-        self.eps = np.clip(self.eps, 0.1, 1.)
+        self.eps = np.clip(self.eps, 0.1, 1.0)
 
 
 class MetaAgent(object):
@@ -123,16 +132,20 @@ class MetaAgent(object):
         self._actor_target.load_state_dict(self._actor.state_dict())
         self._network_cuda(self._config.device)
 
-        self._actor_optim = optim.Adam(self._actor.parameters(), lr=self._config.lr_actor)
+        self._actor_optim = optim.Adam(
+            self._actor.parameters(), lr=self._config.lr_actor
+        )
 
         if config.use_per:
-            self._buffer = PrioritizedReplayBuffer(config.buffer_size, config.meta_window)
+            self._buffer = PrioritizedReplayBuffer(
+                config.buffer_size, config.meta_window
+            )
         else:
             self._buffer = MetaReplayBuffer(config.buffer_size, config.meta_window)
 
         if config.is_chef:
-            logger.info('Creating a meta agent')
-            logger.info('The actor has %d parameters', count_parameters(self._actor))
+            logger.info("Creating a meta agent")
+            logger.info("The actor has %d parameters", count_parameters(self._actor))
 
     def act(self, ob, g, demo_i, is_train=True):
         return self._actor.act(ob, g, demo_i, is_train)
@@ -142,20 +155,20 @@ class MetaAgent(object):
 
     def state_dict(self):
         return {
-            'actor_eps': self._actor.eps,
-            'actor_state_dict': self._actor.state_dict(),
-            'actor_optim_state_dict': self._actor_optim.state_dict(),
+            "actor_eps": self._actor.eps,
+            "actor_state_dict": self._actor.state_dict(),
+            "actor_optim_state_dict": self._actor_optim.state_dict(),
         }
 
     def load_state_dict(self, ckpt):
-        self._actor.load_state_dict(ckpt['actor_state_dict'])
+        self._actor.load_state_dict(ckpt["actor_state_dict"])
         self._actor_target.load_state_dict(self._actor.state_dict())
         self._network_cuda(self._config.device)
 
-        self._actor_optim.load_state_dict(ckpt['actor_optim_state_dict'])
+        self._actor_optim.load_state_dict(ckpt["actor_optim_state_dict"])
         optimizer_cuda(self._actor_optim, self._config.device)
 
-        self._actor.eps = ckpt['actor_eps']
+        self._actor.eps = ckpt["actor_eps"]
 
     def replay_buffer(self):
         return self._buffer.state_dict()
@@ -169,15 +182,14 @@ class MetaAgent(object):
 
     def _soft_update_target_network(self, target, source, tau):
         for target_param, param in zip(target.parameters(), source.parameters()):
-            target_param.data.copy_((1 - tau) * param.data +
-                                    tau * target_param.data)
+            target_param.data.copy_((1 - tau) * param.data + tau * target_param.data)
 
     def sync_networks(self):
         sync_networks(self._actor)
 
     def train(self):
         start = time()
-        if self._config.meta_agent != 'policy':
+        if self._config.meta_agent != "policy":
             return {}
 
         self._actor.update_eps()
@@ -185,24 +197,28 @@ class MetaAgent(object):
         for _ in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions)
-            self._soft_update_target_network(self._actor_target, self._actor, self._config.polyak)
+            self._soft_update_target_network(
+                self._actor_target, self._actor, self._config.polyak
+            )
 
         end = time() - start
         if end > 10:
-            slack_msg('Meta buffer taking {}s'.format(end))
-        train_info.update({
-            'actor_eps': self._actor.eps,
-            'actor_grad_norm': compute_gradient_norm(self._actor),
-            'actor_weight_norm': compute_weight_norm(self._actor),
-        })
+            slack_msg("Meta buffer taking {}s".format(end))
+        train_info.update(
+            {
+                "actor_eps": self._actor.eps,
+                "actor_grad_norm": compute_gradient_norm(self._actor),
+                "actor_weight_norm": compute_weight_norm(self._actor),
+            }
+        )
         return train_info
 
     def _update_network(self, transitions):
         info = {}
 
         # pre-process the observation and goal
-        o, o_next = transitions['ob'], transitions['ob_next']
-        g, g_next = transitions['g'], transitions['g_next']
+        o, o_next = transitions["ob"], transitions["ob_next"]
+        g, g_next = transitions["g"], transitions["g_next"]
 
         bs = len(g)
 
@@ -211,13 +227,16 @@ class MetaAgent(object):
             o_next = self._ob_norm.normalize(o_next)
             g_dim = g.shape
             g = self._g_norm.normalize(g.reshape(-1, g_dim[-1])).reshape(g_dim)
-            g_next = self._g_norm.normalize(g_next.reshape(-1, g_dim[-1])).reshape(g_dim)
+            g_next = self._g_norm.normalize(g_next.reshape(-1, g_dim[-1])).reshape(
+                g_dim
+            )
 
         # transfer them into the tensor
         def _to_tensor(x):
             if isinstance(x, dict):
                 ret = {
-                    k: torch.tensor(v, dtype=torch.float32).to(self._config.device) for k, v in x.items()
+                    k: torch.tensor(v, dtype=torch.float32).to(self._config.device)
+                    for k, v in x.items()
                 }
             else:
                 ret = torch.tensor(x, dtype=torch.float32).to(self._config.device)
@@ -227,13 +246,17 @@ class MetaAgent(object):
         o_next = _to_tensor(o_next)
         g = _to_tensor(g)
         g_next = _to_tensor(g_next)
-        #ac = _to_tensor(transitions['ac'])
-        ac = torch.eye(self._config.meta_window).to(self._config.device)[transitions['ac']]
+        # ac = _to_tensor(transitions['ac'])
+        ac = torch.eye(self._config.meta_window).to(self._config.device)[
+            transitions["ac"]
+        ]
         # normalize reward to make the total reward between [0, 1]
-        r = _to_tensor(transitions['rew']).reshape(bs, 1)# / self._config.max_episode_steps
-        done = _to_tensor(transitions['done']).reshape(bs, 1)
+        r = _to_tensor(transitions["rew"]).reshape(
+            bs, 1
+        )  # / self._config.max_episode_steps
+        done = _to_tensor(transitions["done"]).reshape(bs, 1)
         if self._config.use_per:
-            weights = _to_tensor(transitions['weight']).reshape(bs, 1)
+            weights = _to_tensor(transitions["weight"]).reshape(bs, 1)
         else:
             weights = torch.ones_like(r)
 
@@ -243,7 +266,7 @@ class MetaAgent(object):
         else:
             with torch.no_grad():
                 q_next_value = self._actor_target(o_next, g_next)
-                if self._config.meta_algo == 'ddqn':
+                if self._config.meta_algo == "ddqn":
                     best_ac = self._actor(o_next, g_next).max(1, keepdim=True)[1]
                     q_next_value = q_next_value.detach().gather(1, best_ac)
                 else:
@@ -256,22 +279,22 @@ class MetaAgent(object):
         critic_diff = (target_q_value - real_q_value).pow(2)
         critic_loss = (critic_diff * weights).mean()
 
-        info['min_target_q'] = target_q_value.min().cpu().item()
-        info['target_q'] = target_q_value.mean().cpu().item()
-        info['min_real_q'] = real_q_value.min().cpu().item()
-        info['real_q'] = real_q_value.mean().cpu().item()
-        info['critic_loss'] = critic_loss.cpu().item()
+        info["min_target_q"] = target_q_value.min().cpu().item()
+        info["target_q"] = target_q_value.mean().cpu().item()
+        info["min_real_q"] = real_q_value.min().cpu().item()
+        info["real_q"] = real_q_value.mean().cpu().item()
+        info["critic_loss"] = critic_loss.cpu().item()
 
         # update the actor
         self._actor_optim.zero_grad()
         critic_loss.backward()
-        #torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+        # torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
         sync_grads(self._actor)
         self._actor_optim.step()
 
         # update prioritized experience replay
         if self._config.use_per:
-            idx = transitions['indexes']
+            idx = transitions["indexes"]
             priority = critic_diff.detach().cpu().numpy() + self._config.per_eps
             self._buffer.update_priorities(idx, priority)
 

@@ -14,7 +14,7 @@ class ReplayBuffer:
         self._sample_func = sample_func
 
         # create the buffer to store info
-        self._keys = {'ob', 'ag', 'g', 'ac', 'rew'}
+        self._keys = {"ob", "ag", "g", "ac", "rew"}
         self._buffers = defaultdict(list)
 
     # store the episode
@@ -40,7 +40,7 @@ class ReplayBuffer:
 
     def load_state_dict(self, state_dict):
         self._buffers = state_dict
-        self._current_size = len(self._buffers['ac'])
+        self._current_size = len(self._buffers["ac"])
 
 
 class MetaReplayBuffer:
@@ -52,7 +52,7 @@ class MetaReplayBuffer:
         self._current_size = 0
 
         # create the buffer to store info
-        self._keys = {'ob', 'ac', 'rew', 'done'}
+        self._keys = {"ob", "ac", "rew", "done"}
         self._buffers = defaultdict(list)
         self._meta_window = meta_window
 
@@ -64,46 +64,47 @@ class MetaReplayBuffer:
 
     # store the episode
     def store_episode(self, rollout):
-        demo_i = rollout['demo_i'][0]
+        demo_i = rollout["demo_i"][0]
         sampled_g = []
         for j in range(self._meta_window):
-            if demo_i + j + 1 >= len(rollout['demo']):
-                sampled_g.append(rollout['demo'][-1])
+            if demo_i + j + 1 >= len(rollout["demo"]):
+                sampled_g.append(rollout["demo"][-1])
             else:
-                sampled_g.append(rollout['demo'][demo_i + j + 1])
+                sampled_g.append(rollout["demo"][demo_i + j + 1])
         sampled_g = np.stack(sampled_g)
 
-        for i in range(len(rollout['ac'])):
+        for i in range(len(rollout["ac"])):
             idx = self._idx = (self._idx + 1) % self._size
             self._current_size += 1
             for k in self._keys:
                 self._add_value(k, rollout[k][i], idx)
-            self._add_value('ob_next', rollout['ob'][i + 1], idx)
+            self._add_value("ob_next", rollout["ob"][i + 1], idx)
 
-            self._add_value('g', sampled_g, idx)
+            self._add_value("g", sampled_g, idx)
 
-            demo_i = rollout['demo_i'][i + 1]
+            demo_i = rollout["demo_i"][i + 1]
             sampled_g = []
             for j in range(self._meta_window):
-                if demo_i + j + 1 >= len(rollout['demo']):
-                    sampled_g.append(rollout['demo'][-1])
+                if demo_i + j + 1 >= len(rollout["demo"]):
+                    sampled_g.append(rollout["demo"][-1])
                 else:
-                    sampled_g.append(rollout['demo'][demo_i + j + 1])
+                    sampled_g.append(rollout["demo"][demo_i + j + 1])
             sampled_g = np.stack(sampled_g)
-            self._add_value('g_next', sampled_g, idx)
+            self._add_value("g_next", sampled_g, idx)
 
     # sample the data from the replay buffer
     def sample(self, batch_size):
-        #start = time()
+        # start = time()
         episode_batch = self._buffers
-        rollout_batch_size = len(episode_batch['ac'])
+        rollout_batch_size = len(episode_batch["ac"])
 
         episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
 
         transitions = {}
         for key in episode_batch.keys():
-            transitions[key] = \
-                [episode_batch[key][episode_idx] for episode_idx in episode_idxs]
+            transitions[key] = [
+                episode_batch[key][episode_idx] for episode_idx in episode_idxs
+            ]
         new_transitions = {}
         for k, v in transitions.items():
             if isinstance(v[0], dict):
@@ -114,7 +115,7 @@ class MetaReplayBuffer:
             else:
                 new_transitions[k] = np.stack(v)
 
-        #print('sample done: {} sec'.format(time() - start))
+        # print('sample done: {} sec'.format(time() - start))
         return new_transitions
 
     def state_dict(self):
@@ -122,46 +123,61 @@ class MetaReplayBuffer:
 
     def load_state_dict(self, state_dict):
         self._buffers = state_dict
-        self._current_size = len(self._buffers['ac'])
+        self._current_size = len(self._buffers["ac"])
 
 
 class HERSampler:
     def __init__(self, replay_strategy, replace_future, reward_func=None):
         self.replay_strategy = replay_strategy
-        if self.replay_strategy == 'future':
+        if self.replay_strategy == "future":
             self.future_p = replace_future
         else:
             self.future_p = 0
         self.reward_func = reward_func
 
     def sample_her_transitions(self, episode_batch, batch_size_in_transitions):
-        #start = time()
-        rollout_batch_size = len(episode_batch['ac'])
+        # start = time()
+        rollout_batch_size = len(episode_batch["ac"])
         batch_size = batch_size_in_transitions
 
         # select which rollouts and which timesteps to be used
         episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
-        t_samples = [np.random.randint(len(episode_batch['ac'][episode_idx])) for episode_idx in episode_idxs]
+        t_samples = [
+            np.random.randint(len(episode_batch["ac"][episode_idx]))
+            for episode_idx in episode_idxs
+        ]
 
         transitions = {}
         for key in episode_batch.keys():
-            transitions[key] = \
-                [episode_batch[key][episode_idx][t] for episode_idx, t in zip(episode_idxs, t_samples)]
+            transitions[key] = [
+                episode_batch[key][episode_idx][t]
+                for episode_idx, t in zip(episode_idxs, t_samples)
+            ]
 
-        transitions['ob_next'] = [
-            episode_batch['ob'][episode_idx][t + 1] for episode_idx, t in zip(episode_idxs, t_samples)]
-        transitions['r'] = np.zeros((batch_size, ))
+        transitions["ob_next"] = [
+            episode_batch["ob"][episode_idx][t + 1]
+            for episode_idx, t in zip(episode_idxs, t_samples)
+        ]
+        transitions["r"] = np.zeros((batch_size,))
 
         # hindsight experience replay
         for i, (episode_idx, t) in enumerate(zip(episode_idxs, t_samples)):
             replace_goal = np.random.uniform() < self.future_p
             if replace_goal:
-                future_t = np.random.randint(t + 1, len(episode_batch['ac'][episode_idx]) + 1)
-                future_ag = episode_batch['ag'][episode_idx][future_t]
-                if self.reward_func(episode_batch['ag'][episode_idx][t], future_ag, None) < 0:
-                    transitions['g'][i] = future_ag
-            transitions['r'][i] = self.reward_func(
-                episode_batch['ag'][episode_idx][t + 1], transitions['g'][i], None)
+                future_t = np.random.randint(
+                    t + 1, len(episode_batch["ac"][episode_idx]) + 1
+                )
+                future_ag = episode_batch["ag"][episode_idx][future_t]
+                if (
+                    self.reward_func(
+                        episode_batch["ag"][episode_idx][t], future_ag, None
+                    )
+                    < 0
+                ):
+                    transitions["g"][i] = future_ag
+            transitions["r"][i] = self.reward_func(
+                episode_batch["ag"][episode_idx][t + 1], transitions["g"][i], None
+            )
 
         new_transitions = {}
         for k, v in transitions.items():
@@ -172,7 +188,7 @@ class HERSampler:
                 }
             else:
                 new_transitions[k] = np.stack(v)
-        #print('sample done: {} sec'.format(time() - start))
+        # print('sample done: {} sec'.format(time() - start))
 
         return new_transitions
 
@@ -189,7 +205,7 @@ class HERSampler:
 from util.segment_tree import MinSegmentTree, SumSegmentTree
 
 
-class PrioritizedReplayBuffer():
+class PrioritizedReplayBuffer:
     def __init__(self, buffer_size, meta_window, alpha=0.6):
         """Initialization.
         Args:
@@ -198,7 +214,7 @@ class PrioritizedReplayBuffer():
         """
         assert alpha >= 0
         self._size = buffer_size
-        self._keys = {'ob', 'ac', 'rew', 'done'}
+        self._keys = {"ob", "ac", "rew", "done"}
         self._buffers = defaultdict(list)
         self._meta_window = meta_window
         self._alpha = alpha
@@ -224,16 +240,16 @@ class PrioritizedReplayBuffer():
 
     # store the episode
     def store_episode(self, rollout):
-        demo_i = rollout['demo_i'][0]
+        demo_i = rollout["demo_i"][0]
         sampled_g = []
         for j in range(self._meta_window):
-            if demo_i + j + 1 >= len(rollout['demo']):
-                sampled_g.append(rollout['demo'][-1])
+            if demo_i + j + 1 >= len(rollout["demo"]):
+                sampled_g.append(rollout["demo"][-1])
             else:
-                sampled_g.append(rollout['demo'][demo_i + j + 1])
+                sampled_g.append(rollout["demo"][demo_i + j + 1])
         sampled_g = np.stack(sampled_g)
 
-        for i in range(len(rollout['ac'])):
+        for i in range(len(rollout["ac"])):
             idx = self._idx = (self._idx + 1) % self._size
             self.sum_tree[idx] = self._max_priority ** self._alpha
             self.min_tree[idx] = self._max_priority ** self._alpha
@@ -241,19 +257,19 @@ class PrioritizedReplayBuffer():
             self._current_size += 1
             for k in self._keys:
                 self._add_value(k, rollout[k][i], idx)
-            self._add_value('ob_next', rollout['ob'][i + 1], idx)
+            self._add_value("ob_next", rollout["ob"][i + 1], idx)
 
-            self._add_value('g', sampled_g, idx)
+            self._add_value("g", sampled_g, idx)
 
-            demo_i = rollout['demo_i'][i + 1]
+            demo_i = rollout["demo_i"][i + 1]
             sampled_g = []
             for j in range(self._meta_window):
-                if demo_i + j + 1 >= len(rollout['demo']):
-                    sampled_g.append(rollout['demo'][-1])
+                if demo_i + j + 1 >= len(rollout["demo"]):
+                    sampled_g.append(rollout["demo"][-1])
                 else:
-                    sampled_g.append(rollout['demo'][demo_i + j + 1])
+                    sampled_g.append(rollout["demo"][demo_i + j + 1])
             sampled_g = np.stack(sampled_g)
-            self._add_value('g_next', sampled_g, idx)
+            self._add_value("g_next", sampled_g, idx)
 
     def _sample_proportional(self, batch_size):
         """Sample indices based on proportional."""
@@ -275,27 +291,26 @@ class PrioritizedReplayBuffer():
 
         episode_batch = self._buffers
 
-        #if batch_size > self._current_size:
+        # if batch_size > self._current_size:
         #    idxs = np.random.randint(0, self._current_size, batch_size)
-        #else:
+        # else:
         idxs = self._sample_proportional(batch_size)
 
         transitions = {}
         for key in episode_batch.keys():
-            transitions[key] = \
-                [episode_batch[key][idx] for idx in idxs]
+            transitions[key] = [episode_batch[key][idx] for idx in idxs]
 
         # get max weight
-        transitions['weight'] = []
-        transitions['indexes'] = []
+        transitions["weight"] = []
+        transitions["indexes"] = []
         p_min = self.min_tree.min() / self.sum_tree.sum()
         max_weight = (p_min * self._current_size) ** (-self._beta)
         for i in idxs:
             # calculate weights
             p_sample = self.sum_tree[i] / self.sum_tree.sum()
             weight = (p_sample * self._current_size) ** (-self._beta)
-            transitions['weight'].append(weight / max_weight)
-            transitions['indexes'].append(i)
+            transitions["weight"].append(weight / max_weight)
+            transitions["indexes"].append(i)
 
         new_transitions = {}
         for k, v in transitions.items():
@@ -327,5 +342,4 @@ class PrioritizedReplayBuffer():
 
     def load_state_dict(self, state_dict):
         self._buffers = state_dict
-        self._current_size = len(self._buffers['ac'])
-
+        self._current_size = len(self._buffers["ac"])

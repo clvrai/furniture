@@ -16,19 +16,22 @@ np.set_printoptions(suppress=True)
 
 
 def get_trainer(config):
-    if config.method == 'rl':
+    if config.method == "rl":
         from her.trainer import Trainer
+
         return Trainer(config)
     else:
-        raise Exception('The method is not avaiable %s' % config.method)
+        raise Exception("The method is not avaiable %s" % config.method)
 
 
 def get_agent_by_name(algo):
-    if algo == 'sac':
+    if algo == "sac":
         from her.sac_agent import SACAgent
+
         return SACAgent
-    elif algo == 'ddpg':
+    elif algo == "ddpg":
         from her.ddpg_agent import DDPGAgent
+
         return DDPGAgent
 
 
@@ -40,16 +43,17 @@ def run(config):
     config.num_workers = MPI.COMM_WORLD.Get_size()
 
     if config.is_chef:
-        logger.warn('Run a base worker.')
+        logger.warn("Run a base worker.")
         make_log_files(config)
     else:
-        logger.warn('Run worker %d and disable logger.', config.rank)
+        logger.warn("Run worker %d and disable logger.", config.rank)
         import logging
+
         logger.setLevel(logging.CRITICAL)
 
     def shutdown(signal, frame):
-        logger.warn('Received signal %s: exiting', signal)
-        sys.exit(128+signal)
+        logger.warn("Received signal %s: exiting", signal)
+        sys.exit(128 + signal)
 
     signal.signal(signal.SIGHUP, shutdown)
     signal.signal(signal.SIGINT, shutdown)
@@ -78,15 +82,15 @@ def run(config):
 
 
 def make_log_files(config):
-    config.run_name = 'her.{}.{}.{}'.format(config.env, config.prefix, config.seed)
+    config.run_name = "her.{}.{}.{}".format(config.env, config.prefix, config.seed)
     config.log_dir = os.path.join(config.log_dir, config.run_name)
-    logger.info('Create log directory: %s', config.log_dir)
+    logger.info("Create log directory: %s", config.log_dir)
     os.makedirs(config.log_dir, exist_ok=True)
 
-    config.plot_dir = os.path.join(config.log_dir, 'plots')
+    config.plot_dir = os.path.join(config.log_dir, "plots")
     os.makedirs(config.plot_dir, exist_ok=True)
 
-    config.rollout_dir = os.path.join(config.log_dir, 'rollouts')
+    config.rollout_dir = os.path.join(config.log_dir, "rollouts")
     os.makedirs(config.rollout_dir, exist_ok=True)
 
     if config.is_train:
@@ -95,21 +99,21 @@ def make_log_files(config):
             "git diff >> {}/git.txt".format(config.log_dir),
             "echo 'python -m her.{} {}' >> {}/cmd.sh".format(
                 config.env,
-                ' '.join([shlex_quote(arg) for arg in sys.argv[1:]]),
-                config.log_dir),
+                " ".join([shlex_quote(arg) for arg in sys.argv[1:]]),
+                config.log_dir,
+            ),
         ]
         os.system("\n".join(cmds))
 
-    param_path = os.path.join(config.log_dir, 'params.json')
-    logger.info('Store parameters in %s', param_path)
-    with open(param_path, 'w') as fp:
+    param_path = os.path.join(config.log_dir, "params.json")
+    logger.info("Store parameters in %s", param_path)
+    with open(param_path, "w") as fp:
         json.dump(config.__dict__, fp, indent=4, sort_keys=True)
 
 
 def main(config, unparsed):
     if len(unparsed):
-        logger.error('Unparsed config is detected:\n%s', unparsed)
+        logger.error("Unparsed config is detected:\n%s", unparsed)
         return
 
     run(config)
-

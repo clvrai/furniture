@@ -49,14 +49,22 @@ class SubNormalizer:
         self.local_sum[...] = 0
         self.local_sumsq[...] = 0
         # synrc the stats
-        sync_sum, sync_sumsq, sync_count = self.sync(local_sum, local_sumsq, local_count)
+        sync_sum, sync_sumsq, sync_count = self.sync(
+            local_sum, local_sumsq, local_count
+        )
         # update the total stuff
         self.total_sum += sync_sum
         self.total_sumsq += sync_sumsq
         self.total_count += sync_count
         # calculate the new mean and std
         self.mean = self.total_sum / self.total_count
-        self.std = np.sqrt(np.maximum(np.square(self.eps), (self.total_sumsq / self.total_count) - np.square(self.total_sum / self.total_count)))
+        self.std = np.sqrt(
+            np.maximum(
+                np.square(self.eps),
+                (self.total_sumsq / self.total_count)
+                - np.square(self.total_sum / self.total_count),
+            )
+        )
 
     # normalize the observation
     def normalize(self, v, clip_range=None):
@@ -67,31 +75,38 @@ class SubNormalizer:
 
     def state_dict(self):
         return {
-            'sum': self.total_sum,
-            'sumsq': self.total_sumsq,
-            'count': self.total_count
+            "sum": self.total_sum,
+            "sumsq": self.total_sumsq,
+            "count": self.total_count,
         }
 
     def load_state_dict(self, state_dict):
-        self.total_sum = state_dict['sum']
-        self.total_sumsq = state_dict['sumsq']
-        self.total_count = state_dict['count']
+        self.total_sum = state_dict["sum"]
+        self.total_sumsq = state_dict["sumsq"]
+        self.total_count = state_dict["count"]
         self.mean = self.total_sum / self.total_count
-        self.std = np.sqrt(np.maximum(np.square(self.eps), (self.total_sumsq / self.total_count) - np.square(self.total_sum / self.total_count)))
+        self.std = np.sqrt(
+            np.maximum(
+                np.square(self.eps),
+                (self.total_sumsq / self.total_count)
+                - np.square(self.total_sum / self.total_count),
+            )
+        )
 
 
 class Normalizer:
     def __init__(self, size, eps=1e-2, default_clip_range=np.inf, clip_obs=np.inf):
         self.size = size
         if not isinstance(size, dict):
-            self.size = {'': size}
+            self.size = {"": size}
 
         self.keys = sorted(self.size.keys())
 
         self.sub_norm = {}
         for key in self.keys:
-            self.sub_norm[key] = SubNormalizer(self.size[key], eps,
-                                               default_clip_range, clip_obs)
+            self.sub_norm[key] = SubNormalizer(
+                self.size[key], eps, default_clip_range, clip_obs
+            )
 
     # update the parameters of the normalizer
     def update(self, v):
@@ -106,7 +121,7 @@ class Normalizer:
                 if k in self.keys:
                     self.sub_norm[k].update(v_)
         else:
-            self.sub_norm[''].update(v)
+            self.sub_norm[""].update(v)
 
     def recompute_stats(self):
         for k in self.keys:
@@ -115,9 +130,11 @@ class Normalizer:
     # normalize the observation
     def _normalize(self, v, clip_range=None):
         if not isinstance(v, dict):
-            return self.sub_norm[''].normalize(v, clip_range)
+            return self.sub_norm[""].normalize(v, clip_range)
         return {
-            k: self.sub_norm[k].normalize(v_, clip_range) for k, v_ in v.items() if k in self.keys
+            k: self.sub_norm[k].normalize(v_, clip_range)
+            for k, v_ in v.items()
+            if k in self.keys
         }
 
     def normalize(self, v, clip_range=None):
@@ -127,11 +144,8 @@ class Normalizer:
             return [self._normalize(x, clip_range) for x in v]
 
     def state_dict(self):
-        return {
-            k: self.sub_norm[k].state_dict() for k in self.keys
-        }
+        return {k: self.sub_norm[k].state_dict() for k in self.keys}
 
     def load_state_dict(self, state_dict):
         for k in self.keys:
             self.sub_norm[k].load_state_dict(state_dict[k])
-
