@@ -20,6 +20,7 @@ test.mp4
 *.hdf5
 *screenlog*
 recordings
+videos
 
 # Mujoco
 MUJOCO_LOG.TXT

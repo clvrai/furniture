@@ -6,9 +6,9 @@
 [[Environment website (https://clvrai.com/furniture)](https://clvrai.com/furniture)]
 [[arXiv Paper](https://arxiv.org/abs/1911.07246)]
 
-|![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
-| :---: | :---: | :---: |
-| Sawyer | Baxter | Cursors |
+|![](docs/img/agents/video_sawyer_swivel_chair.gif)|![](docs/img/agents/video_baxter_chair.gif)|![](docs/img/agents/video_cursor_round_table.gif)|![](docs/img/agents/video_cursor_round_table.gif)|![](docs/img/agents/video_cursor_round_table.gif)|
+| :---: | :---: | :---: |:---: |:---: |
+| Sawyer | Baxter | Cursors | Jaco | Panda |
 
 
 We are announcing the launch of the **IKEA Furniture Assembly environment** as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes.
@@ -18,16 +18,12 @@ The task is completed when all parts are connected.
 
 The IKEA Furniture Assembly environment provides:
 - Comprehensive modeling of **furniture assembly** task
-- Multiple furniture models, backgrounds, lighting, textures, and more
-- Realistic robot simulation (Baxter, Sawyer, and more)
+- 60 Furniture models
+- Configurable and randomized backgrounds, lighting, textures
+- Realistic robot simulation for Baxter, Sawyer, Jaco, Panda and more
 - Gym interface for easy RL training
-
-## A more comprehensive version will come in December, 2019
-- [ ] 80+ Furniture models
-- [ ] More robots and grippers (e.g. Jaco, Fetch)
-- [ ] Reinforcement learning and imitation learning benchmark
-- [ ] 3D mouse/VR controller
-- [ ] Programmatic changes in lighting and textures
+- Reinforcement learning and imitation learning benchmarks
+- 3D mouse/VR controller
 
 <br>
 
