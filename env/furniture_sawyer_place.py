@@ -4,7 +4,7 @@ from tqdm import tqdm
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from util.logger import logger
-from util.old_video_recorder import VideoRecorder
+from util.video_recorder import VideoRecorder
 
 
 class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
@@ -316,7 +316,7 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
 
             self.save_demo()
             if cfg.record:
-                vr.save_video(f"place_{i}.mp4")
+                vr.close(f"place_{i}.mp4")
 
 
 def main():

@@ -11,9 +11,10 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 
-import env.image_utils as I
 from env import make_env
-from env.models import agent_names, background_names, furniture_name2id, furniture_names
+from env.image_utils import color_segmentation
+from env.models import (agent_names, background_names, furniture_name2id,
+                        furniture_names)
 from util import parse_demo_file_name, str2bool
 from util.video_recorder import VideoRecorder
 
@@ -196,7 +197,7 @@ def main(args):
         env._update_unity()
 
         img, depth = env.render("rgbd_array")
-        seg = I.color_segmentation(env.render("segmentation"))
+        seg = color_segmentation(env.render("segmentation"))
         # print('rgb_frames', img.shape, 'depth_frames', depth.shape, 'seg_frames', seg.shape)
         if img.ndim == 4:
             if len(img) > 1:
