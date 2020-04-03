@@ -18,7 +18,6 @@ from util.pytorch import (
     sync_networks,
     sync_grads,
 )
-from util import slack_msg
 from time import time
 
 
@@ -202,8 +201,6 @@ class MetaAgent(object):
             )
 
         end = time() - start
-        if end > 10:
-            slack_msg("Meta buffer taking {}s".format(end))
         train_info.update(
             {
                 "actor_eps": self._actor.eps,

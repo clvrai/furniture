@@ -1,31 +1,28 @@
+import gzip
 import os
-from time import time
+import pickle
 from collections import defaultdict
 from functools import reduce
-import gzip
-import pickle
+from time import time
 
-from tqdm import tqdm, trange
-import torch
-import wandb
+# import matplotlib
+
+# import matplotlib.patches as patches
+# import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib
+import torch
+from tqdm import tqdm, trange
 
-matplotlib.use("agg")
-import matplotlib.pyplot as plt
-
-plt.style.use("ggplot")
-import matplotlib.patches as patches
 import h5py
-
+import wandb
+from env import make_env
 from her import get_agent_by_name
 from her.meta_agent import MetaAgent
-from her.rollouts import RolloutRunner
 from her.normalizer import Normalizer
+from her.rollouts import RolloutRunner
 from util.logger import logger
-from util.pytorch import get_ckpt_path, count_parameters
 from util.mpi import mpi_sum
-from environment import get_env_by_name
+from util.pytorch import get_ckpt_path
 
 
 class Trainer(object):
@@ -34,7 +31,7 @@ class Trainer(object):
         self._is_chef = config.is_chef
 
         # create a new environment
-        self._env = get_env_by_name(config.env)(config)
+        self._env = make_env(config.env, config)
         ob_space = self._env.observation_space
         goal_space = self._env.goal_space
         ac_space = self._env.dof
@@ -186,7 +183,7 @@ class Trainer(object):
     ):
         if self._env.name == "robot_push":
             logger.info("plotting")
-            self._plot_rollout(step, meta_rollout, ep_rollout)
+            # self._plot_rollout(step, meta_rollout, ep_rollout)
             self._save_rollouts(step, meta_rollout, ep_rollout)
 
         for k, v in meta_train_info.items():
@@ -200,113 +197,113 @@ class Trainer(object):
 
     def _log_test(self, step, meta_rollout, ep_rollout, ep_info):
         # visualize demonstration and observation for robot environment
-        if self._env.name == "robot_push":
-            logger.info("plotting")
-            self._plot_rollout(step, meta_rollout, ep_rollout, is_train=False)
-            self._save_rollouts(step, meta_rollout, ep_rollout, is_train=False)
+        # if self._env.name == "robot_push":
+        #     logger.info("plotting")
+        #     self._plot_rollout(step, meta_rollout, ep_rollout, is_train=False)
+        #     self._save_rollouts(step, meta_rollout, ep_rollout, is_train=False)
 
         for k, v in ep_info.items():
             wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
 
-    def _plot_rollout(self, step, meta_rollout, rollout, is_train=True):
-        if self._env.name == "pick_and_place":
-            return
-        if self._env.name == "furniture":
-            return
+    # def _plot_rollout(self, step, meta_rollout, rollout, is_train=True):
+    #     if self._env.name == "pick_and_place":
+    #         return
+    #     if self._env.name == "furniture":
+    #         return
 
-        # M x 2, M = batchsize, N = rollout size
-        meta_idxs = meta_rollout["demo_i"]
-        goals = meta_rollout["demo"][:, :2]
-        goals = np.asarray(goals)
-        trajectories = np.stack([ob["object_ob"][:2] for ob in rollout["ob"]])
-        assert trajectories.shape[-1] == 2, trajectories.shape
-        assert goals.shape[-1] == 2, goals.shape
+    #     # M x 2, M = batchsize, N = rollout size
+    #     meta_idxs = meta_rollout["demo_i"]
+    #     goals = meta_rollout["demo"][:, :2]
+    #     goals = np.asarray(goals)
+    #     trajectories = np.stack([ob["object_ob"][:2] for ob in rollout["ob"]])
+    #     assert trajectories.shape[-1] == 2, trajectories.shape
+    #     assert goals.shape[-1] == 2, goals.shape
 
-        f, ax = plt.subplots()
-        if self._env.name == "robot_push":
-            plt.xlim(0.45, 0.9)
-            plt.ylim(-0.1, 0.1)
-        elif self._env.name == "push":
-            plt.xlim(0.40, 0.75)
-            plt.ylim(-0.12, 0.12)
+    #     f, ax = plt.subplots()
+    #     if self._env.name == "robot_push":
+    #         plt.xlim(0.45, 0.9)
+    #         plt.ylim(-0.1, 0.1)
+    #     elif self._env.name == "push":
+    #         plt.xlim(0.40, 0.75)
+    #         plt.ylim(-0.12, 0.12)
 
-        # draw goals and meta policy choices
-        ax.scatter(goals[:, 0], goals[:, 1], marker=".", color="blue", zorder=2)
-        ax.scatter(
-            goals[:, 0][meta_idxs],
-            goals[:, 1][meta_idxs],
-            s=100,
-            marker="o",
-            facecolor="none",
-            edgecolor="black",
-            zorder=3,
-        )
+    #     # draw goals and meta policy choices
+    #     ax.scatter(goals[:, 0], goals[:, 1], marker=".", color="blue", zorder=2)
+    #     ax.scatter(
+    #         goals[:, 0][meta_idxs],
+    #         goals[:, 1][meta_idxs],
+    #         s=100,
+    #         marker="o",
+    #         facecolor="none",
+    #         edgecolor="black",
+    #         zorder=3,
+    #     )
 
-        (line,) = ax.plot(trajectories[:, 0], trajectories[:, 1], marker=".")
-        for i, a in enumerate(trajectories[:-1]):
-            b = trajectories[i + 1]
-            an = ax.annotate(
-                "",
-                xy=b[:2],
-                xytext=a[:2],
-                arrowprops=dict(arrowstyle="simple", color=line.get_color()),
-                zorder=1,
-            )
+    #     (line,) = ax.plot(trajectories[:, 0], trajectories[:, 1], marker=".")
+    #     for i, a in enumerate(trajectories[:-1]):
+    #         b = trajectories[i + 1]
+    #         an = ax.annotate(
+    #             "",
+    #             xy=b[:2],
+    #             xytext=a[:2],
+    #             arrowprops=dict(arrowstyle="simple", color=line.get_color()),
+    #             zorder=1,
+    #         )
 
-        if self._env.name == "robot_push":
-            bound_rect = patches.Rectangle(
-                (0.671 - 0.01, -0.075 - 0.01),
-                0.046 + 0.02,
-                0.055 + 0.02,
-                0,
-                linewidth=1,
-                edgecolor="r",
-                facecolor="r",
-                alpha=0.2,
-                hatch="/",
-            )
-            rect = patches.Rectangle(
-                (0.671, -0.075),
-                0.046,
-                0.055,
-                0,
-                linewidth=1,
-                edgecolor="r",
-                facecolor="r",
-                alpha=0.8,
-            )
-        elif self._env.name == "push":
-            bound_rect = patches.Rectangle(
-                (0.61 - 0.02, 0 - 0.02),
-                0.04,
-                0.04,
-                0,
-                linewidth=1,
-                edgecolor="r",
-                facecolor="r",
-                alpha=0.2,
-                hatch="/",
-            )
-            rect = patches.Rectangle(
-                (0.61 - 0.02, 0.0 - 0.02),
-                0.04,
-                0.04,
-                0,
-                linewidth=1,
-                edgecolor="r",
-                facecolor="r",
-                alpha=0.8,
-            )
+    #     if self._env.name == "robot_push":
+    #         bound_rect = patches.Rectangle(
+    #             (0.671 - 0.01, -0.075 - 0.01),
+    #             0.046 + 0.02,
+    #             0.055 + 0.02,
+    #             0,
+    #             linewidth=1,
+    #             edgecolor="r",
+    #             facecolor="r",
+    #             alpha=0.2,
+    #             hatch="/",
+    #         )
+    #         rect = patches.Rectangle(
+    #             (0.671, -0.075),
+    #             0.046,
+    #             0.055,
+    #             0,
+    #             linewidth=1,
+    #             edgecolor="r",
+    #             facecolor="r",
+    #             alpha=0.8,
+    #         )
+    #     elif self._env.name == "push":
+    #         bound_rect = patches.Rectangle(
+    #             (0.61 - 0.02, 0 - 0.02),
+    #             0.04,
+    #             0.04,
+    #             0,
+    #             linewidth=1,
+    #             edgecolor="r",
+    #             facecolor="r",
+    #             alpha=0.2,
+    #             hatch="/",
+    #         )
+    #         rect = patches.Rectangle(
+    #             (0.61 - 0.02, 0.0 - 0.02),
+    #             0.04,
+    #             0.04,
+    #             0,
+    #             linewidth=1,
+    #             edgecolor="r",
+    #             facecolor="r",
+    #             alpha=0.8,
+    #         )
 
-        ax.add_patch(bound_rect)
-        ax.add_patch(rect)
-        ax.set_aspect("equal")
+    #     ax.add_patch(bound_rect)
+    #     ax.add_patch(rect)
+    #     ax.set_aspect("equal")
 
-        tag = "train" if is_train else "test"
-        wandb.log({tag + "_ep/traj": [wandb.Image(plt)]}, step=step)
-        fpath = os.path.join(self._config.plot_dir, "{}_{}.png".format(tag, step))
-        f.savefig(fpath)
-        plt.close("all")
+    #     tag = "train" if is_train else "test"
+    #     wandb.log({tag + "_ep/traj": [wandb.Image(plt)]}, step=step)
+    #     fpath = os.path.join(self._config.plot_dir, "{}_{}.png".format(tag, step))
+    #     f.savefig(fpath)
+    #     plt.close("all")
 
     def train(self):
         config = self._config
@@ -418,7 +415,7 @@ class Trainer(object):
             rollout, meta_rollout, info = self._evaluate(
                 step=step, record=self._config.record, idx=i
             )
-            self._plot_rollout(i, meta_rollout, rollout, is_train=False)
+            # self._plot_rollout(i, meta_rollout, rollout, is_train=False)
             self._save_rollouts(i, meta_rollout, rollout, is_train=False)
             for k, v in info.items():
                 info_history[k].append(v)

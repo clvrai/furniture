@@ -218,19 +218,9 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         action[6] = 1  # grip block
         self._step_continuous(action)
 
-    def _place_objects(self):
-        """
-        Returns fixed initial position and rotations of the toy table.
-        The first case has the table top on the left and legs on the right.
-
-        Returns:
-            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-            xquat((float * 4) * n_obj): quaternion of the objects
-        """
-        pos_init = [0.04521311, 0.04596679, 0.11724173]
-        quat_init = [0.51919501, 0.52560512, 0.47367611, 0.47938163]
-
-        return pos_init, quat_init
+    def _get_next_subtask(self):
+        self._subtask_part1 = 0
+        self._subtask_part2 = -1
 
     def _ctrl_reward(self, action):
         if self._config.control_type == "ik":

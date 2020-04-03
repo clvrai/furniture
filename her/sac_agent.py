@@ -20,7 +20,6 @@ from util.pytorch import (
     sync_networks,
     sync_grads,
 )
-from util import slack_msg
 from time import time
 
 
@@ -287,8 +286,6 @@ class SACAgent(object):
                 self._critic2_target, self._critic2, self._config.polyak
             )
         end = time() - start
-        if end > 10:
-            slack_msg("SAC buffer taking {}s".format(end))
 
         train_info.update(
             {

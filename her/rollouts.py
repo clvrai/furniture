@@ -1,10 +1,11 @@
+import os
 from collections import defaultdict
 
-import numpy as np
-import torch
 import cv2
+import moviepy.editor as mpy
+import numpy as np
+
 from util.logger import logger
-import matplotlib.pyplot as plt
 
 
 class Rollout(object):
@@ -78,7 +79,6 @@ class RolloutRunner(object):
 
     def run_episode(self, is_train=True, record=False, step=None, idx=None):
         config = self._config
-        device = config.device
         env = self._env
         meta_pi = self._meta_pi
         pi = self._pi
@@ -114,7 +114,7 @@ class RolloutRunner(object):
             self._record_frames = []
             self._record_agent_frames = []
             if record:
-                self._store_frame(ob, None, demo, meta_ac, {})
+                self._store_frame(env, {})
 
             ag = (
                 self._get_goal_emb(ob["normal"])
@@ -128,7 +128,7 @@ class RolloutRunner(object):
                 covered_frames += 1
                 max_meta_ac = meta_ac
                 if record:
-                    self._store_frame(ob, None, demo, meta_ac, {})
+                    self._store_frame(env, {})
 
             if meta_ac == len(demo["goal"]) - 1:
                 logger.error(
@@ -184,7 +184,7 @@ class RolloutRunner(object):
                     reward_info[key].append(value)
 
                 if record:
-                    self._store_frame(ob, ac, demo, meta_ac, info)
+                    self._store_frame(env, info)
 
                 if env.is_success(ag, g):
                     covered_frames += 1
@@ -205,7 +205,7 @@ class RolloutRunner(object):
                     max_meta_ac = meta_ac
                     g = demo["goal"][meta_ac]
                     if record:
-                        self._store_frame(ob, None, demo, meta_ac, {})
+                        self._store_frame(env, {})
 
                 if meta_ac == len(demo["goal"]) - 1:
                     meta_rew += self._config.completion_bonus
@@ -234,7 +234,6 @@ class RolloutRunner(object):
 
         if record:
             self._env.frames = self._record_frames
-            self._env.scores = hrl_reward
             fname = "{}_step_{:011d}_({})_{}_{}_{}.{}_{}.mp4".format(
                 self._env.name,
                 step,
@@ -245,21 +244,7 @@ class RolloutRunner(object):
                 len(demo["goal"]) - 1,
                 "success" if hrl_success else "fail",
             )
-            self._env.save_video(fname=fname)
-
-            self._env.frames = self._record_agent_frames
-            self._env.scores = hrl_reward
-            fname = "{}_step_{:011d}_({})_{}_{}_{}.{}_{}_agent.mp4".format(
-                self._env.name,
-                step,
-                seed,
-                idx,
-                hrl_reward,
-                max_meta_ac,
-                len(demo["goal"]) - 1,
-                "success" if hrl_success else "fail",
-            )
-            self._env.save_video(fname=fname)
+            self._save_video(fname=fname, frames=self._record_frames)
 
         ep_info = {
             "len": ep_len,
@@ -288,87 +273,76 @@ class RolloutRunner(object):
 
         return rollout.get(), meta_rollout.get(), ep_info
 
-    def _store_frame(self, ob, ac, demo, meta_ac, info):
-        color = (200, 200, 200)
+    def _store_frame(self, env, info={}):
+        """
+        Renders a frame and stores in @self._record_frames.
+        """
+        # render video frame
+        frame = env.render("rgb_array")[0] * 255.0
+        fheight, fwidth = frame.shape[:2]
+        frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 
-        action_txt = ""
-        if ac is not None:
-            action_txt = ",".join(["%.03f" % a for a in ac.tolist()])
-        text = "{:4} ({}/{}) {}".format(
-            self._env._episode_length, meta_ac, len(demo["goal"]) - 1, action_txt
-        )
-        if not self._config.caption:
-            text = ""
-        frame = ob["normal"]
-        if not self._env.name == "robot_push":
-            frame = frame * 255.0
-        if ac is not None:
-            self._record_agent_frames.append(frame)
-        h, w, c = frame.shape
-        new_frame = np.zeros([h, 2 * w, c])
-        new_frame[:, 0:w, :] = frame
-        if self._env.name == "robot_push":
-            new_frame[:, w : 2 * w, :] = 0
-        else:
-            h_, w_, c_ = demo["frames"][meta_ac].shape
-            new_frame[0:h_, w : w + w_, :] = demo["frames"][meta_ac]
-
-        if self._config.screen_width == 128:
-            font_size = 0.3
-        else:
+        if self._config.record_caption:
+            # add caption to video frame
+            text = "{:4} {}".format(env._episode_length, env._episode_reward)
             font_size = 0.4
-        thickness = 1
-        x, y = 5, 10
-        cv2.putText(
-            new_frame,
-            text,
-            (x, y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            font_size,
-            color,
-            thickness,
-            cv2.LINE_AA,
-        )
-        x, y = 5, 25
-        if self._g_estimator:
-            goal_dist = np.linalg.norm(
-                demo["goal"][meta_ac] - self._get_goal_emb(ob["normal"])
-            )
-            text = "goal_dist ({:2f})".format(goal_dist)
+            thickness = 1
+            offset = 12
+            x, y = 5, fheight + 10
             cv2.putText(
-                new_frame,
+                frame,
                 text,
                 (x, y),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 font_size,
-                color,
+                (255, 255, 0),
                 thickness,
                 cv2.LINE_AA,
             )
-        if self._config.goal_type == "detector_box":
-            cx_g, cy_g, w_g, h_g = demo["goal"][meta_ac]
-            cx_o, cy_o, w_o, h_o = self._get_goal_emb(ob["normal"])
-            x1_g, y1_g, x2_g, y2_g = (
-                cx_g - w_g / 2,
-                cy_g - h_g / 2,
-                cx_g + w_g / 2,
-                cy_g + h_g / 2,
-            )
-            x1_o, y1_o, x2_o, y2_o = (
-                cx_o - w_o / 2,
-                cy_o - h_o / 2,
-                cx_o + w_o / 2,
-                cy_o + h_o / 2,
-            )
-            cv2.rectangle(
-                new_frame, (int(x1_o), int(y1_o)), (int(x2_o), int(y2_o)), color, 1
-            )
-            cv2.rectangle(
-                new_frame,
-                (int(x1_g) + w, int(y1_g)),
-                (int(x2_g) + w, int(y2_g)),
-                color,
-                1,
-            )
+            for i, k in enumerate(info.keys()):
+                v = info[k]
+                key_text = "{}: ".format(k)
+                (key_width, _), _ = cv2.getTextSize(
+                    key_text, cv2.FONT_HERSHEY_SIMPLEX, font_size, thickness
+                )
 
-        self._record_frames.append(new_frame)
+                cv2.putText(
+                    frame,
+                    key_text,
+                    (x, y + offset * (i + 2)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size,
+                    (66, 133, 244),
+                    thickness,
+                    cv2.LINE_AA,
+                )
+
+                cv2.putText(
+                    frame,
+                    str(v),
+                    (x + key_width, y + offset * (i + 2)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size,
+                    (255, 255, 255),
+                    thickness,
+                    cv2.LINE_AA,
+                )
+
+        self._record_frames.append(frame)
+
+        def _save_video(self, fname, frames, fps=15.0):
+            """ Saves @frames into a video with file name @fname. """
+            path = os.path.join(self._config.record_dir, fname)
+            logger.warn("[*] Generating video: {}".format(path))
+
+            def f(t):
+                frame_length = len(frames)
+                new_fps = 1.0 / (1.0 / fps + 1.0 / frame_length)
+                idx = min(int(t * new_fps), frame_length - 1)
+                return frames[idx]
+
+            video = mpy.VideoClip(f, duration=len(frames) / fps + 2)
+
+            video.write_videofile(path, fps, verbose=False)
+            logger.warn("[*] Video saved: {}".format(path))
+            return path

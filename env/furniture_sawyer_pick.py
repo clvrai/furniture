@@ -30,6 +30,8 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 "hold_duration": config.hold_duration,
                 "rand_start_range": config.rand_start_range,
                 "rand_block_range": config.rand_block_range,
+                "goal_object_threshold": config.goal_object_threshold,
+                "goal_eef_threshold": config.goal_eef_threshold,
             }
         )
         self._gravity_compensation = 1
@@ -57,6 +59,8 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         self.all_fps = train_fps + test_fps
         self.seed_train = np.arange(0, len(train_fps))
         self.seed_test = np.arange(len(train_fps), len(train_fps) + len(test_fps))
+
+        self._subtask_part1 = 0  # get block ob
 
     def _step(self, a):
         """
@@ -199,13 +203,12 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         print("loaded", name)
         demo = self.load_demo(seed)
         # initialize the robot and block to initial demonstraiton state
-        # TODO: initialize somewhere off here?
+        # TODO: add randomness to this staritng position?
         self._init_qpos = {
-            "qpos": demo["goal"][0]["qpos"],
-            "l_gripper": demo["goal"][0]["l_gripper"],
-            "1_block_l": demo["goal"][0]["1_block_l"],
+            "qpos": demo["qpos"][0]["qpos"],
+            "l_gripper": demo["qpos"][0]["l_gripper"],
+            "1_block_l": demo["qpos"][0]["1_block_l"],
         }
-        print("1_block_l qpos:", demo["goal"][0]["1_block_l"])
         pos_init = []
         quat_init = []
 
@@ -281,9 +284,12 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
             # TIME REVERSAL :D
             # see furniture.py _store_qpos method
             qpos = data["qpos"][::-1]
+            obs = data["obs"][::-1]
             # load frames
-            demo["goal"] = qpos
-            demo["goal_gt"] = qpos[-1]
+            demo["qpos"] = qpos
+            goal = [self.get_goal(o) for o in obs]
+            demo["goal"] = goal
+            demo["goal_gt"] = goal[-1]
         return demo
 
     def get_goal(self, ob):
@@ -291,19 +297,43 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         Converts an observation object into a goal array
         """
         # get block qpose, eef qpose
-        block_pos = ob["object_ob"][:2]
-        block_quat = ob["object_ob"]
-        eef_pos = ob["robot_ob"]
-        eef_quat = ob["robot_ob"]
-        return np.concatenate([block_pos, block_quat, eef_pos, eef_quat])
+        rob = ob["robot_ob"]
+        # gripper_dis = rob[0]
+        eef_pos = rob[1:4]
+        # eef_velp = rob[4:7]
+        # eef_velr = rob[7:10]
+        eef_quat = rob[10:]
+        return np.concatenate([ob["object_ob"], eef_pos, eef_quat])
+
+    @property
+    def goal_space(self):
+        return [14]  # block pose, eef pose
 
     def is_success(self, ob, goal):
         """
         Checks if block pose and robot eef pose are close
         to the goal poses
+        Ob is format from get_goal
+        Goal is format from demo['goal']
         """
+        if isinstance(ob, dict):
+            ob = self.get_goal(ob)
 
-        return False
+        object_pos = ob[:3]
+        goal_object_pos = goal[:3]
+        eef_pos = ob[7:10]
+        goal_eef_pos = goal[7:10]
+
+        object_success = (
+            np.linalg.norm(object_pos - goal_object_pos)
+            < self._env_config["goal_object_threshold"]
+        )
+        eef_success = (
+            np.linalg.norm(eef_pos - goal_eef_pos)
+            < self._env_config["goal_eef_threshold"]
+        )
+
+        return object_success and eef_success
 
     def is_possible_goal(self, goal):
         """
@@ -314,6 +344,10 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
     def get_env_success(self, ob, goal):
         return self.is_success(ob, goal)
+
+    def compute_reward(self, achieved_goal, goal, info=None):
+        success = self.is_success(achieved_goal, goal).astype(np.float32)
+        return success - 1.0
 
     def _ctrl_reward(self, action):
         if self._config.control_type == "ik":
@@ -338,6 +372,19 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         self._success = self._phase == 4
         info = {}
         return rew, done, info
+
+    def _get_next_subtask(self):
+        self._subtask_part1 = 0
+        self._subtask_part2 = -1
+
+    @property
+    def observation_space(self):
+        """
+        Returns the observation space.
+        """
+        ob_space = super().observation_space
+        ob_space["object_ob"] = [7]
+        return ob_space
 
 
 def main():
