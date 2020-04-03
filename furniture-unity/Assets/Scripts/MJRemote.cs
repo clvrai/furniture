@@ -124,7 +124,7 @@ public class MJRemote : MonoBehaviour
         foreach (GameObject child in SceneManager.GetActiveScene().GetRootGameObjects()) {
             if (child.name.StartsWith("Background_")) {
                 backgrounds.Add(child);
-                child.SetActive(false);
+                // child.SetActive(false);
             }
         }
 

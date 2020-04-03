@@ -6,6 +6,9 @@ from env.base import make_env, make_vec_env
 from env.furniture_baxter import FurnitureBaxterEnv
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.furniture_cursor import FurnitureCursorEnv
+from env.furniture_jaco import FurnitureJacoEnv
+from env.furniture_panda import FurniturePandaEnv
+
 from env.furniture_baxter_block import FurnitureBaxterBlockEnv
 from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
 from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
@@ -45,3 +48,23 @@ register(
             'background': 'Interior',
             'port': 1050}
 )
+
+register(
+    id='furniture-jaco-v0',
+    entry_point='env.furniture_gym:FurnitureGym',
+    kwargs={'name': 'FurnitureJacoEnv',
+            'furniture_id': 1,
+            'background': 'Interior',
+            'port': 1050}
+)
+
+
+register(
+    id='furniture-panda-v0',
+    entry_point='env.furniture_gym:FurnitureGym',
+    kwargs={'name': 'FurniturePandaEnv',
+            'furniture_id': 1,
+            'background': 'Interior',
+            'port': 1050}
+)
+
