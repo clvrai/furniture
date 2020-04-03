@@ -1,3 +1,6 @@
+import os
+import pickle
+
 import numpy as np
 
 from env.furniture_sawyer import FurnitureSawyerEnv
@@ -35,6 +38,26 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         self._num_connect_steps = 0
         self._discretize_grip = config.discretize_grip
 
+        # load demonstrations
+        self.data_dir = "./demos"
+        train_dir = os.path.join(self.data_dir, "train")
+        test_dir = os.path.join(self.data_dir, "test")
+
+        train_fps = [
+            (d.name, d.path)
+            for d in os.scandir(train_dir)
+            if d.is_file() and d.path.endswith("pkl")
+        ]
+        test_fps = [
+            (d.name, d.path)
+            for d in os.scandir(test_dir)
+            if d.is_file() and d.path.endswith("pkl")
+        ]
+        # combine filepath arrays and record start index of test
+        self.all_fps = train_fps + test_fps
+        self.seed_train = np.arange(0, len(train_fps))
+        self.seed_test = np.arange(len(train_fps), len(train_fps) + len(test_fps))
+
     def _step(self, a):
         """
         Takes a simulation step with @a and computes reward.
@@ -47,25 +70,62 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        # for i, body in enumerate(self._object_names):
-        #     pose = self._get_qpos(body)
-        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        for i, body in enumerate(self._object_names):
+            pose = self._get_qpos(body)
+            logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         # info["ac"] = a
 
         return ob, reward, done, info
 
-    def _reset(self, furniture_id=None, background=None):
+    def new_game(self, seed=None, is_train=True, record=False):
+        if seed is None:
+            if is_train:
+                seed = self._rng.choice(self.seed_train)
+            else:
+                seed = self._rng.choice(self.seed_test)
+
+        self._reset(seed)
+        # reset mujoco viewer
+        if self._render_mode == "human" and not self._unity:
+            self._viewer = self._get_viewer()
+        self._after_reset()
+
+        ob = self._get_obs()
+        if self._record_demo:
+            self._demo.add(ob=ob)
+
+        return ob, seed
+
+    def reset(
+        self,
+        seed=None,
+        is_train=True,
+        record=False,
+        furniture_id=None,
+        background=None,
+    ):
+        if seed is None:
+            if is_train:
+                seed = self._rng.choice(self.seed_train)
+            else:
+                seed = self._rng.choice(self.seed_test)
+
+        self._reset(seed, furniture_id, background)
+        # reset mujoco viewer
+        if self._render_mode == "human" and not self._unity:
+            self._viewer = self._get_viewer()
+        self._after_reset()
+
+        ob = self._get_obs()
+        if self._record_demo:
+            self._demo.add(ob=ob)
+
+        return ob
+
+    def _reset(self, seed=None, furniture_id=None, background=None):
         """
         Initialize robot at starting point of demonstration.
-        Take a random step to increase diversity of starting states.
-
-        Args:
-            furniture_id: ID of the furniture model to reset.
-            background: name of the background scene to reset.
-        """
-        """
-        Resets simulation. Initialize with block in robot hand.
         Take a random step to increase diversity of starting states.
 
         Args:
@@ -135,27 +195,17 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
         logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
+        name, path = self.all_fps[seed]
+        print("loaded", name)
+        demo = self.load_demo(seed)
+        # initialize the robot and block to initial demonstraiton state
+        # TODO: initialize somewhere off here?
         self._init_qpos = {
-            "qpos": [
-                -0.39438281,
-                -0.54315495,
-                0.33605859,
-                1.64807696,
-                -0.56130881,
-                0.56099085,
-                2.12105571,
-            ],
-            "l_gripper": [0.00373706, -0.00226879],
-            "1_block_l": [
-                0.04521311,
-                0.04596679,
-                0.11724173,
-                0.51919501,
-                0.52560512,
-                0.47367611,
-                0.47938163,
-            ],
+            "qpos": demo["goal"][0]["qpos"],
+            "l_gripper": demo["goal"][0]["l_gripper"],
+            "1_block_l": demo["goal"][0]["1_block_l"],
         }
+        print("1_block_l qpos:", demo["goal"][0]["1_block_l"])
         pos_init = []
         quat_init = []
 
@@ -221,23 +271,49 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         action = np.zeros((8,))
         r = self._env_config["rand_start_range"]
         action[:3] = self._rng.uniform(-r, r, size=3)
-        action[6] = 1  # grip block
         self._step_continuous(action)
-        super()._reset(furniture_id, background)
 
-    def _place_objects(self):
+    def load_demo(self, seed):
+        name, path = self.all_fps[seed]
+        demo = {}
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+            # TIME REVERSAL :D
+            # see furniture.py _store_qpos method
+            qpos = data["qpos"][::-1]
+            # load frames
+            demo["goal"] = qpos
+            demo["goal_gt"] = qpos[-1]
+        return demo
+
+    def get_goal(self, ob):
         """
-        Returns fixed initial position and rotations of the toy table.
-        The first case has the table top on the left and legs on the right.
-
-        Returns:
-            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-            xquat((float * 4) * n_obj): quaternion of the objects
+        Converts an observation object into a goal array
         """
-        pos_init = [0.04521311, 0.04596679, 0.11724173]
-        quat_init = [0.51919501, 0.52560512, 0.47367611, 0.47938163]
+        # get block qpose, eef qpose
+        block_pos = ob["object_ob"][:2]
+        block_quat = ob["object_ob"]
+        eef_pos = ob["robot_ob"]
+        eef_quat = ob["robot_ob"]
+        return np.concatenate([block_pos, block_quat, eef_pos, eef_quat])
 
-        return pos_init, quat_init
+    def is_success(self, ob, goal):
+        """
+        Checks if block pose and robot eef pose are close
+        to the goal poses
+        """
+
+        return False
+
+    def is_possible_goal(self, goal):
+        """
+        Checks if the goal is a physically
+        feasible goal
+        """
+        return True
+
+    def get_env_success(self, ob, goal):
+        return self.is_success(ob, goal)
 
     def _ctrl_reward(self, action):
         if self._config.control_type == "ik":
@@ -272,7 +348,7 @@ def main():
 
     # generate placing demonstrations
     env = FurnitureSawyerPickEnv(config)
-    env.run_manual()
+    env.run_manual(config)
 
 
 if __name__ == "__main__":

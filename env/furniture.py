@@ -1988,7 +1988,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
-        ob = self.reset(config.furniture_id, config.background)
+        ob = self.reset(furniture_id=config.furniture_id, background=config.background)
 
         if config.render:
             self.render()
@@ -2153,7 +2153,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                     flag = [-1, -1]
                     if self._record_demo:
                         self.save_demo()
-                    self.reset(config.furniture_id, config.background)
+                    self.reset(
+                        furniture_id=config.furniture_id, background=config.background
+                    )
                     if self._config.record:
                         # print('capture_frame3')
                         vr.capture_frame(self.render("rgb_array")[0])

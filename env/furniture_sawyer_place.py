@@ -327,7 +327,7 @@ def main():
 
     # generate placing demonstrations
     env = FurnitureSawyerPlaceEnv(config)
-    env.generate_demos(1000)
+    env.generate_demos(10)
 
 
 if __name__ == "__main__":
