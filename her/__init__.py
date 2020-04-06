@@ -93,6 +93,9 @@ def make_log_files(config):
     config.rollout_dir = os.path.join(config.log_dir, "rollouts")
     os.makedirs(config.rollout_dir, exist_ok=True)
 
+    config.record_dir = os.path.join(config.log_dir, "videos")
+    os.makedirs(config.record_dir, exist_ok=True)
+
     if config.is_train:
         cmds = [
             "echo `git rev-parse HEAD` >> {}/git.txt".format(config.log_dir),

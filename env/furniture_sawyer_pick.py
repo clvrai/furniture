@@ -274,6 +274,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         action = np.zeros((8,))
         r = self._env_config["rand_start_range"]
         action[:3] = self._rng.uniform(-r, r, size=3)
+        action[6] = -1 # keep gripper open
         self._step_continuous(action)
 
     def load_demo(self, seed):

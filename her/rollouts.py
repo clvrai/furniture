@@ -330,19 +330,19 @@ class RolloutRunner(object):
 
         self._record_frames.append(frame)
 
-        def _save_video(self, fname, frames, fps=15.0):
-            """ Saves @frames into a video with file name @fname. """
-            path = os.path.join(self._config.record_dir, fname)
-            logger.warn("[*] Generating video: {}".format(path))
+    def _save_video(self, fname, frames, fps=15.0):
+        """ Saves @frames into a video with file name @fname. """
+        path = os.path.join(self._config.record_dir, fname)
+        logger.warn("[*] Generating video: {}".format(path))
 
-            def f(t):
-                frame_length = len(frames)
-                new_fps = 1.0 / (1.0 / fps + 1.0 / frame_length)
-                idx = min(int(t * new_fps), frame_length - 1)
-                return frames[idx]
+        def f(t):
+            frame_length = len(frames)
+            new_fps = 1.0 / (1.0 / fps + 1.0 / frame_length)
+            idx = min(int(t * new_fps), frame_length - 1)
+            return frames[idx]
 
-            video = mpy.VideoClip(f, duration=len(frames) / fps + 2)
+        video = mpy.VideoClip(f, duration=len(frames) / fps + 2)
 
-            video.write_videofile(path, fps, verbose=False)
-            logger.warn("[*] Video saved: {}".format(path))
-            return path
+        video.write_videofile(path, fps, verbose=False)
+        logger.warn("[*] Video saved: {}".format(path))
+        return path
