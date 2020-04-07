@@ -78,6 +78,9 @@ class RolloutRunner(object):
         return self._g_estimator.infer(ob.astype(np.uint8)).cpu().numpy()
 
     def run_episode(self, is_train=True, record=False, step=None, idx=None):
+        """
+        Runs one full metarollout. Returns the metarollout and rollout and info.
+        """
         config = self._config
         env = self._env
         meta_pi = self._meta_pi
@@ -121,6 +124,10 @@ class RolloutRunner(object):
                 if self._g_estimator
                 else env.get_goal(ob)
             )
+            """
+            First skip past all frames in the demonstration
+            that are already satisfied. Then begin the meta rollout.
+            """
             while meta_ac < len(demo["goal"]) - 1 and env.is_success(
                 ag, demo["goal"][meta_ac + 1]
             ):
@@ -160,9 +167,12 @@ class RolloutRunner(object):
             # low-level policy
             meta_len = 0
             meta_rew = 0.0
+            low_level_len = 0
+            gcp_out_of_time = False
             while not done:
                 meta_len += 1
                 ep_len += 1
+                low_level_len += 1
                 ac = pi.act(ob_norm(ob), g_norm(g), is_train=is_train)
                 meta_obs.append(ob)
                 rollout.add({"ob": ob, "ag": ag, "g": g, "ac": ac})
@@ -192,16 +202,25 @@ class RolloutRunner(object):
                     max_meta_ac = meta_ac
                     break
 
-            if env.is_success(ag, g):
-                if env.name == "robot_push":
-                    logger.info(
-                        "robot_push achieved demo goal {}: {}".format(meta_ac, g)
-                    )
+                if low_level_len > self._config.gcp_horizon:
+                    logger.debug("gcp out of time")
+                    gcp_out_of_time = True
+                    break
+            goal_success = env.is_success(ag, g)
+            if goal_success or gcp_out_of_time:
+                """
+                Once we have achieved the current subgoal,
+                find the next subgoal, taking care to not choose already 
+                feasible subgoals.
+                Alternatively, if subpolicy ran out of time, go to the
+                next frame anyways.
+                """
                 while meta_ac < len(demo["goal"]) - 1 and env.is_success(
                     ag, demo["goal"][meta_ac + 1]
                 ):
                     meta_ac += 1
-                    covered_frames += 1
+                    if goal_success:
+                        covered_frames += 1
                     max_meta_ac = meta_ac
                     g = demo["goal"][meta_ac]
                     if record:
