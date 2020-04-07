@@ -40,6 +40,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         self._num_connect_steps = 0
         self._discretize_grip = config.discretize_grip
 
+        self._goal_type = config.goal_type
         # load demonstrations
         self.data_dir = "./demos"
         train_dir = os.path.join(self.data_dir, "train")
@@ -74,9 +75,9 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        for i, body in enumerate(self._object_names):
-            pose = self._get_qpos(body)
-            logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        # for i, body in enumerate(self._object_names):
+        #     pose = self._get_qpos(body)
+        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         # info["ac"] = a
 
@@ -274,7 +275,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         action = np.zeros((8,))
         r = self._env_config["rand_start_range"]
         action[:3] = self._rng.uniform(-r, r, size=3)
-        action[6] = -1 # keep gripper open
+        action[6] = -1  # keep gripper open
         self._step_continuous(action)
 
     def load_demo(self, seed):
@@ -297,18 +298,18 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         """
         Converts an observation object into a goal array
         """
-        # get block qpose, eef qpose
-        rob = ob["robot_ob"]
-        # gripper_dis = rob[0]
-        eef_pos = rob[1:4]
-        # eef_velp = rob[4:7]
-        # eef_velr = rob[7:10]
-        eef_quat = rob[10:]
-        return np.concatenate([ob["object_ob"], eef_pos, eef_quat])
-
-    @property
-    def goal_space(self):
-        return [14]  # block pose, eef pose
+        if self._goal_type == 'state_obj':
+            # get block qpose
+            return ob["object_ob"]
+        elif self._goal_type == 'state_obj_robot':
+            # get block qpose, eef qpose
+            rob = ob["robot_ob"]
+            # gripper_dis = rob[0]
+            eef_pos = rob[1:4]
+            # eef_velp = rob[4:7]
+            # eef_velr = rob[7:10]
+            eef_quat = rob[10:]
+            return np.concatenate([ob["object_ob"], eef_pos, eef_quat])
 
     def is_success(self, ob, goal):
         """
@@ -320,21 +321,32 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         if isinstance(ob, dict):
             ob = self.get_goal(ob)
 
-        object_pos = ob[:3]
-        goal_object_pos = goal[:3]
-        eef_pos = ob[7:10]
-        goal_eef_pos = goal[7:10]
+        if self._goal_type == "state_obj_robot":
+            object_pos = ob[:3]
+            goal_object_pos = goal[:3]
+            eef_pos = ob[7:10]
+            goal_eef_pos = goal[7:10]
 
-        object_success = (
-            np.linalg.norm(object_pos - goal_object_pos)
-            < self._env_config["goal_object_threshold"]
-        )
-        eef_success = (
-            np.linalg.norm(eef_pos - goal_eef_pos)
-            < self._env_config["goal_eef_threshold"]
-        )
+            object_success = (
+                np.linalg.norm(object_pos - goal_object_pos)
+                < self._env_config["goal_object_threshold"]
+            )
+            eef_success = (
+                np.linalg.norm(eef_pos - goal_eef_pos)
+                < self._env_config["goal_eef_threshold"]
+            )
 
-        return object_success and eef_success
+            return object_success and eef_success
+        elif self._goal_type == "state_obj":
+            object_pos = ob[:3]
+            goal_object_pos = goal[:3]
+            assert len(object_pos.shape) == 1
+
+            object_success = (
+                np.linalg.norm(object_pos - goal_object_pos)
+                < self._env_config["goal_object_threshold"]
+            )
+            return object_success
 
     def is_possible_goal(self, goal):
         """
@@ -386,6 +398,13 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         ob_space = super().observation_space
         ob_space["object_ob"] = [7]
         return ob_space
+
+    @property
+    def goal_space(self):
+        if self._goal_type == "state_obj":
+            return [7]  # block pose
+        elif self._goal_type == "state_obj_robot":
+            return [14]  # block pose, eef pose
 
 
 def main():
