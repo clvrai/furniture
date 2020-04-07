@@ -35,14 +35,14 @@ def add_argument(parser):
     )
 
     parser.add_argument(
-        "--goal_object_threshold",
+        "--goal_pos_threshold",
         type=float,
-        default=0.025,
+        default=0.015,
         help="goal threshold for the object",
     )
 
     parser.add_argument(
-        "--goal_eef_threshold",
+        "--goal_quat_threshold",
         type=float,
         default=0.01,
         help="goal threshold for the robot eef (end effector)",

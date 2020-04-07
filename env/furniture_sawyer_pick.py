@@ -30,8 +30,8 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 "hold_duration": config.hold_duration,
                 "rand_start_range": config.rand_start_range,
                 "rand_block_range": config.rand_block_range,
-                "goal_object_threshold": config.goal_object_threshold,
-                "goal_eef_threshold": config.goal_eef_threshold,
+                "goal_pos_threshold": config.goal_pos_threshold,
+                'goal_quat_threshold': config.goal_quat_threshold,
                 "max_episode_steps": 30,
             }
         )
@@ -342,24 +342,29 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
             object_success = (
                 np.linalg.norm(object_pos - goal_object_pos)
-                < self._env_config["goal_object_threshold"]
+                < self._env_config["goal_pos_threshold"]
             )
             eef_success = (
                 np.linalg.norm(eef_pos - goal_eef_pos)
-                < self._env_config["goal_eef_threshold"]
+                < self._env_config["goal_pos_threshold"]
             )
 
             return object_success and eef_success
         elif self._goal_type == "state_obj":
-            object_pos = ob[:3]
-            goal_object_pos = goal[:3]
+            object_pos, object_quat = ob[:3], ob[3:]
+            goal_object_pos, goal_object_quat = goal[:3], goal[3:]
             assert len(object_pos.shape) == 1
 
-            object_success = (
+            pos_success = (
                 np.linalg.norm(object_pos - goal_object_pos)
-                < self._env_config["goal_object_threshold"]
+                < self._env_config["goal_pos_threshold"]
             )
-            return object_success
+
+            quat_success = (
+                np.linalg.norm(object_quat - goal_object_quat)
+                < self._env_config["goal_quat_threshold"]
+            )
+            return pos_success and quat_success
 
     def is_possible_goal(self, goal):
         """

@@ -61,6 +61,9 @@ def create_parser(env=None):
         "--algo", type=str, default="sac", choices=["sac", "ppo", "ddpg", "bc", "gail"]
     )
     parser.add_argument("--policy", type=str, default="mlp", choices=["mlp", "manual"])
+    parser.add_argument(
+        "--action_repeat", type=int, default=5, help="action repeat for the robots"
+    )
 
     # vanilla rl
     parser.add_argument("--rl_hid_size", type=int, default=128)

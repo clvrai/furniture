@@ -117,7 +117,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._agent_type != "Cursor" and self._control_type == "ik":
             self._min_gripper_pos = np.array([-1.5, -1.5, 0.0])
             self._max_gripper_pos = np.array([1.5, 1.5, 1.5])
-            self._action_repeat = 5
+            self._action_repeat = config.action_repeat
 
         self._viewer = None
         self._unity = None
