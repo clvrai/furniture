@@ -32,6 +32,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 "rand_block_range": config.rand_block_range,
                 "goal_object_threshold": config.goal_object_threshold,
                 "goal_eef_threshold": config.goal_eef_threshold,
+                "max_episode_steps": 40,
             }
         )
         self._gravity_compensation = 1
@@ -298,10 +299,10 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         """
         Converts an observation object into a goal array
         """
-        if self._goal_type == 'state_obj':
+        if self._goal_type == "state_obj":
             # get block qpose
             return ob["object_ob"]
-        elif self._goal_type == 'state_obj_robot':
+        elif self._goal_type == "state_obj_robot":
             # get block qpose, eef qpose
             rob = ob["robot_ob"]
             # gripper_dis = rob[0]

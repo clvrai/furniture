@@ -233,6 +233,11 @@ def add_argument(parser):
             "detector_box",
         ],
     )
- 
     train_arg.add_argument("--max_ob_norm_step", type=int, default=10000000)
+    train_arg.add_argument(
+        "--gcp_horizon",
+        type=float,
+        default=float("inf"),
+        help="Time horizon for goal conditioned policy",
+    )
     env_arg.add_argument("--num_seeds", type=int, default=9)
