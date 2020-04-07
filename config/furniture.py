@@ -92,7 +92,6 @@ def add_argument(parser):
                         help='initialize with assembled furniture')
 
 
-
 def get_default_config():
     """
     Gets default configurations for the furniture assembly environment.

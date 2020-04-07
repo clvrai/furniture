@@ -11,6 +11,7 @@ def create_parser(env=None):
     parser = argparse.ArgumentParser(
         "IKEA Furniture Assembly Environment",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        conflict_handler="resolve",
     )
 
     # environment

@@ -32,7 +32,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 "rand_block_range": config.rand_block_range,
                 "goal_object_threshold": config.goal_object_threshold,
                 "goal_eef_threshold": config.goal_eef_threshold,
-                "max_episode_steps": 40,
+                "max_episode_steps": 30,
             }
         )
         self._gravity_compensation = 1
@@ -284,10 +284,22 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         demo = {}
         with open(path, "rb") as f:
             data = pickle.load(f)
-            # TIME REVERSAL :D
-            # see furniture.py _store_qpos method
+            """
+            TIME REVERSAL
+            see furniture.py _store_qpos method
+            skip to the last frame where block didn't move
+            so robot arm is right above block for easy pick
+            """
             qpos = data["qpos"][::-1]
-            obs = data["obs"][::-1]
+            for i in range(len(qpos) - 1):
+                q = qpos[i]["1_block_l"]
+                q_next = qpos[i + 1]["1_block_l"]
+                if np.linalg.norm(q - q_next) > 1e-5:
+                    break
+            # go back 2 frames so gripper isn't directly over block
+            i = max(0, i - 2)
+            obs = data["obs"][::-1][i:]
+            qpos = qpos[i:]
             # load frames
             demo["qpos"] = qpos
             goal = [self.get_goal(o) for o in obs]
