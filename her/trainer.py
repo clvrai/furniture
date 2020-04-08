@@ -203,7 +203,10 @@ class Trainer(object):
         #     self._save_rollouts(step, meta_rollout, ep_rollout, is_train=False)
 
         for k, v in ep_info.items():
-            wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
+            if isinstance(v, wandb.Video):
+                wandb.log({'test_ep/%s' % k: v}, step=step)
+            else:
+                wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
 
     # def _plot_rollout(self, step, meta_rollout, rollout, is_train=True):
     #     if self._env.name == "pick_and_place":

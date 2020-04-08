@@ -228,7 +228,7 @@ class RolloutRunner(object):
 
                 if meta_ac == len(demo["goal"]) - 1:
                     meta_rew += self._config.completion_bonus
-                    hrl_success = True
+                    hrl_success = goal_success
                     done = True
 
             else:
@@ -251,20 +251,6 @@ class RolloutRunner(object):
         meta_rollout.add({"meta_ob": ob, "meta_ac": meta_ac})
         env_success = env.get_env_success(ob, demo["goal_gt"])
 
-        if record:
-            self._env.frames = self._record_frames
-            fname = "{}_step_{:011d}_({})_{}_{}_{}.{}_{}.mp4".format(
-                self._env.name,
-                step,
-                seed,
-                idx,
-                hrl_reward,
-                max_meta_ac,
-                len(demo["goal"]) - 1,
-                "success" if hrl_success else "fail",
-            )
-            self._save_video(fname=fname, frames=self._record_frames)
-
         ep_info = {
             "len": ep_len,
             "demo_len": len(demo["goal"]),
@@ -277,6 +263,21 @@ class RolloutRunner(object):
             "skipped_frames": skipped_frames,
             "env_success": env_success,
         }
+        if record:
+            self._env.frames = self._record_frames
+            fname = "{}_step_{:011d}_({})_{}_{}_{}.{}_{}.mp4".format(
+                self._env.name,
+                step,
+                seed,
+                idx,
+                hrl_reward,
+                max_meta_ac,
+                len(demo["goal"]) - 1,
+                "success" if hrl_success else "fail",
+            )
+            video_path = self._save_video(fname=fname, frames=self._record_frames)
+            ep_info["video"] = video_path
+            
         if is_possible_goal is not None:
             if is_possible_goal:
                 ep_info["fail_low"] = 1.0
