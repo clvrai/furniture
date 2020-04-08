@@ -296,8 +296,8 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 q_next = qpos[i + 1]["1_block_l"]
                 if np.linalg.norm(q - q_next) > 1e-5:
                     break
-            # go back 2 frames so gripper isn't directly over block
-            i = max(0, i - 2)
+            # go back 3 frames so gripper isn't directly over block
+            i = max(0, i - 3)
             obs = data["obs"][::-1][i:]
             qpos = qpos[i:]
             # load frames

@@ -203,8 +203,8 @@ class Trainer(object):
         #     self._save_rollouts(step, meta_rollout, ep_rollout, is_train=False)
 
         for k, v in ep_info.items():
-            if isinstance(v, wandb.Video):
-                wandb.log({'test_ep/%s' % k: v}, step=step)
+            if k == 'video':
+                wandb.log({'test_ep/%s' % k: wandb.Video(v, fps=15, format='mp4')}, step=step)
             else:
                 wandb.log({"test_ep/%s" % k: np.mean(v)}, step=step)
 
