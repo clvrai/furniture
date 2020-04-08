@@ -241,3 +241,6 @@ def add_argument(parser):
         help="Time horizon for goal conditioned policy",
     )
     env_arg.add_argument("--num_seeds", type=int, default=9)
+    env_arg.add_argument(
+        "--action_repeat", type=int, default=5, help="action repeat for the robots"
+    )
