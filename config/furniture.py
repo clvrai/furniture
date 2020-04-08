@@ -48,6 +48,10 @@ def add_argument(parser):
                         help='path to demo folder')
     parser.add_argument('--record_demo', type=str2bool, default=False,
                         help='enable demo recording')
+    parser.add_argument(
+        "--record", type=str2bool, default=True, help="enable video recording"
+    )
+    parser.add_argument("--record_caption", type=str2bool, default=True)
     parser.add_argument('--preassembled', type=str2intlist, default=[],
                         help='list of weld equality ids to activate at start')
     parser.add_argument('--max_episode_steps', type=int, default=100,

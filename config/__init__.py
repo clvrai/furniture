@@ -152,10 +152,6 @@ def create_parser(env=None):
         help="save rollout information during evaluation",
     )
     parser.add_argument(
-        "--record", type=str2bool, default=True, help="enable video recording"
-    )
-    parser.add_argument("--record_caption", type=str2bool, default=True)
-    parser.add_argument(
         "--num_record_samples",
         type=int,
         default=1,

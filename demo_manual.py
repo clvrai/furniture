@@ -114,7 +114,6 @@ def main(args):
 
     # manual control of agent using keyboard
     env.run_manual(args)
-
     # close the environment instance
     env.close()
 
@@ -126,7 +125,6 @@ def argsparser():
     parser = argparse.ArgumentParser("Demo for IKEA Furniture Assembly Environment")
     parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--debug", type=str2bool, default=False)
-    parser.add_argument("--record", type=str2bool, default=False)
 
     import config.furniture as furniture_config
 
