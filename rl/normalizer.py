@@ -68,6 +68,8 @@ class SubNormalizer:
         v = self._clip(v)
         if clip_range is None:
             clip_range = self.default_clip_range
+        if not isinstance(v, np.ndarray):
+            v = v.numpy()
         return np.clip((v - self.mean) / (self.std), -clip_range, clip_range)
 
     def state_dict(self):
