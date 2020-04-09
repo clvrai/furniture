@@ -387,8 +387,9 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
     def _compute_reward(self, action):
         rew = 0
-        done = self._phase == 4
-        self._success = self._phase == 4
+        obj_pos = self._get_pos("1_block_l")
+        done = obj_pos > 0.01
+        self._success = obj_pos > 0.01
         info = {}
         return rew, done, info
 
