@@ -32,7 +32,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 "rand_block_range": config.rand_block_range,
                 "goal_pos_threshold": config.goal_pos_threshold,
                 'goal_quat_threshold': config.goal_quat_threshold,
-                "max_episode_steps": 30,
             }
         )
         self._gravity_compensation = 1
@@ -43,9 +42,9 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
         self._goal_type = config.goal_type
         # load demonstrations
-        self.data_dir = "./demos"
-        train_dir = os.path.join(self.data_dir, "train")
-        test_dir = os.path.join(self.data_dir, "test")
+        self._data_dir = config.data_dir
+        train_dir = os.path.join(self._data_dir, "train")
+        test_dir = os.path.join(self._data_dir, "test")
 
         train_fps = [
             (d.name, d.path)
@@ -90,17 +89,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 seed = self._rng.choice(self.seed_train)
             else:
                 seed = self._rng.choice(self.seed_test)
-
-        self._reset(seed)
-        # reset mujoco viewer
-        if self._render_mode == "human" and not self._unity:
-            self._viewer = self._get_viewer()
-        self._after_reset()
-
-        ob = self._get_obs()
-        if self._record_demo:
-            self._demo.add(ob=ob)
-
+        ob = self.reset(seed, is_train, record)
         return ob, seed
 
     def reset(
@@ -116,7 +105,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 seed = self._rng.choice(self.seed_train)
             else:
                 seed = self._rng.choice(self.seed_test)
-
         self._reset(seed, furniture_id, background)
         # reset mujoco viewer
         if self._render_mode == "human" and not self._unity:

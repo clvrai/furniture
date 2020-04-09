@@ -30,7 +30,7 @@ class DemoRecorder(object):
         if reward is not None:
             self._rewards.append(reward)
 
-    def save(self, prefix):
+    def save(self, prefix: str):
         count = min(9999, self._get_demo_count(prefix))
         fname = prefix + "_{:04d}.pkl".format(count)
         path = os.path.join(self._demo_dir, fname)
@@ -47,3 +47,6 @@ class DemoRecorder(object):
 
     def _get_demo_count(self, prefix):
         return len(glob.glob(os.path.join(self._demo_dir, prefix) + "_*"))
+
+    def __len__(self) -> int:
+        return max(len(self._obs), len(self._actions))

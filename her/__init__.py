@@ -77,8 +77,12 @@ def run(config):
         trainer.train()
         logger.info("Finish training")
     else:
-        trainer.evaluate()
-        logger.info("Finish evaluating")
+        if config.record_demo:
+            trainer.record_demos()
+            logger.info("Finish generating demos")
+        else:
+            trainer.evaluate()
+            logger.info("Finish evaluating")
 
 
 def make_log_files(config):

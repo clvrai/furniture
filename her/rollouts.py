@@ -77,11 +77,12 @@ class RolloutRunner(object):
             ob = ob * 255
         return self._g_estimator.infer(ob.astype(np.uint8)).cpu().numpy()
 
-    def run_episode(self, is_train=True, record=False, step=None, idx=None):
+    def run_episode(
+        self, is_train=True, record=False, step=None, idx=None, record_demo=False
+    ):
         """
         Runs one full metarollout. Returns the metarollout and rollout and info.
         """
-        config = self._config
         env = self._env
         meta_pi = self._meta_pi
         pi = self._pi
@@ -132,7 +133,8 @@ class RolloutRunner(object):
                 ag, demo["goal"][meta_ac + 1]
             ):
                 meta_ac += 1
-                covered_frames += 1
+                # don't count initial skipping as covered
+                # covered_frames += 1
                 max_meta_ac = meta_ac
                 if record:
                     self._store_frame(env, {})
@@ -210,7 +212,7 @@ class RolloutRunner(object):
             if goal_success or gcp_out_of_time:
                 """
                 Once we have achieved the current subgoal,
-                find the next subgoal, taking care to not choose already 
+                find the next subgoal, taking care to not choose already
                 feasible subgoals.
                 Alternatively, if subpolicy ran out of time, go to the
                 next frame anyways.
@@ -277,7 +279,9 @@ class RolloutRunner(object):
             )
             video_path = self._save_video(fname=fname, frames=self._record_frames)
             ep_info["video"] = video_path
-            
+        if record_demo:
+            self._env.save_demo()
+
         if is_possible_goal is not None:
             if is_possible_goal:
                 ep_info["fail_low"] = 1.0
