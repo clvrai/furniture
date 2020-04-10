@@ -28,11 +28,11 @@ class Rollout(object):
     def get(self):
         """ Returns rollout buffer and clears buffer. """
         batch = {}
-        batch['ob'] = self._history['ob']
-        batch['ac'] = self._history['ac']
-        batch['ac_before_activation'] = self._history['ac_before_activation']
-        batch['done'] = self._history['done']
-        batch['rew'] = self._history['rew']
+        batch["ob"] = self._history["ob"]
+        batch["ac"] = self._history["ac"]
+        batch["ac_before_activation"] = self._history["ac_before_activation"]
+        batch["done"] = self._history["done"]
+        batch["rew"] = self._history["rew"]
         self._history = defaultdict(list)
         return batch
 
@@ -93,7 +93,9 @@ class RolloutRunner(object):
                 # sample action from policy
                 ac, ac_before_activation = pi.act(ob, is_train=is_train)
 
-                rollout.add({'ob': ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
+                rollout.add(
+                    {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+                )
 
                 if gail:
                     reward_gail = pi.predict_reward(ob, ac)
@@ -101,8 +103,7 @@ class RolloutRunner(object):
                 # take a step
                 ob, reward, done, info = env.step(ac)
 
-                rollout.add({'done': done,
-                             'rew': reward_gail if gail else reward})
+                rollout.add({"done": done, "rew": reward_gail if gail else reward})
                 step += 1
                 ep_len += 1
                 ep_rew += reward
@@ -113,27 +114,32 @@ class RolloutRunner(object):
 
                 if every_steps is not None and step % every_steps == 0:
                     # last frame
-                    rollout.add({'ob': ob})
+                    rollout.add({"ob": ob})
                     yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
             # compute average/sum of information
-            ep_info.add({'len': ep_len, 'rew': ep_rew})
+            ep_info.add({"len": ep_len, "rew": ep_rew})
             if gail:
                 ep_info.add({"rew_gail": ep_rew_gail})
             reward_info_dict = reward_info.get_dict(reduction="sum", only_scalar=True)
             ep_info.add(reward_info_dict)
 
-            logger.info('rollout: %s',
-                        {k: v for k, v in reward_info_dict.items()
-                         if not 'qpos' in k and np.isscalar(v)})
+            logger.info(
+                "rollout: %s",
+                {
+                    k: v
+                    for k, v in reward_info_dict.items()
+                    if not "qpos" in k and np.isscalar(v)
+                },
+            )
 
             episode += 1
             if every_episodes is not None and episode % every_episodes == 0:
                 # last frame
-                rollout.add({'ob': ob})
+                rollout.add({"ob": ob})
                 yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
-    def run_episode(self, max_step=10000, is_train=True, record=False):
+    def run_episode(self, max_step=10000, is_train=True, record=False, seed=None):
         """
         Runs one episode and returns the rollout.
 
@@ -157,17 +163,20 @@ class RolloutRunner(object):
         ep_rew = 0
         if gail:
             ep_rew_gail = 0
-        ob = env.reset()
+        ob = env.reset(seed=seed)
 
         self._record_frames = []
-        if record: self._store_frame(env)
+        if record:
+            self._store_frame(env)
 
         # run rollout
         while not done and ep_len < max_step:
             # sample action from policy
             ac, ac_before_activation = pi.act(ob, is_train=is_train)
 
-            rollout.add({'ob': ob, 'ac': ac, 'ac_before_activation': ac_before_activation})
+            rollout.add(
+                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+            )
 
             if gail:
                 reward_gail = pi.predict_reward(ob, ac)
@@ -175,8 +184,7 @@ class RolloutRunner(object):
             # take a step
             ob, reward, done, info = env.step(ac)
 
-            rollout.add({'done': done,
-                         'rew': reward_gail if gail else reward})
+            rollout.add({"done": done, "rew": reward_gail if gail else reward})
             ep_len += 1
             ep_rew += reward
             if gail:
@@ -187,17 +195,18 @@ class RolloutRunner(object):
             if record:
                 frame_info = info.copy()
                 if gail:
-                    frame_info.update({"ep_rew_gail": ep_rew_gail,
-                                       "rew_gail": reward_gail})
+                    frame_info.update(
+                        {"ep_rew_gail": ep_rew_gail, "rew_gail": reward_gail}
+                    )
                 self._store_frame(env, frame_info)
 
         # compute average/sum of information
-        ep_info = {'len': ep_len, 'rew': ep_rew}
+        ep_info = {"len": ep_len, "rew": ep_rew}
         if gail:
             ep_info["rew_gail"] = ep_rew_gail
         for key, value in reward_info.items():
             if isinstance(value[0], (int, float, bool, np.float32)):
-                if '_mean' in key:
+                if "_mean" in key:
                     ep_info[key] = np.mean(value)
                 else:
                     ep_info[key] = np.sum(value)
@@ -209,35 +218,54 @@ class RolloutRunner(object):
         color = (200, 200, 200)
 
         # render video frame
-        frame = env.render('rgb_array')[0] * 255.0
+        frame = env.render("rgb_array")[0] * 255.0
         fheight, fwidth = frame.shape[:2]
         frame = np.concatenate([frame, np.zeros((fheight, fwidth, 3))], 0)
 
         if self._config.record_caption:
             # add caption to video frame
-            text = "{:4} {}".format(env._episode_length,
-                                    env._episode_reward)
+            text = "{:4} {}".format(env._episode_length, env._episode_reward)
             font_size = 0.4
             thickness = 1
             offset = 12
             x, y = 5, fheight + 10
-            cv2.putText(frame, text,
-                        (x, y), cv2.FONT_HERSHEY_SIMPLEX,
-                        font_size, (255, 255, 0), thickness, cv2.LINE_AA)
+            cv2.putText(
+                frame,
+                text,
+                (x, y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                font_size,
+                (255, 255, 0),
+                thickness,
+                cv2.LINE_AA,
+            )
             for i, k in enumerate(info.keys()):
                 v = info[k]
-                key_text = '{}: '.format(k)
-                (key_width, _), _ = cv2.getTextSize(key_text, cv2.FONT_HERSHEY_SIMPLEX,
-                                                    font_size, thickness)
+                key_text = "{}: ".format(k)
+                (key_width, _), _ = cv2.getTextSize(
+                    key_text, cv2.FONT_HERSHEY_SIMPLEX, font_size, thickness
+                )
 
-                cv2.putText(frame, key_text,
-                            (x, y + offset * (i + 2)),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            font_size, (66, 133, 244), thickness, cv2.LINE_AA)
+                cv2.putText(
+                    frame,
+                    key_text,
+                    (x, y + offset * (i + 2)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size,
+                    (66, 133, 244),
+                    thickness,
+                    cv2.LINE_AA,
+                )
 
-                cv2.putText(frame, str(v),
-                            (x + key_width, y + offset * (i + 2)),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            font_size, (255, 255, 255), thickness, cv2.LINE_AA)
+                cv2.putText(
+                    frame,
+                    str(v),
+                    (x + key_width, y + offset * (i + 2)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_size,
+                    (255, 255, 255),
+                    thickness,
+                    cv2.LINE_AA,
+                )
 
         self._record_frames.append(frame)

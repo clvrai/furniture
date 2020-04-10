@@ -27,7 +27,8 @@ class MetaActor(nn.Module):
         self._config = config
         self._activation_fn = getattr(F, config.activation)
         self.eps = 1.0
-
+        if self._config.meta_agent != "policy":
+            return
         # observation
         if config.visual_ob:
             self._cnn_encoder = CNN(config)
@@ -128,19 +129,21 @@ class MetaAgent(object):
 
         # build up target networks
         self._actor_target = MetaActor(config, ob_space, goal_space, config.meta_window)
-        self._actor_target.load_state_dict(self._actor.state_dict())
-        self._network_cuda(self._config.device)
 
-        self._actor_optim = optim.Adam(
-            self._actor.parameters(), lr=self._config.lr_actor
-        )
+        if self._config.meta_agent == "policy":
+            self._actor_target.load_state_dict(self._actor.state_dict())
+            self._network_cuda(self._config.device)
 
-        if config.use_per:
-            self._buffer = PrioritizedReplayBuffer(
-                config.buffer_size, config.meta_window
+            self._actor_optim = optim.Adam(
+                self._actor.parameters(), lr=self._config.lr_actor
             )
-        else:
-            self._buffer = MetaReplayBuffer(config.buffer_size, config.meta_window)
+
+            if config.use_per:
+                self._buffer = PrioritizedReplayBuffer(
+                    config.buffer_size, config.meta_window
+                )
+            else:
+                self._buffer = MetaReplayBuffer(config.buffer_size, config.meta_window)
 
         if config.is_chef:
             logger.info("Creating a meta agent")
@@ -150,30 +153,37 @@ class MetaAgent(object):
         return self._actor.act(ob, g, demo_i, is_train)
 
     def store_episode(self, rollouts):
-        self._buffer.store_episode(rollouts)
+        if self._config.meta_agent == "policy":
+            self._buffer.store_episode(rollouts)
 
-    def state_dict(self):
-        return {
-            "actor_eps": self._actor.eps,
-            "actor_state_dict": self._actor.state_dict(),
-            "actor_optim_state_dict": self._actor_optim.state_dict(),
-        }
+    def state_dict(self) -> dict:
+        if self._config.meta_agent == "policy":
+            return {
+                "actor_eps": self._actor.eps,
+                "actor_state_dict": self._actor.state_dict(),
+                "actor_optim_state_dict": self._actor_optim.state_dict(),
+            }
+        return {}
 
     def load_state_dict(self, ckpt):
-        self._actor.load_state_dict(ckpt["actor_state_dict"])
-        self._actor_target.load_state_dict(self._actor.state_dict())
-        self._network_cuda(self._config.device)
+        if self._config.meta_agent == "policy":
+            self._actor.load_state_dict(ckpt["actor_state_dict"])
+            self._actor_target.load_state_dict(self._actor.state_dict())
+            self._network_cuda(self._config.device)
 
-        self._actor_optim.load_state_dict(ckpt["actor_optim_state_dict"])
-        optimizer_cuda(self._actor_optim, self._config.device)
+            self._actor_optim.load_state_dict(ckpt["actor_optim_state_dict"])
+            optimizer_cuda(self._actor_optim, self._config.device)
 
-        self._actor.eps = ckpt["actor_eps"]
+            self._actor.eps = ckpt["actor_eps"]
 
     def replay_buffer(self):
-        return self._buffer.state_dict()
+        if self._config.meta_agent == "policy":
+            return self._buffer.state_dict()
+        return {}
 
     def load_replay_buffer(self, state_dict):
-        self._buffer.load_state_dict(state_dict)
+        if self._config.meta_agent == "policy":
+            self._buffer.load_state_dict(state_dict)
 
     def _network_cuda(self, device):
         self._actor.to(device)
@@ -184,10 +194,10 @@ class MetaAgent(object):
             target_param.data.copy_((1 - tau) * param.data + tau * target_param.data)
 
     def sync_networks(self):
-        sync_networks(self._actor)
+        if self._config.meta_agent == "policy":
+            sync_networks(self._actor)
 
     def train(self):
-        start = time()
         if self._config.meta_agent != "policy":
             return {}
 
@@ -200,7 +210,6 @@ class MetaAgent(object):
                 self._actor_target, self._actor, self._config.polyak
             )
 
-        end = time() - start
         train_info.update(
             {
                 "actor_eps": self._actor.eps,

@@ -371,7 +371,7 @@ class Trainer(object):
 
         for i in range(self._config.num_record_samples):
             rollout, info, frames = self._runner.run_episode(
-                is_train=False, record=record
+                is_train=False, record=record, seed=idx
             )
 
             if record:
