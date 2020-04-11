@@ -197,7 +197,7 @@ def main(args):
         env._update_unity()
 
         img, depth = env.render("rgbd_array")
-        seg = color_segmentation(env.render("segmentation"))
+        seg = np.array([color_segmentation(x) for x in env.render("segmentation")])
         # print('rgb_frames', img.shape, 'depth_frames', depth.shape, 'seg_frames', seg.shape)
         if img.ndim == 4:
             if len(img) > 1:
