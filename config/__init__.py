@@ -3,7 +3,7 @@ import argparse
 from util import str2bool
 
 
-def create_parser(env=None):
+def create_parser(env=None) -> argparse.ArgumentParser:
     """
     Creates the argparser.  Use this to add additional arguments
     to the parser later.
@@ -18,7 +18,7 @@ def create_parser(env=None):
     parser.add_argument(
         "--env",
         type=str,
-        default="FurnitureBaxterEnv",
+        default=None,
         choices=[
             "FurnitureBaxterEnv",
             "FurnitureSawyerEnv",
@@ -28,33 +28,40 @@ def create_parser(env=None):
             "FurnitureSawyerToyTableEnv",
             "FurnitureSaywerPlaceEnv",
             "FurnitureSawyerPickEnv",
+            "PegInsertionEnv"
         ],
         help="Environment name",
     )
     parser.add_argument("--env_args", type=str, default=None)
 
     args, unparsed = parser.parse_known_args()
-    # furniture
-    import config.furniture as furniture_config
+    if "Furniture" in [env, args.env]:
+        # furniture
+        import config.furniture as furniture_config
 
-    furniture_config.add_argument(parser)
-    if "FurnitureCursorToyTableEnv" in [env, args.env]:
-        import config.furniture_cursor_toytable as f
+        furniture_config.add_argument(parser)
+        if "FurnitureCursorToyTableEnv" in [env, args.env]:
+            import config.furniture_cursor_toytable as f
+
+            f.add_argument(parser)
+        elif "FurnitureSawyerToyTableEnv" in [env, args.env]:
+            import config.furniture_sawyer_toytable as f
+
+            f.add_argument(parser)
+        elif "FurnitureSawyerPlaceEnv" in [env, args.env]:
+            import config.furniture_sawyer_place as f
+
+            f.add_argument(parser)
+
+        elif "FurnitureSawyerPickEnv" in [env, args.env]:
+            import config.furniture_sawyer_pick as f
+
+            f.add_argument(parser)
+    elif "PegInsertionEnv" in [env, args.env]:
+        import config.peg_insertion as f
 
         f.add_argument(parser)
-    elif "FurnitureSawyerToyTableEnv" in [env, args.env]:
-        import config.furniture_sawyer_toytable as f
 
-        f.add_argument(parser)
-    elif "FurnitureSawyerPlaceEnv" in [env, args.env]:
-        import config.furniture_sawyer_place as f
-
-        f.add_argument(parser)
-
-    elif "FurnitureSawyerPickEnv" in [env, args.env]:
-        import config.furniture_sawyer_pick as f
-
-        f.add_argument(parser)
 
     # training algorithm
     parser.add_argument(

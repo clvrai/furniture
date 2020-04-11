@@ -1,40 +1,71 @@
-"""PegInsertion environment."""
 import os
-from gym.envs.mujoco import mujoco_env
+
 import numpy as np
+from gym.envs.mujoco import mujoco_env
+
+from env.base import EnvMeta
+from env.action_spec import ActionSpec
+import mujoco_py
 
 
-class PegInsertionEnv(mujoco_env.MujocoEnv):
-    """PegInsertionEnv.
-
+class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
+    """PegInsertionEnv
+    Extends https://github.com/brain-research/LeaveNoTrace
     We define the forward task to be pulling the peg out of the hole, and the
     reset task to be putting the peg into the hole.
     """
 
-    def __init__(self, task="insert", sparse=False):
-        self._sparse = sparse
-        self._task = task
+    def __init__(self, config):
+        self._sparse = config.sparse_rew
+        self._task = config.task
+        self.name = "Peg" + self._task.capitalize()
+        self._max_episode_steps = config.max_episode_steps
+        self._robot_ob = config.robot_ob
+        self._reset_vars()
+
         envs_folder = os.path.dirname(os.path.abspath(__file__))
         xml_filename = os.path.join(envs_folder, "models/assets/peg_insertion.xml")
         super(PegInsertionEnv, self).__init__(xml_filename, 5)
 
     def step(self, a):
+        if isinstance(a, dict):
+            a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
         self.do_simulation(a, self.frame_skip)
-        obs = self._get_obs()
         done = False
-
+        info = {}
+        obs = self._get_obs()
+        self._episode_length += 1
         (insert_reward, remove_reward) = self._get_rewards(obs, a)
         if self._task == "insert":
             reward = insert_reward
         elif self._task == "remove":
             reward = remove_reward
-        else:
-            raise ValueError("Unknown task: %s" % self._task)
-        return obs, reward, done, {}
+
+        self._episode_reward += reward
+        if self._success or self._episode_length == self._max_episode_steps:
+            done = True
+            info["episode_reward"] = self._episode_reward
+            info["episode_success"] = int(self._success)
+
+        info["reward"] = reward
+        return obs, reward, done, info
+
+    def reset(self, **kwargs):
+        ob = super().reset()
+        self._reset_vars()
+        return ob
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = -1
         self.viewer.cam.distance = 4.0
+
+    def _reset_vars(self):
+        """
+        Resets episodic variables
+        """
+        self._episode_length = 0
+        self._episode_reward = 0
+        self._success = False
 
     def reset_model(self):
         if self._task == "insert":
@@ -72,7 +103,6 @@ class PegInsertionEnv(mujoco_env.MujocoEnv):
         Note: We assume that the reward is computed on-policy, so the given
         state is equal to the current observation.
         """
-        assert np.all(s == self._get_obs())
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
@@ -90,6 +120,11 @@ class PegInsertionEnv(mujoco_env.MujocoEnv):
         in_hole_reward = (
             dist_to_goal < 0.1 and self.get_body_com("leg_bottom")[2] < -0.45
         )
+        peg_at_start = dist_to_start < 0.1
+        if self._task == "insert":
+            self._success = in_hole_reward
+        elif self._task == "remove":
+            self._success = peg_at_start
 
         if self._sparse:
             insert_reward = 0.8 * in_hole_reward + 0.2 * control_reward
@@ -100,21 +135,80 @@ class PegInsertionEnv(mujoco_env.MujocoEnv):
         remove_reward = 0.8 * peg_to_start_reward + 0.2 * control_reward
         return (insert_reward, remove_reward)
 
-    def _get_obs(self):
-        obs = np.concatenate([self.sim.data.qpos.flat, self.sim.data.qvel.flat])
+    def _get_obs(self) -> dict:
+        """
+        Returns the robot actuator states, and the object pose.
+        By default, returns the object pose.
+        """
+        obs = {
+            "object_ob": np.concatenate(
+                [self.data.get_body_xpos("ball"), self.data.get_body_xquat("ball")]
+            )
+        }
+        if self._robot_ob:
+            obs["robot_ob"] = np.concatenate(
+                [self.sim.data.qpos.flat, self.sim.data.qvel.flat]
+            )
         return obs
 
-    def camera_setup(self):
-        pose = self.camera.get_pose()
-        self.camera.set_pose(
-            lookat=pose.lookat, distance=pose.distance, azimuth=270.0, elevation=-30.0
-        )
+    def render(self, mode="human"):
+        img = super().render(mode, camera_id=0)
+        if mode != "rgb_array":
+            return img
+        img = np.expand_dims(img, axis=0)
+        img = img / 255.0
+        return img
 
+    @property
+    def dof(self) -> int:
+        """
+        Returns the DoF of the robot.
+        """
+        return 7
+
+    @property
+    def observation_space(self) -> dict:
+        """
+        Returns the observation space.
+        """
+        ob_space = {"robot_ob": [14], "object_ob": [7]}
+
+        return ob_space
+
+    def _set_observation_space(self, observation):
+        pass
+
+    def _set_action_space(self):
+        pass
+
+    @property
+    def action_space(self):
+        """
+        Returns ActionSpec of action space, see
+        action_spec.py for more documentation.
+        """
+        return ActionSpec(self.dof)
+    
+    def _get_viewer(self, mode):
+        self.viewer = self._viewers.get(mode)
+        if self.viewer is None:
+            if mode == 'human':
+                self.viewer = mujoco_py.MjViewer(self.sim)
+            elif mode == 'rgb_array' or mode == 'depth_array':
+                self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, 1)
+
+            self.viewer_setup()
+            self._viewers[mode] = self.viewer
+        return self.viewer
 
 if __name__ == "__main__":
     import time
+    from config import create_parser
 
-    env = PegInsertionEnv("remove")
+    parser = create_parser("PegInsertionEnv")
+    parser.set_defaults(env="PegInsertionEnv")
+    config, unparsed = parser.parse_known_args()
+    env = PegInsertionEnv(config)
     env.reset()
     for _ in range(10000):
         # action = np.zeros_like(env.action_space.sample())
