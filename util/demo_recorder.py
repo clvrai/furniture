@@ -49,4 +49,4 @@ class DemoRecorder(object):
         return len(glob.glob(os.path.join(self._demo_dir, prefix) + "_*"))
 
     def __len__(self) -> int:
-        return max(len(self._obs), len(self._actions))
+        return len(self._obs)

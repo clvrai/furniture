@@ -7,6 +7,7 @@ from gym.envs.mujoco import mujoco_env
 
 from env.action_spec import ActionSpec
 from env.base import EnvMeta
+from util.demo_recorder import DemoRecorder
 
 
 class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
@@ -23,10 +24,15 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._max_episode_steps = config.max_episode_steps
         self._robot_ob = config.robot_ob
         self._goal_pos_threshold = config.goal_pos_threshold
+        self._record_demo = config.record_demo
         # reward config
-        self._peg_to_start_rew_coeff = config.peg_to_start_rew_coeff
+        self._peg_to_point_rew_coeff = config.peg_to_point_rew_coeff
         self._success_rew = config.success_rew
         self._control_penalty_coeff = config.control_penalty_coeff
+
+        # demo loader
+        if self._record_demo:
+            self._demo = DemoRecorder(config.demo_dir)
 
         envs_folder = os.path.dirname(os.path.abspath(__file__))
         xml_filename = os.path.join(envs_folder, "models/assets/peg_insertion.xml")
@@ -47,8 +53,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._viewers = {}
 
         self.metadata = {
-            'render.modes': ['human', 'rgb_array', 'depth_array'],
-            'video.frames_per_second': int(np.round(1.0 / self.dt))
+            "render.modes": ["human", "rgb_array", "depth_array"],
+            "video.frames_per_second": int(np.round(1.0 / self.dt)),
         }
 
         self.init_qpos = self.sim.data.qpos.ravel().copy()
@@ -60,27 +66,29 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
         self.do_simulation(a, self.frame_skip)
         done = False
-        info = {}
         obs = self._get_obs()
         self._episode_length += 1
-        (insert_reward, remove_reward) = self._get_rewards(obs, a)
         if self._task == "insert":
-            reward = insert_reward
+            reward, info = self._insert_reward(obs, a)
         elif self._task == "remove":
             reward, info = self._remove_reward(obs, a)
-
         self._episode_reward += reward
+
         if self._success or self._episode_length == self._max_episode_steps:
             done = True
             info["episode_reward"] = self._episode_reward
             info["episode_success"] = int(self._success)
 
         info["reward"] = reward
+        if self._record_demo:
+            self._demo.add(ob=obs, action=a, reward=reward)
         return obs, reward, done, info
 
     def reset(self, **kwargs):
         ob = super().reset()
         self._reset_episodic_vars()
+        if self._record_demo:
+            self._demo.add(ob=ob)
         return ob
 
     def viewer_setup(self):
@@ -94,15 +102,23 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._episode_length = 0
         self._episode_reward = 0
         self._success = False
+        if self._record_demo:
+            self._demo.reset()
 
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
-        self._start_pos = np.array(
-            [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
-        )
-        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
-        self._prev_dist_to_start = dist_to_start
+
+        if self._task == "remove":
+            self._start_pos = np.array(
+                [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
+            )
+            dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+            self._prev_dist = dist_to_start
+        elif self._task == "insert":
+            self._goal_pos = np.array([0.0, 0.3, -0.5, 0.0, 0.3, -0.2])
+            dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
+            self._prev_dist = dist_to_goal
 
     def reset_model(self):
         if self._task == "insert":
@@ -147,9 +163,9 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         )
         dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
         # we want the current distance to be smaller than the previous step's distnace
-        dist_diff = self._prev_dist_to_start - dist_to_start
-        self._prev_dist_to_start = dist_to_start
-        peg_to_start_reward = dist_diff * self._peg_to_start_rew_coeff
+        dist_diff = self._prev_dist - dist_to_start
+        self._prev_dist = dist_to_start
+        peg_to_start_reward = dist_diff * self._peg_to_point_rew_coeff
 
         control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
         peg_at_start = dist_to_start < self._goal_pos_threshold
@@ -159,7 +175,10 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if self._success:
             success_reward = self._success_rew
 
-        remove_reward = peg_to_start_reward + control_reward
+        if self._sparse:
+            remove_reward = control_reward + success_reward
+        else:
+            remove_reward = peg_to_start_reward + control_reward + success_reward
 
         info["dist_to_start"] = dist_to_start
         info["control_rew"] = control_reward
@@ -167,42 +186,41 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         info["success_rew"] = success_reward
         return remove_reward, info
 
-    def _get_rewards(self, s, a):
-        """Compute the forward and reset rewards.
+    def _insert_reward(self, s, a) -> Tuple[float, dict]:
+        """Compute the insertion reward.
         Note: We assume that the reward is computed on-policy, so the given
         state is equal to the current observation.
         """
+        info = {}
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
-        peg_bottom_z = peg_pos[2]
-        goal_pos = np.array([0.0, 0.3, -0.5, 0.0, 0.3, -0.2])
-        start_pos = np.array(
-            [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
-        )
-        dist_to_goal = np.linalg.norm(goal_pos - peg_pos)
-        dist_to_start = np.linalg.norm(start_pos - peg_pos)
+        dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
+        dist_diff = self._prev_dist - dist_to_goal
+        self._prev_dist = dist_to_goal
+        peg_to_goal_reward = dist_diff * self._peg_to_point_rew_coeff
 
-        peg_to_goal_reward = np.clip(1.0 - dist_to_goal, 0, 1)
-        peg_to_start_reward = np.clip(1.0 - dist_to_start, 0, 1)
-        control_reward = np.clip(1 - 0.1 * np.dot(a, a), 0, 1)
-        in_hole_reward = (
-            dist_to_goal < 0.1 and self.get_body_com("leg_bottom")[2] < -0.45
+        control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
+        peg_at_goal = (
+            dist_to_goal < self._goal_pos_threshold
+            and self.get_body_com("leg_bottom")[2] < -0.45
         )
-        peg_at_start = dist_to_start < 0.1
-        if self._task == "insert":
-            self._success = in_hole_reward
-        elif self._task == "remove":
-            self._success = peg_at_start
+
+        self._success = peg_at_goal
+        success_reward = 0
+        if self._success:
+            success_reward = self._success_rew
 
         if self._sparse:
-            insert_reward = 0.8 * in_hole_reward + 0.2 * control_reward
+            insert_reward = control_reward + success_reward
         else:
-            insert_reward = (
-                0.5 * in_hole_reward + 0.25 * control_reward + 0.25 * peg_to_goal_reward
-            )
-        remove_reward = 0.8 * peg_to_start_reward + 0.2 * control_reward
-        return (insert_reward, remove_reward)
+            insert_reward = peg_to_goal_reward + control_reward + success_reward
+
+        info["dist_to_goal"] = dist_to_goal
+        info["control_rew"] = control_reward
+        info["peg_to_goal_rew"] = peg_to_goal_reward
+        info["success_rew"] = success_reward
+        return insert_reward, info
 
     def _get_obs(self) -> dict:
         """

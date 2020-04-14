@@ -1,4 +1,4 @@
-from util import str2bool, str2list
+from util import str2bool
 
 
 def add_argument(parser):
@@ -20,9 +20,13 @@ def add_argument(parser):
     )
 
     # reward config
-    parser.add_argument("--peg_to_start_rew_coeff", type=float, default=5)
-    parser.add_argument("--success_rew", type=float, default=100)
+    parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
+    parser.add_argument("--success_rew", type=float, default=1)
     parser.add_argument("--control_penalty_coeff", type=float, default=0.0001)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.2)
 
-
+    # demo loading
+    parser.add_argument('--demo_dir', type=str, default='demos',
+                        help='path to demo folder')
+    parser.add_argument('--record_demo', type=str2bool, default=False,
+                        help='enable demo recording')
