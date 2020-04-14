@@ -1,11 +1,12 @@
 import os
+from typing import Tuple
 
+import mujoco_py
 import numpy as np
 from gym.envs.mujoco import mujoco_env
 
-from env.base import EnvMeta
 from env.action_spec import ActionSpec
-import mujoco_py
+from env.base import EnvMeta
 
 
 class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
@@ -21,13 +22,40 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.name = "Peg" + self._task.capitalize()
         self._max_episode_steps = config.max_episode_steps
         self._robot_ob = config.robot_ob
-        self._reset_vars()
+        self._goal_pos_threshold = config.goal_pos_threshold
+        # reward config
+        self._peg_to_start_rew_coeff = config.peg_to_start_rew_coeff
+        self._success_rew = config.success_rew
+        self._control_penalty_coeff = config.control_penalty_coeff
 
         envs_folder = os.path.dirname(os.path.abspath(__file__))
         xml_filename = os.path.join(envs_folder, "models/assets/peg_insertion.xml")
-        super(PegInsertionEnv, self).__init__(xml_filename, 5)
+        self._initialize_mujoco(xml_filename, 5)
+        self._reset_episodic_vars()
 
-    def step(self, a):
+    def _initialize_mujoco(self, model_path, frame_skip):
+        """Taken from mujoco_env.py __init__ from mujoco_py package"""
+        if model_path.startswith("/"):
+            fullpath = model_path
+        else:
+            fullpath = os.path.join(os.path.dirname(__file__), "assets", model_path)
+        self.frame_skip = frame_skip
+        self.model = mujoco_py.load_model_from_path(fullpath)
+        self.sim = mujoco_py.MjSim(self.model)
+        self.data = self.sim.data
+        self.viewer = None
+        self._viewers = {}
+
+        self.metadata = {
+            'render.modes': ['human', 'rgb_array', 'depth_array'],
+            'video.frames_per_second': int(np.round(1.0 / self.dt))
+        }
+
+        self.init_qpos = self.sim.data.qpos.ravel().copy()
+        self.init_qvel = self.sim.data.qvel.ravel().copy()
+        self.seed()
+
+    def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
         self.do_simulation(a, self.frame_skip)
@@ -39,7 +67,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if self._task == "insert":
             reward = insert_reward
         elif self._task == "remove":
-            reward = remove_reward
+            reward, info = self._remove_reward(obs, a)
 
         self._episode_reward += reward
         if self._success or self._episode_length == self._max_episode_steps:
@@ -52,20 +80,29 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
     def reset(self, **kwargs):
         ob = super().reset()
-        self._reset_vars()
+        self._reset_episodic_vars()
         return ob
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = -1
         self.viewer.cam.distance = 4.0
 
-    def _reset_vars(self):
+    def _reset_episodic_vars(self):
         """
         Resets episodic variables
         """
         self._episode_length = 0
         self._episode_reward = 0
         self._success = False
+
+        peg_pos = np.hstack(
+            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        )
+        self._start_pos = np.array(
+            [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
+        )
+        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        self._prev_dist_to_start = dist_to_start
 
     def reset_model(self):
         if self._task == "insert":
@@ -97,6 +134,38 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         qvel = np.zeros(7)
         self.set_state(qpos, qvel)
         return self._get_obs()
+
+    def _remove_reward(self, s, a) -> Tuple[float, dict]:
+        """Compute the peg removal reward.
+        Note: We assume that the reward is computed on-policy, so the given
+        state is equal to the current observation.
+        Returns reward and info dict
+        """
+        info = {}
+        peg_pos = np.hstack(
+            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        )
+        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        # we want the current distance to be smaller than the previous step's distnace
+        dist_diff = self._prev_dist_to_start - dist_to_start
+        self._prev_dist_to_start = dist_to_start
+        peg_to_start_reward = dist_diff * self._peg_to_start_rew_coeff
+
+        control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
+        peg_at_start = dist_to_start < self._goal_pos_threshold
+
+        self._success = peg_at_start
+        success_reward = 0
+        if self._success:
+            success_reward = self._success_rew
+
+        remove_reward = peg_to_start_reward + control_reward
+
+        info["dist_to_start"] = dist_to_start
+        info["control_rew"] = control_reward
+        info["peg_to_start_rew"] = peg_to_start_reward
+        info["success_rew"] = success_reward
+        return remove_reward, info
 
     def _get_rewards(self, s, a):
         """Compute the forward and reset rewards.
@@ -175,12 +244,6 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
         return ob_space
 
-    def _set_observation_space(self, observation):
-        pass
-
-    def _set_action_space(self):
-        pass
-
     @property
     def action_space(self):
         """
@@ -188,18 +251,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         action_spec.py for more documentation.
         """
         return ActionSpec(self.dof)
-    
-    def _get_viewer(self, mode):
-        self.viewer = self._viewers.get(mode)
-        if self.viewer is None:
-            if mode == 'human':
-                self.viewer = mujoco_py.MjViewer(self.sim)
-            elif mode == 'rgb_array' or mode == 'depth_array':
-                self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, 1)
 
-            self.viewer_setup()
-            self._viewers[mode] = self.viewer
-        return self.viewer
 
 if __name__ == "__main__":
     import time
