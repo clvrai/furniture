@@ -18,6 +18,9 @@ def add_argument(parser):
         default=True,
         help="includes agent state in observation",
     )
+    parser.add_argument(
+        "--lfd", type=str2bool, default=False, help="use demonstrations to learn task",
+    )
 
     parser.add_argument(
         "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
@@ -28,6 +31,8 @@ def add_argument(parser):
     parser.add_argument("--success_rew", type=float, default=1)
     parser.add_argument("--control_penalty_coeff", type=float, default=0.0001)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.2)
+    parser.add_argument("--goal_quat_threshold", type=float, default=0.1)
+
 
     # demo loading
     parser.add_argument(
@@ -177,7 +182,7 @@ def add_argument(parser):
     train_arg.add_argument("--ckpt_interval", type=int, default=60)
     train_arg.add_argument("--prefix", type=str, default="test")
     train_arg.add_argument("--log_dir", type=str, default="logs")
-    train_arg.add_argument("--data_dir", type=str, default="data")
+    train_arg.add_argument("--data_dir", type=str, default="remove_demos")
     train_arg.add_argument("--load_path", type=str, default="")
     train_arg.add_argument("--ckpt_num", type=int, default=None)
     train_arg.add_argument("--num_eval", type=int, default=10)

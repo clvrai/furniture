@@ -1,4 +1,5 @@
 import os
+import pickle
 from typing import Tuple
 
 import mujoco_py
@@ -21,13 +22,36 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._seed = config.seed
         self._sparse = config.sparse_rew
         self._task = config.task
+        self._lfd = config.lfd
         self.name = "Peg" + self._task.capitalize()
         self._max_episode_steps = config.max_episode_steps
         self._robot_ob = config.robot_ob
         self._goal_pos_threshold = config.goal_pos_threshold
+        self._goal_quat_threshold = config.goal_quat_threshold
         self._record_demo = config.record_demo
         self._goal_type = config.goal_type
         self._action_noise = config.action_noise
+
+        # load demonstrations if learning from demonstrations
+        if self._lfd:
+            # load demonstrations
+            self._data_dir = config.data_dir
+            train_dir = os.path.join(self._data_dir, "train")
+            test_dir = os.path.join(self._data_dir, "test")
+
+            train_fps = [
+                (d.name, d.path)
+                for d in os.scandir(train_dir)
+                if d.is_file() and d.path.endswith("pkl")
+            ]
+            test_fps = [
+                (d.name, d.path)
+                for d in os.scandir(test_dir)
+                if d.is_file() and d.path.endswith("pkl")
+            ]
+            self.all_fps = train_fps + test_fps
+            self.seed_train = np.arange(0, len(train_fps))
+            self.seed_test = np.arange(len(train_fps), len(train_fps) + len(test_fps))
 
         # reward config
         self._peg_to_point_rew_coeff = config.peg_to_point_rew_coeff
@@ -77,7 +101,11 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         done = False
         obs = self._get_obs()
         self._episode_length += 1
-        if self._task == "insert":
+
+        # ignore reward if lfd
+        if self._lfd:
+            reward, info = 0, {}
+        elif self._task == "insert":
             reward, info = self._insert_reward(obs, a)
         elif self._task == "remove":
             reward, info = self._remove_reward(obs, a)
@@ -93,8 +121,36 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             self._demo.add(ob=obs, action=a, reward=reward)
         return obs, reward, done, info
 
-    def reset(self, **kwargs):
-        ob = super().reset()
+    def new_game(self, seed=None, is_train=True, record=False) -> Tuple[dict, int]:
+        """
+        Wrapper for SILO to reset environment
+        Returns initial ob and seed used for reset
+        """
+        if seed is None:
+            if is_train:
+                seed = self.np_random.choice(self.seed_train)
+            else:
+                seed = self.np_random.choice(self.seed_test)
+        ob = self.reset(seed, is_train, record)
+        return ob, seed
+
+    def reset(self, seed=None, is_train=True, record=False):
+        """
+        Resets the environment. If we are lfd, then utilize the seed parameter.
+        If seed is none, then we choose a random seed else use the given seed.
+        Used by run_episode in evaluation code for BC in rl/rollouts.py
+        """
+        if seed is not None:
+            assert self._lfd
+        # determine seed if lfd and seed not given
+        if self._lfd and seed is None:
+            if is_train:
+                seed = self.np_random.choice(self.seed_train)
+            else:
+                seed = self.np_random.choice(self.seed_test)
+
+        self.sim.reset()
+        ob = self.reset_model(seed)
         self._reset_episodic_vars()
         if self._record_demo:
             self._demo.add(ob=ob)
@@ -129,34 +185,49 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
             self._prev_dist = dist_to_goal
 
-    def reset_model(self):
-        if self._task == "insert":
-            # Reset peg above hole:
-            qpos = np.array(
-                [
-                    0.44542705,
-                    0.64189252,
-                    -0.39544481,
-                    -2.32144865,
-                    -0.17935136,
-                    -0.60320289,
-                    1.57110214,
-                ]
-            )
+    def reset_model(self, seed=None) -> dict:
+        """
+        Resets the mujoco model. If lfd, use seed parameter to
+        load the demonstration and reset mujoco model to demo.
+        Returns an observation
+        """
+        if self._lfd:
+            if self._task == "insert":
+                demo = self.load_demo(seed)
+                rob = demo["obs"][0]["robot_ob"]
+                qpos = rob[:7]
+                qvel = np.zeros(7)
+
+            else:
+                raise NotImplementedError
         else:
-            # Reset peg in hole
-            qpos = np.array(
-                [
-                    0.52601062,
-                    0.57254126,
-                    -2.0747581,
-                    -1.55342248,
-                    0.15375072,
-                    -0.5747922,
-                    0.70163815,
-                ]
-            )
-        qvel = np.zeros(7)
+            if self._task == "insert":
+                # Reset peg above hole:
+                qpos = np.array(
+                    [
+                        0.44542705,
+                        0.64189252,
+                        -0.39544481,
+                        -2.32144865,
+                        -0.17935136,
+                        -0.60320289,
+                        1.57110214,
+                    ]
+                )
+            else:
+                # Reset peg in hole
+                qpos = np.array(
+                    [
+                        0.52601062,
+                        0.57254126,
+                        -2.0747581,
+                        -1.55342248,
+                        0.15375072,
+                        -0.5747922,
+                        0.70163815,
+                    ]
+                )
+            qvel = np.zeros(7)
         self.set_state(qpos, qvel)
         return self._get_obs()
 
@@ -258,14 +329,59 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def save_demo(self):
         self._demo.save(self.name)
 
-    def load_demo(self, seed):
-        pass
+    def load_demo(self, seed) -> dict:
+        name, path = self.all_fps[seed]
+        demo = {}
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+            """
+            TIME REVERSAL
+            """
+            obs = data["obs"][::-1]
+            # load frames
+            demo["obs"] = obs
+            goal = [self.get_goal(o) for o in obs]
+            demo["goal"] = goal
+            demo["goal_gt"] = goal[-1]
+        return demo
 
-    def get_goal(self, ob):
-        pass
+    def get_goal(self, ob) -> list:
+        """
+        Converts an observation object into a goal array
+        """
+        if self._goal_type == "state_obj":
+            # get peg qpose
+            return ob["object_ob"]
+        elif self._goal_type == "state_obj_robot":
+            # get peg qpose, robot qpos, robot qvel
+            return np.concatenate([ob["object_ob"], ob["robot_ob"]])
 
-    def is_success(self, ob, goal):
-        pass
+    def is_success(self, ob, goal) -> bool:
+        """
+        Checks if block pose and robot eef pose are close
+        to the goal poses
+        Ob is format from get_goal
+        Goal is format from demo['goal']
+        """
+        if isinstance(ob, dict):
+            ob = self.get_goal(ob)
+        if self._goal_type == "state_obj":
+            object_pos, object_quat = ob[:3], ob[3:]
+            goal_object_pos, goal_object_quat = goal[:3], goal[3:]
+            assert len(object_pos.shape) == 1
+
+            pos_success = (
+                np.linalg.norm(object_pos - goal_object_pos)
+                < self._goal_pos_threshold
+            )
+
+            quat_success = (
+                np.linalg.norm(object_quat - goal_object_quat)
+                < self._goal_quat_threshold
+            )
+            return pos_success and quat_success
+        else:
+            raise NotImplementedError()
 
     def is_possible_goal(self, goal):
         return True
@@ -274,7 +390,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         return self.is_success(ob, goal)
 
     def compute_reward(self, achieved_goal, goal, info=None):
-        pass
+        success = self.is_success(achieved_goal, goal).astype(np.float32)
+        return success - 1.0
 
     @property
     def dof(self) -> int:
@@ -287,7 +404,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def observation_space(self) -> dict:
         """
         Object ob: 7D pose of peg
-        Robot ob: 14D qpos and qvel of robot 
+        Robot ob: 14D qpos and qvel of robot
         """
         ob_space = {"robot_ob": [14], "object_ob": [7]}
 
@@ -317,9 +434,10 @@ if __name__ == "__main__":
     parser.set_defaults(env="PegInsertionEnv")
     config, unparsed = parser.parse_known_args()
     env = PegInsertionEnv(config)
-    env.reset()
+
     for _ in range(10000):
         # action = np.zeros_like(env.action_space.sample())
         # env.step(action)
+        env.reset(seed=None)
         env.render()
         time.sleep(0.01)
