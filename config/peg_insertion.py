@@ -19,6 +19,10 @@ def add_argument(parser):
         help="includes agent state in observation",
     )
 
+    parser.add_argument(
+        "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
+    )
+
     # reward config
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
     parser.add_argument("--success_rew", type=float, default=1)
@@ -26,10 +30,12 @@ def add_argument(parser):
     parser.add_argument("--goal_pos_threshold", type=float, default=0.2)
 
     # demo loading
-    parser.add_argument('--demo_dir', type=str, default='demos',
-                        help='path to demo folder')
-    parser.add_argument('--record_demo', type=str2bool, default=False,
-                        help='enable demo recording')
+    parser.add_argument(
+        "--demo_dir", type=str, default="demos", help="path to demo folder"
+    )
+    parser.add_argument(
+        "--record_demo", type=str2bool, default=False, help="enable demo recording"
+    )
 
     # SILO argparse
     train_arg = parser.add_argument_group("Train")
@@ -182,10 +188,7 @@ def add_argument(parser):
 
     # additional inputs
     env_arg.add_argument(
-        "--env",
-        type=str,
-        default="PegInsertionEnv",
-        choices=["PegInsertionEnv"],
+        "--env", type=str, default="PegInsertionEnv", choices=["PegInsertionEnv"],
     )
     env_arg.add_argument(
         "--train_mode",

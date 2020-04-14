@@ -26,6 +26,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._goal_pos_threshold = config.goal_pos_threshold
         self._record_demo = config.record_demo
         self._goal_type = config.goal_type
+        self._action_noise = config.action_noise
 
         # reward config
         self._peg_to_point_rew_coeff = config.peg_to_point_rew_coeff
@@ -66,6 +67,11 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
+
+        if self._action_noise is not None:
+            r = self._action_noise
+            a = a + self.np_random.uniform(-r, r, size=len(a))
+
         self.do_simulation(a, self.frame_skip)
         done = False
         obs = self._get_obs()
