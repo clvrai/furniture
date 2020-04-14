@@ -19,3 +19,10 @@ def add_argument(parser):
         help="includes agent state in observation",
     )
 
+    # reward config
+    parser.add_argument("--peg_to_start_rew_coeff", type=float, default=5)
+    parser.add_argument("--success_rew", type=float, default=100)
+    parser.add_argument("--control_penalty_coeff", type=float, default=0.0001)
+    parser.add_argument("--goal_pos_threshold", type=float, default=0.2)
+
+
