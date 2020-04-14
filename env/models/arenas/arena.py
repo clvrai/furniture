@@ -51,11 +51,11 @@ class TableArena(Arena):
         self.table_half_size = self.table_full_size / 2
         self.table_friction = table_friction
 
-        self.floor = self.worldbody.find("./geom[@name='floor']")
-        self.table_body = self.worldbody.find("./body[@name='table']")
-        self.table_collision = self.table_body.find("./geom[@name='table_collision']")
-        self.table_visual = self.table_body.find("./geom[@name='table_visual']")
-        self.table_top = self.table_body.find("./site[@name='table_top']")
+        self.floor = self.worldbody.find("./geom[@name='FLOOR']")
+        self.table_body = self.worldbody.find("./body[@name='TABLE']")
+        self.table_collision = self.table_body.find("./geom[@name='TABLE_collision']")
+        self.table_visual = self.table_body.find("./geom[@name='TABLE_visual']")
+        self.table_top = self.table_body.find("./site[@name='TABLE_top']")
 
         self.configure_location()
 
@@ -97,7 +97,7 @@ class FloorArena(Arena):
         self.floor_half_size = self.floor_full_size / 2
         self.floor_friction = floor_friction
 
-        self.floor = self.worldbody.find("./geom[@name='floor']")
+        self.floor = self.worldbody.find("./geom[@name='FLOOR']")
         self.floor.set("size", array_to_string(self.floor_half_size))
         self.floor.set("friction", array_to_string(self.floor_friction))
 

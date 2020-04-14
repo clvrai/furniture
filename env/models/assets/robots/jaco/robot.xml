@@ -27,6 +27,15 @@
 <mujoco model="jaco(v1.31)">
     <!-- <compiler angle="radian" />-->
 
+    <actuator>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_1' kv="8.0" name='vel_right_j1'/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_2' kv="7.0" name='vel_right_j2'/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_3' kv="6.0" name='vel_right_j3'/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_4' kv="4.0" name='vel_right_j4'/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_5' kv="2.0" name='vel_right_j5'/>
+        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_6' kv="1.0" name='vel_right_j6'/>
+    </actuator>
+    
     <asset>
         <mesh file="meshes/jaco_link_base.stl"/>
         <mesh file="meshes/jaco_link_1.stl"/>
@@ -96,12 +105,4 @@
         </body>
     </worldbody>
 
-    <actuator>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_1' kv="8.0" name='vel_right_j1'/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_2' kv="7.0" name='vel_right_j2'/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_3' kv="6.0" name='vel_right_j3'/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_4' kv="4.0" name='vel_right_j4'/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_5' kv="2.0" name='vel_right_j5'/>
-        <velocity ctrllimited="true" ctrlrange="-1.0 1.0" joint='jaco_joint_6' kv="1.0" name='vel_right_j6'/>
-    </actuator>
 </mujoco>

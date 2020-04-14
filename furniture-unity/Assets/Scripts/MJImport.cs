@@ -420,16 +420,21 @@ public class MJImport : MonoBehaviour
             // For Furniture Assembly Environment: do not visualize site
             if (obj.category == (int)MJP.TCategory.SITE && !objects[i].name.Contains("conn")) {
                 objects[i].layer = 9;
+                // Debug.Log("siting " + objects[i].name);
             }
             if (objects[i].name.StartsWith("noviz", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
+                Debug.LogError("novizing " + objects[i].name);
             }
             if (objects[i].name.EndsWith("collision", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
+                Debug.LogError("novizing " + objects[i].name);
             }
-            if (objects[i].name.StartsWith("floor", StringComparison.Ordinal)) {
+            if (objects[i].name.StartsWith("FLOOR", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
+                Debug.LogError("novizing " + objects[i].name);
             }
+            Debug.Log(objects[i].name + ", " + objects[i].layer);
 
             // set mesh
             switch ( (MJP.TGeom)obj.geomtype )
