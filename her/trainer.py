@@ -108,7 +108,7 @@ class Trainer(object):
                 os.environ["WANDB_MODE"] = "dryrun"
             os.environ["WANDB_API_KEY"] = config.wandb_api_key
             wandb_args = dict(
-                project="corl_rl",
+                project="reverse",
                 config={k: v for k, v in config.__dict__.items() if k not in exclude},
                 dir=config.log_dir,
                 entity="clvr",

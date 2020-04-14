@@ -95,7 +95,7 @@ class Trainer(object):
             # user or team name
             entity = "clvr"
             # project name
-            project = "corl_rl"
+            project = "reverse"
 
             # assert entity != 'clvr', "Please change 'entity' with your wandb id" \
             #    "or disable wandb by setting os.environ['WANDB_MODE'] = 'dryrun'"
