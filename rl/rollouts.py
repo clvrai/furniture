@@ -150,6 +150,7 @@ class RolloutRunner(object):
             max_step: maximum number of steps of the rollout.
             is_train: whether rollout is for training or evaluation.
             record: record videos of rollout if True.
+            seed: demo for initializing env
             record_demo: record demo of rollout if True
         """
         config = self._config
@@ -204,7 +205,7 @@ class RolloutRunner(object):
                     )
                 self._store_frame(env, frame_info)
         if record_demo:
-            self._env.save_demo()
+            env.save_demo()
 
         # compute average/sum of information
         ep_info = {"len": ep_len, "rew": ep_rew}
