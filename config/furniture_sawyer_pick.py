@@ -48,6 +48,7 @@ def add_argument(parser):
         help="goal threshold for the robot eef (end effector)",
     )
 
+    # SILO arguments
     train_arg = parser.add_argument_group("Train")
     env_arg = parser.add_argument_group("Environment")
     push_arg = parser.add_argument_group("RobotPush")

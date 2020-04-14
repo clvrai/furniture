@@ -25,6 +25,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._robot_ob = config.robot_ob
         self._goal_pos_threshold = config.goal_pos_threshold
         self._record_demo = config.record_demo
+        self._goal_type = config.goal_type
+
         # reward config
         self._peg_to_point_rew_coeff = config.peg_to_point_rew_coeff
         self._success_rew = config.success_rew
@@ -249,6 +251,24 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def save_demo(self):
         self._demo.save(self.name)
 
+    def load_demo(self, seed):
+        pass
+
+    def get_goal(self, ob):
+        pass
+
+    def is_success(self, ob, goal):
+        pass
+
+    def is_possible_goal(self, goal):
+        return True
+
+    def get_env_success(self, ob, goal):
+        return self.is_success(ob, goal)
+
+    def compute_reward(self, achieved_goal, goal, info=None):
+        pass
+
     @property
     def dof(self) -> int:
         """
@@ -259,7 +279,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     @property
     def observation_space(self) -> dict:
         """
-        Returns the observation space.
+        Object ob: 7D pose of peg
+        Robot ob: 14D qpos and qvel of robot 
         """
         ob_space = {"robot_ob": [14], "object_ob": [7]}
 
@@ -272,6 +293,13 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         action_spec.py for more documentation.
         """
         return ActionSpec(self.dof)
+
+    @property
+    def goal_space(self):
+        if self._goal_type == "state_obj":
+            return [7]  # peg pose
+        elif self._goal_type == "state_obj_robot":
+            return [21]  # peg pose and robot qpos and robot qvel
 
 
 if __name__ == "__main__":
