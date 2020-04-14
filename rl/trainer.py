@@ -355,7 +355,7 @@ class Trainer(object):
         if self._config.ob_norm:
             self._agent.update_normalizer(rollout["ob"])
 
-    def _evaluate(self, step=None, record=False, idx=None):
+    def _evaluate(self, step=None, record=False, idx=None, record_demo=False):
         """
         Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
         Runs num_record_samples rollouts if in train mode (@idx is None).
@@ -370,7 +370,7 @@ class Trainer(object):
 
         for i in range(self._config.num_record_samples):
             rollout, info, frames = self._runner.run_episode(
-                is_train=False, record=record, seed=idx
+                is_train=False, record=record, record_demo=record_demo, seed=idx
             )
 
             if record:
@@ -462,4 +462,6 @@ class Trainer(object):
         )
         for i in trange(self._config.num_eval):
             logger.warn("Evalute run %d", i + 1)
-            rollout, info = self._evaluate(step=step, record=self._config.record, idx=i)
+            rollout, info = self._evaluate(
+                step=step, record=self._config.record, record_demo=True, idx=i
+            )
