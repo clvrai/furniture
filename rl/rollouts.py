@@ -3,12 +3,13 @@ Runs rollouts (RolloutRunner class) and collects transitions using Rollout class
 """
 
 from collections import defaultdict
+from typing import Tuple
 
-import numpy as np
 import cv2
+import numpy as np
 
-from util.logger import logger
 from util.info_dict import Info
+from util.logger import logger
 
 
 class Rollout(object):
@@ -25,7 +26,7 @@ class Rollout(object):
         for key, value in data.items():
             self._history[key].append(value)
 
-    def get(self):
+    def get(self) -> dict:
         """ Returns rollout buffer and clears buffer. """
         batch = {}
         batch["ob"] = self._history["ob"]
@@ -139,14 +140,17 @@ class RolloutRunner(object):
                 rollout.add({"ob": ob})
                 yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
-    def run_episode(self, max_step=10000, is_train=True, record=False, seed=None):
+    def run_episode(
+        self, max_step=10000, is_train=True, record=False, seed=None, record_demo=False
+    ) -> Tuple[dict, dict, list]:
         """
-        Runs one episode and returns the rollout.
+        Runs one episode and returns the rollout, info, and video frames
 
         Args:
             max_step: maximum number of steps of the rollout.
             is_train: whether rollout is for training or evaluation.
             record: record videos of rollout if True.
+            record_demo: record demo of rollout if True
         """
         config = self._config
         device = config.device
@@ -199,6 +203,8 @@ class RolloutRunner(object):
                         {"ep_rew_gail": ep_rew_gail, "rew_gail": reward_gail}
                     )
                 self._store_frame(env, frame_info)
+        if record_demo:
+            self._env.save_demo()
 
         # compute average/sum of information
         ep_info = {"len": ep_len, "rew": ep_rew}

@@ -155,7 +155,6 @@ class Trainer(object):
                 with gzip.open(replay_path, "rb") as f:
                     replay_buffers = pickle.load(f)
                     self._agent.load_replay_buffer(replay_buffers["replay"])
-
             return ckpt["step"], ckpt["update_iter"]
         else:
             logger.warn("Randomly initialize models")
@@ -358,7 +357,7 @@ class Trainer(object):
 
     def _evaluate(self, step=None, record=False, idx=None):
         """
-        Runs one rollout if in eval mode (@idx is not None).
+        Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
         Runs num_record_samples rollouts if in train mode (@idx is None).
 
         Args:
@@ -446,3 +445,21 @@ class Trainer(object):
         video.write_videofile(path, fps, verbose=False)
         logger.warn("[*] Video saved: {}".format(path))
         return path
+
+    def record_demos(self) -> None:
+        """
+        Record num_eval demos
+        """
+        step, update_iter = self._load_ckpt()
+        if self._config.init_ckpt_path:
+            self._load_ckpt(ckpt_path=self._config.init_ckpt_path)
+
+        logger.info(
+            "Run %d demonstration collection at step=%d, update_iter=%d",
+            self._config.num_eval,
+            step,
+            update_iter,
+        )
+        for i in trange(self._config.num_eval):
+            logger.warn("Evalute run %d", i + 1)
+            rollout, info = self._evaluate(step=step, record=self._config.record, idx=i)
