@@ -18,6 +18,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     """
 
     def __init__(self, config):
+        self._seed = config.seed
         self._sparse = config.sparse_rew
         self._task = config.task
         self.name = "Peg" + self._task.capitalize()
@@ -62,7 +63,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
-        self.seed()
+        self.seed(self._seed)
 
     def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):
