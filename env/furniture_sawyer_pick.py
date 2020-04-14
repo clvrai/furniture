@@ -190,7 +190,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
         name, path = self.all_fps[seed]
-        print("loaded", name)
         demo = self.load_demo(seed)
         # initialize the robot and block to initial demonstraiton state
         # TODO: add randomness to this staritng position?

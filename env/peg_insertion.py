@@ -246,6 +246,9 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         img = img / 255.0
         return img
 
+    def save_demo(self):
+        self._demo.save(self.name)
+
     @property
     def dof(self) -> int:
         """
