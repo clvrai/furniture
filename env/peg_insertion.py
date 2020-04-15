@@ -87,7 +87,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
-        self.seed(self._seed)
+        self.seed()
 
     def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):
@@ -140,8 +140,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         If seed is none, then we choose a random seed else use the given seed.
         Used by run_episode in evaluation code for BC in rl/rollouts.py
         """
-        if seed is not None:
-            assert self._lfd
+        #if seed is not None:
+        #    assert self._lfd
         # determine seed if lfd and seed not given
         if self._lfd and seed is None:
             if is_train:
@@ -283,7 +283,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
         peg_at_goal = (
             dist_to_goal < self._goal_pos_threshold
-            and self.get_body_com("leg_bottom")[2] < -0.45
+            and self.get_body_com("leg_bottom")[2] < -0.4
         )
 
         self._success = peg_at_goal
@@ -300,6 +300,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         info["control_rew"] = control_reward
         info["peg_to_goal_rew"] = peg_to_goal_reward
         info["success_rew"] = success_reward
+        info["leg_bottom_z"] = self.get_body_com("leg_bottom")[2]
+
         return insert_reward, info
 
     def _get_obs(self) -> dict:
