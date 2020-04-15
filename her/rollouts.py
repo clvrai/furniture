@@ -205,7 +205,6 @@ class RolloutRunner(object):
                     break
 
                 if low_level_len > self._config.gcp_horizon:
-                    logger.debug("gcp out of time")
                     gcp_out_of_time = True
                     break
             goal_success = env.is_success(ag, g)
