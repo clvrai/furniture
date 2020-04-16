@@ -49,7 +49,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "placement_randomness": config.placement_randomness,
+            "furn_placement_rand": config.furn_placement_rand,
+            "agent_placement_rand": config.agent_placement_rand,
             "unstable_penalty": 100,
             "boundary": 1.5,  # XYZ cube boundary
             "pos_dist": 0.1,
@@ -202,8 +203,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns initial random distribution.
         """
-        #if name == "furniture":
-        r = self._env_config["placement_randomness"]
+        if name == "furniture":
+            r = self._env_config["furn_placement_rand"]
+        elif name == "agent":
+            r = self._env_config["agent_placement_rand"]
+        else:
+            r = 0
+
         return self._rng.uniform(low=-r, high=r, size=size)
 
     def _after_reset(self):

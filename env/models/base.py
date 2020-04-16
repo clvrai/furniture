@@ -29,7 +29,7 @@ class MujocoXML(object):
     Specially, we keep track of <worldbody/>, <actuator/> and <asset/>
     """
 
-    def __init__(self, fname, rng=None, size_randomness=0, debug=False):
+    def __init__(self, fname, rng=None, size_rand=0, debug=False):
         """
         Loads a mujoco xml from file.
 
@@ -40,9 +40,9 @@ class MujocoXML(object):
         self.folder = os.path.dirname(fname)
         self.tree = ET.parse(fname)
         self.root = self.tree.getroot()
-        if size_randomness != 0:
+        if size_rand != 0:
             self._rng = rng
-            self.tree = self.get_randomized_tree(size_randomness)
+            self.tree = self.get_randomized_tree(size_rand)
             self.root = self.tree.getroot()
         self.name = self.root.get("model")
         self.worldbody = self.create_default_element("worldbody")
@@ -55,8 +55,8 @@ class MujocoXML(object):
         self.resolve_asset_dependency()
         self.debug = debug
 
-    def get_randomized_tree(self, size_randomness):
-        resize_factor = self._rng.uniform(1-size_randomness, 1+size_randomness)
+    def get_randomized_tree(self, size_rand):
+        resize_factor = 1 + self._rng.uniform(-size_rand, size_rand)
         return rescale(self.tree, self.root, resize_factor, write=False)
 
     def resolve_asset_dependency(self):
