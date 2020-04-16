@@ -49,8 +49,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "init_randomness": config.init_randomness,
-            "furn_init_randomness": config.furn_init_randomness,
+            "placement_randomness": config.placement_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5,  # XYZ cube boundary
             "pos_dist": 0.1,
@@ -203,10 +202,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns initial random distribution.
         """
-        if name == "furniture":
-            r = self._env_config["furn_init_randomness"]
-        else:
-            r = self._env_config["init_randomness"]
+        #if name == "furniture":
+        r = self._env_config["placement_randomness"]
         return self._rng.uniform(low=-r, high=r, size=size)
 
     def _after_reset(self):
@@ -1228,7 +1225,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             else:
                 self._furniture_id = furniture_id
             self._reset_internal()
-
+        elif self._config.size_randomness != 0:
+            self._reset_internal()
         # reset simulation data and clear buffers
         self.sim.reset()
 
@@ -1645,7 +1643,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         # load models for objects
         path = xml_path_completion(furniture_xmls[self._furniture_id])
         logger.debug("load furniture %s" % path)
-        objects = MujocoXMLObject(path, self._debug)
+        objects = MujocoXMLObject(path, rng=self._rng, size_randomness=self._config.size_randomness, debug=self._debug)
         part_names = objects.get_children_names()
 
         # furniture pieces
@@ -1688,7 +1686,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         if action != glfw.RELEASE:
             return
-        elif key == glfw.KEY_SPACE:
+        elif key == glfw.KEY_SPACE: 
             action = "sel"
         elif key == glfw.KEY_ENTER:
             action = "des"

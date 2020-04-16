@@ -2,6 +2,12 @@ from util import str2bool, str2intlist
 from env.models import furniture_names, furniture_ids, background_names
 
 
+def size_range(x):
+    x = float(x)
+    if x < 0 or x > 1:
+        raise argparse.ArgumentTypeError("Size randomization range cannot be negative and is not recommended to be greater than 1")
+    return x
+
 def add_argument(parser):
     """
     Adds a list of arguments to argparser for the furniture assembly environment.
@@ -58,10 +64,10 @@ def add_argument(parser):
                         help='max number of steps for an episode')
 
     # observations
-    parser.add_argument('--furn_init_randomness', type=float, default=0.0,
-                        help='initial randomness of furniture')
-    parser.add_argument('--init_randomness', type=float, default=0.0,
-                        help='initial randomness of scene')
+    parser.add_argument('--placement_randomness', type=float, default=0.0,
+                        help='initial randomness of furniture part placement at episode start')
+    parser.add_argument('--size_randomness', type=size_range, default=0.0,
+                        help='variance in size of furniture at episode start, ranging from size*(1-rand) to size*(1+rand)')
     parser.add_argument('--robot_ob', type=str2bool, default=True,
                         help='includes agent state in observation')
     parser.add_argument('--object_ob', type=str2bool, default=True,
