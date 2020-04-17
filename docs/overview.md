@@ -68,6 +68,7 @@ Here are some general command line configuration options.
 '--unity_editor' bool, use unity editor for unity
 '--port': port, port for MuJoCo-Unity plugin
 '--seed': int, seed for rng
+'--max_episode_steps': int, maximum length (# of steps) of episode
 '--screen_width': int, width of visual observation
 '--screen_height': int, height of visual observation
 '--camera_id': int, MuJoCo camera ID

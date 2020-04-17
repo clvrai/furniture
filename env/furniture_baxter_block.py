@@ -36,7 +36,7 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 "obj_pos_reward": 100,
                 "obj_rot_reward": 1,
                 "pass_reward": 400,
-                "init_randomness": 0.0,
+                "furn_placement_rand": 0.0,
                 "train": [True, False],
             }
         )

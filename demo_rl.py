@@ -23,6 +23,7 @@ from collections import OrderedDict
 import numpy as np
 
 from env.furniture_baxter import FurnitureBaxterEnv
+from env.models import furniture_names, background_names, agent_names, furniture_name2id
 import env.transform_utils as T
 
 
@@ -41,7 +42,7 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         ###################################################
 
         # set the furniture to be always the simple blocks
-        config.furniture_id = 0
+        config.furniture_id = furniture_name2id["block"]
         # set subtask_ob for getting target object
         config.subtask_ob = True
 

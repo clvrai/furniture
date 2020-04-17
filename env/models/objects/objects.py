@@ -130,12 +130,12 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
     MujocoObjects that are loaded from xml files
     """
 
-    def __init__(self, fname, debug=False):
+    def __init__(self, fname, rng=None, size_randomness=0, debug=False):
         """
         Args:
             fname (TYPE): XML File path
         """
-        MujocoXML.__init__(self, fname, debug)
+        MujocoXML.__init__(self, fname, rng, size_randomness, debug)
 
     def get_bottom_offset(self, name=None):
         if name is None:
@@ -157,8 +157,10 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         )
         return float(horizontal_radius_site.get("size"))
 
+    # 'noviz' geom, 'visual' mesh should come in pairs 
+
     def get_collision(self, name=None, site=False, friction=(1, 10, .5)):
-        #collision = copy.deepcopy(self.worldbody.find("./body/body[@name='collision']"))
+        # get the mujocoXMLobject for geom labeled 'noviz' 
         self.name = name
         collision = copy.deepcopy(self.worldbody.find("./body[@name='%s']" % name))
         collision.attrib.pop("name")
@@ -180,6 +182,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         return collision
 
     def get_visual(self, name=None, site=False):
+        # get the mujocoXMLobject for mesh labeled 'visual' 
         visual = copy.deepcopy(self.worldbody.find("./body/body[@name='visual']"))
         visual.attrib.pop("name")
         if name is not None:

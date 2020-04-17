@@ -32,7 +32,7 @@
     <segment name="door" id="2"/>
     <segment name="frame" id="3"/>
     <segment name="wall" id="4"/>
-    <segment name="floor" id="5"/>
+    <segment name="FLOOR" id="5"/>
     <segment name="ceiling" id="6"/>
     <segment name="robotbase" id="7"/>
     <segment name="robotshoulder" id="8"/>
