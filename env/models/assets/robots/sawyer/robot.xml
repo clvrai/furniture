@@ -112,7 +112,6 @@
                                             </body>
                                             <body name="right_l6" pos="0 -0.11 0.1053" quat="0.0616248 0.06163 -0.704416 0.704416">
                                                 <camera name="wrist_cam"  pos="0 0.1 0" euler="-2.7 0 0"/>
-                                                <site name="wrist_cam_site"  pos="0 0.1 0" euler="-2.7 0 0"/>
                                                 <inertial diaginertia="0.000360258 0.000311068 0.000214974" mass="0.3292" pos="-8.0726e-06 0.0085838 -0.0049566" quat="0.479044 0.515636 -0.513069 0.491322"/>
                                                 <joint axis="0 0 1" limited="true" name="right_j6" pos="0 0 0" range="-4.7124 4.7124" damping="0.1"/>
                                                 <geom name="right_l6_visual" conaffinity="0" contype="0" group="1" mesh="l6" rgba="0.5 0.1 0.1 1" type="mesh"/>
