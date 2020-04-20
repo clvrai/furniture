@@ -442,9 +442,9 @@ public class MJRemote : MonoBehaviour
                     objects[i].GetComponent<Renderer>().material.SetColor("_EmissionColor", Color.black);
             }
 
-        //MJP.GetCameraState(camindex, &transform);
-        //SetCamera(thecamera, transform);
-        //thecamera.fieldOfView = camfov[camindex + 1];
+        MJP.GetCameraState(camindex, &transform);
+        SetCamera(thecamera, transform);
+        thecamera.fieldOfView = camfov[camindex + 1];
     }
 
 
@@ -510,11 +510,16 @@ public class MJRemote : MonoBehaviour
         fixed (byte* temp = buffer)
         {
             int* arr = (int*) temp;
+            MJP.TTransform transform;
             for (int i = 0; i < length; i++) {
                 int camid = arr[i];
                 GameObject camobj = cameras["camera" + camid];
                 camobj.SetActive(true);
                 Camera c = camobj.GetComponent<Camera>();
+                // update camera position before rendering
+                MJP.GetCameraState(camid, &transform);
+                SetCamera(c, transform);
+                c.fieldOfView = camfov[camid + 1];
                 Texture2D tex = off_render.RenderColor(c);
                 byte[] data = tex.GetRawTextureData();
                 int size = off_render.GetColorBufferSize();
@@ -600,6 +605,7 @@ public class MJRemote : MonoBehaviour
         }
     }
 
+    // assumes pose is (x,y,z, w,x,y,z)
     public unsafe void setCameraPose(NetworkStream stream) {
         ReadAll(stream, 4);
         int i = BitConverter.ToInt32(buffer, 0);

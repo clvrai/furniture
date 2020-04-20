@@ -424,15 +424,15 @@ public class MJImport : MonoBehaviour
             }
             if (objects[i].name.StartsWith("noviz", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
-                Debug.LogError("novizing " + objects[i].name);
+                // Debug.Log("novizing " + objects[i].name);
             }
             if (objects[i].name.EndsWith("collision", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
-                Debug.LogError("novizing " + objects[i].name);
+                // Debug.Log("novizing " + objects[i].name);
             }
             if (objects[i].name.StartsWith("FLOOR", StringComparison.Ordinal)) {
                 objects[i].layer = 10;
-                Debug.LogError("novizing " + objects[i].name);
+                // Debug.Log("novizing " + objects[i].name);
             }
             Debug.Log(objects[i].name + ", " + objects[i].layer);
 
