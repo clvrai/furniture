@@ -448,7 +448,7 @@ class Trainer(object):
 
     def record_demos(self) -> None:
         """
-        Record num_eval demos
+        Record num_eval demos. Pass in the idx so we can record over all demos
         """
         step, update_iter = self._load_ckpt()
         if self._config.init_ckpt_path:

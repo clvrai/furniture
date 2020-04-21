@@ -94,8 +94,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
-
-        if self._action_noise is not None:
+        # no action noise during bc evaluation!
+        if self._algo != "bc" and self._action_noise is not None:
             r = self._action_noise
             a = a + self.np_random.uniform(-r, r, size=len(a))
         self.do_simulation(a, self.frame_skip)
@@ -157,6 +157,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             r = self._action_noise
             a = np.zeros(7) + self.np_random.uniform(-r, r, size=7)
             self.do_simulation(a, self.frame_skip)
+            ob = self._get_obs()
 
         self._reset_episodic_vars()
         if self._record_demo:

@@ -168,7 +168,7 @@ class RolloutRunner(object):
         ep_rew = 0
         if gail:
             ep_rew_gail = 0
-        ob = env.reset(seed=seed)
+        ob = env.reset(seed=seed, is_train=is_train)
 
         self._record_frames = []
         if record:
