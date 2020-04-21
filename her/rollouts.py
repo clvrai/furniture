@@ -50,6 +50,8 @@ class MetaRollout(Rollout):
 class RolloutRunner(object):
     def __init__(self, config, env, meta_pi, pi, g_estimator, ob_norm, g_norm):
         self._config = config
+        self._completion_bonus = config.completion_bonus
+        self._time_penalty_coeff = config.time_penalty_coeff
         self._env = env
         self._meta_pi = meta_pi
         self._pi = pi
@@ -98,6 +100,8 @@ class RolloutRunner(object):
         done = False
         ep_len = 0
         hrl_reward = 0
+        time_penalty = 0
+        success_reward = 0
         hrl_success = False
         skipped_frames = 0
         is_possible_goal = None
@@ -227,8 +231,12 @@ class RolloutRunner(object):
                     if record:
                         self._store_frame(env, {})
 
+                # reached the last state
                 if meta_ac == len(demo["goal"]) - 1:
-                    meta_rew += self._config.completion_bonus
+                    if goal_success:
+                        time_penalty = ep_len * self._time_penalty_coeff
+                        success_reward = self._completion_bonus - time_penalty
+                        meta_rew += success_reward
                     hrl_success = goal_success
                     done = True
 
@@ -263,6 +271,8 @@ class RolloutRunner(object):
             "covered_frames": covered_frames,
             "skipped_frames": skipped_frames,
             "env_success": env_success,
+            "time_penalty": time_penalty,
+            "success_rew": success_reward,
         }
         if record:
             self._env.frames = self._record_frames
