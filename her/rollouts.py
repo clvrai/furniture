@@ -52,6 +52,7 @@ class RolloutRunner(object):
         self._config = config
         self._completion_bonus = config.completion_bonus
         self._time_penalty_coeff = config.time_penalty_coeff
+        self._meta_reward = config.meta_reward
         self._env = env
         self._meta_pi = meta_pi
         self._pi = pi
@@ -204,7 +205,7 @@ class RolloutRunner(object):
 
                 if env.is_success(ag, g):
                     covered_frames += 1
-                    meta_rew += 1.0
+                    meta_rew += self._meta_reward
                     max_meta_ac = meta_ac
                     break
 
