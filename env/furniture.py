@@ -51,12 +51,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             "ctrl_reward": 1e-3,
             "furn_placement_rand": config.furn_placement_rand,
             "agent_placement_rand": config.agent_placement_rand,
+            "furn_size_randomness": config.furn_size_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5,  # XYZ cube boundary
             "pos_dist": 0.1,
             "rot_dist_up": 0.9,
             "rot_dist_forward": 0.9,
-            "project_dist": 0.3,
+            "project_dist": 0.3,    
         }
 
         self._debug = config.debug
@@ -94,6 +95,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._pos_init = None
         self._quat_init = None
 
+        self._manual_resize = None
         self._action_on = False
         self._load_demo = config.load_demo
         self._init_qpos = None
@@ -207,6 +209,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             r = self._env_config["furn_placement_rand"]
         elif name == "agent":
             r = self._env_config["agent_placement_rand"]
+        elif name == "resize":
+            r = self._env_config["furn_size_randomness"]
         else:
             r = 0
 
@@ -1230,9 +1234,22 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._furniture_id = self._config.furniture_id
             else:
                 self._furniture_id = furniture_id
-            self._reset_internal()
-        elif self._config.size_randomness != 0:
-            self._reset_internal()
+            self._reset_internal() 
+        elif self._config.furn_size_randomness != 0 or self._manual_resize is not None:
+            # reload mujoco and unity with resized xml 
+
+            self._load_model_object()
+            self._load_model()
+            if self._unity:
+                self._unity.change_model(
+                    self.mujoco_model.get_xml(),
+                    self._camera_ids[0],
+                    self._screen_width,
+                    self._screen_height,
+                )
+            self.mjpy_model = self.mujoco_model.get_model(mode="mujoco_py")
+            self.sim = mujoco_py.MjSim(self.mjpy_model)
+
         # reset simulation data and clear buffers
         self.sim.reset()
 
@@ -1649,7 +1666,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         # load models for objects
         path = xml_path_completion(furniture_xmls[self._furniture_id])
         logger.debug("load furniture %s" % path)
-        objects = MujocoXMLObject(path, rng=self._rng, size_randomness=self._config.size_randomness, debug=self._debug)
+        objects = MujocoXMLObject(path, debug=self._debug)
+        if self._manual_resize is not None:
+            resize_factor = 1 + self._manual_resize 
+            objects.set_resized_tree(resize_factor)
+        elif self._config.furn_size_randomness != 0:
+            rand = self._init_random(1, "resize")[0]
+            resize_factor = 1 + rand
+            objects.set_resized_tree(resize_factor)
         part_names = objects.get_children_names()
 
         # furniture pieces
@@ -1799,6 +1823,37 @@ class FurnitureEnv(metaclass=EnvMeta):
         logger.info("Input action: %s" % action)
         self.action = action
         self._action_on = True
+
+
+    def resize_key_input_unity(self):
+        """
+        Key input for unity If adding new keys,
+        make sure to add keys to whitelist in MJTCPInterace.cs
+        """
+        key = self._unity.get_input()
+        
+        if key == "None":
+            return
+        elif key == "Q":
+            action = "smaller"
+        elif key == "W":
+            action = "fine_smaller"
+        elif key == "E":
+            action = "fine_larger"
+        elif key == "R":
+            action = "larger"
+        elif key == "Y":
+            action = "save"
+        elif key == "Escape":
+            self.reset()
+            return
+        else:
+            return
+
+        logger.info("Input action: %s" % action)
+        self.action = action
+        self._action_on = True
+
 
     def run_demo(self, config):
         """
@@ -2166,6 +2221,47 @@ class FurnitureEnv(metaclass=EnvMeta):
         finally:
             if self._config.record:
                 vr.close()
+
+
+    def run_resizer(self, config):
+        """
+        Run a resizing program in unity for adjusting furniture size in xml 
+        """
+        self._manual_resize = 0
+        if config.furniture_name is not None:
+            config.furniture_id = furniture_name2id[config.furniture_name]
+        ob = self.reset(config.furniture_id, config.background)
+        self.render()
+        self.render()
+        cursor_idx = 0
+        flag = [-1, -1]
+        t = 0
+        while True:
+            if config.unity:
+                self.resize_key_input_unity()
+            self.render()
+            if not self._action_on:
+                time.sleep(0.1)
+                continue
+            # move
+            if self.action == "smaller":
+                self._manual_resize -= 0.1
+            if self.action == "fine_smaller":
+                self._manual_resize -= 0.02
+            if self.action == "fine_larger":
+                self._manual_resize += 0.02
+            if self.action == "larger":
+                self._manual_resize += 0.1
+            if self.action == "save":
+                path = xml_path_completion(furniture_xmls[self._furniture_id])
+                next(iter(self.mujoco_objects.values())).save_model(path)
+                return
+            self.render("rgb_array")
+            print('current_scale', 1+self._manual_resize)
+            self.reset(config.furniture_id, config.background)
+            self._action_on = False
+
+
 
     def _get_reference(self):
         """

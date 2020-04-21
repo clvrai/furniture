@@ -7,15 +7,14 @@ demonstrations and 2) recording and playback of their own demos.
 import argparse
 
 from env import make_env
-from env.models import furniture_names, background_names, furniture_name2id
+from env.models import furniture_names, background_names, agent_names, furniture_name2id
 from util import str2bool, parse_demo_file_name
 
 # available agents
-agent_names = ['Baxter', 'Sawyer', 'Cursor']
+agent_names 
 
 # available furnitures
 furniture_names
-# print(furniture_names)
 
 # available background scenes
 background_names
@@ -79,15 +78,15 @@ def main(args):
 
     elif choice == 2:
         print('Now you can try recording your own demonstrations.')
-        print('Run "python -m demo_manual --record_demo True" to record your own demonstration.')
+        print('Run "python -m demo_manual --record_demo True" to record your own demonstration. Add "--record True" to include .mp4 video recording')
         print('Move stuff around and then press Y to save the demo.')
         print('It will be saved to demos/test.pkl.')
 
     elif choice == 3:
         demo_path = input('Enter the path to your demo (e.g. demos/test.pkl):  ')
 
-        agent_name = input("What was the agent (Sawyer, Baxter, Cursor)?: ")
-        assert agent_name in ['Sawyer', 'Baxter', 'Cursor']
+        agent_name = input("What was the agent " + str(agent_names) + "?: ")
+        assert agent_name in agent_names
 
         furniture_name = input("What was the furniture name?: ")
         furniture_id = furniture_name2id[furniture_name]

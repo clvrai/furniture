@@ -68,7 +68,7 @@ def add_argument(parser):
                         help='initial randomness of furniture part placement at episode start')
     parser.add_argument('--agent_placement_rand', type=float, default=0.0,
                         help='initial randomness of agent placement at episode start')
-    parser.add_argument('--size_randomness', type=size_range, default=0.0,
+    parser.add_argument('--furn_size_randomness', type=size_range, default=0.0,
                         help='variance in size of furniture at episode start, ranging from size*(1-rand) to size*(1+rand)')
     parser.add_argument('--robot_ob', type=str2bool, default=True,
                         help='includes agent state in observation')

@@ -130,12 +130,12 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
     MujocoObjects that are loaded from xml files
     """
 
-    def __init__(self, fname, rng=None, size_randomness=0, debug=False):
+    def __init__(self, fname, debug=False):
         """
         Args:
             fname (TYPE): XML File path
         """
-        MujocoXML.__init__(self, fname, rng, size_randomness, debug)
+        MujocoXML.__init__(self, fname, debug)
 
     def get_bottom_offset(self, name=None):
         if name is None:
