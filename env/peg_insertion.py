@@ -19,6 +19,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     """
 
     def __init__(self, config):
+        self._config = config
+        self._algo = config.algo
         self._seed = config.seed
         self._sparse = config.sparse_rew
         self._task = config.task
@@ -96,8 +98,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if self._action_noise is not None:
             r = self._action_noise
             a = a + self.np_random.uniform(-r, r, size=len(a))
-
         self.do_simulation(a, self.frame_skip)
+
         done = False
         obs = self._get_obs()
         self._episode_length += 1
@@ -136,7 +138,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
     def reset(self, seed=None, is_train=True, record=False):
         """
-        Resets the environment. If we are lfd, then utilize the seed parameter.
+        Resets the environment. If lfd, then utilize the seed parameter.
         If seed is none, then we choose a random seed else use the given seed.
         Used by run_episode in evaluation code for BC in rl/rollouts.py
         """
@@ -148,9 +150,14 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                 seed = self.np_random.choice(self.seed_train)
             else:
                 seed = self.np_random.choice(self.seed_test)
-
         self.sim.reset()
         ob = self.reset_model(seed)
+        # add initialization noise for evaluation of bc
+        if not is_train and self._algo == "bc" and self._action_noise is not None:
+            r = self._action_noise
+            a = np.zeros(7) + self.np_random.uniform(-r, r, size=7)
+            self.do_simulation(a, self.frame_skip)
+
         self._reset_episodic_vars()
         if self._record_demo:
             self._demo.add(ob=ob)
