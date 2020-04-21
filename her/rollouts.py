@@ -279,7 +279,10 @@ class RolloutRunner(object):
             video_path = self._save_video(fname=fname, frames=self._record_frames)
             ep_info["video"] = video_path
         if record_demo:
-            self._env.save_demo()
+            if env_success:
+                self._env.save_demo()
+            else:
+                print("unsuccessful trajectory")
 
         if is_possible_goal is not None:
             if is_possible_goal:
