@@ -194,7 +194,7 @@ class Trainer(object):
         for k, v in ep_info.items():
             wandb.log({"train_ep/%s" % k: np.mean(v)}, step=step)
 
-    def _log_test(self, step, meta_rollout, ep_rollout, ep_info):
+    def _log_test(self, step, ep_info):
         for k, v in ep_info.items():
             if k == "video":
                 wandb.log(
@@ -275,7 +275,21 @@ class Trainer(object):
                     rollout, meta_rollout, info = self._evaluate(
                         step=step, record=config.record
                     )
-                    self._log_test(step, meta_rollout, rollout, info)
+
+                    info_history = defaultdict(list)
+                    for i in self._config.num_eval:
+                        logger.warn("Evalute run %d", i + 1)
+                        record = self._config.record and i == 0
+                        rollout, meta_rollout, info = self._evaluate(
+                            step=step, record=record
+                        )
+                        for k, v in info.items():
+                            info_history[k].append(v)
+                    
+                    for k, v in info_history.items():
+                        if k == "video":
+                            info_history[k] = v[0]
+                    self._log_test(step, info_history)
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
