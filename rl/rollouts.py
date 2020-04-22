@@ -205,7 +205,11 @@ class RolloutRunner(object):
                     )
                 self._store_frame(env, frame_info)
         if record_demo:
-            env.save_demo()
+            success = reward_info["episode_success"][0]
+            if success:
+                env.save_demo()
+            else:
+                print("unsuccessful trajectory")
 
         # compute average/sum of information
         ep_info = {"len": ep_len, "rew": ep_rew}

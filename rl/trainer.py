@@ -463,5 +463,5 @@ class Trainer(object):
         for i in trange(self._config.num_eval):
             logger.warn("Evalute run %d", i + 1)
             rollout, info = self._evaluate(
-                step=step, record=self._config.record, record_demo=True, idx=i
+                step=step, record=self._config.record, record_demo=True
             )
