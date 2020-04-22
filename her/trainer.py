@@ -277,7 +277,7 @@ class Trainer(object):
                     )
 
                     info_history = defaultdict(list)
-                    for i in self._config.num_eval:
+                    for i in trange(self._config.num_eval):
                         logger.warn("Evalute run %d", i + 1)
                         record = self._config.record and i == 0
                         rollout, meta_rollout, info = self._evaluate(
