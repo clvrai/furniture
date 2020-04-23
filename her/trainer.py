@@ -272,10 +272,6 @@ class Trainer(object):
 
                 if update_iter % config.evaluate_interval == 0:
                     logger.info("Evaluate at %d", update_iter)
-                    rollout, meta_rollout, info = self._evaluate(
-                        step=step, record=config.record
-                    )
-
                     info_history = defaultdict(list)
                     for i in trange(self._config.num_eval):
                         logger.warn("Evalute run %d", i + 1)
