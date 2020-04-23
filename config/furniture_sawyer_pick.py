@@ -106,10 +106,22 @@ def add_argument(parser):
         help="decaying reward when skipping frames",
     )
     train_arg.add_argument(
+        "--meta_reward",
+        type=float,
+        default=1.0,
+        help="reward for meta policy for acheiving a frame",
+    )
+    train_arg.add_argument(
         "--completion_bonus",
         type=float,
         default=0,
         help="additional reward for task completion",
+    )
+    train_arg.add_argument(
+        "--time_penalty_coeff",
+        type=float,
+        default=0,
+        help="Multiplied with the length of the episode",
     )
     train_arg.add_argument("--binary_q", type=str2bool, default=False)
 
