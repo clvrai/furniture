@@ -25,7 +25,7 @@ numpy==1.17.4
 opencv-python==4.1.1.26
 pexpect==4.7.0
 pickleshare==0.7.5
-Pillow==6.2.1
+Pillow==6.2.2
 proglog==0.1.9
 prompt-toolkit==2.0.10
 ptyprocess==0.6.0

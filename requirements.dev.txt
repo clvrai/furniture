@@ -38,7 +38,7 @@ parso==0.5.1
 pathtools==0.1.2
 pexpect==4.7.0
 pickleshare==0.7.5
-Pillow==6.2.1
+Pillow==6.2.2
 pkg-resources==0.0.0
 proglog==0.1.9
 promise==2.2.1
