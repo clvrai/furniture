@@ -105,11 +105,16 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 seed = self._rng.choice(self.seed_train)
             else:
                 seed = self._rng.choice(self.seed_test)
+        # clear previous demos
+        if self._record_demo:
+            self._demo.reset()
+
         self._reset(seed, furniture_id, background)
         # reset mujoco viewer
         if self._render_mode == "human" and not self._unity:
             self._viewer = self._get_viewer()
         self._after_reset()
+
 
         ob = self._get_obs()
         if self._record_demo:
@@ -387,8 +392,13 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
     def _compute_reward(self, action):
         rew = 0
         obj_pos = self._get_pos("1_block_l")
-        done = obj_pos[2] > 0.1
-        self._success = obj_pos[2] > 0.1
+        obj_quat = self._get_quat("1_block_l")
+        init_quat = self._init_qpos["1_block_l"][3:]
+
+        quat_dist = np.linalg.norm(init_quat - obj_quat)
+        done = obj_pos[2] > 0.1 and quat_dist < 0.05
+        self._success = obj_pos[2] > 0.1 and quat_dist < 0.05
+
         info = {}
         return rew, done, info
 

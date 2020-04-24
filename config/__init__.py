@@ -3,7 +3,7 @@ import argparse
 from util import str2bool
 
 
-def create_parser(env=None) -> argparse.ArgumentParser:
+def create_parser(env="") -> argparse.ArgumentParser:
     """
     Creates the argparser.  Use this to add additional arguments
     to the parser later.
@@ -35,7 +35,7 @@ def create_parser(env=None) -> argparse.ArgumentParser:
     parser.add_argument("--env_args", type=str, default=None)
 
     args, unparsed = parser.parse_known_args()
-    if "Furniture" in [env, args.env]:
+    if "Furniture" in env or "Furniture" in args.env:
         # furniture
         import config.furniture as furniture_config
 
