@@ -37,6 +37,7 @@ class BCAgent(BaseAgent):
             self._dataset, batch_size=self._config.batch_size, shuffle=True
         )
         self._log_creation()
+        assert config.algo == "bc" and config.ob_norm, "Do not use ob_norm with bc!"
 
     def _log_creation(self):
         if self._config.is_chef:
