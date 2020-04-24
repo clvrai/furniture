@@ -230,7 +230,7 @@ class Trainer(object):
 
             logger.info('Update networks done')
 
-            if config.algo not in ["bc"] and step < config.max_ob_norm_step:
+            if step < config.max_ob_norm_step:
                 self._update_normalizer(rollout)
 
             step += step_per_batch
