@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from rl.policies.utils import CNN, MLP
+from rl.policies.utils import MLP, flatten_ob
 from rl.policies.actor_critic import Actor, Critic
 from util.pytorch import to_tensor
 
@@ -27,12 +27,12 @@ class MlpActor(Actor):
             if ac_space.is_continuous(k) and self._gaussian:
                 self.fc_log_stds.update({k: MLP(config, config.rl_hid_size, size)})
 
-    def forward(self, ob):
-        inp = list(ob.values())
-        if len(inp[0].shape) == 1:
-            inp = [x.unsqueeze(0) for x in inp]
+    def forward(self, ob: dict):
+        # flatten image before concatenating with other obs
+        # first check if we are doing a single instance or batch
+        inp = flatten_ob(ob)
 
-        out = self._activation_fn(self.fc(torch.cat(inp, dim=-1)))
+        out = self._activation_fn(self.fc(inp))
         out = torch.reshape(out, (out.shape[0], -1))
 
         means, stds = OrderedDict(), OrderedDict()
@@ -67,11 +67,9 @@ class NoisyMlpActor(Actor):
             self.fc_means.update({k: MLP(config, config.rl_hid_size, size)})
 
     def forward(self, ob):
-        inp = list(ob.values())
-        if len(inp[0].shape) == 1:
-            inp = [x.unsqueeze(0) for x in inp]
+        inp = flatten_ob(ob)
 
-        out = self._activation_fn(self.fc(torch.cat(inp, dim=-1)))
+        out = self._activation_fn(self.fc(inp))
         out = torch.reshape(out, (out.shape[0], -1))
 
         means = OrderedDict()
@@ -121,17 +119,8 @@ class MlpCritic(Critic):
         self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
 
     def forward(self, ob, ac=None):
-        inp = list(ob.values())
-        if len(inp[0].shape) == 1:
-            inp = [x.unsqueeze(0) for x in inp]
-
-        if ac is not None:
-            ac = list(ac.values())
-            if len(ac[0].shape) == 1:
-                ac = [x.unsqueeze(0) for x in ac]
-            inp.extend(ac)
-
-        out = self.fc(torch.cat(inp, dim=-1))
+        inp = flatten_ob(ob, ac)
+        out = self.fc(inp)
         out = torch.reshape(out, (out.shape[0], 1))
 
         return out

@@ -442,10 +442,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                     img, depth = camera_obs
                 else:
                     img = camera_obs
-            if len(img.shape) == 4:
-                img = img[:, ::-1, :, :] / 255.0
-            elif len(img.shape) == 3:
-                img = img[::-1, :, :] / 255.0
+                img = np.expand_dims(img, axis=0)
+            img = img[:, ::-1, :, :] / 255.0
 
             if depth is not None:
                 # depth map is 0 to 1, with 1 being furthest

@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 from rl.policies.distributions import FixedCategorical, FixedNormal, \
     Identity, MixedDistribution
-from rl.policies.utils import MLP
 from util.pytorch import to_tensor
 
 

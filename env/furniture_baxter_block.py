@@ -3,6 +3,7 @@ import numpy as np
 
 import env.transform_utils as T
 from env.furniture_baxter import FurnitureBaxterEnv
+from env.models import furniture_name2id
 from util.logger import logger
 
 
@@ -18,7 +19,7 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             config: configurations for the environment.
         """
         # set the furniture to be always the simple blocks
-        config.furniture_id = 0
+        config.furniture_id = furniture_name2id["block"]
 
         super().__init__(config)
 
