@@ -67,7 +67,7 @@ def create_parser(env=None):
         "--rl_activation", type=str, default="relu", choices=["relu", "elu", "tanh"]
     )
     parser.add_argument("--tanh_policy", type=str2bool, default=True)
-    parser.add_argument("--rl_gaussian", type=str2bool, default=True)
+    parser.add_argument("--rl_deterministic", type=str2bool, default=False)
 
     # for ddpg
     parser.add_argument("--noise_eps", type=float, default=0.2, help="noise eps")

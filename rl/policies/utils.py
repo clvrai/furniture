@@ -47,10 +47,12 @@ def fanin_init(tensor):
 
 
 class MLP(nn.Module):
-    def __init__(self, config, input_dim, output_dim, hid_dims=[]):
+    def __init__(
+        self, config, input_dim, output_dim, hid_dims=[], activation_fn=None,
+    ):
         super().__init__()
-        # activation_fn = getattr(F, config.activation)
-        activation_fn = nn.ReLU()
+        if activation_fn is None:
+            activation_fn = getattr(F, config.rl_activation)
 
         fc = []
         prev_dim = input_dim

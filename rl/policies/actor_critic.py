@@ -23,7 +23,7 @@ class Actor(nn.Module):
         self._ac_space = ac_space
         self._activation_fn = getattr(F, config.rl_activation)
         self._tanh = tanh_policy
-        self._gaussian = config.rl_gaussian
+        self._deterministic = config.rl_deterministic
 
     @property
     def info(self):
@@ -37,7 +37,7 @@ class Actor(nn.Module):
         dists = OrderedDict()
         for k, v in self._ac_space.spaces.items():
             if isinstance(v, gym.spaces.Box):
-                if self._gaussian:
+                if self._deterministic:
                     dists[k] = FixedNormal(means[k], stds[k])
                 else:
                     dists[k] = Identity(means[k])
@@ -132,7 +132,7 @@ class Actor(nn.Module):
         actions = OrderedDict()
         for k, v in self._ac_space.spaces.items():
             if isinstance(v, gym.spaces.Box):
-                if self._gaussian:
+                if self._deterministic:
                     dists[k] = FixedNormal(means[k], stds[k])
                 else:
                     dists[k] = Identity(means[k])

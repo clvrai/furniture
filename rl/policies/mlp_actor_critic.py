@@ -24,7 +24,7 @@ class MlpActor(Actor):
 
         for k, v in ac_space.spaces.items():
             self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(v))})
-            if isinstance(v, gym.spaces.Box) and self._gaussian:
+            if isinstance(v, gym.spaces.Box) and self._deterministic:
                 self.fc_log_stds.update(
                     {k: MLP(config, config.rl_hid_size, action_size(v))}
                 )
@@ -40,7 +40,7 @@ class MlpActor(Actor):
         means, stds = OrderedDict(), OrderedDict()
         for k, v in self._ac_space.spaces.items():
             mean = self.fc_means[k](out)
-            if isinstance(v, gym.spaces.Box) and self._gaussian:
+            if isinstance(v, gym.spaces.Box) and self._deterministic:
                 log_std = self.fc_log_stds[k](out)
                 log_std = torch.clamp(log_std, -10, 2)
                 std = torch.exp(log_std.double())
