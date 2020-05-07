@@ -30,7 +30,7 @@ def get_ckpt_path(base_dir, ckpt_num):
         return get_recent_ckpt_path(base_dir)
     files = glob(os.path.join(base_dir, "*.pt"))
     for f in files:
-        if 'ckpt_%08d.pt' % ckpt_num in f:
+        if "ckpt_%08d.pt" % ckpt_num in f:
             return f, ckpt_num
     raise Exception("Did not find ckpt_%s.pt" % ckpt_num)
 
@@ -40,7 +40,7 @@ def get_recent_ckpt_path(base_dir):
     files.sort()
     if len(files) == 0:
         return None, None
-    max_step = max([f.rsplit('_', 1)[-1].split('.')[0] for f in files])
+    max_step = max([f.rsplit("_", 1)[-1].split(".")[0] for f in files])
     paths = [f for f in files if max_step in f]
     if len(paths) == 1:
         return paths[0], int(max_step)
@@ -131,7 +131,7 @@ def _get_flat_params(network):
 # set the params from the network
 def _set_flat_params(network, params_shape, params):
     pointer = 0
-    if hasattr(network, '_config'):
+    if hasattr(network, "_config"):
         device = network._config.device
     else:
         device = torch.device("cpu")
@@ -139,7 +139,9 @@ def _set_flat_params(network, params_shape, params):
     for key_name, values in network.named_parameters():
         # get the length of the parameters
         len_param = np.prod(params_shape[key_name])
-        copy_params = params[pointer:pointer + len_param].reshape(params_shape[key_name])
+        copy_params = params[pointer : pointer + len_param].reshape(
+            params_shape[key_name]
+        )
         copy_params = torch.tensor(copy_params).to(device)
         # copy the params
         values.data.copy_(copy_params.data)
@@ -158,14 +160,16 @@ def sync_grads(network):
 
 def _set_flat_grads(network, grads_shape, flat_grads):
     pointer = 0
-    if hasattr(network, '_config'):
+    if hasattr(network, "_config"):
         device = network._config.device
     else:
         device = torch.device("cpu")
 
     for key_name, value in network.named_parameters():
         len_grads = np.prod(grads_shape[key_name])
-        copy_grads = flat_grads[pointer:pointer + len_grads].reshape(grads_shape[key_name])
+        copy_grads = flat_grads[pointer : pointer + len_grads].reshape(
+            grads_shape[key_name]
+        )
         copy_grads = torch.tensor(copy_grads).to(device)
         # copy the grads
         value.grad.data.copy_(copy_grads.data)
@@ -179,8 +183,10 @@ def _get_flat_grads(network):
         try:
             grads_shape[key_name] = value.grad.data.cpu().numpy().shape
         except:
-            print('Cannot get grad of tensor {}'.format(key_name))
-            import pdb; pdb.set_trace()
+            print("Cannot get grad of tensor {}".format(key_name))
+            import ipdb
+
+            ipdb.set_trace()
         if flat_grads is None:
             flat_grads = value.grad.data.cpu().numpy().flatten()
         else:
@@ -213,27 +219,30 @@ def tensor2img(tensor):
         tensor = tensor.squeeze(0)
     img = tensor.permute(1, 2, 0).detach().cpu().numpy()
     import cv2
-    cv2.imwrite('tensor.png', img)
+
+    cv2.imwrite("tensor.png", img)
 
 
 def obs2tensor(obs, device):
     if isinstance(obs, list):
         obs = list2dict(obs)
 
-    return OrderedDict([
-        (k, torch.tensor(np.stack(v), dtype=torch.float32).to(device)) for k, v in obs.items()
-    ])
+    return OrderedDict(
+        [
+            (k, torch.tensor(np.stack(v), dtype=torch.float32).to(device))
+            for k, v in obs.items()
+        ]
+    )
 
 
 # transfer a numpy array into a tensor
 def to_tensor(x, device):
     if isinstance(x, dict):
-        return OrderedDict([
-            (k, torch.tensor(v, dtype=torch.float32).to(device))
-            for k, v in x.items()])
+        return OrderedDict(
+            [(k, torch.tensor(v, dtype=torch.float32).to(device)) for k, v in x.items()]
+        )
     if isinstance(x, list):
-        return [torch.tensor(v, dtype=torch.float32).to(device)
-                for v in x]
+        return [torch.tensor(v, dtype=torch.float32).to(device) for v in x]
     return torch.tensor(x, dtype=torch.float32).to(device)
 
 
@@ -248,12 +257,11 @@ def list2dict(rollout):
 
 
 # From softlearning repo
-def flatten(unflattened, parent_key='', separator='/'):
+def flatten(unflattened, parent_key="", separator="/"):
     items = []
     for k, v in unflattened.items():
         if separator in k:
-            raise ValueError(
-                "Found separator ({}) from key ({})".format(separator, k))
+            raise ValueError("Found separator ({}) from key ({})".format(separator, k))
         new_key = parent_key + separator + k if parent_key else k
         if isinstance(v, collections.MutableMapping) and v:
             items.extend(flatten(v, new_key, separator=separator).items())
@@ -264,7 +272,7 @@ def flatten(unflattened, parent_key='', separator='/'):
 
 
 # From softlearning repo
-def unflatten(flattened, separator='.'):
+def unflatten(flattened, separator="."):
     result = {}
     for key, value in flattened.items():
         parts = key.split(separator)
@@ -276,4 +284,3 @@ def unflatten(flattened, separator='.'):
         d[parts[-1]] = value
 
     return result
-

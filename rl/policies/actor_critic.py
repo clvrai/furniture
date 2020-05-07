@@ -4,16 +4,23 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import gym.spaces
 
-from rl.policies.distributions import FixedCategorical, FixedNormal, \
-    Identity, MixedDistribution
+from rl.policies.distributions import (
+    FixedCategorical,
+    FixedNormal,
+    Identity,
+    MixedDistribution,
+)
 from util.pytorch import to_tensor
+from util.gym import observation_size, action_size
 
 
 class Actor(nn.Module):
     def __init__(self, config, ob_space, ac_space, tanh_policy):
         super().__init__()
         self._config = config
+        self._ac_space = ac_space
         self._activation_fn = getattr(F, config.rl_activation)
         self._tanh = tanh_policy
         self._gaussian = config.rl_gaussian
@@ -28,8 +35,8 @@ class Actor(nn.Module):
         means, stds = self.forward(ob)
 
         dists = OrderedDict()
-        for k in self._ac_space.keys():
-            if self._ac_space.is_continuous(k):
+        for k, v in self._ac_space.spaces.items():
+            if isinstance(v, gym.spaces.Box):
                 if self._gaussian:
                     dists[k] = FixedNormal(means[k], stds[k])
                 else:
@@ -47,13 +54,15 @@ class Actor(nn.Module):
         if return_log_prob:
             log_probs = mixed_dist.log_probs(activations)
 
-        for k in self._ac_space.keys():
+        for k, v in self._ac_space.spaces.items():
             z = activations[k]
-            if self._tanh and self._ac_space.is_continuous(k):
+            if self._tanh and isinstance(v, gym.spaces.Box):
                 action = torch.tanh(z)
                 if return_log_prob:
                     # follow the Appendix C. Enforcing Action Bounds
-                    log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                    log_det_jacobian = 2 * (np.log(2.0) - z - F.softplus(-2.0 * z)).sum(
+                        dim=-1, keepdim=True
+                    )
                     log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -64,8 +73,10 @@ class Actor(nn.Module):
         if return_log_prob:
             log_probs_ = torch.cat(list(log_probs.values()), -1).sum(-1, keepdim=True)
             if log_probs_.min() < -100:
-                print('sampling an action with a probability of 1e-100')
-                import ipdb; ipdb.set_trace()
+                print("sampling an action with a probability of 1e-100")
+                import ipdb
+
+                ipdb.set_trace()
 
             log_probs_ = log_probs_.detach().cpu().numpy().squeeze(0)
             return actions, activations, log_probs_
@@ -78,8 +89,8 @@ class Actor(nn.Module):
 
         dists = OrderedDict()
         actions = OrderedDict()
-        for k in self._ac_space.keys():
-            if self._ac_space.is_continuous(k):
+        for k, v in self._ac_space.spaces.items():
+            if isinstance(v, gym.spaces.Box):
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
                 dists[k] = FixedCategorical(logits=means[k])
@@ -92,12 +103,14 @@ class Actor(nn.Module):
                 activations_[k] = activations_[k].unsqueeze(0)
         log_probs = mixed_dist.log_probs(activations_)
 
-        for k in self._ac_space.keys():
+        for k, v in self._ac_space.spaces.items():
             z = activations_[k]
-            if self._tanh and self._ac_space.is_continuous(k):
+            if self._tanh and isinstance(v, gym.spaces.Box):
                 action = torch.tanh(z)
                 # follow the Appendix C. Enforcing Action Bounds
-                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                log_det_jacobian = 2 * (np.log(2.0) - z - F.softplus(-2.0 * z)).sum(
+                    dim=-1, keepdim=True
+                )
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -117,8 +130,8 @@ class Actor(nn.Module):
 
         dists = OrderedDict()
         actions = OrderedDict()
-        for k in self._ac_space.keys():
-            if self._ac_space.is_continuous(k):
+        for k, v in self._ac_space.spaces.items():
+            if isinstance(v, gym.spaces.Box):
                 if self._gaussian:
                     dists[k] = FixedNormal(means[k], stds[k])
                 else:
@@ -133,9 +146,9 @@ class Actor(nn.Module):
             if len(activations_[k].shape) == 1:
                 activations_[k] = activations_[k].unsqueeze(0)
 
-        for k in self._ac_space.keys():
+        for k, v in self._ac_space.spaces.items():
             z = activations_[k]
-            if self._tanh and self._ac_space.is_continuous(k):
+            if self._tanh and isinstance(v, gym.spaces.Box):
                 action = torch.tanh(z)
             else:
                 action = z
@@ -149,8 +162,8 @@ class Actor(nn.Module):
 
         dists = OrderedDict()
         actions = OrderedDict()
-        for k in self._ac_space.keys():
-            if self._ac_space.is_continuous(k):
+        for k, v in self._ac_space.spaces.items():
+            if isinstance(v, gym.spaces.Box):
                 dists[k] = FixedNormal(means[k], stds[k])
             else:
                 dists[k] = FixedCategorical(logits=means[k])
@@ -160,12 +173,14 @@ class Actor(nn.Module):
         activations_ = mixed_dist.rsample() if activations is None else activations
         log_probs = mixed_dist.log_probs(activations_)
 
-        for k in self._ac_space.keys():
+        for k, v in self._ac_space.spaces.items():
             z = activations_[k]
-            if self._tanh and self._ac_space.is_continuous(k):
+            if self._tanh and isinstance(v, gym.spaces.Box):
                 action = torch.tanh(z)
                 # follow the Appendix C. Enforcing Action Bounds
-                log_det_jacobian = 2 * (np.log(2.) - z - F.softplus(-2. * z)).sum(dim=-1, keepdim=True)
+                log_det_jacobian = 2 * (np.log(2.0) - z - F.softplus(-2.0 * z)).sum(
+                    dim=-1, keepdim=True
+                )
                 log_probs[k] = log_probs[k] - log_det_jacobian
             else:
                 action = z
@@ -177,7 +192,9 @@ class Actor(nn.Module):
         if log_probs_.min() < -100:
             print(ob)
             print(log_probs_.min())
-            import ipdb; ipdb.set_trace()
+            import ipdb
+
+            ipdb.set_trace()
         if activations is None:
             return actions, log_probs_
         else:
@@ -188,4 +205,3 @@ class Critic(nn.Module):
     def __init__(self, config):
         super().__init__()
         self._config = config
-

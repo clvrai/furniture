@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 from rl.policies.utils import MLP
 from util.pytorch import to_tensor
+from util.gym import observation_size, action_size
 
 
 class Discriminator(nn.Module):
@@ -14,11 +15,9 @@ class Discriminator(nn.Module):
         super().__init__()
         self._config = config
 
-        # observation
-        input_dim = sum([np.prod(x) for x in ob_space.values()]) + \
-            sum([np.prod(x) for x in ac_space.values()])
+        input_dim = observation_size(ob_space) + action_size(ac_space)
 
-        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size]*2)
+        self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
 
     def forward(self, ob, ac):
         # flatten observation
@@ -44,4 +43,3 @@ class Discriminator(nn.Module):
 
         reward = -torch.log(1 - torch.sigmoid(ret) + 1e-8)
         return reward
-

@@ -30,9 +30,9 @@ class Info(object):
         for k, v in self._info.items():
             if np.isscalar(v):
                 ret[k] = v
-            #elif hassattr(v[0], "shape") and len(v[0].shape) == 1:
+            # elif hassattr(v[0], "shape") and len(v[0].shape) == 1:
             elif isinstance(v[0], (int, float, bool, np.float32, np.int64)):
-                if '_mean' in k or reduction == "mean":
+                if "_mean" in k or reduction == "mean":
                     ret[k] = np.mean(v)
                 elif reduction == "sum":
                     ret[k] = np.sum(v)
@@ -49,4 +49,3 @@ class Info(object):
 
     def items(self):
         return self._info.items()
-

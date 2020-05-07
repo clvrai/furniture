@@ -3,6 +3,7 @@
 from collections import OrderedDict
 
 import numpy as np
+import gym.spaces
 
 from env.furniture import FurnitureEnv
 import env.transform_utils as T
@@ -35,10 +36,18 @@ class FurnitureJacoEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            if self._control_type == 'impedance':
-                ob_space['robot_ob'] = [32] # FIX
-            elif self._control_type == 'ik':
-                ob_space['robot_ob'] = [3 + 4 + 3 + 3 + 1] # pos, quat, vel, rot_vel, gripper
+            if self._control_type == "impedance":
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(32,),  # FIX
+                )
+            elif self._control_type == "ik":
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(3 + 4 + 3 + 3 + 1,),  # pos, quat, vel, rot_vel, gripper
+                )
 
         return ob_space
 

@@ -34,19 +34,20 @@ def run(config):
     # config.port = config.port + rank * 2 # training env + evaluation env
 
     if config.is_chef:
-        logger.warn('Run a base worker.')
+        logger.warn("Run a base worker.")
         make_log_files(config)
     else:
-        logger.warn('Run worker %d and disable logger.', config.rank)
+        logger.warn("Run worker %d and disable logger.", config.rank)
         import logging
+
         logger.setLevel(logging.CRITICAL)
 
     # syncronize all processes
     mpi_sync()
 
     def shutdown(signal, frame):
-        logger.warn('Received signal %s: exiting', signal)
-        sys.exit(128+signal)
+        logger.warn("Received signal %s: exiting", signal)
+        sys.exit(128 + signal)
 
     signal.signal(signal.SIGHUP, shutdown)
     signal.signal(signal.SIGINT, shutdown)
@@ -79,8 +80,9 @@ def set_log_path(config):
     Sets paths to log directories.
     """
     method = "il" if config.algo in ["bc", "gail"] else "rl"
-    config.run_name = "{}.{}.{}.{}.{}".format(method, config.env, config.algo,
-                                              config.prefix, config.seed)
+    config.run_name = "{}.{}.{}.{}.{}".format(
+        method, config.env, config.algo, config.prefix, config.seed
+    )
     config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     config.record_dir = os.path.join(config.log_dir, "video")
 
@@ -89,10 +91,10 @@ def make_log_files(config):
     """
     Sets up log directories and saves git diff and command line.
     """
-    logger.info('Create log directory: %s', config.log_dir)
+    logger.info("Create log directory: %s", config.log_dir)
     os.makedirs(config.log_dir, exist_ok=True)
 
-    logger.info('Create video directory: %s', config.record_dir)
+    logger.info("Create video directory: %s", config.record_dir)
     os.makedirs(config.record_dir, exist_ok=True)
 
     if config.is_train:
@@ -101,21 +103,21 @@ def make_log_files(config):
             "echo `git rev-parse HEAD` >> {}/git.txt".format(config.log_dir),
             "git diff >> {}/git.txt".format(config.log_dir),
             "echo 'python -m rl {}' >> {}/cmd.sh".format(
-                ' '.join([shlex_quote(arg) for arg in sys.argv[1:]]),
-                config.log_dir),
+                " ".join([shlex_quote(arg) for arg in sys.argv[1:]]), config.log_dir
+            ),
         ]
         os.system("\n".join(cmds))
 
         # log config
-        param_path = os.path.join(config.log_dir, 'params.json')
-        logger.info('Store parameters in %s', param_path)
-        with open(param_path, 'w') as fp:
+        param_path = os.path.join(config.log_dir, "params.json")
+        logger.info("Store parameters in %s", param_path)
+        with open(param_path, "w") as fp:
             json.dump(config.__dict__, fp, indent=4, sort_keys=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args, unparsed = argparser()
     if len(unparsed):
-        logger.error('Unparsed argument is detected:\n%s', unparsed)
+        logger.error("Unparsed argument is detected:\n%s", unparsed)
     else:
         run(args)

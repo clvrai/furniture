@@ -103,11 +103,11 @@ def main(args):
     print()
     print("=" * 80)
     print("Instruction:")
-    print('smaller - Q')
-    print('fine_smaller - W')
-    print('fine_larger - E')
-    print('larger - R')
-    print('Save Demo - Y')
+    print("smaller - Q")
+    print("fine_smaller - W")
+    print("fine_larger - E")
+    print("larger - R")
+    print("Save Demo - Y")
     print("=" * 80)
 
     # manual control of agent using keyboard
@@ -124,6 +124,7 @@ def argsparser():
     parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--debug", type=str2bool, default=False)
     import config.furniture as furniture_config
+
     furniture_config.add_argument(parser)
     args = parser.parse_args()
     return args

@@ -13,8 +13,7 @@ from tqdm import tqdm
 
 from env import make_env
 from env.image_utils import color_segmentation
-from env.models import (agent_names, background_names, furniture_name2id,
-                        furniture_names)
+from env.models import agent_names, background_names, furniture_name2id, furniture_names
 from util import parse_demo_file_name, str2bool
 from util.video_recorder import VideoRecorder
 

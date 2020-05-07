@@ -10,23 +10,23 @@ formatter = colorlog.ColoredFormatter(
     datefmt=None,
     reset=True,
     log_colors={
-        'DEBUG': 'cyan',
-        'INFO': 'white',
-        'WARNING': 'yellow',
-        'ERROR': 'red,bold',
-        'CRITICAL': 'red,bg_white',
+        "DEBUG": "cyan",
+        "INFO": "white",
+        "WARNING": "yellow",
+        "ERROR": "red,bold",
+        "CRITICAL": "red,bg_white",
     },
     secondary_log_colors={},
-    style='%'
+    style="%",
 )
 
-logger = colorlog.getLogger('furniture')
+logger = colorlog.getLogger("furniture")
 logger.setLevel(logging.DEBUG)
 
-#fh = logging.FileHandler('log')
-#fh.setLevel(logging.DEBUG)
-#fh.setFormatter(formatter)
-#logger.addHandler(fh)
+# fh = logging.FileHandler('log')
+# fh.setLevel(logging.DEBUG)
+# fh.setFormatter(formatter)
+# logger.addHandler(fh)
 
 ch = colorlog.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -45,14 +45,13 @@ class StopWatch(object):
     def end(self, name):
         if name not in self.times:
             self.times[name] = []
-        assert name in self.start, '%s cannot be found in Stop Watch' % name
+        assert name in self.start, "%s cannot be found in Stop Watch" % name
 
         self.times[name].append(time.time() - self.start[name])
 
     def display(self):
-        print('----Times----')
+        print("----Times----")
         for name in self.times:
             print(name, np.mean(self.times[name]))
 
         self.times = {}
-

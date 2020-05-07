@@ -7,11 +7,11 @@ import time
 from collections import OrderedDict
 
 import numpy as np
+import gym.spaces
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
 
 import env.transform_utils as T
-from env.action_spec import ActionSpec
 from env.base import EnvMeta
 from env.image_utils import color_segmentation
 from env.mjcf_utils import xml_path_completion
@@ -23,6 +23,7 @@ from env.unity_interface import UnityInterface
 from util.demo_recorder import DemoRecorder
 from util.logger import logger
 from util.video_recorder import VideoRecorder
+from util.gym import action_size, observation_size
 
 try:
     import mujoco_py
@@ -57,7 +58,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             "pos_dist": 0.1,
             "rot_dist_up": 0.9,
             "rot_dist_forward": 0.9,
-            "project_dist": 0.3,    
+            "project_dist": 0.3,
         }
 
         self._debug = config.debug
@@ -138,21 +139,28 @@ class FurnitureEnv(metaclass=EnvMeta):
         ob_space = OrderedDict()
         num_cam = len(self._camera_ids)
         if self._visual_ob:
-            ob_space["camera_ob"] = [
-                num_cam,
-                self._screen_height,
-                self._screen_width,
-                3,
-            ]
+            ob_space["camera_ob"] = gym.spaces.Box(
+                low=0.0,
+                high=1.0,
+                shape=(num_cam, self._screen_height, self._screen_width, 3),
+            )
 
         if self._object_ob:
             # can be changed to the desired number depending on the task
-            ob_space["object_ob"] = [(3 + 4) * 2]
+            ob_space["object_ob"] = gym.spaces.Box(
+                low=-np.inf,
+                high=np.inf,
+                shape=((3 + 4) * 2,),
+            )
 
         if self._subtask_ob:
-            ob_space["subtask_ob"] = 2
+            ob_space["subtask_ob"] = gym.spaces.Box(
+                low=0.0,
+                high=np.inf,
+                shape=(2,),
+            )
 
-        return ob_space
+        return gym.spaces.Dict(ob_space)
 
     @property
     def dof(self):
@@ -173,15 +181,23 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns size of the action space.
         """
-        return self.action_space.size
+        return action_size(self.action_space)
 
     @property
     def action_space(self):
         """
-        Returns ActionSpec of action space, see
-        action_spec.py for more documentation.
+        Returns action space.
         """
-        return ActionSpec(self.dof)
+        return gym.spaces.Dict(
+            [
+                ('default', gym.spaces.Box(shape=(self.dof,),
+                                           low=-1,
+                                           high=1,
+                                           dtype=np.float32,
+                                           )
+                 )
+             ]
+        )
 
     def reset(self, furniture_id=None, background=None):
         """
@@ -1232,9 +1248,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._furniture_id = self._config.furniture_id
             else:
                 self._furniture_id = furniture_id
-            self._reset_internal() 
+            self._reset_internal()
         elif self._config.furn_size_randomness != 0 or self._manual_resize is not None:
-            # reload mujoco and unity with resized xml 
+            # reload mujoco and unity with resized xml
 
             self._load_model_object()
             self._load_model()
@@ -1666,7 +1682,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         logger.debug("load furniture %s" % path)
         objects = MujocoXMLObject(path, debug=self._debug)
         if self._manual_resize is not None:
-            resize_factor = 1 + self._manual_resize 
+            resize_factor = 1 + self._manual_resize
             objects.set_resized_tree(resize_factor)
         elif self._config.furn_size_randomness != 0:
             rand = self._init_random(1, "resize")[0]
@@ -1714,7 +1730,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         if action != glfw.RELEASE:
             return
-        elif key == glfw.KEY_SPACE: 
+        elif key == glfw.KEY_SPACE:
             action = "sel"
         elif key == glfw.KEY_ENTER:
             action = "des"
@@ -1829,7 +1845,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         make sure to add keys to whitelist in MJTCPInterace.cs
         """
         key = self._unity.get_input()
-        
+
         if key == "None":
             return
         elif key == "Q":
@@ -2223,7 +2239,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def run_resizer(self, config):
         """
-        Run a resizing program in unity for adjusting furniture size in xml 
+        Run a resizing program in unity for adjusting furniture size in xml
         """
         self._manual_resize = 0
         if config.furniture_name is not None:

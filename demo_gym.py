@@ -32,7 +32,7 @@ def main(config):
         for i in range(500):
             # take a step with a randomly sampled action
             observation, reward, done, info = env.step(env.action_space.sample())
-        print('FPS = {}'.format(500 / (time.time() - st)))
+        print("FPS = {}".format(500 / (time.time() - st)))
 
         # close the environment instance
         env.close()
@@ -40,8 +40,8 @@ def main(config):
     else:
         envs = make_vec_env(env_id, num_env, config=config)
         envs.reset()
-        img = envs.render('rgb_array')
-        imageio.imwrite('vec_env_image.png', img)
+        img = envs.render("rgb_array")
+        imageio.imwrite("vec_env_image.png", img)
 
         st = time.time()
         for i in range(500):
@@ -49,7 +49,7 @@ def main(config):
             observation, reward, done, info = envs.step(
                 [envs.action_space.sample() for _ in range(num_env)]
             )
-        print('FPS = {}'.format((500 * num_env) / (time.time() - st)))
+        print("FPS = {}".format((500 * num_env) / (time.time() - st)))
 
         envs.close()
 
@@ -62,12 +62,13 @@ def argsparser():
     from util import str2bool
 
     parser = argparse.ArgumentParser("Demo for IKEA Furniture Assembly Environment")
-    parser.add_argument('--env_id', type=str, default='furniture-baxter-v0')
-    parser.add_argument('--num_env', type=int, default=1)
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
+    parser.add_argument("--env_id", type=str, default="furniture-baxter-v0")
+    parser.add_argument("--num_env", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=123)
+    parser.add_argument("--debug", type=str2bool, default=False)
 
     import config.furniture as furniture_config
+
     furniture_config.add_argument(parser)
 
     parser.set_defaults(visual_ob=True)
@@ -76,6 +77,6 @@ def argsparser():
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = argsparser()
     main(args)

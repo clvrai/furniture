@@ -7,9 +7,9 @@ class BaseAgent(object):
     def __init__(self, config, ob_space):
         self._config = config
 
-        self._ob_norm = Normalizer(ob_space,
-                                   default_clip_range=config.clip_range,
-                                   clip_obs=config.clip_obs)
+        self._ob_norm = Normalizer(
+            ob_space, default_clip_range=config.clip_range, clip_obs=config.clip_obs
+        )
 
     def normalize(self, ob):
         if self._config.ob_norm:
@@ -18,7 +18,7 @@ class BaseAgent(object):
 
     def act(self, ob, is_train=True):
         ob = self.normalize(ob)
-        if hasattr(self, '_actor'):
+        if hasattr(self, "_actor"):
             ac, activation = self._actor.act(ob, is_train=is_train)
         else:
             ac, activation = self._actors[0][0].act(ob, is_train=is_train)
@@ -47,10 +47,8 @@ class BaseAgent(object):
 
     def _soft_update_target_network(self, target, source, tau):
         for target_param, param in zip(target.parameters(), source.parameters()):
-            target_param.data.copy_((1 - tau) * param.data +
-                                    tau * target_param.data)
+            target_param.data.copy_((1 - tau) * param.data + tau * target_param.data)
 
     def _copy_target_network(self, target, source):
         for target_param, source_param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(source_param.data)
-

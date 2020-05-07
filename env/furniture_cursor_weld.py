@@ -3,14 +3,13 @@
 from collections import OrderedDict
 
 import numpy as np
-import gym.spaces
 
-from env.furniture import FurnitureEnv
+from env.furniture_cursor import FurnitureCursorEnv
 import env.transform_utils as T
 from util.logger import logger
 
 
-class FurnitureCursorEnv(FurnitureEnv):
+class FurnitureCursorWeldDebugEnv(FurnitureCursorEnv):
     """
     Cursor environment.
     """
@@ -21,6 +20,8 @@ class FurnitureCursorEnv(FurnitureEnv):
             config: configurations for the environment.
         """
         config.agent_type = 'Cursor'
+        # set the furniture to be always the simple blocks
+        config.furniture_id = 9
 
         super().__init__(config)
 
@@ -37,7 +38,7 @@ class FurnitureCursorEnv(FurnitureEnv):
 
         # requires multiple connection actions to make connection between two
         # parts.
-        self._num_connect_steps = 10
+        self._num_connect_steps = 0
 
         self._cursor_selected = [None, None]
 
@@ -49,11 +50,7 @@ class FurnitureCursorEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                low=-np.inf,
-                high=np.inf,
-                shape=((3 + 1) * 2,),
-            )
+            ob_space['robot_ob'] = [(3 + 1) * 2]
 
         return ob_space
 
@@ -127,6 +124,18 @@ class FurnitureCursorEnv(FurnitureEnv):
         """
         return super()._compute_reward()
 
+    def _place_objects(self):
+        """
+        Returns the fixed initial positions and rotations of furniture parts.
+
+        Returns:
+            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
+            xquat((float * 4) * n_obj): quaternion of the objects
+        """
+        pos_init = [[-0.4, -0.133, 0.0833], [-0.4, 0.14, 0.0833], [0.4083, -0.133, 0.0833], [0.4083, 0.14, 0.0833], [0.0, 0.0, 0.2433]]
+        quat_init = [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]
+        return pos_init, quat_init
+
 
 def main():
     import argparse
@@ -141,11 +150,12 @@ def main():
     parser.add_argument('--debug', type=str2bool, default=False)
 
     parser.set_defaults(render=True)
+    parser.set_defaults(unity_editor=True)
 
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Cursor environment
-    env = FurnitureCursorEnv(config)
+    env = FurnitureCursorWeldDebugEnv(config)
     env.run_manual(config)
 
 

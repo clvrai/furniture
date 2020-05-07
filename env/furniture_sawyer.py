@@ -3,6 +3,7 @@
 from collections import OrderedDict
 
 import numpy as np
+import gym.spaces
 
 import env.transform_utils as T
 from env.furniture import FurnitureEnv
@@ -34,11 +35,17 @@ class FurnitureSawyerEnv(FurnitureEnv):
 
         if self._robot_ob:
             if self._control_type == "impedance":
-                ob_space["robot_ob"] = [32]
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(32,),
+                )
             elif self._control_type == "ik":
-                ob_space["robot_ob"] = [
-                    3 + 4 + 3 + 3 + 1
-                ]  # pos, quat, vel, rot_vel, gripper
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(3 + 4 + 3 + 3 + 1,),  # pos, quat, vel, rot_vel, gripper
+                )
 
         return ob_space
 

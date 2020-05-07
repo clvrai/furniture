@@ -36,4 +36,3 @@ def mpi_sum(x):
 # Syncronize all processes.
 def mpi_sync():
     mpi_sum(0)
-

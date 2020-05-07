@@ -50,11 +50,9 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         super().__init__(config)
 
         # set environment- and task-specific configurations
-        self._env_config.update({
-            "max_episode_steps": 50,
-            "distance_reward": 1,
-            "success_reward": 5,
-        })
+        self._env_config.update(
+            {"max_episode_steps": 50, "distance_reward": 1, "success_reward": 5,}
+        )
 
     def _reset(self, furniture_id=None, background=None):
         """
@@ -110,8 +108,8 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         reward, done, info = self._compute_reward(a)
 
         # store some information for log
-        info['right_arm_action'] = a[0:6]
-        info['right_gripper_action'] = a[12]
+        info["right_arm_action"] = a[0:6]
+        info["right_gripper_action"] = a[12]
 
         return ob, reward, done, info
 
@@ -139,9 +137,9 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         done = False
 
         # log each component of reward
-        info['reward_ctrl'] = ctrl_reward
-        info['reward_distance'] = distance_reward
-        info['reward_success'] = success_reward
+        info["reward_ctrl"] = ctrl_reward
+        info["reward_distance"] = distance_reward
+        info["reward_success"] = success_reward
 
         return reward, done, info
 
@@ -154,7 +152,8 @@ def main(args):
 
     # make environment following arguments
     from env import make_env
-    env = make_env('FurnitureExampleEnv', args)
+
+    env = make_env("FurnitureExampleEnv", args)
 
     # define a random policy
     def policy_action(ob):
@@ -182,16 +181,17 @@ def main(args):
         # simulate environment
         observation, reward, done, info = env.step(action)
 
-        print('{:3d} step:  reward ({:5.3f})  action ({})'.format(
-            ep_length, reward, action[:3]))
+        print(
+            "{:3d} step:  reward ({:5.3f})  action ({})".format(
+                ep_length, reward, action[:3]
+            )
+        )
 
         # update unity rendering
         env.render()
 
         # collect transition
-        rollout.append({'ob': observation,
-                        'reward': reward,
-                        'done': done})
+        rollout.append({"ob": observation, "reward": reward, "done": done})
 
     # update your network using @rollout
     update_policy(rollout)
@@ -209,8 +209,8 @@ def argsparser():
     from util import str2bool
 
     parser = argparse.ArgumentParser("Demo for IKEA Furniture Assembly Environment")
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
+    parser.add_argument("--seed", type=int, default=123)
+    parser.add_argument("--debug", type=str2bool, default=False)
 
     furniture_config.add_argument(parser)
 
@@ -218,7 +218,6 @@ def argsparser():
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = argsparser()
     main(args)
-
