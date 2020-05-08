@@ -15,8 +15,12 @@ import env.transform_utils as T
 from env.base import EnvMeta
 from env.image_utils import color_segmentation
 from env.mjcf_utils import xml_path_completion
-from env.models import (background_names, furniture_name2id, furniture_names,
-                        furniture_xmls)
+from env.models import (
+    background_names,
+    furniture_name2id,
+    furniture_names,
+    furniture_xmls,
+)
 from env.models.grippers import gripper_factory
 from env.models.objects import MujocoXMLObject
 from env.unity_interface import UnityInterface
@@ -148,17 +152,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._object_ob:
             # can be changed to the desired number depending on the task
             ob_space["object_ob"] = gym.spaces.Box(
-                low=-np.inf,
-                high=np.inf,
-                shape=((3 + 4) * 2,),
+                low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
             )
 
         if self._subtask_ob:
-            ob_space["subtask_ob"] = gym.spaces.Box(
-                low=0.0,
-                high=np.inf,
-                shape=(2,),
-            )
+            ob_space["subtask_ob"] = gym.spaces.Box(low=0.0, high=np.inf, shape=(2,),)
 
         return gym.spaces.Dict(ob_space)
 
@@ -190,13 +188,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         return gym.spaces.Dict(
             [
-                ('default', gym.spaces.Box(shape=(self.dof,),
-                                           low=-1,
-                                           high=1,
-                                           dtype=np.float32,
-                                           )
-                 )
-             ]
+                (
+                    "default",
+                    gym.spaces.Box(
+                        shape=(self.dof,), low=-1, high=1, dtype=np.float32,
+                    ),
+                )
+            ]
         )
 
     def reset(self, furniture_id=None, background=None):
@@ -1838,7 +1836,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.action = action
         self._action_on = True
 
-
     def resize_key_input_unity(self):
         """
         Key input for unity If adding new keys,
@@ -1867,7 +1864,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         logger.info("Input action: %s" % action)
         self.action = action
         self._action_on = True
-
 
     def run_demo(self, config):
         """
@@ -2236,7 +2232,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._config.record:
                 vr.close()
 
-
     def run_resizer(self, config):
         """
         Run a resizing program in unity for adjusting furniture size in xml
@@ -2271,11 +2266,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                 next(iter(self.mujoco_objects.values())).save_model(path)
                 return
             self.render("rgb_array")
-            print('current_scale', 1+self._manual_resize)
+            print("current_scale", 1 + self._manual_resize)
             self.reset(config.furniture_id, config.background)
             self._action_on = False
-
-
 
     def _get_reference(self):
         """

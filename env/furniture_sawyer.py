@@ -36,9 +36,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         if self._robot_ob:
             if self._control_type == "impedance":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=(32,),
+                    low=-np.inf, high=np.inf, shape=(32,),
                 )
             elif self._control_type == "ik":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(

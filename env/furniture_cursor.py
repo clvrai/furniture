@@ -20,17 +20,19 @@ class FurnitureCursorEnv(FurnitureEnv):
         Args:
             config: configurations for the environment.
         """
-        config.agent_type = 'Cursor'
+        config.agent_type = "Cursor"
 
         super().__init__(config)
 
-        self._env_config.update({
-            "success_reward": 100,
-            "pos_dist": 0.1,
-            "rot_dist_up": 0.9,
-            "rot_dist_forward": 0.9,
-            "project_dist": -1,
-        })
+        self._env_config.update(
+            {
+                "success_reward": 100,
+                "pos_dist": 0.1,
+                "rot_dist_up": 0.9,
+                "rot_dist_forward": 0.9,
+                "project_dist": -1,
+            }
+        )
 
         # turn on the gravity compensation for selected furniture pieces
         self._gravity_compensation = 1
@@ -50,9 +52,7 @@ class FurnitureCursorEnv(FurnitureEnv):
 
         if self._robot_ob:
             ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                low=-np.inf,
-                high=np.inf,
-                shape=((3 + 1) * 2,),
+                low=-np.inf, high=np.inf, shape=((3 + 1) * 2,),
             )
 
         return ob_space
@@ -62,7 +62,7 @@ class FurnitureCursorEnv(FurnitureEnv):
         """
         Returns the DoF of the curosr agent.
         """
-        assert self._control_type == 'ik'
+        assert self._control_type == "ik"
         dof = (3 + 3 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
         return dof
 
@@ -77,10 +77,10 @@ class FurnitureCursorEnv(FurnitureEnv):
         reward, done, info = self._compute_reward()
 
         connect_reward = reward - prev_reward
-        info['reward_connect'] = connect_reward
+        info["reward_connect"] = connect_reward
 
         if self._success:
-            logger.info('Success!')
+            logger.info("Success!")
 
         reward = connect_reward
 
@@ -112,10 +112,14 @@ class FurnitureCursorEnv(FurnitureEnv):
         if self._robot_ob:
             robot_states = OrderedDict()
             robot_states["cursor_pos"] = self._get_cursor_pos()
-            robot_states["cursor_state"] = np.array([self._cursor_selected[0] is not None,
-                                                     self._cursor_selected[1] is not None])
+            robot_states["cursor_state"] = np.array(
+                [
+                    self._cursor_selected[0] is not None,
+                    self._cursor_selected[1] is not None,
+                ]
+            )
 
-            state['robot_ob'] = np.concatenate(
+            state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
 
@@ -137,8 +141,8 @@ def main():
     furniture_config.add_argument(parser)
 
     # change default config for Cursors
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
+    parser.add_argument("--seed", type=int, default=123)
+    parser.add_argument("--debug", type=str2bool, default=False)
 
     parser.set_defaults(render=True)
 

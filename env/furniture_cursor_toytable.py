@@ -20,24 +20,26 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         Args:
             config: configurations for the environment.
         """
-        config.agent_type = 'Cursor'
+        config.agent_type = "Cursor"
         config.furniture_id = furniture_name2id["toy_table"]
 
         super().__init__(config)
         # default values
-        self._env_config.update({
-            "pos_dist": 0.1,
-            "rot_dist_up": 0.9,
-            "rot_dist_forward": 0.9,
-            "project_dist": -1,
-            "site_dist_rew": config.site_dist_rew,
-            "site_up_rew": config.site_up_rew,
-            "aligned_rew": config.aligned_rew,
-            "connect_rew": config.connect_rew,
-            "success_rew": config.success_rew,
-            "pick_rew": config.pick_rew,
-            "ctrl_penalty": config.ctrl_penalty,
-        })
+        self._env_config.update(
+            {
+                "pos_dist": 0.1,
+                "rot_dist_up": 0.9,
+                "rot_dist_forward": 0.9,
+                "project_dist": -1,
+                "site_dist_rew": config.site_dist_rew,
+                "site_up_rew": config.site_up_rew,
+                "aligned_rew": config.aligned_rew,
+                "connect_rew": config.connect_rew,
+                "success_rew": config.success_rew,
+                "pick_rew": config.pick_rew,
+                "ctrl_penalty": config.ctrl_penalty,
+            }
+        )
 
         # turn on the gravity compensation for selected furniture pieces
         self._gravity_compensation = 1
@@ -56,7 +58,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            ob_space['robot_ob'] = [(3 + 1) * 2]
+            ob_space["robot_ob"] = [(3 + 1) * 2]
 
         return ob_space
 
@@ -65,7 +67,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         """
         Returns the DoF of the cursor agent.
         """
-        assert self._control_type == 'ik'
+        assert self._control_type == "ik"
         dof = (3 + 3 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
         return dof
 
@@ -79,8 +81,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         reward, done, info = self._compute_reward(a)
 
         if self._success:
-            logger.info('Success!')
-
+            logger.info("Success!")
 
         return ob, reward, done, info
 
@@ -115,7 +116,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
         # calculate distance between site + z-offset and other site
-        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.2])
+        point_above_topsite = top_site_xpos[:3] + np.array([0, 0, 0.2])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_up = T.cos_dist(up1, up2)
@@ -130,7 +131,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         self._prev_rot_dist_project1_2 = rot_dist_project1_2
         self._prev_rot_dist_project2_1 = rot_dist_project2_1
 
-        self._phase = 'align_eucl_1'
+        self._phase = "align_eucl_1"
         self._num_connect_successes = 0
 
     def _place_objects(self):
@@ -147,8 +148,14 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
         # pos_init = [[-0.30491682, -0.09045364,  0.03429339],[ 0.12432612, -0.13662719,  0.02096991]]
         # quat_init = [[ 0.00000009, -0.99874362, -0.05011164,  0.00000002],  [0.70610751, 0.7061078 , 0.03757641, 0.03757635]]
-        pos_init = [[-0.34684698 + 0.05, -0.12887974,  0.03418991],[0.03472849 - 0.0285, 0.11868485 - 0.05, 0.02096991]]
-        quat_init = [[ 0.00000009, -0.99874362, -0.05011164,  0.00000002],  [-0.70610751, 0.7061078 , -0.03757641, 0.03757635]]
+        pos_init = [
+            [-0.34684698 + 0.05, -0.12887974, 0.03418991],
+            [0.03472849 - 0.0285, 0.11868485 - 0.05, 0.02096991],
+        ]
+        quat_init = [
+            [0.00000009, -0.99874362, -0.05011164, 0.00000002],
+            [-0.70610751, 0.7061078, -0.03757641, 0.03757635],
+        ]
 
         return pos_init, quat_init
 
@@ -162,10 +169,14 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         if self._robot_ob:
             robot_states = OrderedDict()
             robot_states["cursor_pos"] = self._get_cursor_pos()
-            robot_states["cursor_state"] = np.array([self._cursor_selected[0] is not None,
-                                                     self._cursor_selected[1] is not None])
+            robot_states["cursor_state"] = np.array(
+                [
+                    self._cursor_selected[0] is not None,
+                    self._cursor_selected[1] is not None,
+                ]
+            )
 
-            state['robot_ob'] = np.concatenate(
+            state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
 
@@ -175,8 +186,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         """
         Initializes cursor position to be on top of parts
         """
-        self._set_pos('cursor0', [-0.35, -0.125, 0.0125])
-        self._set_pos('cursor1', [0.075, -0.175, 0.0375])
+        self._set_pos("cursor0", [-0.35, -0.125, 0.0125])
+        self._set_pos("cursor1", [0.075, -0.175, 0.0375])
 
     def _compute_reward(self, action):
         """
@@ -186,16 +197,21 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         The next stage gives reward for bringing the leg connection site close to the table
         connection site.
         """
-        rew = pick_rew = site_dist_rew = site_up_rew = connect_rew = success_rew = \
-            aligned_rew = ctrl_penalty = 0
+        rew = pick_rew = ctrl_penalty = success_rew = 0
+        site_dist_rew = site_up_rew = connect_rew = aligned_rew = 0
         done = self._num_connected > 0
         info = {}
-        holding_top = self._cursor_selected[0] == '4_part4'
-        holding_leg = self._cursor_selected[1] == '2_part2'
+        holding_top = self._cursor_selected[0] == "4_part4"
+        holding_leg = self._cursor_selected[1] == "2_part2"
         c0_action, c1_action = action[:7], action[7:14]
         c0_moverotate, c1_moverotate = c0_action[:-1], c1_action[:-1]
-        c0_ctrl_penalty, c1_ctrl_penalty = 2 * np.linalg.norm(c0_moverotate, 2), np.linalg.norm(c1_moverotate, 2)
-        ctrl_penalty = -self._env_config['ctrl_penalty'] * (c0_ctrl_penalty + c1_ctrl_penalty)
+        c0_ctrl_penalty, c1_ctrl_penalty = (
+            2 * np.linalg.norm(c0_moverotate, 2),
+            np.linalg.norm(c1_moverotate, 2),
+        )
+        ctrl_penalty = -self._env_config["ctrl_penalty"] * (
+            c0_ctrl_penalty + c1_ctrl_penalty
+        )
 
         top_site_name = "top-leg,,conn_site4"
         leg_site_name = "leg-top,,conn_site4"
@@ -205,7 +221,7 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
         # calculate distance between site + z-offset and other site
-        point_above_topsite = top_site_xpos[:3] + np.array([0,0,0.2])
+        point_above_topsite = top_site_xpos[:3] + np.array([0, 0, 0.2])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
@@ -214,70 +230,80 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
         # cursor 0 select table top
         if holding_top and not self._top_picked:
-            pick_rew += self._env_config['pick_rew']
+            pick_rew += self._env_config["pick_rew"]
             self._top_picked = True
         # cursor 1 select table leg
         if holding_leg and not self._leg_picked:
-            pick_rew += self._env_config['pick_rew']
+            pick_rew += self._env_config["pick_rew"]
             self._leg_picked = True
 
         if self._num_connected > 0:
-            success_rew = self._env_config['success_rew']
+            success_rew = self._env_config["success_rew"]
 
         # if parts are in hand, then give reward for moving parts closer
         elif holding_top and holding_leg:
 
-            angles_aligned = rot_dist_up > self._env_config['rot_dist_up'] and \
-                rot_dist_project1_2 > 0.98 and \
-                rot_dist_project2_1 > 0.98
+            angles_aligned = (
+                rot_dist_up > self._env_config["rot_dist_up"]
+                and rot_dist_project1_2 > 0.98
+                and rot_dist_project2_1 > 0.98
+            )
             dist_aligned = pos_dist < 0.1
-            sites_aligned = site_dist < self._env_config['pos_dist']
+            sites_aligned = site_dist < self._env_config["pos_dist"]
 
             if angles_aligned and sites_aligned:
-                self._phase = 'connect'
+                self._phase = "connect"
             elif angles_aligned and dist_aligned:
-                self._phase = 'align_eucl_2'
-            #elif not angles_aligned:
+                self._phase = "align_eucl_2"
+            # elif not angles_aligned:
             #    self._phase = 'align_eucl_1'
 
-            if self._phase == 'connect':
+            if self._phase == "connect":
                 # give reward for getting alignment right
-                aligned_rew = self._env_config['aligned_rew']
+                aligned_rew = self._env_config["aligned_rew"]
                 connect = action[14]
                 if connect > 0 and self._num_connect_successes < self._connect_step:
-                    connect_rew +=  self._env_config['connect_rew']
+                    connect_rew += self._env_config["connect_rew"]
                     self._num_connect_successes += 1
 
-            elif self._phase == 'align_eucl_1':
+            elif self._phase == "align_eucl_1":
                 # First phase: bring eucl distance close
                 # Second phase: bring angle distance close together
                 # give bonus for being done with align_eucl
-                aligned_rew = self._env_config['aligned_rew']/10
+                aligned_rew = self._env_config["aligned_rew"] / 10
 
                 # give rew for making angular dist between sites
                 site_up_diff = rot_dist_up - self._prev_rot_dist_up
-                site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
-                site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
-                site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+                site_up_diff += (
+                    rot_dist_project1_2 - self._prev_rot_dist_project1_2
+                ) * 0.5
+                site_up_diff += (
+                    rot_dist_project2_1 - self._prev_rot_dist_project2_1
+                ) * 0.5
+                site_up_rew = self._env_config["site_up_rew"] * site_up_diff
 
                 # give rew for minimizing eucl distance between sites
                 site_dist_diff = self._prev_pos_dist - pos_dist
-                site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
+                site_dist_rew = self._env_config["site_dist_rew"] * site_dist_diff
 
-            elif self._phase == 'align_eucl_2':
+            elif self._phase == "align_eucl_2":
                 # Third phase: bring sites close together
                 # give reward for getting alignment right
-                aligned_rew = self._env_config['aligned_rew']/5
+                aligned_rew = self._env_config["aligned_rew"] / 5
 
                 # give rew for making angular dist between sites
                 site_up_diff = rot_dist_up - self._prev_rot_dist_up
-                site_up_diff += (rot_dist_project1_2 - self._prev_rot_dist_project1_2) * 0.5
-                site_up_diff += (rot_dist_project2_1 - self._prev_rot_dist_project2_1) * 0.5
-                site_up_rew = self._env_config['site_up_rew'] * site_up_diff
+                site_up_diff += (
+                    rot_dist_project1_2 - self._prev_rot_dist_project1_2
+                ) * 0.5
+                site_up_diff += (
+                    rot_dist_project2_1 - self._prev_rot_dist_project2_1
+                ) * 0.5
+                site_up_rew = self._env_config["site_up_rew"] * site_up_diff
 
                 # give reward for minimizing eucl distance between sites
                 site_dist_diff = self._prev_site_dist - site_dist
-                site_dist_rew = self._env_config['site_dist_rew'] * site_dist_diff
+                site_dist_rew = self._env_config["site_dist_rew"] * site_dist_diff
 
             self._prev_site_dist = site_dist
             self._prev_pos_dist = pos_dist
@@ -285,36 +311,46 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
             self._prev_rot_dist_project1_2 = rot_dist_project1_2
             self._prev_rot_dist_project2_1 = rot_dist_project2_1
 
-        elif (not holding_top and self._top_picked) or (not holding_leg and self._leg_picked):
+        elif (not holding_top and self._top_picked) or (
+            not holding_leg and self._leg_picked
+        ):
             # give penalty for dropping top or leg
-            pick_rew = -self._env_config['pick_rew']
+            pick_rew = -self._env_config["pick_rew"]
             done = True
 
-        info['phase'] = self._phase
-        info['leg_picked'] = self._leg_picked
-        info['top_picked'] = self._top_picked
-        info['pick_rew'] = pick_rew
-        info['site_dist_rew'] = site_dist_rew
-        info['site_up_rew'] = site_up_rew
-        info['aligned_rew'] = aligned_rew
-        info['connect_rew'] = connect_rew
-        info['success_rew'] = success_rew
-        info['ctrl_penalty'] = ctrl_penalty
-        info['c0_ctrl_penalty'] = c0_ctrl_penalty
-        info['c1_ctrl_penalty'] = c1_ctrl_penalty
-        info['rot_dist_up'] = rot_dist_up
-        info['rot_dist_project1_2'] = rot_dist_project1_2
-        info['rot_dist_project2_1'] = rot_dist_project2_1
-        info['site_dist'] = site_dist
-        info['pos_dist'] = pos_dist
+        info["phase"] = self._phase
+        info["leg_picked"] = self._leg_picked
+        info["top_picked"] = self._top_picked
+        info["pick_rew"] = pick_rew
+        info["site_dist_rew"] = site_dist_rew
+        info["site_up_rew"] = site_up_rew
+        info["aligned_rew"] = aligned_rew
+        info["connect_rew"] = connect_rew
+        info["success_rew"] = success_rew
+        info["ctrl_penalty"] = ctrl_penalty
+        info["c0_ctrl_penalty"] = c0_ctrl_penalty
+        info["c1_ctrl_penalty"] = c1_ctrl_penalty
+        info["rot_dist_up"] = rot_dist_up
+        info["rot_dist_project1_2"] = rot_dist_project1_2
+        info["rot_dist_project2_1"] = rot_dist_project2_1
+        info["site_dist"] = site_dist
+        info["pos_dist"] = pos_dist
 
-        rew = pick_rew + site_dist_rew + site_up_rew + connect_rew + \
-                + aligned_rew + success_rew + ctrl_penalty
+        rew = (
+            pick_rew
+            + site_dist_rew
+            + site_up_rew
+            + connect_rew
+            + +aligned_rew
+            + success_rew
+            + ctrl_penalty
+        )
         return rew, done, info
 
 
 def main():
     from config import create_parser
+
     parser = create_parser(env="FurnitureCursorToyTableEnv")
     config, unparsed = parser.parse_known_args()
 

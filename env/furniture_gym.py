@@ -19,7 +19,7 @@ class FurnitureGym(gym.Env):
         """
         config = get_default_config()
 
-        name = kwarg['name']
+        name = kwarg["name"]
         for key, value in kwarg.items():
             if hasattr(config, key):
                 setattr(config, key, value)
@@ -55,7 +55,7 @@ class FurnitureGym(gym.Env):
         obs, reward, done, info = self.env.step(action)
         return self._flatten_obs(obs), reward, done, info
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         """
         Renders the environment. If mode is rgb_array, we render the pixels.
         The pixels can be rgb, depth map, segmentation map
@@ -83,7 +83,7 @@ class FurnitureGym(gym.Env):
 
 def main():
     # use gym api to make a new environment.
-    env = gym.make('furniture-baxter-v0')
+    env = gym.make("furniture-baxter-v0")
     # reset environment.
     env.reset()
     done = False
@@ -92,6 +92,5 @@ def main():
         ob, reward, done, info = env.step(env.action_space.sample())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-

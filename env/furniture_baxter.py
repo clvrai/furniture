@@ -36,15 +36,11 @@ class FurnitureBaxterEnv(FurnitureEnv):
         if self._robot_ob:
             if self._control_type == "impedance":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=(64,),
+                    low=-np.inf, high=np.inf, shape=(64,),
                 )
             elif self._control_type == "ik":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=((3 + 4 + 3 + 3 + 1) * 2,),
+                    low=-np.inf, high=np.inf, shape=((3 + 4 + 3 + 3 + 1) * 2,),
                 )
 
         return ob_space

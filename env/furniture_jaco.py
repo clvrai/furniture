@@ -24,9 +24,9 @@ class FurnitureJacoEnv(FurnitureEnv):
 
         super().__init__(config)
 
-        self._env_config.update({
-            "success_reward": 100,
-        })
+        self._env_config.update(
+            {"success_reward": 100,}
+        )
 
     @property
     def observation_space(self):
@@ -38,9 +38,7 @@ class FurnitureJacoEnv(FurnitureEnv):
         if self._robot_ob:
             if self._control_type == "impedance":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=(32,),  # FIX
+                    low=-np.inf, high=np.inf, shape=(32,),  # FIX
                 )
             elif self._control_type == "ik":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
@@ -56,11 +54,11 @@ class FurnitureJacoEnv(FurnitureEnv):
         """
         Returns the DoF of the robot.
         """
-        dof = 0 # 'No' Agent
-        if self._control_type == 'impedance':
+        dof = 0  # 'No' Agent
+        if self._control_type == "impedance":
             dof = 6 + 3
-        elif self._control_type == 'ik':
-            dof = 3 + 3 + 1 + 1 # move, rotate, select, connect
+        elif self._control_type == "ik":
+            dof = 3 + 3 + 1 + 1  # move, rotate, select, connect
         return dof
 
     def _step(self, a):
@@ -74,13 +72,13 @@ class FurnitureJacoEnv(FurnitureEnv):
         reward, done, info = self._compute_reward()
 
         ctrl_reward = self._ctrl_reward(a)
-        info['reward_ctrl'] = ctrl_reward
+        info["reward_ctrl"] = ctrl_reward
 
         connect_reward = reward - prev_reward
-        info['reward_connect'] = connect_reward
+        info["reward_connect"] = connect_reward
 
         if self._success:
-            logger.info('Success!')
+            logger.info("Success!")
 
         reward = ctrl_reward + connect_reward
 
@@ -111,7 +109,7 @@ class FurnitureJacoEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            if self._control_type == 'impedance':
+            if self._control_type == "impedance":
                 robot_states["joint_pos"] = np.array(
                     [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes]
                 )
@@ -125,19 +123,27 @@ class FurnitureJacoEnv(FurnitureEnv):
                     [self.sim.data.qvel[x] for x in self._ref_gripper_joint_vel_indexes]
                 )
 
-            gripper_qpos = [self.sim.data.qpos[x] for x in self._ref_gripper_joint_pos_indexes]
+            gripper_qpos = [
+                self.sim.data.qpos[x] for x in self._ref_gripper_joint_pos_indexes
+            ]
             robot_states["gripper_dis"] = np.array(
                 [abs(gripper_qpos[0] - gripper_qpos[1])]
-            ) # FIX
-            robot_states["eef_pos"] = np.array(self.sim.data.site_xpos[self.eef_site_id])
-            robot_states["eef_velp"] = np.array(self.sim.data.site_xvelp[self.eef_site_id]) # 3-dim
-            robot_states["eef_velr"] = self.sim.data.site_xvelr[self.eef_site_id] # 3-dim
+            )  # FIX
+            robot_states["eef_pos"] = np.array(
+                self.sim.data.site_xpos[self.eef_site_id]
+            )
+            robot_states["eef_velp"] = np.array(
+                self.sim.data.site_xvelp[self.eef_site_id]
+            )  # 3-dim
+            robot_states["eef_velr"] = self.sim.data.site_xvelr[
+                self.eef_site_id
+            ]  # 3-dim
 
             robot_states["eef_quat"] = T.convert_quat(
                 self.sim.data.get_body_xquat("right_hand"), to="xyzw"
             )
 
-            state['robot_ob'] = np.concatenate(
+            state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
 
@@ -214,8 +220,8 @@ def main():
     furniture_config.add_argument(parser)
 
     # change default config for Jaco
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
+    parser.add_argument("--seed", type=int, default=123)
+    parser.add_argument("--debug", type=str2bool, default=False)
 
     parser.set_defaults(render=True)
 
