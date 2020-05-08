@@ -8,7 +8,7 @@ from pyquaternion import Quaternion
 
 
 _PI = np.pi
-_EPS = np.finfo(float).eps * 4.
+_EPS = np.finfo(float).eps * 4.0
 
 
 # code from stanford robosuite
@@ -200,7 +200,7 @@ def pose2mat(pose):
     homo_pose_mat = np.zeros((4, 4), dtype=np.float32)
     homo_pose_mat[:3, :3] = quat2mat(pose[1])
     homo_pose_mat[:3, 3] = np.array(pose[0], dtype=np.float32)
-    homo_pose_mat[3, 3] = 1.
+    homo_pose_mat[3, 3] = 1.0
     return homo_pose_mat
 
 
@@ -466,7 +466,7 @@ def lookat_to_quat(forward, up):
         quaternion[2] = (m01 - m10) * num
         return quaternion
 
-    if ((m00 >= m11) and (m00 >= m22)):
+    if (m00 >= m11) and (m00 >= m22):
         num7 = np.sqrt(((1 + m00) - m11) - m22)
         num4 = 0.5 / num7
         quaternion[0] = 0.5 * num7
@@ -478,7 +478,7 @@ def lookat_to_quat(forward, up):
     if m11 > m22:
         num6 = np.sqrt(((1 + m11) - m00) - m22)
         num3 = 0.5 / num6
-        quaternion[0] = (m10+ m01) * num3
+        quaternion[0] = (m10 + m01) * num3
         quaternion[1] = 0.5 * num6
         quaternion[2] = (m21 + m12) * num3
         quaternion[3] = (m20 - m02) * num3
@@ -501,9 +501,9 @@ def forward_vector_from_quat(quat):
     qy = quat[2]
     qz = quat[3]
 
-    x = 2 * (qx * qy + qw * qz)#
+    x = 2 * (qx * qy + qw * qz)
     y = 1 - 2 * (qx * qx + qz * qz)
-    z = 2 * (qy * qz - qw * qx)#
+    z = 2 * (qy * qz - qw * qx)
     return np.array([x, y, z])
 
 
@@ -654,5 +654,5 @@ def rotate_vector_cos_dist(v, rotation_axis, cos, direction):
     assert direction in [-1, 1]
     v = np.asarray(v)
     k = unit_vector(rotation_axis)
-    new_v = cos * v + direction * np.sqrt(1-cos**2) * np.cross(k, v)
+    new_v = cos * v + direction * np.sqrt(1 - cos ** 2) * np.cross(k, v)
     return new_v

@@ -17,8 +17,11 @@ def get_env(name):
     Gets the environment class given @name.
     """
     if name not in REGISTERED_ENVS:
-        raise Exception("Unknown environment name: {}\nAvailable environments: {}".format(
-            name, ", ".join(REGISTERED_ENVS)))
+        raise Exception(
+            "Unknown environment name: {}\nAvailable environments: {}".format(
+                name, ", ".join(REGISTERED_ENVS)
+            )
+        )
     return REGISTERED_ENVS[name]
 
 
@@ -36,8 +39,8 @@ def make_env(name, config=None):
 
         parser = argparse.ArgumentParser()
         furniture_config.add_argument(parser)
-        parser.add_argument('--seed', type=int, default=123)
-        parser.add_argument('--debug', type=str2bool, default=False)
+        parser.add_argument("--seed", type=int, default=123)
+        parser.add_argument("--debug", type=str2bool, default=False)
 
         config, unparsed = parser.parse_known_args()
 
@@ -70,8 +73,8 @@ def make_vec_env(env_id, num_env, config=None, env_kwargs=None):
 
     def make_thunk(rank):
         new_env_kwargs = env_kwargs.copy()
-        new_env_kwargs['port'] = env_kwargs['port'] + rank
-        new_env_kwargs['seed'] = env_kwargs['seed'] + rank
+        new_env_kwargs["port"] = env_kwargs["port"] + rank
+        new_env_kwargs["seed"] = env_kwargs["seed"] + rank
         return lambda: get_gym_env(env_id, new_env_kwargs)
 
     return SubprocVecEnv([make_thunk(i) for i in range(num_env)])
@@ -89,5 +92,3 @@ class EnvMeta(type):
         if cls.__name__ not in _unregistered_envs:
             register_env(cls)
         return cls
-
-

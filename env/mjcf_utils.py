@@ -149,4 +149,3 @@ def new_inertial(name=None, pos=(0, 0, 0), mass=None, **kwargs):
     kwargs["pos"] = array_to_string(pos)
     element = ET.Element("inertial", attrib=kwargs)
     return element
-

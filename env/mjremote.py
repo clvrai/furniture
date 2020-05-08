@@ -1,4 +1,4 @@
-'''
+"""
 Original work Copyright 2019 Roboti LLC
 Modified work Copyright 2019 Panasonic Beta, a division of Panasonic Corporation of North America
 
@@ -28,7 +28,7 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
-'''
+"""
 
 import socket
 import struct
@@ -43,102 +43,98 @@ class mjremote:
     height = 0
     _s = None
 
-
     def _recvall(self, buffer):
         view = memoryview(buffer)
         while len(view):
             nrecv = self._s.recv_into(view)
             view = view[nrecv:]
 
-
     # result = (nqpos, nmocap, ncamra, width, height)
-    def connect(self, address = '127.0.0.1', port = 1050):
+    def connect(self, address="127.0.0.1", port=1050):
         self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._s.setsockopt(socket.SOL_TCP,  socket.TCP_NODELAY, 1)
+        self._s.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
         self._s.connect((address, port))
         data = bytearray(20)
         self._recvall(data)
-        result = struct.unpack('iiiii', data)
+        result = struct.unpack("iiiii", data)
         self.nqpos, self.nmocap, self.ncamera, self.width, self.height = result
         return result
-
 
     def close(self):
         if self._s:
             self._s.close()
             self._s = None
 
-
     # result = (key, active, select, refpos[3], refquat[4])
     def getinput(self):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 1))
         data = bytearray(40)
         self._recvall(data)
-        result = struct.unpack('iiifffffff', data)
+        result = struct.unpack("iiifffffff", data)
         return result
 
     def getimages(self, buffer, indices):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 19))
         self._s.sendall(struct.pack("i", len(indices)))
-        self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
+        self._s.sendall(struct.pack(f"{len(indices)}i", *indices))
         self._recvall(buffer)
 
     def getsegmentationimages(self, buffer, indices):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 20))
         self._s.sendall(struct.pack("i", len(indices)))
-        self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
+        self._s.sendall(struct.pack(f"{len(indices)}i", *indices))
         self._recvall(buffer)
 
     def getdepthimages(self, buffer, indices):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 21))
         self._s.sendall(struct.pack("i", len(indices)))
-        self._s.sendall(struct.pack(f'{len(indices)}i', *indices))
+        self._s.sendall(struct.pack(f"{len(indices)}i", *indices))
         self._recvall(buffer)
 
     def savesnapshot(self):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.send(struct.pack("i", 3))
 
     def savevideoframe(self):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.send(struct.pack("i", 4))
 
     def setcamera(self, index):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 5))
         self._s.sendall(struct.pack("i", index))
-    
+
     def setcamerapose(self, cam_id, pose):
         if not self._s:
-            return 'Not connected'
-        pose = pose.astype('float32')
+            return "Not connected"
+        pose = pose.astype("float32")
         self._s.sendall(struct.pack("i", 18))
         self._s.sendall(struct.pack("i", cam_id))
         self._s.sendall(pose.tobytes())
 
     def setqpos(self, qpos):
         if not self._s:
-            return 'Not connected'
-        if len(qpos)!=self.nqpos:
-            return 'qpos has wrong size'
-        fqpos = qpos.astype('float32')
+            return "Not connected"
+        if len(qpos) != self.nqpos:
+            return "qpos has wrong size"
+        fqpos = qpos.astype("float32")
         self._s.sendall(struct.pack("i", 6))
         self._s.sendall(fqpos.tobytes())
 
     def changeworld(self, string):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 9))
         self._s.sendall(struct.pack("i", len(string)))
         self._s.send(string.encode())
@@ -146,35 +142,34 @@ class mjremote:
         self._s.sendall(struct.pack("i", 10))
         data = bytearray(20)
         self._recvall(data)
-        result = struct.unpack('iiiii', data)
+        result = struct.unpack("iiiii", data)
         self.nqpos, self.nmocap, self.ncamera, self.width, self.height = result
         return result
 
     # pos = numpy.ndarray(3*nmocap), quat = numpy.ndarray(4*nmocap)
     def setmocap(self, pos, quat):
         if not self._s:
-            return 'Not connected'
-        if len(pos)!=3*self.nmocap:
-            return 'pos has wrong size'
-        if len(quat)!=4*self.nmocap:
-            return 'quat has wrong size'
-        fpos = pos.astype('float32')
-        fquat = quat.astype('float32')
+            return "Not connected"
+        if len(pos) != 3 * self.nmocap:
+            return "pos has wrong size"
+        if len(quat) != 4 * self.nmocap:
+            return "quat has wrong size"
+        fpos = pos.astype("float32")
+        fquat = quat.astype("float32")
         self._s.sendall(struct.pack("i", 7))
         self._s.sendall(fpos.tobytes())
         self._s.sendall(fquat.tobytes())
 
     def randomize_appearance(self):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 11))
         return
-
 
     # For Furniture Assembly Environment
     def setresolution(self, width, height):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 13))
         self._s.sendall(struct.pack("i", width))
         self._s.sendall(struct.pack("i", height))
@@ -183,18 +178,18 @@ class mjremote:
 
     def getinput(self):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 15))
         data = bytearray(6)
         self._recvall(data)
-        result = struct.unpack('6s', data)
-        result = result[0].decode('utf-8').strip()
+        result = struct.unpack("6s", data)
+        result = result[0].decode("utf-8").strip()
         return result
 
     def setgeompos(self, name, pos):
         if not self._s:
-            return 'Not connected'
-        fpos = pos.astype('float32')
+            return "Not connected"
+        fpos = pos.astype("float32")
         self._s.sendall(struct.pack("i", 14))
         self._s.sendall(fpos.tobytes())
         self._s.sendall(struct.pack("i", len(name)))
@@ -202,7 +197,7 @@ class mjremote:
 
     def setbackground(self, name):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 16))
         if name is None:
             name = ""
@@ -212,7 +207,6 @@ class mjremote:
 
     def setquality(self, quality):
         if not self._s:
-            return 'Not connected'
+            return "Not connected"
         self._s.sendall(struct.pack("i", 17))
         self._s.sendall(struct.pack("i", quality))
-
