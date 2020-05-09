@@ -19,6 +19,7 @@ class ILDataset(Dataset):
         self._acs = []
         self._rews = []
 
+        assert path is not None, "--demo_path should be set (e.g. demos/Sawyer_toy_table)"
         demo_files = self._get_demo_files(path)
 
         # now load the picked numpy arrays
@@ -42,9 +43,9 @@ class ILDataset(Dataset):
 
                 assert len(demo["obs"]) == len(demo["actions"]) + 1
 
-    def _get_demo_files(self, tgtfilestr):
+    def _get_demo_files(self, demo_file_path):
         demos = []
-        for f in glob.glob(tgtfilestr + "_*"):
+        for f in glob.glob(demo_file_path + "_*"):
             if os.path.isfile(f):
                 demos.append(f)
         return demos
