@@ -103,9 +103,7 @@ class SubNormalizer:
 class Normalizer:
     def __init__(self, shape, eps=1e-2, default_clip_range=np.inf, clip_obs=np.inf):
         if isinstance(shape, gym.spaces.Dict):
-            self._shape = {
-                k: list(v.shape) for k, v in shape.spaces.items()
-            }
+            self._shape = {k: list(v.shape) for k, v in shape.spaces.items()}
         elif isinstance(shape, dict):
             self._shape = shape
         else:

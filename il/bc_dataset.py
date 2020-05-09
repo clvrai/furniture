@@ -19,7 +19,9 @@ class ILDataset(Dataset):
         self._acs = []
         self._rews = []
 
-        assert path is not None, "--demo_path should be set (e.g. demos/Sawyer_toy_table)"
+        assert (
+            path is not None
+        ), "--demo_path should be set (e.g. demos/Sawyer_toy_table)"
         demo_files = self._get_demo_files(path)
 
         # now load the picked numpy arrays
