@@ -7,6 +7,7 @@ from env.furniture_baxter import FurnitureBaxterEnv
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.furniture_cursor import FurnitureCursorEnv
 from env.furniture_baxter_block import FurnitureBaxterBlockEnv
+from env.furniture_baxter_toytable import FurnitureBaxterToyTableEnv
 from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
 from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
 from env.furniture_sawyer_toytable_dis import FurnitureSawyerToyTableDisEnv

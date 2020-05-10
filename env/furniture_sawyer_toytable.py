@@ -63,9 +63,9 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        for i, body in enumerate(self._object_names):
-            pose = self._get_qpos(body)
-            logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        # for i, body in enumerate(self._object_names):
+        #     pose = self._get_qpos(body)
+        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         info["ac"] = a
 
