@@ -16,6 +16,7 @@
 
 ## Environments Configuration
 
+* [Observations](configurations.md#observations)
 * [Robots](configurations.md#robots)
 * [Furniture Models](configurations.md#furniture-models)
 * [Background Scenes](configurations.md#background-scenes)
@@ -35,3 +36,4 @@
 
 ## Others
 * [Troubleshooting](more_info.md#troubleshooting)
+* [HTC Vive Controller](vr_control.md)

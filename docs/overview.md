@@ -71,7 +71,7 @@ Here are some general command line configuration options.
 '--max_episode_steps': int, maximum length (# of steps) of episode
 '--screen_width': int, width of visual observation
 '--screen_height': int, height of visual observation
-'--camera_id': int, MuJoCo camera ID
+'--camera_ids': list[int], MuJoCo camera ID
 '--control_freq': int, frequency of physics simulation
 '--move_speed': float, step size of movements
 '--rotate_speed': float, step size of rotation
@@ -95,12 +95,6 @@ To configure the observations, use the following flags.
 '--depth_ob': bool, whether to include depth map in ob
 '--segmentation_ob': bool, whether to include object segmentation in ob
 ```
-The robot ob is a dictionary of positions, angles, and velocities of the agent. See the `get_obs` function
-of each agent in `furniture_*.py` for the specifics.
-The object ob is a dictionary that holds furniture parts and their corresponding pose (position and quaternion).
-The subtask ob is a numpy array of two integers which represent ids (1 ~ # parts) of two parts can be attached. If the furniture is complete, it is set to (0, 0).
-The visual ob is the camera image. It is RGB by default, and can be configured in depth and segmentation modes.
-
 ## RL Training
 
 Train block picking up with the provided a SAC implementation. It requires 300k steps to pick up a block.

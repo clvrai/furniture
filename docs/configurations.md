@@ -1,6 +1,25 @@
 # Configuration
 
 We offer many configuration options on both the MuJoCo simulation and Unity rendering. The simulation configurations will be exposed through command line arguments.
+## Observations
+The following list describes the possible keys in the observation dictionary. Some may or may not be present depending on the observation flags set.
+
+* The robot ob is a dictionary of positions, angles, and velocities of the agent. See the `get_obs` function
+of each agent in `furniture_*.py` for the specifics. 
+* The object ob is a dictionary that holds furniture parts and their corresponding pose (position and quaternion).
+* The subtask ob is a numpy array of two integers which represent ids (1 ~ # parts) of two parts can be attached. If the furniture is complete, it is set to (0, 0).
+* The visual ob is an (N x H x W x C) array of RGB camera images where N is the number of cameras.
+* The segmentation ob is an (N x H x W) array of segmentation maps where N is the number of cameras.
+* The depth ob is an (N x H x W) array of depth images where N is the number of cameras.
+
+### Multiple Cameras and Wrist Camera
+To add more cameras, you can add additional mujoco camera element to `env/models/assets/arenas/floor_arena.xml`. Use `--camera_ids` to specify which cameras you want to enable for rendering. For example, `--camera_ids 0,3` will render the 1st and 4th camera that exists in the XML.
+
+A wrist camera example can be found in the Sawyer xml `env/models/assets/robots/sawyer/robot.xml`. You can add similar cameras to the other robot's XML to enable wrist camera recording. Run `demo_vision.py` with the Sawyer robot to see an example.
+
+|<img src="img/observations/multicam.png" width="400">|
+| :----------:|
+|An example rendering of multiple cameras and their modalities, including a wrist camera| 
 
 ## Robots
 To switch between agent configuration, simply select the corresponding python script.
@@ -46,5 +65,3 @@ Use `--background` argument to choose a background scene.
 
 The next update will make lighting and material changes programmatic, so the user does not need to rebuild the binary for Unity changes.
 Note that objects in the Unity scene are not physically simulated. For example, the table is just an overlay of the invisible mujoco ground plane.
-
-
