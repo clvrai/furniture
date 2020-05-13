@@ -19,14 +19,10 @@ class PandaGripperBase(Gripper):
 
     @property
     def init_qpos(self):
-        # TODO - do these need to be modified?
-
-        #return []
-        return np.array([-0.020833, 0.020833])
+        return np.array([0.04, -0.04])
 
     @property
     def joints(self):
-        #return []
         return ["finger_joint1", "finger_joint2"]
 
     @property
@@ -41,36 +37,23 @@ class PandaGripperBase(Gripper):
     def contact_geoms(self):
         return [
             "hand_collision",
-            "finger1_visuala",
-            "finger1_visualb",
-            "finger1_visualc",
-            "finger2_visuala",
-            "finger2_visualb",
-            "finger2_visualc"
+            "finger1_collision",
+            "finger2_collision",
+            "finger1_tip_collision",
+            "finger2_tip_collision",
         ]
-        #return [
-        #    "hand_collision",
-        #    "finger1_collision",
-        #    "finger2_collision",
-        #]
 
     @property
     def left_finger_geoms(self):
         return [
-            "finger1_visuala",
-            "finger1_visualb",
-            "finger1_visualc"
+            "finger1_tip_collision",
         ]
-        # return ["finger1_collision"]
 
     @property
     def right_finger_geoms(self):
         return [
-            "finger2_visuala",
-            "finger2_visualb",
-            "finger2_visualc"
+            "finger2_tip_collision",
         ]
-        # return ["finger2_collision"]
 
 
 class PandaGripper(PandaGripperBase):
@@ -80,11 +63,10 @@ class PandaGripper(PandaGripperBase):
 
     def format_action(self, action):
         """
-        1 => open, -1 => closed
+        Args:
+            action: 1 => open, -1 => closed
         """
         assert len(action) == 1
-        # negate the gripper action
-        #return np.array([1 * action[0], -1 * action[0]])
         return np.array([-1 * action[0], 1 * action[0]])
 
     @property

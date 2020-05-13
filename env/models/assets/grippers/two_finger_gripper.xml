@@ -5,8 +5,8 @@
         <mesh name="half_round_tip" file="meshes/two_finger_gripper/half_round_tip.STL" />
     </asset>
     <actuator>
-        <position ctrllimited="true" ctrlrange="-0.0115 0.020833" joint="r_gripper_r_finger_joint" kp="10000" name="gripper_r_gripper_r_finger_joint" forcelimited="true" forcerange="-20 20"/>
-        <position ctrllimited="true" ctrlrange="-0.020833 0.0115" joint="r_gripper_l_finger_joint" kp="10000" name="gripper_r_gripper_l_finger_joint" forcelimited="true" forcerange="-20 20"/>
+        <position ctrllimited="true" ctrlrange="-0.020833 0.0115" joint="r_gripper_r_finger_joint" kp="10000" name="gripper_r_gripper_r_finger_joint" forcelimited="true" forcerange="-20 20"/>
+        <position ctrllimited="true" ctrlrange="-0.0115 0.020833" joint="r_gripper_l_finger_joint" kp="10000" name="gripper_r_gripper_l_finger_joint" forcelimited="true" forcerange="-20 20"/>
     </actuator>
 
     <worldbody>

@@ -20,8 +20,7 @@ class TwoFingerGripperBase(Gripper):
 
     @property
     def init_qpos(self):
-        #return np.array([0.020833, -0.020833])
-        return np.array([-0.020833, 0.020833])
+        return np.array([0.020833, -0.020833])
 
     @property
     def joints(self):
@@ -87,7 +86,6 @@ class LeftTwoFingerGripperBase(Gripper):
 
     def format_action(self, action):
         return action
-        # return np.array([-1 * action, 1 * action])
 
     @property
     def init_qpos(self):

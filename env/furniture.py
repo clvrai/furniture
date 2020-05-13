@@ -1483,7 +1483,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             )
             self.sim.data.qpos[
                 self._ref_gripper_joint_pos_indexes
-            ] = -self.gripper.init_qpos  # open
+            ] = self.gripper.init_qpos  # open
 
         elif self._agent_type == "Baxter":
             self.sim.data.qpos[self._ref_joint_pos_indexes] = (
@@ -1491,7 +1491,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             )
             self.sim.data.qpos[
                 self._ref_gripper_right_joint_pos_indexes
-            ] = -self.gripper_right.init_qpos
+            ] = self.gripper_right.init_qpos
             self.sim.data.qpos[
                 self._ref_gripper_left_joint_pos_indexes
             ] = self.gripper_left.init_qpos

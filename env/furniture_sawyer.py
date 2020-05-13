@@ -126,8 +126,8 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 self.sim.data.qpos[x] for x in self._ref_gripper_joint_pos_indexes
             ]
             robot_states["gripper_dis"] = np.array(
-                [abs(gripper_qpos[0] - gripper_qpos[1])]
-            )
+                [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
+            )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
             robot_states["eef_pos"] = np.array(
                 self.sim.data.site_xpos[self.eef_site_id]
             )

@@ -56,4 +56,3 @@ class JacoGripperBase(Gripper):
 
 class JacoGripper(JacoGripperBase):
     pass
-
