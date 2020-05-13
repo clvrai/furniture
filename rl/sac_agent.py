@@ -173,7 +173,7 @@ class SACAgent(BaseAgent):
         # update alpha
         actions_real, log_pi = self.act_log(o)
         alpha_loss = -(
-            self._log_alpha * (log_pi + self._target_entropy).detach()
+            self._log_alpha.exp() * (log_pi + self._target_entropy).detach()
         ).mean()
         self._alpha_optim.zero_grad()
         alpha_loss.backward()
