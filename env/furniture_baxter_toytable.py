@@ -1,10 +1,10 @@
 """ Define Baxter environment class FurnitureBaxterToyTableEnv. """
+from typing import Tuple
+
 import numpy as np
 
-import env.transform_utils as T
 from env.furniture_baxter import FurnitureBaxterEnv
 from env.models import furniture_name2id
-from util import clamp
 from util.logger import logger
 
 
@@ -18,7 +18,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         Args:
             config: configurations for the environment.
         """
-        config.furniture_id = furniture_name2id["swivel_chair_0700"]
+        config.furniture_id = furniture_name2id["toy_table"]
 
         super().__init__(config)
         # default values for rew function
@@ -55,12 +55,19 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
+        # discretize gripper action
+        if self._discretize_grip:
+            a = a.copy()
+            a[-2] = -1 if a[-2] < 0 else 1
+            a[-3] = -1 if a[-3] < 0 else 1
+
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        # for i, body in enumerate(self._object_names):
-        #     pose = self._get_qpos(body)
-        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        if self._debug:
+            for i, body in enumerate(self._object_names):
+                pose = self._get_qpos(body)
+                logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         info["ac"] = a
 
@@ -82,31 +89,61 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         self._target_body1 = self.sim.model.body_id2name(id1)
         self._target_body2 = self.sim.model.body_id2name(id2)
 
-    # def _place_objects(self):
-    #     """
-    #     Returns fixed initial position and rotations of the toy table.
-    #     The first case has the table top on the left and legs on the right.
+        # reward variables
+        self._phase = "grip_leg"
+        self._leg_gripped = False
+        self._orig_left_hand_pos = self._get_pos("l_g_grip_site")
 
-    #     Returns:
-    #         xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-    #         xquat((float * 4) * n_obj): quaternion of the objects
-    #     """
-    #     # pos_init = [[ 0.21250838, -0.1163671 ,  0.02096991], [-0.30491682, -0.09045364,  0.03429339],[ 0.38134436, -0.11249256,  0.02096991],[ 0.12432612, -0.13662719,  0.02096991],[ 0.29537311, -0.12992911,  0.02096991]]
-    #     # quat_init = [[0.706332  , 0.70633192, 0.03309327, 0.03309326], [ 0.00000009, -0.99874362, -0.05011164,  0.00000002], [ 0.70658149,  0.70706735, -0.00748174,  0.0272467 ], [0.70610751, 0.7061078 , 0.03757641, 0.03757635], [0.70668613, 0.70668642, 0.02438253, 0.02438249]]
-    #     pos_init = [
-    #         [-0.34684698 + 0.05, -0.12887974, 0.03418991],
-    #         [0.03472849 - 0.0285, 0.11868485 - 0.05, 0.02096991],
-    #     ]
-    #     noise = self._init_random(3 * len(pos_init), "furniture")
-    #     for i in range(len(pos_init)):
-    #         for j in range(3):
-    #             pos_init[i][j] += noise[3 * i + j]
-    #     quat_init = [
-    #         [0.00000009, -0.99874362, -0.05011164, 0.00000002],
-    #         [-0.70610751, 0.7061078, -0.03757641, 0.03757635],
-    #     ]
+    def _place_objects(self):
+        """
+        Returns fixed initial position and rotations of the toy table.
+        The first case has the table top on the left and legs on the right.
 
-    #     return pos_init, quat_init
+        Returns:
+            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
+            xquat((float * 4) * n_obj): quaternion of the objects
+        """
+        pos_init = [
+            [-0.34684698 + 0.05, -0.12887974, 0.03418991],
+            [0.03472849 - 0.0285, 0.11868485 - 0.05, 0.02096991],
+        ]
+        noise = self._init_random(3 * len(pos_init), "furniture")
+        for i in range(len(pos_init)):
+            for j in range(3):
+                pos_init[i][j] += noise[3 * i + j]
+        quat_init = [
+            [0, 1, 0, 0],
+            [0.707, 0.707, 0, 0],
+        ]
+
+        return pos_init, quat_init
+
+    def _compute_reward(self, action) -> Tuple[float, bool, dict]:
+        """
+        phase 1: grip leg
+        phase 2: disconnect leg
+        phase 3: move leg up with left gripper
+        """
+        rew = leg_grip_rew = 0
+        info = {}
+        done = False
+        leg_name = "2_part2"
+
+        # phase 1: grip leg and disconnect leg
+        left_hand_grip_leg = self._gripper_contact(leg_name, ["left"])["left"]
+
+        if left_hand_grip_leg and not self._leg_gripped and self._phase == "grip_leg":
+            leg_grip_rew = 1
+            self._leg_gripped = True
+            self._phase = "disconnect_leg"
+
+        # phase 2: move leg upwards
+        leg_pos = self._get_pos(leg_name)
+
+        # phase 3: move leg to table
+
+        rew = leg_grip_rew
+        return rew, done, info
 
     def _try_connect(self, part1=None, part2=None):
         """
@@ -120,29 +157,38 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             p1 = self.sim.model.body_id2name(id1)
             p2 = self.sim.model.body_id2name(id2)
             if part1 in [p1, p2]:
-                # setup eq_data
-                # self.sim.model.eq_data[i] = T.rel_pose(
-                #     self._get_qpos(p1), self._get_qpos(p2)
-                # )
                 self.sim.model.eq_active[i] = 0
 
-    def _compute_reward(self, action):
-        return 0, False, {}
-
-    def _load_model(self):
+    def generate_demos(self, num_demos):
         """
-        Loads the Task, which is composed of arena, robot, objects, equality
+        Close left hand gripper and move gripper and table leg up
+        Set point slightly above hand as target, repeat
+        
+        @a is a 6 + 6 + 2 + 1 = 15 dim array; 0:6 are change in x,y,z and rx ry rz for
+        right hand, 6:12 are change for left hand, 12 is select for right hand, 13 is
+        select for left hand, 14 is connect action
         """
-        # task includes arena, robot, and objects of interest
-        from env.models.tasks import FloorTask
+        cfg = self._config
 
-        self.mujoco_model = FloorTask(
-            self.mujoco_arena,
-            self.mujoco_robot,
-            self.mujoco_objects,
-            self.mujoco_equality,
-            self._rng,
-        )
+        done = False
+        action = np.zeros((15,))
+        ob = self.reset(cfg.furniture_id, cfg.background)
+        disconnected = False
+        while not done:
+            # keep left and right hand closed, disconnect
+            action[-2] = action[-1] = 1
+            if not disconnected:
+                action[-1] = 1
+                disconnected = True
+            else:
+                # move left hand up
+                left_hand_pos = self._get_pos("l_g_grip_site")
+                above_left_hand_pos = left_hand_pos + [0, 0, 0.01]
+                d = above_left_hand_pos - left_hand_pos
+                action[6:9] = d
+            ob, reward, done, info = self.step(action)
+            self.render()
+
 
 def main():
     from config import create_parser
@@ -152,7 +198,8 @@ def main():
 
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterToyTableEnv(config)
-    env.run_manual(config)
+    # env.run_manual(config)
+    env.generate_demos(1)
 
     # import pickle
     # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:

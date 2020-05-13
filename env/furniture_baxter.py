@@ -44,6 +44,9 @@ class FurnitureBaxterEnv(FurnitureEnv):
     def dof(self):
         """
         Returns the DoF of the robot.
+        IK is a 6 + 6 + 2 + 1 = 15 dim array; 0:6 are change in x,y,z and rx ry rz for
+        left hand, 6:12 are change for right hand, 12 is select for left hand, 13 is
+        select for right hand, 14 is connect action
         """
         dof = 0  # 'No' Agent
         if self._control_type == "impedance":
@@ -261,6 +264,57 @@ class FurnitureBaxterEnv(FurnitureEnv):
         Computes reward of the current state.
         """
         return super()._compute_reward()
+
+    def _gripper_contact(self, obj, grippers=["left", "right"]):
+        """
+        Determines if obj is in contact with gripper
+        Grippers: [left, right]
+        Returns dictionary {"left": bool, "right": bool} denoting if obj
+        is in contact with gripper
+        """
+        touch_left_finger = [False, False]
+        touch_right_finger = [False, False]
+        for j in range(self.sim.data.ncon):
+            c = self.sim.data.contact[j]
+            body1 = self.sim.model.geom_bodyid[c.geom1]
+            body2 = self.sim.model.geom_bodyid[c.geom2]
+            body1_name = self.sim.model.body_id2name(body1)
+            body2_name = self.sim.model.body_id2name(body2)
+
+            indices = []
+            if "left" in grippers:
+                indices.append(0)
+            if "right" in grippers:
+                indices.append(1)
+
+            for i in indices:
+                if (
+                    c.geom1 in self.l_finger_geom_ids[i]
+                    and body2_name == obj
+                ):
+                    touch_left_finger[i] = True
+                if (
+                    body1_name == obj
+                    and c.geom2 in self.l_finger_geom_ids[i]
+                ):
+                    touch_left_finger[i] = True
+
+                if (
+                    c.geom1 in self.r_finger_geom_ids[i]
+                    and body2_name == obj
+                ):
+                    touch_right_finger[i] = True
+                if (
+                    body1_name == obj
+                    and c.geom2 in self.r_finger_geom_ids[i]
+                ):
+                    touch_right_finger[i] = True
+
+        touch = {
+            "left": touch_left_finger[0] and touch_right_finger[0],
+            "right": touch_left_finger[1] and touch_right_finger[1],
+        }
+        return touch
 
 
 def main():

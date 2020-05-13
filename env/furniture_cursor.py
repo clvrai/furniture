@@ -77,6 +77,10 @@ class FurnitureCursorEnv(FurnitureEnv):
             logger.info('Success!')
 
         reward = connect_reward
+        if self._debug:
+            for i, body in enumerate(self._object_names):
+                pose = self._get_qpos(body)
+                logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         return ob, reward, done, info
 
