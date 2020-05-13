@@ -3,6 +3,8 @@ from env.models import furniture_names, furniture_ids, background_names
 
 
 def add_argument(parser):
+    parser.set_defaults(max_episode_steps=200)
+
     parser.add_argument(
         "--site_dist_rew", type=float, default=10, help="rew for dist between sites"
     )
