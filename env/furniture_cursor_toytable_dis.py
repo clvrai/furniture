@@ -8,6 +8,7 @@ from tqdm import tqdm
 from env.furniture import FurnitureEnv
 from env.models import furniture_name2id
 from util.logger import logger
+from util.video_recorder import VideoRecorder
 
 
 class FurnitureCursorToyTableDisEnv(FurnitureEnv):
@@ -169,6 +170,12 @@ class FurnitureCursorToyTableDisEnv(FurnitureEnv):
         for i in tqdm(range(num_demos)):
             done = False
             ob = self.reset(cfg.furniture_id, cfg.background)
+            if cfg.render:
+                self.render()
+            vr = None
+            if cfg.record:
+                vr = VideoRecorder()
+                vr.capture_frame(self.render("rgb_array")[0])
             cursor_pos = self._get_cursor_pos("cursor1")
             above_pos = cursor_pos + [0, 0, 0.15]
             rotate_steps = 0
@@ -218,8 +225,14 @@ class FurnitureCursorToyTableDisEnv(FurnitureEnv):
                 ob, reward, done, info = self.step(action)
                 self.render()
                 step += 1
+                if cfg.record:
+                    vr.capture_frame(self.render("rgb_array")[0])
                 if self._phase == 5:
                     done = True
+                    self.save_demo()
+                    if cfg.record:
+                        vr.close(f"toytabledis_{i}.mp4")
+
             print(f"total steps: {step}")
 
 
@@ -231,7 +244,7 @@ def main():
 
     # create an environment and run manual control of Cursor environment
     env = FurnitureCursorToyTableDisEnv(config)
-    env.generate_demos(10)
+    env.generate_demos(3)
     # env.run_manual(config)
 
 
