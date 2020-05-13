@@ -107,7 +107,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._load_demo:
             with open(self._load_demo, "rb") as f:
                 demo = pickle.load(f)
-                self._init_qpos = demo["qpos"][-1]
+                self._init_qpos = demo["qpos"][0]
 
         self._record_demo = config.record_demo
         if self._record_demo:
