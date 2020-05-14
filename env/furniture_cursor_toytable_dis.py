@@ -223,7 +223,7 @@ class FurnitureCursorToyTableDisEnv(FurnitureEnv):
                         self._phase = 5
 
                 ob, reward, done, info = self.step(action)
-                #self.render()
+                # self.render()
                 step += 1
                 if cfg.record:
                     vr.capture_frame(self.render("rgb_array")[0])

@@ -196,7 +196,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         name, path = self.all_fps[seed]
         demo = self.load_demo(seed)
         # initialize the robot and block to initial demonstraiton state
-        # TODO: add randomness to this staritng position?
         self._init_qpos = {
             "qpos": demo["qpos"][0]["qpos"],
             "l_gripper": demo["qpos"][0]["l_gripper"],

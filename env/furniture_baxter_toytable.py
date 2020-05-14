@@ -138,7 +138,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             self._phase = "disconnect_leg"
 
         # phase 2: move leg upwards
-        leg_pos = self._get_pos(leg_name)
+        # leg_pos = self._get_pos(leg_name)
 
         # phase 3: move leg to table
 
@@ -163,7 +163,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         """
         Close left hand gripper and move gripper and table leg up
         Set point slightly above hand as target, repeat
-        
+
         @a is a 6 + 6 + 2 + 1 = 15 dim array; 0:6 are change in x,y,z and rx ry rz for
         right hand, 6:12 are change for left hand, 12 is select for right hand, 13 is
         select for left hand, 14 is connect action
