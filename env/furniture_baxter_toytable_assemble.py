@@ -210,39 +210,48 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         # TODO: figure out best qpos for robot
         # initialize the robot and block to initial demonstraiton state
         self._init_qpos = {
-            # "qpos": demo["qpos"][0]["qpos"],
+            "qpos": [
+                0.74958287,
+                -0.1565779,
+                -0.01960647,
+                0.78434619,
+                -0.15412162,
+                0.93463559,
+                -2.69661249,
+                -0.64094791,
+                -0.61681124,
+                0.20662154,
+                1.58147726,
+                -0.24183052,
+                0.66581204,
+                -2.83085012,
+            ],
             "4_part4": demo["qpos"][0]["4_part4"],
             "2_part2": demo["qpos"][0]["2_part2"],
+            "r_gripper": [-0.01962848, 0.01962187],
         }
+        # set toy table pose
         pos_init = []
         quat_init = []
         for body in self._object_names:
             qpos = self._init_qpos[body]
             pos_init.append(qpos[:3])
             quat_init.append(qpos[3:])
-        # if self._agent_type == "Baxter":
-        #     if (
-        #         "l_gripper" in self._init_qpos
-        #         and "r_gripper" in self._init_qpos
-        #         and "qpos" in self._init_qpos
-        #     ):
-        #         self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
-        #             "qpos"
-        #         ]
-        #         self.sim.data.qpos[
-        #             self._ref_gripper_right_joint_pos_indexes
-        #         ] = self._init_qpos["r_gripper"]
-        #         self.sim.data.qpos[
-        #             self._ref_gripper_left_joint_pos_indexes
-        #         ] = self._init_qpos["l_gripper"]
+        # set baxter pose
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos["qpos"]
+        self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = self._init_qpos[
+            "r_gripper"
+        ]
+        self.sim.data.qpos[
+            self._ref_gripper_left_joint_pos_indexes
+        ] = self.gripper_left.init_qpos
 
         # enable robot collision
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
             body_name = self.sim.model.body_names[body_id]
             geom_name = self.sim.model.geom_id2name(geom_id)
-            if (
-                body_name not in self._object_names
-                and self.mujoco_robot.is_robot_part(geom_name)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
             ):
                 contype, conaffinity = robot_col[geom_name]
                 self.sim.model.geom_contype[geom_id] = contype
@@ -255,8 +264,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
                 self._object_group[i] = 0
             else:
                 self._set_qpos(body, pos_init[i], quat_init[i])
-        # TODO: figure out init_qpos 
-        self._initialize_robot_pos()
+
         self.sim.forward()
 
         # store qpos of furniture and robot
@@ -432,8 +440,14 @@ def main():
     env.run_manual(config)
 
     # import pickle
-    # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
+
+    # with open("demos/Baxter_toy_table_0001.pkl", "rb") as f:
     #     demo = pickle.load(f)
+    #     qpos = demo["qpos"][::-1]
+    #     import ipdb
+
+    #     ipdb.set_trace()
+
     # env.reset()
     # print(len(demo['actions']))
 
