@@ -54,8 +54,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "furn_placement_rand": config.furn_placement_rand,
-            "agent_placement_rand": config.agent_placement_rand,
+            "furn_placement_randomness": config.furn_placement_randomness,
+            "agent_placement_randomness": config.agent_placement_randomness,
             "furn_size_randomness": config.furn_size_randomness,
             "unstable_penalty": 100,
             "boundary": 1.5,  # XYZ cube boundary
@@ -221,9 +221,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         Returns initial random distribution.
         """
         if name == "furniture":
-            r = self._env_config["furn_placement_rand"]
+            r = self._env_config["furn_placement_randomness"]
         elif name == "agent":
-            r = self._env_config["agent_placement_rand"]
+            r = self._env_config["agent_placement_randomness"]
         elif name == "resize":
             r = self._env_config["furn_size_randomness"]
         else:
@@ -1231,10 +1231,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             quat_init.append(list(T.euler_to_quat(rotate)))
         return pos_init, quat_init
 
-
     def set_env_qpos(self, given_qpos, set_furn=True):
         # set furniture part positions
-        if set_furn == True:    
+        if set_furn == True:
             for i, body in enumerate(self._object_names):
                 pos = given_qpos[body][:3]
                 quat = given_qpos[body][3:]
@@ -1247,21 +1246,17 @@ class FurnitureEnv(metaclass=EnvMeta):
                 and "r_gripper" not in given_qpos
                 and "qpos" in given_qpos
             ):
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = given_qpos[
-                    "qpos"
+                self.sim.data.qpos[self._ref_joint_pos_indexes] = given_qpos["qpos"]
+                self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = given_qpos[
+                    "l_gripper"
                 ]
-                self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes
-                ] = given_qpos["l_gripper"]
         elif self._agent_type == "Baxter":
             if (
                 "l_gripper" in given_qpos
                 and "r_gripper" in given_qpos
                 and "qpos" in given_qpos
             ):
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = given_qpos[
-                    "qpos"
-                ]
+                self.sim.data.qpos[self._ref_joint_pos_indexes] = given_qpos["qpos"]
                 self.sim.data.qpos[
                     self._ref_gripper_right_joint_pos_indexes
                 ] = given_qpos["r_gripper"]
@@ -1272,7 +1267,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             if "cursor0" in given_qpos and "cursor1" in given_qpos:
                 self._set_pos("cursor0", given_qpos["cursor0"])
                 self._set_pos("cursor1", given_qpos["cursor1"])
-
 
     def _reset(self, furniture_id=None, background=None):
         """
@@ -1372,7 +1366,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
-        if self._load_demo or self._eval_on_train_set: #todo
+        if self._load_demo or self._eval_on_train_set:  # todo
             pos_init = []
             quat_init = []
             for body in self._object_names:

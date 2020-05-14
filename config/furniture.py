@@ -123,15 +123,15 @@ def add_argument(parser):
 
     # observations
     parser.add_argument(
-        "--furn_placement_rand",
+        "--furn_placement_randomness",
         type=float,
-        default=0.0,
+        default=0.001,
         help="initial randomness of furniture part placement at episode start",
     )
     parser.add_argument(
-        "--agent_placement_rand",
+        "--agent_placement_randomness",
         type=float,
-        default=0.0,
+        default=0.001,
         help="initial randomness of agent placement at episode start",
     )
     parser.add_argument(
