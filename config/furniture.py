@@ -125,7 +125,7 @@ def add_argument(parser):
     parser.add_argument(
         "--furn_placement_randomness",
         type=float,
-        default=0.001,
+        default=0.02,
         help="initial randomness of furniture part placement at episode start",
     )
     parser.add_argument(
