@@ -68,8 +68,9 @@ class MLP(nn.Module):
 
     def forward(self, ob):
         out = ob
-        for fc in self.fcs:
+        for fc in self.fcs[:-1]:
             out = self.activation_fn(fc(out))
+        out = self.fcs[-1](out)
         return out
 
 

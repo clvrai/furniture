@@ -188,11 +188,7 @@ class RolloutRunner(object):
         while not done and ep_len < max_step:
             # sample action from policy
             ac, ac_before_activation = pi.act(ob, is_train=is_train)
-            
-            # print('ac', type(ac['default']))
-            if np.all(ac['default'], 0):
-                print("actions zero'd")
-            # print('actions', ac, ac_before_activation)
+
             rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
@@ -202,7 +198,6 @@ class RolloutRunner(object):
 
             # take a step
             ob, reward, done, info = env.step(ac)
-            # print('middle ob', ob)
 
             rollout.add({"done": done, "rew": reward_gail if gail else reward})
             ep_len += 1

@@ -37,7 +37,7 @@ class Actor(nn.Module):
         dists = OrderedDict()
         for k, v in self._ac_space.spaces.items():
             if isinstance(v, gym.spaces.Box):
-                if self._deterministic:
+                if not self._deterministic:
                     dists[k] = FixedNormal(means[k], stds[k])
                 else:
                     dists[k] = Identity(means[k])
@@ -132,7 +132,7 @@ class Actor(nn.Module):
         actions = OrderedDict()
         for k, v in self._ac_space.spaces.items():
             if isinstance(v, gym.spaces.Box):
-                if self._deterministic:
+                if not self._deterministic:
                     dists[k] = FixedNormal(means[k], stds[k])
                 else:
                     dists[k] = Identity(means[k])

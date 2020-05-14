@@ -76,7 +76,7 @@ class Trainer(object):
         logger.info("Action space: " + str(ac_space))
 
         # get actor and critic networks
-        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
+        actor, critic = get_actor_critic_by_name(config.encoder_type, config.algo)
 
         # build up networks
         self._agent = get_agent_by_name(config.algo)(
