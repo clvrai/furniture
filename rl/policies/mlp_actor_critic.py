@@ -1,11 +1,11 @@
 from collections import OrderedDict
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
-from rl.policies.utils import CNN, MLP
 from rl.policies.actor_critic import Actor, Critic
+from rl.policies.utils import MLP
 from util.pytorch import to_tensor
 
 

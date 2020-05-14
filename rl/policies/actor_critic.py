@@ -5,9 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from rl.policies.distributions import FixedCategorical, FixedNormal, \
-    Identity, MixedDistribution
-from rl.policies.utils import MLP
+from rl.policies.distributions import (FixedCategorical, FixedNormal, Identity,
+                                       MixedDistribution)
 from util.pytorch import to_tensor
 
 
@@ -189,4 +188,3 @@ class Critic(nn.Module):
     def __init__(self, config):
         super().__init__()
         self._config = config
-

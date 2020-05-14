@@ -199,7 +199,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
 
         self._do_simulation(None)
         # stablize furniture pieces
-        for _ in range(100):
+        for _ in range(1):
             for obj_name in self._object_names:
                 self._stop_object(obj_name, gravity=0)
             self.sim.forward()

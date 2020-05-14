@@ -8,12 +8,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from rl.dataset import ReplayBuffer, RandomSampler
 from rl.base_agent import BaseAgent
+from rl.dataset import RandomSampler, ReplayBuffer
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import optimizer_cuda, count_parameters, \
-    compute_gradient_norm, compute_weight_norm, sync_networks, sync_grads, to_tensor
+from util.pytorch import (compute_gradient_norm, compute_weight_norm,
+                          count_parameters, optimizer_cuda, sync_grads,
+                          sync_networks, to_tensor)
 
 
 class SACAgent(BaseAgent):
@@ -149,7 +150,7 @@ class SACAgent(BaseAgent):
 
         # update alpha
         actions_real, log_pi = self.act_log(o)
-        alpha_loss = -(self._log_alpha * (log_pi + self._target_entropy).detach()).mean()
+        alpha_loss = -(self._log_alpha.exp() * (log_pi + self._target_entropy).detach()).mean()
         self._alpha_optim.zero_grad()
         alpha_loss.backward()
         self._alpha_optim.step()

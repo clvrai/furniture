@@ -47,23 +47,28 @@ def fanin_init(tensor):
 
 
 class MLP(nn.Module):
-    def __init__(self, config, input_dim, output_dim, hid_dims=[]):
+    def __init__(
+        self, config, input_dim, output_dim, hid_dims=[], activation_fn=None,
+    ):
         super().__init__()
-        # activation_fn = getattr(F, config.activation)
-        activation_fn = nn.ReLU()
+        self.activation_fn = activation_fn
+        if activation_fn is None:
+            self.activation_fn = getattr(F, config.activation)
 
-        fc = []
+        self.fcs = nn.ModuleList()
         prev_dim = input_dim
         for d in hid_dims:
-            fc.append(nn.Linear(prev_dim, d))
-            fanin_init(fc[-1].weight)
-            fc[-1].bias.data.fill_(0.1)
-            fc.append(activation_fn)
+            self.fcs.append(nn.Linear(prev_dim, d))
+            fanin_init(self.fcs[-1].weight)
+            self.fcs[-1].bias.data.fill_(0.1)
             prev_dim = d
-        fc.append(nn.Linear(prev_dim, output_dim))
-        fc[-1].weight.data.uniform_(-1e-3, 1e-3)
-        fc[-1].bias.data.uniform_(-1e-3, 1e-3)
-        self.fc = nn.Sequential(*fc)
+        self.fcs.append(nn.Linear(prev_dim, output_dim))
+        self.fcs[-1].weight.data.uniform_(-1e-3, 1e-3)
+        self.fcs[-1].bias.data.uniform_(-1e-3, 1e-3)
 
     def forward(self, ob):
-        return self.fc(ob)
+        out = ob
+        for fc in self.fcs[:-1]:
+            out = self.activation_fn(fc(out))
+        out = self.fcs[-1](out)
+        return out

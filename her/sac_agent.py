@@ -1,26 +1,22 @@
 # SAC training code reference
 # https://github.com/vitchyr/rlkit/blob/master/rlkit/torch/sac/sac.py
 
+from time import time
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from her.her_policy import CNN, MLP
-from her.dataset import ReplayBuffer, HERSampler
+from her.dataset import HERSampler, ReplayBuffer
 from her.distributions import FixedNormal
+from her.her_policy import CNN, MLP
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (
-    optimizer_cuda,
-    count_parameters,
-    compute_gradient_norm,
-    compute_weight_norm,
-    sync_networks,
-    sync_grads,
-)
-from time import time
+from util.pytorch import (compute_gradient_norm, compute_weight_norm,
+                          count_parameters, optimizer_cuda, sync_grads,
+                          sync_networks)
 
 
 class Actor(nn.Module):
@@ -337,7 +333,7 @@ class SACAgent(object):
         # update alpha
         actions_real, log_pi = self._actor(o, g, return_log_prob=True)
         alpha_loss = -(
-            self._log_alpha * (log_pi + self._target_entropy).detach()
+            self._log_alpha.exp() * (log_pi + self._target_entropy).detach()
         ).mean()
         self._alpha_optim.zero_grad()
         alpha_loss.backward()
