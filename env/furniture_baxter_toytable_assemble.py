@@ -29,6 +29,8 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
                 "rot_dist_up": 0.95,
                 "rot_dist_forward": 0.9,
                 "project_dist": -1,
+                "goal_pos_threshold": config.goal_pos_threshold,
+                'goal_quat_threshold': config.goal_quat_threshold,
             }
         )
         self._gravity_compensation = 1
