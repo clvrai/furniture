@@ -34,3 +34,6 @@ def add_argument(parser):
         default=0.0,
         help="add U(-r,r) to x,y of block position",
     )
+    parser.add_argument(
+        "--num_demos", type=int, default=10000, help="number of demos"
+    )
