@@ -176,7 +176,7 @@ def create_parser(env=None):
     )
     parser.add_argument("--demo_path", type=str, default=None, help="path to demos")
     parser.add_argument("--gail_entropy_loss_coeff", type=float, default=1e-3)
-
+    parser.add_argument("--eval_on_train_set", type=str2bool, default=False, help="set on to evaluate on initial positions from training set")
     return parser
 
 

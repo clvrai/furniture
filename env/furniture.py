@@ -103,6 +103,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._manual_resize = None
         self._action_on = False
         self._load_demo = config.load_demo
+        self._eval_on_train_set = False
         self._init_qpos = None
         if self._load_demo:
             with open(self._load_demo, "rb") as f:
@@ -1230,6 +1231,49 @@ class FurnitureEnv(metaclass=EnvMeta):
             quat_init.append(list(T.euler_to_quat(rotate)))
         return pos_init, quat_init
 
+
+    def set_env_qpos(self, given_qpos, set_furn=True):
+        # set furniture part positions
+        if set_furn == True:    
+            for i, body in enumerate(self._object_names):
+                pos = given_qpos[body][:3]
+                quat = given_qpos[body][3:]
+                self._set_qpos(body, pos, quat)
+                self._stop_object(body, gravity=0)
+        # set robot positions
+        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+            if (
+                "l_gripper" in given_qpos
+                and "r_gripper" not in given_qpos
+                and "qpos" in given_qpos
+            ):
+                self.sim.data.qpos[self._ref_joint_pos_indexes] = given_qpos[
+                    "qpos"
+                ]
+                self.sim.data.qpos[
+                    self._ref_gripper_joint_pos_indexes
+                ] = given_qpos["l_gripper"]
+        elif self._agent_type == "Baxter":
+            if (
+                "l_gripper" in given_qpos
+                and "r_gripper" in given_qpos
+                and "qpos" in given_qpos
+            ):
+                self.sim.data.qpos[self._ref_joint_pos_indexes] = given_qpos[
+                    "qpos"
+                ]
+                self.sim.data.qpos[
+                    self._ref_gripper_right_joint_pos_indexes
+                ] = given_qpos["r_gripper"]
+                self.sim.data.qpos[
+                    self._ref_gripper_left_joint_pos_indexes
+                ] = given_qpos["l_gripper"]
+        elif self._agent_type == "Cursor":
+            if "cursor0" in given_qpos and "cursor1" in given_qpos:
+                self._set_pos("cursor0", given_qpos["cursor0"])
+                self._set_pos("cursor1", given_qpos["cursor1"])
+
+
     def _reset(self, furniture_id=None, background=None):
         """
         Internal reset function that resets the furniture and agent
@@ -1328,44 +1372,14 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
-        if self._load_demo is not None:
+        if self._load_demo or self._eval_on_train_set: #todo
             pos_init = []
             quat_init = []
             for body in self._object_names:
                 qpos = self._init_qpos[body]
                 pos_init.append(qpos[:3])
                 quat_init.append(qpos[3:])
-            if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-                if (
-                    "l_gripper" in self._init_qpos
-                    and "r_gripper" not in self._init_qpos
-                    and "qpos" in self._init_qpos
-                ):
-                    self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
-                        "qpos"
-                    ]
-                    self.sim.data.qpos[
-                        self._ref_gripper_joint_pos_indexes
-                    ] = self._init_qpos["l_gripper"]
-            elif self._agent_type == "Baxter":
-                if (
-                    "l_gripper" in self._init_qpos
-                    and "r_gripper" in self._init_qpos
-                    and "qpos" in self._init_qpos
-                ):
-                    self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
-                        "qpos"
-                    ]
-                    self.sim.data.qpos[
-                        self._ref_gripper_right_joint_pos_indexes
-                    ] = self._init_qpos["r_gripper"]
-                    self.sim.data.qpos[
-                        self._ref_gripper_left_joint_pos_indexes
-                    ] = self._init_qpos["l_gripper"]
-            elif self._agent_type == "Cursor":
-                if "cursor0" in self._init_qpos and "cursor1" in self._init_qpos:
-                    self._set_pos("cursor0", self._init_qpos["cursor0"])
-                    self._set_pos("cursor1", self._init_qpos["cursor1"])
+            self.set_env_qpos(self._init_qpos)
             # enable robot collision
             for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
                 body_name = self.sim.model.body_names[body_id]
@@ -1394,7 +1408,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             else:
                 self._set_qpos(body, pos_init[i], quat_init[i])
 
-        if self._load_demo is not None:
+        if self._load_demo or self._eval_on_train_set:
             self.sim.forward()
         else:
             # stablize furniture pieces
@@ -1886,30 +1900,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             all_qpos = demo["qpos"]
         try:
             for qpos in all_qpos:
-                # set furniture part positions
-                for i, body in enumerate(self._object_names):
-                    pos = qpos[body][:3]
-                    quat = qpos[body][3:]
-                    self._set_qpos(body, pos, quat)
-                    self._stop_object(body, gravity=0)
-                # set robot positions
-                if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-                    self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos["qpos"]
-                    self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = qpos[
-                        "l_gripper"
-                    ]
-                elif self._agent_type == "Baxter":
-                    self.sim.data.qpos[self._ref_joint_pos_indexes] = qpos["qpos"]
-                    self.sim.data.qpos[
-                        self._ref_gripper_right_joint_pos_indexes
-                    ] = qpos["r_gripper"]
-                    self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = qpos[
-                        "l_gripper"
-                    ]
-                elif self._agent_type == "Cursor":
-                    self._set_pos("cursor0", qpos["cursor0"])
-                    self._set_pos("cursor1", qpos["cursor1"])
-
+                self.set_env_qpos(qpos)
                 self.sim.forward()
                 self._update_unity()
                 if self._config.record:
