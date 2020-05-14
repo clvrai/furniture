@@ -193,7 +193,7 @@ class FurnitureCursorToyTableDisEnv(FurnitureEnv):
                         action[9] = d * 12
                     else:
                         self._phase = 2
-                        midpoint = [0.4, 0.04358102, 0.32718201]
+                        midpoint = [0.4360664, 0.04358102, 0.32718201]
                         r = self._env_config["rand_block_range"]
                         midpoint[:2] += self._rng.uniform(-r, r, size=2)
                         midpoint[2] += self._rng.uniform(0, r, size=None)

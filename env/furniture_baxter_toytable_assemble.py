@@ -30,7 +30,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
                 "rot_dist_forward": 0.9,
                 "project_dist": -1,
                 "goal_pos_threshold": config.goal_pos_threshold,
-                'goal_quat_threshold': config.goal_quat_threshold,
+                "goal_quat_threshold": config.goal_quat_threshold,
             }
         )
         self._gravity_compensation = 1
@@ -212,20 +212,20 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         # initialize the robot and block to initial demonstraiton state
         self._init_qpos = {
             "qpos": [
-                0.74958287,
-                -0.1565779,
-                -0.01960647,
-                0.78434619,
-                -0.15412162,
-                0.93463559,
-                -2.69661249,
-                -0.64094791,
-                -0.61681124,
-                0.20662154,
-                1.58147726,
-                -0.24183052,
-                0.66581204,
-                -2.83085012,
+                0.7495928,
+                -0.15656232,
+                -0.01962964,
+                0.7843142,
+                -0.15409112,
+                0.93465176,
+                -2.69662616,
+                -0.61843795,
+                -0.40832846,
+                0.17617432,
+                1.45303626,
+                -0.26138213,
+                0.58345237,
+                -2.83053238,
             ],
             "4_part4": demo["qpos"][0]["4_part4"],
             "2_part2": demo["qpos"][0]["2_part2"],
@@ -425,7 +425,7 @@ def main():
 
     # import pickle
 
-    # with open("demos/Baxter_toy_table_0001.pkl", "rb") as f:
+    # with open("demos/Baxter_toy_table_0002.pkl", "rb") as f:
     #     demo = pickle.load(f)
     #     qpos = demo["qpos"][::-1]
     #     import ipdb
