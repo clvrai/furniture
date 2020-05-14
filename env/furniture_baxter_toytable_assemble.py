@@ -1,16 +1,17 @@
 import os
 import pickle
+from typing import Tuple
 
 import numpy as np
 
-from env.furniture_sawyer import FurnitureSawyerEnv
+from env.furniture_baxter import FurnitureBaxterEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from util.logger import logger
 
 
-class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
+class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
     """
-    Sawyer environment for placing a block onto table.
+    Baxter environment for following reversed disassembly of toytable.
     """
 
     def __init__(self, config):
@@ -18,20 +19,16 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         Args:
             config: configurations for the environment.
         """
-        config.furniture_id = furniture_name2id["placeblock"]
+        config.furniture_id = furniture_name2id["toy_table"]
 
         super().__init__(config)
         # default values for rew function
         self._env_config.update(
             {
-                "success_rew": config.success_rew,
-                "pick_rew": config.pick_rew,
-                "ctrl_penalty": config.ctrl_penalty,
-                "hold_duration": config.hold_duration,
-                "rand_start_range": config.rand_start_range,
-                "rand_block_range": config.rand_block_range,
-                "goal_pos_threshold": config.goal_pos_threshold,
-                'goal_quat_threshold': config.goal_quat_threshold,
+                "pos_dist": 0.04,
+                "rot_dist_up": 0.95,
+                "rot_dist_forward": 0.9,
+                "project_dist": -1,
             }
         )
         self._gravity_compensation = 1
@@ -40,6 +37,7 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         self._num_connect_steps = 0
         self._discretize_grip = config.discretize_grip
 
+        # SILO code
         self._goal_type = config.goal_type
         # load demonstrations
         self._data_dir = config.data_dir
@@ -56,12 +54,11 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
             for d in os.scandir(test_dir)
             if d.is_file() and d.path.endswith("pkl")
         ]
+
         # combine filepath arrays and record start index of test
         self.all_fps = train_fps + test_fps
         self.seed_train = np.arange(0, len(train_fps))
         self.seed_test = np.arange(len(train_fps), len(train_fps) + len(test_fps))
-
-        self._subtask_part1 = 0  # get block ob
 
     def _step(self, a):
         """
@@ -71,15 +68,17 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         if self._discretize_grip:
             a = a.copy()
             a[-2] = -1 if a[-2] < 0 else 1
+            a[-3] = -1 if a[-3] < 0 else 1
 
-        ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
+        ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        # for i, body in enumerate(self._object_names):
-        #     pose = self._get_qpos(body)
-        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        if self._debug:
+            for i, body in enumerate(self._object_names):
+                pose = self._get_qpos(body)
+                logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
-        # info["ac"] = a
+        info["ac"] = a
 
         return ob, reward, done, info
 
@@ -130,7 +129,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
             furniture_id: ID of the furniture model to reset.
             background: name of the background scene to reset.
         """
-        self._phase = 1
         if self._config.furniture_name == "Random":
             furniture_id = self._rng.randint(len(furniture_xmls))
         if self._furniture_id is None or (
@@ -180,8 +178,22 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         self._connected_body1_pos = None
         self._connected_body1_quat = None
         self._num_connected = 0
-        if self._agent_type == "Cursor":
-            self._cursor_selected = [None, None]
+
+        # initialize weld constraints
+        eq_obj1id = self.sim.model.eq_obj1id
+        eq_obj2id = self.sim.model.eq_obj2id
+        p = self._preassembled  # list of weld equality ids to activate
+        if len(p) > 0:
+            for eq_id in p:
+                self.sim.model.eq_active[eq_id] = 1
+                object_body_id1 = eq_obj1id[eq_id]
+                object_body_id2 = eq_obj2id[eq_id]
+                object_name1 = self._object_body_id2name[object_body_id1]
+                object_name2 = self._object_body_id2name[object_body_id2]
+                self._merge_groups(object_name1, object_name2)
+        elif eq_obj1id is not None:
+            for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
+                self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
         self._do_simulation(None)
         # stablize furniture pieces
@@ -195,39 +207,42 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         # load demonstration from filepath, initialize furniture and robot
         name, path = self.all_fps[seed]
         demo = self.load_demo(seed)
+        # TODO: figure out best qpos for robot
         # initialize the robot and block to initial demonstraiton state
-        # TODO: add randomness to this staritng position?
         self._init_qpos = {
-            "qpos": demo["qpos"][0]["qpos"],
-            "l_gripper": demo["qpos"][0]["l_gripper"],
-            "1_block_l": demo["qpos"][0]["1_block_l"],
+            # "qpos": demo["qpos"][0]["qpos"],
+            "4_part4": demo["qpos"][0]["4_part4"],
+            "2_part2": demo["qpos"][0]["2_part2"],
         }
         pos_init = []
         quat_init = []
-
         for body in self._object_names:
             qpos = self._init_qpos[body]
             pos_init.append(qpos[:3])
             quat_init.append(qpos[3:])
-        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-            if (
-                "l_gripper" in self._init_qpos
-                and "r_gripper" not in self._init_qpos
-                and "qpos" in self._init_qpos
-            ):
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
-                    "qpos"
-                ]
-                self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes
-                ] = self._init_qpos["l_gripper"]
+        # if self._agent_type == "Baxter":
+        #     if (
+        #         "l_gripper" in self._init_qpos
+        #         and "r_gripper" in self._init_qpos
+        #         and "qpos" in self._init_qpos
+        #     ):
+        #         self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
+        #             "qpos"
+        #         ]
+        #         self.sim.data.qpos[
+        #             self._ref_gripper_right_joint_pos_indexes
+        #         ] = self._init_qpos["r_gripper"]
+        #         self.sim.data.qpos[
+        #             self._ref_gripper_left_joint_pos_indexes
+        #         ] = self._init_qpos["l_gripper"]
 
         # enable robot collision
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
             body_name = self.sim.model.body_names[body_id]
             geom_name = self.sim.model.geom_id2name(geom_id)
-            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
-                geom_name
+            if (
+                body_name not in self._object_names
+                and self.mujoco_robot.is_robot_part(geom_name)
             ):
                 contype, conaffinity = robot_col[geom_name]
                 self.sim.model.geom_contype[geom_id] = contype
@@ -236,8 +251,12 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         # set furniture positions
         for i, body in enumerate(self._object_names):
             logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
-            self._set_qpos(body, pos_init[i], quat_init[i])
-
+            if self._config.assembled:
+                self._object_group[i] = 0
+            else:
+                self._set_qpos(body, pos_init[i], quat_init[i])
+        # TODO: figure out init_qpos 
+        self._initialize_robot_pos()
         self.sim.forward()
 
         # store qpos of furniture and robot
@@ -246,6 +265,9 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
         if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
             self._initial_right_hand_quat = self._right_hand_quat
+            if self._agent_type == "Baxter":
+                self._initial_left_hand_quat = self._left_hand_quat
+
             if self._control_type == "ik":
                 # set up ik controller
                 self._controller.sync_state()
@@ -263,12 +285,37 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 self._background = background
                 self._unity.set_background(background)
 
-        # take some random step away from starting state
-        action = np.zeros((8,))
-        r = self._env_config["rand_start_range"]
-        action[:3] = self._rng.uniform(-r, r, size=3)
-        action[6] = -1  # keep gripper open
-        self._step_continuous(action)
+        # set two bodies for picking or assemblying
+        id1 = self.sim.model.eq_obj1id[0]
+        id2 = self.sim.model.eq_obj2id[0]
+        self._target_body1 = self.sim.model.body_id2name(id1)
+        self._target_body2 = self.sim.model.body_id2name(id2)
+
+    def _place_objects(self):
+        """
+        Returns fixed initial position and rotations of the toy table.
+        The first case has the table top on the left and legs on the right.
+
+        Returns:
+            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
+            xquat((float * 4) * n_obj): quaternion of the objects
+        """
+        pos_init = [
+            [-0.1106984, -0.16384359, 0.05900397],
+            [0.09076961, 0.04358102, 0.17718201],
+        ]
+        quat_init = [
+            [-0.00003682, 0.70149268, 0.71195775, -0.03200301],
+            [-0.00003672, 0.70149266, 0.71195776, -0.03200302],
+        ]
+
+        return pos_init, quat_init
+
+    def _compute_reward(self, action) -> Tuple[float, bool, dict]:
+        rew = 0
+        done = False
+        info = {}
+        return rew, done, info
 
     def load_demo(self, seed):
         name, path = self.all_fps[seed]
@@ -282,15 +329,8 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
             so robot arm is right above block for easy pick
             """
             qpos = data["qpos"][::-1]
-            for i in range(len(qpos) - 1):
-                q = qpos[i]["1_block_l"]
-                q_next = qpos[i + 1]["1_block_l"]
-                if np.linalg.norm(q - q_next) > 1e-5:
-                    break
             # go back 1 frames so gripper isn't directly over block
-            i = max(0, i - 1)
-            obs = data["obs"][::-1][i:]
-            qpos = qpos[i:]
+            obs = data["obs"][::-1]
             # load frames
             demo["qpos"] = qpos
             goal = [self.get_goal(o) for o in obs]
@@ -305,15 +345,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         if self._goal_type == "state_obj":
             # get block qpose
             return ob["object_ob"]
-        elif self._goal_type == "state_obj_robot":
-            # get block qpose, eef qpose
-            rob = ob["robot_ob"]
-            # gripper_dis = rob[0]
-            eef_pos = rob[1:4]
-            # eef_velp = rob[4:7]
-            # eef_velr = rob[7:10]
-            eef_quat = rob[10:]
-            return np.concatenate([ob["object_ob"], eef_pos, eef_quat])
 
     def is_success(self, ob, goal):
         """
@@ -371,36 +402,6 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         success = self.is_success(achieved_goal, goal).astype(np.float32)
         return success - 1.0
 
-    def _ctrl_reward(self, action):
-        if self._config.control_type == "ik":
-            a = np.linalg.norm(action[:6])
-        elif self._config.control_type == "impedance":
-            a = np.linalg.norm(action[:7])
-
-        # grasp_offset, grasp_leg, grip_leg
-        ctrl_penalty = -self._env_config["ctrl_penalty"] * a
-        if self._phase in [
-            "move_leg_up",
-            "move_leg",
-            "connect",
-        ]:  # move slower when moving leg
-            ctrl_penalty *= 1
-
-        return ctrl_penalty
-
-    def _compute_reward(self, action):
-        rew = 0
-        obj_pos = self._get_pos("1_block_l")
-        obj_quat = self._get_quat("1_block_l")
-        init_quat = self._init_qpos["1_block_l"][3:]
-
-        quat_dist = np.linalg.norm(init_quat - obj_quat)
-        done = obj_pos[2] > 0.1 and quat_dist < 0.05
-        self._success = obj_pos[2] > 0.1 and quat_dist < 0.05
-
-        info = {}
-        return rew, done, info
-
     def _get_next_subtask(self):
         self._subtask_part1 = 0
         self._subtask_part2 = -1
@@ -411,26 +412,38 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
         Returns the observation space.
         """
         ob_space = super().observation_space
-        ob_space["object_ob"] = [7]
+        ob_space["object_ob"] = [14]
         return ob_space
 
     @property
     def goal_space(self):
         if self._goal_type == "state_obj":
-            return [7]  # block pose
-        elif self._goal_type == "state_obj_robot":
-            return [14]  # block pose, eef pose
+            return [14]  # block pose
 
 
 def main():
     from config import create_parser
 
-    parser = create_parser(env="FurnitureSawyerPickEnv")
+    parser = create_parser(env="FurnitureBaxterToyTableAssembleEnv")
     config, unparsed = parser.parse_known_args()
 
-    # generate placing demonstrations
-    env = FurnitureSawyerPickEnv(config)
+    # create an environment and run manual control of Baxter environment
+    env = FurnitureBaxterToyTableAssembleEnv(config)
     env.run_manual(config)
+
+    # import pickle
+    # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
+    #     demo = pickle.load(f)
+    # env.reset()
+    # print(len(demo['actions']))
+
+    # from util.video_recorder import VideoRecorder
+    # vr = VideoRecorder()
+    # vr.add(env.render('rgb_array')[0])
+    # for ac in demo['actions']:
+    #     env.step(ac)
+    #     vr.add(env.render('rgb_array')[0])
+    # vr.save_video('test.mp4')
 
 
 if __name__ == "__main__":

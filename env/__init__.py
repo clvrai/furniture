@@ -1,20 +1,20 @@
 """ Define all environments and provide helper functions to load environments. """
 
-from env.base import make_env, make_vec_env
-
-# register all environment to use
-from env.furniture_baxter import FurnitureBaxterEnv
-from env.furniture_sawyer import FurnitureSawyerEnv
-from env.furniture_cursor import FurnitureCursorEnv
-from env.furniture_baxter_block import FurnitureBaxterBlockEnv
-from env.furniture_baxter_toytable import FurnitureBaxterToyTableEnv
-from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
-from env.furniture_sawyer_pick import FurnitureSawyerPickEnv
-from env.peg_insertion import PegInsertionEnv
-
 # OpenAI gym interface
 from gym.envs.registration import register
 
+from env.base import make_env, make_vec_env
+# register all environment to use
+from env.furniture_baxter import FurnitureBaxterEnv
+from env.furniture_baxter_block import FurnitureBaxterBlockEnv
+from env.furniture_baxter_toytable import FurnitureBaxterToyTableEnv
+from env.furniture_baxter_toytable_assemble import \
+    FurnitureBaxterToyTableAssembleEnv
+from env.furniture_cursor import FurnitureCursorEnv
+from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
+from env.furniture_sawyer import FurnitureSawyerEnv
+from env.furniture_sawyer_pick import FurnitureSawyerPickEnv
+from env.peg_insertion import PegInsertionEnv
 
 # add cursor environment to Gym
 register(
