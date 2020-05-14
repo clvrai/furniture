@@ -207,7 +207,6 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         # load demonstration from filepath, initialize furniture and robot
         name, path = self.all_fps[seed]
         demo = self.load_demo(seed)
-        # TODO: figure out best qpos for robot
         # initialize the robot and block to initial demonstraiton state
         self._init_qpos = {
             "qpos": [
@@ -321,7 +320,8 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
 
     def _compute_reward(self, action) -> Tuple[float, bool, dict]:
         rew = 0
-        done = False
+        self._success = self._is_aligned("leg-top,,conn_site4", "top-leg,,conn_site4")
+        done = self._success
         info = {}
         return rew, done, info
 
@@ -364,25 +364,11 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         if isinstance(ob, dict):
             ob = self.get_goal(ob)
 
-        if self._goal_type == "state_obj_robot":
-            object_pos = ob[:3]
-            goal_object_pos = goal[:3]
-            eef_pos = ob[7:10]
-            goal_eef_pos = goal[7:10]
-
-            object_success = (
-                np.linalg.norm(object_pos - goal_object_pos)
-                < self._env_config["goal_pos_threshold"]
-            )
-            eef_success = (
-                np.linalg.norm(eef_pos - goal_eef_pos)
-                < self._env_config["goal_pos_threshold"]
-            )
-
-            return object_success and eef_success
-        elif self._goal_type == "state_obj":
-            object_pos, object_quat = ob[:3], ob[3:]
-            goal_object_pos, goal_object_quat = goal[:3], goal[3:]
+        if self._goal_type == "state_obj":
+            object_pos = np.concatenate([ob[0:3], ob[7:10]])
+            object_quat = np.concatenate([ob[3:7], ob[10:14]])
+            goal_object_pos = np.concatenate([goal[0:3], goal[7:10]])
+            goal_object_quat = np.concatenate([goal[3:7], goal[10:14]])
             assert len(object_pos.shape) == 1
 
             pos_success = (
@@ -404,15 +390,11 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         return True
 
     def get_env_success(self, ob, goal):
-        return self.is_success(ob, goal)
+        return self._success
 
     def compute_reward(self, achieved_goal, goal, info=None):
         success = self.is_success(achieved_goal, goal).astype(np.float32)
         return success - 1.0
-
-    def _get_next_subtask(self):
-        self._subtask_part1 = 0
-        self._subtask_part2 = -1
 
     @property
     def observation_space(self):
@@ -426,7 +408,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
     @property
     def goal_space(self):
         if self._goal_type == "state_obj":
-            return [14]  # block pose
+            return [14]  # 2 block poses
 
 
 def main():
