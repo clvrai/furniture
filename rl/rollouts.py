@@ -3,13 +3,14 @@ Runs rollouts (RolloutRunner class) and collects transitions using Rollout class
 """
 
 from collections import defaultdict
-
 import numpy as np
 import cv2
 
 from util.logger import logger
 from util.info_dict import Info
-
+from il.bc_dataset import ILDataset
+import random
+import pickle
 
 class Rollout(object):
     """
@@ -54,6 +55,8 @@ class RolloutRunner(object):
         self._env = env
         self._env_eval = env_eval
         self._pi = pi
+        if self._config.eval_on_train_set:
+            self._dataset = ILDataset(self._config.demo_path)
 
     def run(self, is_train=True, every_steps=None, every_episodes=None):
         """
@@ -163,7 +166,19 @@ class RolloutRunner(object):
         ep_rew = 0
         if gail:
             ep_rew_gail = 0
+
+        if self._config.eval_on_train_set:
+            with open("demos/Sawyer_toy_table_0000.pkl", "rb") as f:
+                demo = pickle.load(f)
+                #print(demo['obs'][0])
+                print('train starting furn ob', (demo['obs'][0]['object_ob']))
+                print('train starting robot ob', (demo['obs'][0]['robot_ob']))
+                env.set_init_qpos(demo['qpos'][0])
+            # print('demo_ob', demo_ob['robot_ob'])
+
         ob = env.reset()
+        print('eval starting furn ob', (ob['object_ob']))
+        print('eval starting robot ob', (ob['robot_ob']))
 
         self._record_frames = []
         if record:
@@ -173,7 +188,11 @@ class RolloutRunner(object):
         while not done and ep_len < max_step:
             # sample action from policy
             ac, ac_before_activation = pi.act(ob, is_train=is_train)
-
+            
+            # print('ac', type(ac['default']))
+            if np.all(ac['default'], 0):
+                print("actions zero'd")
+            # print('actions', ac, ac_before_activation)
             rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
@@ -183,6 +202,7 @@ class RolloutRunner(object):
 
             # take a step
             ob, reward, done, info = env.step(ac)
+            # print('middle ob', ob)
 
             rollout.add({"done": done, "rew": reward_gail if gail else reward})
             ep_len += 1

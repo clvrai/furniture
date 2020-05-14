@@ -198,6 +198,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             ]
         )
 
+    def set_init_qpos(self, init_qpos):
+        self._init_qpos = init_qpos
+
     def reset(self, furniture_id=None, background=None):
         """
         Takes in a furniture_id, and background string.
@@ -1881,13 +1884,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
         if self._config.record:
-            video_prefix = (
+            prefix = (
                 self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
             )
             if self._record_demo:
-                vr = VideoRecorder(video_prefix=video_prefix, demo_dir=config.demo_dir)
+                vr = VideoRecorder(prefix=prefix, demo_dir=config.demo_dir)
             else:
-                vr = VideoRecorder(video_prefix=video_prefix)
+                vr = VideoRecorder(prefix=prefix)
             vr.capture_frame(self.render("rgb_array")[0])
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
@@ -2051,13 +2054,13 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         vr = None
         if self._config.record:
-            video_prefix = (
+            prefix = (
                 self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
             )
             if self._record_demo:
-                vr = VideoRecorder(video_prefix=video_prefix, demo_dir=config.demo_dir)
+                vr = VideoRecorder(prefix=prefix, demo_dir=config.demo_dir)
             else:
-                vr = VideoRecorder(video_prefix=video_prefix)
+                vr = VideoRecorder(prefix=prefix)
             vr.capture_frame(self.render("rgb_array")[0])
         else:
             self.render()

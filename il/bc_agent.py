@@ -84,21 +84,35 @@ class BCAgent(BaseAgent):
 
         # pre-process observations
         o = transitions["ob"]
+        # print('train starting obj ob', np.around(o['object_ob'][0], 3))
+        # print('train starting robot ob', np.around(o['robot_ob'][0], 3))
+
         o = self.normalize(o)
 
         bs = len(transitions["ac"])
         _to_tensor = lambda x: to_tensor(x, self._config.device)
         o = _to_tensor(o)
         ac = _to_tensor(transitions["ac"])
-
         # the actor loss
         pred_ac = self._actor.act_backprop(o)
+        print('ac', ac)
+        print('pred_ac', pred_ac)
+        print()
         if isinstance(pred_ac, OrderedDict):
             pred_ac = list(pred_ac.values())
             if len(pred_ac[0].shape) == 1:
                 pred_ac = [x.unsqueeze(0) for x in pred_ac]
             pred_ac = torch.cat(pred_ac, dim=-1)
 
+        wrong = 0
+        for i in range(ac.shape[0]):
+            for j in range(ac.shape[1]):
+                if ac[i][j] != pred_ac[i][j]:
+                    print()
+                    wrong += 1
+                    break
+        # print('accuracy', wrong, ac.shape[0], (ac.shape[0]-wrong) / ac.shape[0])
+            # print('pred ac', pred_ac.shape)
         actor_loss = (ac - pred_ac).pow(2).mean()
         info["actor_loss"] = actor_loss.cpu().item()
 

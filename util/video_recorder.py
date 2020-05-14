@@ -19,7 +19,7 @@ class VideoRecorder(object):
         self,
         record_mode="RAM",  # ram or file
         video_dir="./videos",
-        video_prefix="default",
+        prefix="default",
         demo_dir=None,
         frames_per_sec=15,
         output_frames_per_sec=15,
@@ -29,12 +29,12 @@ class VideoRecorder(object):
         os.makedirs(video_dir, exist_ok=True)
         if demo_dir:
             # make video filename same as corresponding demo filename
-            count = min(9999, self._get_demo_count(demo_dir))
+            count = min(9999, self._get_demo_count(prefix, demo_dir))
         else:
             # make seperate video only filename
-            prefix = video_prefix + "vidonly"
+            prefix = prefix + "vidonly"
             count = min(9999, self._get_vid_count(prefix))
-        video_name = prefix + "_{:04d}.mp4".format(count)
+        video_name = prefix + "{:04d}.mp4".format(count)
         self.outfile = os.path.join(self._video_dir, video_name)
         self.frames_per_sec = frames_per_sec
         self.output_frames_per_sec = output_frames_per_sec
