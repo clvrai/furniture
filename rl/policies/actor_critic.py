@@ -13,7 +13,6 @@ from rl.policies.distributions import (
     MixedDistribution,
 )
 from util.pytorch import to_tensor
-from util.gym import observation_size, action_size
 
 
 class Actor(nn.Module):

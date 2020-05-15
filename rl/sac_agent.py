@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import gym.spaces
 
 from rl.dataset import ReplayBuffer, RandomSampler
 from rl.base_agent import BaseAgent
@@ -21,7 +22,6 @@ from util.pytorch import (
     sync_grads,
     to_tensor,
 )
-from util.gym import action_size
 
 
 class SACAgent(BaseAgent):
@@ -31,7 +31,7 @@ class SACAgent(BaseAgent):
         self._ob_space = ob_space
         self._ac_space = ac_space
 
-        self._target_entropy = -action_size(ac_space)
+        self._target_entropy = -gym.spaces.flatdim(ac_space)
         self._log_alpha = torch.zeros(1, requires_grad=True, device=config.device)
         self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
 

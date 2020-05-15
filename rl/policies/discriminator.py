@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 from rl.policies.utils import MLP
 from util.pytorch import to_tensor
-from util.gym import observation_size, action_size
 
 
 class Discriminator(nn.Module):
@@ -15,7 +14,7 @@ class Discriminator(nn.Module):
         super().__init__()
         self._config = config
 
-        input_dim = observation_size(ob_space) + action_size(ac_space)
+        input_dim = gym.spaces.flatdim(ob_space) + gym.spaces.flatdim(ac_space)
 
         self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
 

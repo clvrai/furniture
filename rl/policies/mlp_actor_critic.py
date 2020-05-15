@@ -7,7 +7,6 @@ import torch.nn as nn
 
 from rl.policies.actor_critic import Actor, Critic
 from rl.policies.utils import MLP, flatten_ob
-from util.gym import action_size, observation_size
 from util.pytorch import to_tensor
 
 
@@ -16,17 +15,17 @@ class MlpActor(Actor):
         super().__init__(config, ob_space, ac_space, tanh_policy)
 
         # observation
-        input_dim = observation_size(ob_space)
+        input_dim = gym.spaces.flatdim(ob_space)
 
         self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size])
         self.fc_means = nn.ModuleDict()
         self.fc_log_stds = nn.ModuleDict()
 
         for k, v in ac_space.spaces.items():
-            self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(v))})
+            self.fc_means.update({k: MLP(config, config.rl_hid_size, gym.spaces.flatdim(v))})
             if isinstance(v, gym.spaces.Box) and not self._deterministic:
                 self.fc_log_stds.update(
-                    {k: MLP(config, config.rl_hid_size, action_size(v))}
+                    {k: MLP(config, config.rl_hid_size, gym.spaces.flatdim(v))}
                 )
 
     def forward(self, ob: dict):
@@ -58,13 +57,13 @@ class NoisyMlpActor(Actor):
         super().__init__(config, ob_space, ac_space, tanh_policy)
 
         # observation
-        input_dim = observation_size(ob_space)
+        input_dim = gym.spaces.flatdim(ob_space)
 
         self.fc = MLP(config, input_dim, config.rl_hid_size, [config.rl_hid_size])
         self.fc_means = nn.ModuleDict()
 
         for k, v in ac_space.spaces.items():
-            self.fc_means.update({k: MLP(config, config.rl_hid_size, action_size(v))})
+            self.fc_means.update({k: MLP(config, config.rl_hid_size, gym.spaces.flatdim(v))})
 
     def forward(self, ob):
         inp = flatten_ob(ob)
@@ -114,7 +113,7 @@ class MlpCritic(Critic):
         # observation
         input_dim = gym.spaces.flatdim(ob_space)
         if ac_space is not None:
-            input_dim += action_size(ac_space)
+            input_dim += gym.spaces.flatdim(ac_space)
 
         self.fc = MLP(config, input_dim, 1, [config.rl_hid_size] * 2)
 

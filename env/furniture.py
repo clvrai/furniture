@@ -27,7 +27,6 @@ from env.unity_interface import UnityInterface
 from util.demo_recorder import DemoRecorder
 from util.logger import logger
 from util.video_recorder import VideoRecorder
-from util.gym import action_size, observation_size
 
 try:
     import mujoco_py
@@ -180,7 +179,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns size of the action space.
         """
-        return action_size(self.action_space)
+        return gym.spaces.flatdim(self.action_space)
 
     @property
     def action_space(self):
