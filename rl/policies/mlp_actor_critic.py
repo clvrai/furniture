@@ -1,14 +1,14 @@
 from collections import OrderedDict
 
+import gym.spaces
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-import gym.spaces
 
-from rl.policies.utils import MLP, flatten_ob
 from rl.policies.actor_critic import Actor, Critic
+from rl.policies.utils import MLP, flatten_ob
+from util.gym import action_size, observation_size
 from util.pytorch import to_tensor
-from util.gym import observation_size, action_size
 
 
 class MlpActor(Actor):
@@ -112,7 +112,7 @@ class MlpCritic(Critic):
         super().__init__(config)
 
         # observation
-        input_dim = sum([np.prod(x) for x in ob_space.values()])
+        input_dim = gym.spaces.flatdim(ob_space)
         if ac_space is not None:
             input_dim += action_size(ac_space)
 
