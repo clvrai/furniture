@@ -6,7 +6,6 @@ import math
 import numpy as np
 from pyquaternion import Quaternion
 
-
 _PI = np.pi
 _EPS = np.finfo(float).eps * 4.
 
@@ -638,6 +637,20 @@ def up_vector_cos_dist(quat1, quat2):
     up1 = up_vector_from_quat(quat1)
     up2 = up_vector_from_quat(quat2)
     return cos_dist(up1, up2)
+
+
+def forward_vector_cos_dist(quat1, quat2):
+    """ Returns cos distance between forward vectors of quaternions @quat1 and @quat2 """
+    forward1 = forward_vector_from_quat(quat1)
+    forward2 = forward_vector_from_quat(quat2)
+    return cos_dist(forward1, forward2)
+
+
+def right_vector_cos_dist(quat1, quat2):
+    """ Returns cos distance between right vectors of quaternions @quat1 and @quat2 """
+    right1 = right_vector_from_quat(quat1)
+    right2 = right_vector_from_quat(quat2)
+    return cos_dist(right1, right2)
 
 
 def rotate_vector(v, rotation_axis, angle):

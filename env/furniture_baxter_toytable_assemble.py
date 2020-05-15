@@ -6,7 +6,7 @@ import numpy as np
 
 from env.furniture_baxter import FurnitureBaxterEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
-from env.transform_utils import up_vector_cos_dist
+from env.transform_utils import forward_vector_cos_dist
 from util.logger import logger
 
 
@@ -85,6 +85,11 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
             logger.warning(f"Table moved too much: {table_drift}")
 
         if self._debug:
+            part2_ob_pose = ob["object_ob"][7:]
+            cos_sim = forward_vector_cos_dist(
+                part2_ob_pose[3:], self._init_qpos["2_part2"][3:]
+            )
+            logger.debug(f"cos sim: {cos_sim}")
             for i, body in enumerate(self._object_names):
                 pose = self._get_qpos(body)
                 logger.debug(f"{body} {pose[:3]} {pose[3:]}")
@@ -387,7 +392,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
                 < self._env_config["goal_pos_threshold"]
             )
             # Use cosine similarity between up vectors for table leg (part2)
-            cos_sim = up_vector_cos_dist(part2_ob_pose[3:], part2_goal_pose[3:])
+            cos_sim = forward_vector_cos_dist(part2_ob_pose[3:], part2_goal_pose[3:])
             cos_success = cos_sim > self._env_config["goal_cos_threshold"]
             # use eucl distance between quaternions for table top (part4)
             quat_success = (
