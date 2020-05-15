@@ -6,6 +6,7 @@ import numpy as np
 
 from env.furniture_baxter import FurnitureBaxterEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
+from env.transform_utils import up_vector_cos_dist
 from util.logger import logger
 
 
@@ -31,6 +32,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
                 "project_dist": -1,
                 "goal_pos_threshold": config.goal_pos_threshold,
                 "goal_quat_threshold": config.goal_quat_threshold,
+                "goal_cos_threshold": config.goal_cos_threshold,
             }
         )
         self._gravity_compensation = 1
@@ -367,22 +369,25 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
             ob = self.get_goal(ob)
 
         if self._goal_type == "state_obj":
+            part4_ob_pose, part2_ob_pose = ob[0:7], ob[7:]
             object_pos = np.concatenate([ob[0:3], ob[7:10]])
-            object_quat = np.concatenate([ob[3:7], ob[10:14]])
             goal_object_pos = np.concatenate([goal[0:3], goal[7:10]])
-            goal_object_quat = np.concatenate([goal[3:7], goal[10:14]])
+            part4_goal_pose, part2_goal_pose = goal[0:7], goal[7:]
             assert len(object_pos.shape) == 1
 
             pos_success = (
                 np.linalg.norm(object_pos - goal_object_pos)
                 < self._env_config["goal_pos_threshold"]
             )
-
+            # Use cosine similarity between up vectors for table leg (part2)
+            cos_sim = up_vector_cos_dist(part2_ob_pose[3:], part2_goal_pose[3:])
+            cos_success = cos_sim > self._env_config["goal_cos_threshold"]
+            # use eucl distance between quaternions for table top (part4)
             quat_success = (
-                np.linalg.norm(object_quat - goal_object_quat)
+                np.linalg.norm(part4_ob_pose[3:] - part4_goal_pose[3:])
                 < self._env_config["goal_quat_threshold"]
             )
-            return pos_success and quat_success
+            return pos_success and quat_success and cos_success
 
     def is_possible_goal(self, goal):
         """

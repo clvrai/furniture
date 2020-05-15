@@ -42,11 +42,18 @@ def add_argument(parser):
     )
 
     parser.add_argument(
+        "--goal_cos_threshold",
+        type=float,
+        default=0.95,
+        help="cos threshold for table leg",
+    )
+    parser.add_argument(
         "--goal_quat_threshold",
         type=float,
         default=0.01,
-        help="goal threshold for the robot eef (end effector)",
+        help="quat threshold for table top",
     )
+
 
     # SILO arguments
     train_arg = parser.add_argument_group("Train")
