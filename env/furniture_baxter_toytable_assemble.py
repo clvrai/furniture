@@ -77,12 +77,12 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
         # check if table moved too much
-        table_pos = ob["object_ob"][:7]
-        table_drift = np.abs(np.linalg.norm(table_pos - self._init_qpos["4_part4"]))
-        if table_drift > 0.03:
-            done = True
-            info["table_oob"] = True
-            logger.warning(f"Table moved too much: {table_drift}")
+        # table_pos = ob["object_ob"][:7]
+        # table_drift = np.abs(np.linalg.norm(table_pos - self._init_qpos["4_part4"]))
+        # if table_drift > 0.03:
+        #     done = True
+        #     info["table_oob"] = True
+        #     logger.warning(f"Table moved too much: {table_drift}")
 
         if self._debug:
             part2_ob_pose = ob["object_ob"][7:]
