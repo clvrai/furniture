@@ -118,6 +118,7 @@ def create_parser(env=None):
     parser.add_argument("--max_global_step", type=int, default=int(5e6))
     parser.add_argument("--gpu", type=int, default=None)
     parser.add_argument("--init_ckpt_path", type=str, default=None)
+    parser.add_argument("--use_ckpt", type=str2bool, default=True)
 
     # encoder
     parser.add_argument(
