@@ -42,10 +42,10 @@ class VideoRecorder(object):
         self._frames = []
 
     def _get_demo_count(self, prefix, demo_dir):
-        return len(glob.glob(os.path.join(demo_dir, prefix) + "_*"))
+        return len(glob.glob(os.path.join(demo_dir, prefix) + "*"))
 
     def _get_vid_count(self, prefix):
-        return len(glob.glob(os.path.join(self._video_dir, prefix) + "_*"))
+        return len(glob.glob(os.path.join(self._video_dir, prefix) + "*"))
 
     def capture_frame(self, frame, render_mode="from_env_render"):
         """``

@@ -137,29 +137,29 @@ class Trainer(object):
         Loads checkpoint with path @ckpt_path or index number @ckpt_num. If @ckpt_num is None,
         it loads and returns the checkpoint with the largest index number.
         """
-        if ckpt_path is None:
-            ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
-        else:
-            ckpt_num = int(ckpt_path.rsplit("_", 1)[-1].split(".")[0])
+        if self._config.use_ckpt:
+            if ckpt_path is None:
+                ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
+            else:
+                ckpt_num = int(ckpt_path.rsplit("_", 1)[-1].split(".")[0])
 
-        if ckpt_path is not None:
-            logger.warn("Load checkpoint %s", ckpt_path)
-            ckpt = torch.load(ckpt_path)
-            self._agent.load_state_dict(ckpt["agent"])
+            if ckpt_path is not None:
+                logger.warn("Load checkpoint %s", ckpt_path)
+                ckpt = torch.load(ckpt_path)
+                self._agent.load_state_dict(ckpt["agent"])
 
-            if self._config.is_train and self._config.algo in ["sac", "ddpg"]:
-                replay_path = os.path.join(
-                    self._config.log_dir, "replay_%08d.pkl" % ckpt_num
-                )
-                logger.warn("Load replay_buffer %s", replay_path)
-                with gzip.open(replay_path, "rb") as f:
-                    replay_buffers = pickle.load(f)
-                    self._agent.load_replay_buffer(replay_buffers["replay"])
+                if self._config.is_train and self._config.algo in ["sac", "ddpg"]:
+                    replay_path = os.path.join(
+                        self._config.log_dir, "replay_%08d.pkl" % ckpt_num
+                    )
+                    logger.warn("Load replay_buffer %s", replay_path)
+                    with gzip.open(replay_path, "rb") as f:
+                        replay_buffers = pickle.load(f)
+                        self._agent.load_replay_buffer(replay_buffers["replay"])
 
-            return ckpt["step"], ckpt["update_iter"]
-        else:
-            logger.warn("Randomly initialize models")
-            return 0, 0
+                return ckpt["step"], ckpt["update_iter"]
+        logger.warn("Randomly initialize models")
+        return 0, 0
 
     def _log_train(self, step, train_info, ep_info):
         """
@@ -238,7 +238,8 @@ class Trainer(object):
             # train an agent
             logger.info("Update networks %d", update_iter)
             train_info = self._agent.train()
-
+            print('loss: ', train_info['actor_loss'])
+            # print('GT ac: ', train_info['GT_ac'])
             logger.info("Update networks done")
 
             if runner and step < config.max_ob_norm_step:

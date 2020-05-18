@@ -59,12 +59,12 @@ class MLP(nn.Module):
         prev_dim = input_dim
         for d in hid_dims:
             self.fcs.append(nn.Linear(prev_dim, d))
-            fanin_init(self.fcs[-1].weight)
-            self.fcs[-1].bias.data.fill_(0.1)
+            # fanin_init(self.fcs[-1].weight)
+            #self.fcs[-1].bias.data.fill_(0.1)
             prev_dim = d
         self.fcs.append(nn.Linear(prev_dim, output_dim))
-        self.fcs[-1].weight.data.uniform_(-1e-3, 1e-3)
-        self.fcs[-1].bias.data.uniform_(-1e-3, 1e-3)
+        # self.fcs[-1].weight.data.uniform_(-1e-3, 1e-3)
+        # self.fcs[-1].bias.data.uniform_(-1e-3, 1e-3)
 
     def forward(self, ob):
         out = ob
