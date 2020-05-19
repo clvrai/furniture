@@ -1894,6 +1894,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
             all_qpos = demo["qpos"]
+            if config.debug:
+                for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
+                    #print('obs', i, obs)
+                    print('action', i, action)
         try:
             for qpos in all_qpos:
                 self.set_env_qpos(qpos)

@@ -172,6 +172,9 @@ def create_parser(env=None):
     parser.add_argument(
         "--lr_bc", type=float, default=1e-3, help="learning rate for bc"
     )
+    parser.add_argument(
+        "--sched_lambda", type=float, default=None, help="learning rate scheduler factor"
+    )
     parser.add_argument("--demo_path", type=str, default=None, help="path to demos")
     parser.add_argument("--gail_entropy_loss_coeff", type=float, default=1e-3)
     parser.add_argument(

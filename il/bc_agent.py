@@ -9,6 +9,7 @@ from il.bc_dataset import ILDataset
 from rl.base_agent import BaseAgent
 from util.logger import logger
 from util.mpi import mpi_average
+from torch.optim.lr_scheduler import MultiplicativeLR
 from util.pytorch import (
     optimizer_cuda,
     count_parameters,
@@ -27,11 +28,18 @@ class BCAgent(BaseAgent):
         self._ob_space = ob_space
         self._ac_space = ac_space
 
+        self._epoch = 0
+
         self._actor = actor(
             self._config, self._ob_space, self._ac_space, self._config.tanh_policy
         )
         self._network_cuda(config.device)
-        self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_bc)
+        self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_bc, )
+        self._sched = False
+        if config.sched_lambda:
+            self._sched = True
+            schedule = lambda epoch: config.sched_lambda
+            self._scheduler = MultiplicativeLR(self._actor_optim, lr_lambda=schedule)
 
         self._dataset = ILDataset(config.demo_path)
         self._data_loader = torch.utils.data.DataLoader(
@@ -70,6 +78,9 @@ class BCAgent(BaseAgent):
         for transitions in self._data_loader:
             _train_info = self._update_network(transitions)
             train_info.update(_train_info)
+        self._epoch += 1
+        if self._sched:
+            self._scheduler.step()
 
         train_info.update(
             {
@@ -93,6 +104,8 @@ class BCAgent(BaseAgent):
 
         # the actor loss
         pred_ac = self._actor.act_backprop(o)
+        # print('pred_ac', pred_ac)
+        # print('GT ac', ac)
         if isinstance(pred_ac, OrderedDict):
             pred_ac = list(pred_ac.values())
             if len(pred_ac[0].shape) == 1:
@@ -101,6 +114,8 @@ class BCAgent(BaseAgent):
 
         actor_loss = (ac - pred_ac).pow(2).mean()
         info["actor_loss"] = actor_loss.cpu().item()
+        info["pred_ac"] = pred_ac.cpu().detach()
+        info["GT_ac"] = ac.cpu()
 
         # update the actor
         self._actor_optim.zero_grad()

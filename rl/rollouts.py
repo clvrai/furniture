@@ -170,15 +170,14 @@ class RolloutRunner(object):
         if self._config.eval_on_train_set:
             with open("demos/Sawyer_toy_table_0000.pkl", "rb") as f:
                 demo = pickle.load(f)
-                #print(demo['obs'][0])
-                print('train starting furn ob', (demo['obs'][0]['object_ob']))
-                print('train starting robot ob', (demo['obs'][0]['robot_ob']))
+                # print('train starting furn ob', (demo['obs'][0]['object_ob']))
+                # print('train starting robot ob', (demo['obs'][0]['robot_ob']))
                 env.set_init_qpos(demo['qpos'][0])
             # print('demo_ob', demo_ob['robot_ob'])
 
         ob = env.reset()
-        print('eval starting furn ob', (ob['object_ob']))
-        print('eval starting robot ob', (ob['robot_ob']))
+        # print('eval starting furn ob', (ob['object_ob']))
+        # print('eval starting robot ob', (ob['robot_ob']))
 
         self._record_frames = []
         if record:
@@ -188,7 +187,8 @@ class RolloutRunner(object):
         while not done and ep_len < max_step:
             # sample action from policy
             ac, ac_before_activation = pi.act(ob, is_train=is_train)
-
+            # if ep_len < 1:
+            #      print('pred_ac', ac)
             rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
