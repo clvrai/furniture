@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from time import time
 
 import cv2
 import moviepy.editor as mpy
@@ -86,6 +87,7 @@ class RolloutRunner(object):
         """
         Runs one full metarollout. Returns the metarollout and rollout and info.
         """
+        start = time()
         env = self._env
         meta_pi = self._meta_pi
         pi = self._pi
@@ -274,6 +276,7 @@ class RolloutRunner(object):
             "env_success": env_success,
             "time_penalty": time_penalty,
             "success_rew": success_reward,
+            "rollout_sec": time() - start
         }
         if record:
             self._env.frames = self._record_frames

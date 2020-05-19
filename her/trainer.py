@@ -4,16 +4,14 @@ import pickle
 from collections import defaultdict
 from time import time
 
-# import matplotlib
-
+import h5py
 # import matplotlib.patches as patches
 # import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import wandb
 from tqdm import tqdm, trange
 
-import h5py
-import wandb
 from env import make_env
 from her import get_agent_by_name
 from her.meta_agent import MetaAgent
@@ -22,6 +20,10 @@ from her.rollouts import RolloutRunner
 from util.logger import logger
 from util.mpi import mpi_sum
 from util.pytorch import get_ckpt_path
+
+# import matplotlib
+
+
 
 
 class Trainer(object):
@@ -231,6 +233,8 @@ class Trainer(object):
                 self._update_normalizer(rollout)
             step_per_batch = mpi_sum(info["len"])
 
+            # log training time
+            train_start = time()
             logger.info("Update meta networks %d", update_iter)
             meta_train_info = self._meta_agent.train()
             logger.info("Update meta networks done")
@@ -238,6 +242,8 @@ class Trainer(object):
             logger.info("Update networks %d", update_iter)
             train_info = self._agent.train()
             logger.info("Update networks done")
+            train_time = time() - train_start
+            logger.info(f"Update took {train_time} seconds")
 
             step += step_per_batch
             update_iter += 1
@@ -256,6 +262,7 @@ class Trainer(object):
                             "sec": (time() - st_time) / config.log_interval,
                             "steps_per_sec": (step - st_step) / (time() - st_time),
                             "update_iter": update_iter,
+                            "train_sec": train_time,
                         }
                     )
                     st_time = time()
