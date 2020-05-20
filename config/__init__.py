@@ -25,6 +25,7 @@ def create_parser(env="") -> argparse.ArgumentParser:
             "FurnitureCursorEnv",
             "FurnitureBaxterBlockEnv",
             "FurnitureCursorToyTableEnv",
+            "FurnitureCursorToyTableAssembleEnv",
             "FurnitureSawyerToyTableEnv",
             "FurnitureBaxterToyTableEnv",
             "FurnitureBaxterToyTableAssembleEnv",
@@ -65,6 +66,10 @@ def create_parser(env="") -> argparse.ArgumentParser:
 
         elif "FurnitureSawyerPickEnv" in [env, args.env]:
             import config.furniture_sawyer_pick as f
+
+            f.add_argument(parser)
+        elif "FurnitureCursorToytableAssembleEnv" in [env, args.env]:
+            import config.furniture_cursor_toytable_assemble as f
 
             f.add_argument(parser)
     elif "PegInsertionEnv" in [env, args.env]:
