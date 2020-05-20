@@ -73,7 +73,7 @@ def add_argument(parser):
     train_arg.add_argument("--lr_decay_step", type=int, default=1000000)
     train_arg.add_argument("--lr_decay_rate", type=float, default=1.00)
     train_arg.add_argument("--max_grad_norm", type=float, default=100)
-    train_arg.add_argument("--max_global_step", type=int, default=1000000)
+    train_arg.add_argument("--max_global_step", type=int, default=1e9)
     train_arg.add_argument("--is_train", type=str2bool, default=True)
     train_arg.add_argument("--activation", type=str, default="relu")
     train_arg.add_argument("--mini_batch_size", type=int, default=64)
