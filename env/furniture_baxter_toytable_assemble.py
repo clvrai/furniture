@@ -302,6 +302,11 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         self._target_body1 = self.sim.model.body_id2name(id1)
         self._target_body2 = self.sim.model.body_id2name(id2)
 
+        # activate right hand gripper already
+        action = np.zeros((15,))
+        action[-3] = 1
+        self._step_continuous(action)
+
     def _place_objects(self):
         """
         Returns fixed initial position and rotations of the toy table.
