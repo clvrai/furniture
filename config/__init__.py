@@ -157,7 +157,7 @@ def create_parser(env=None):
     )
 
     # misc
-    parser.add_argument("--prefix", type=str, default="test")
+    parser.add_argument("--file_prefix", type=str, default="test")
     parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--seed", type=int, default=123, help="random seed")
     parser.add_argument("--debug", type=str2bool, default=False)

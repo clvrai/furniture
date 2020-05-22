@@ -97,11 +97,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._camera_ids = config.camera_ids
         self._camera_name = "frontview"
         self._is_render = False
-
         self._furniture_id = None
         self._background = None
         self._pos_init = None
         self._quat_init = None
+        self._record_vid = config.record_vid
+        self._record_demo = config.record_demo
 
         self._manual_resize = None
         self._action_on = False
@@ -138,6 +139,17 @@ class FurnitureEnv(metaclass=EnvMeta):
             )
             # set to the best quality
             self._unity.set_quality(config.quality)
+
+        self.vid_rec = None
+        self._file_prefix = (
+            self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
+        )
+        if self._record_vid:
+            if self._record_demo:
+                self.vid_rec = VideoRecorder(prefix=self._file_prefix, demo_dir=config.demo_dir)
+            else:
+                self.vid_rec = VideoRecorder(prefix=self._file_prefix)
+
 
     @property
     def observation_space(self):
@@ -1723,16 +1735,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.mujoco_robot,
             self.mujoco_objects,
             self.mujoco_equality,
-            self._rng,
+            self._config,
+            rng = self._rng
         )
-
-    def save_demo(self):
-        """
-        Saves the demonstration into a file
-        """
-        agent = self._agent_type
-        furniture_name = furniture_names[self._furniture_id]
-        self._demo.save(agent + "_" + furniture_name)
 
     def key_callback(self, window, key, scancode, action, mods):
         """
@@ -1886,15 +1891,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
-        if self._config.record:
-            prefix = (
-                self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
-            )
-            if self._record_demo:
-                vr = VideoRecorder(prefix=prefix, demo_dir=config.demo_dir)
-            else:
-                vr = VideoRecorder(prefix=prefix)
-            vr.capture_frame(self.render("rgb_array")[0])
+        if self._record_vid:
+            self.vid_rec.capture_frame(self.render("rgb_array")[0])
+
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
             all_qpos = demo["qpos"]
@@ -1907,10 +1906,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.set_env_qpos(qpos)
                 self.sim.forward()
                 self._update_unity()
-                if self._config.record:
-                    vr.capture_frame(self.render("rgb_array")[0])
+                if self._record_vid:
+                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
         finally:
-            vr.close()
+            if self._record_vid:
+                self.vid_rec.close()
 
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
@@ -2059,16 +2059,8 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         from util.video_recorder import VideoRecorder
 
-        vr = None
-        if self._config.record:
-            prefix = (
-                self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
-            )
-            if self._record_demo:
-                vr = VideoRecorder(prefix=prefix, demo_dir=config.demo_dir)
-            else:
-                vr = VideoRecorder(prefix=prefix)
-            vr.capture_frame(self.render("rgb_array")[0])
+        if self._record_vid:
+            self.vid_rec.capture_frame(self.render("rgb_array")[0])
         else:
             self.render()
         if not config.unity:
@@ -2142,9 +2134,9 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 if self.action == "record":
                     pass
-                    # no longer needed to save, each frame is appeneded by default if self._config.record==True
-                    #     if self._config.record:
-                    #     vr.save_video('video.mp4')
+                    # no longer needed to save, each frame is appeneded by default if self._record_vid==True
+                    #     if self._record_vid:
+                    #     self.vid_rec.save_video('video.mp4')
 
                 if self._agent_type == "Cursor":
                     if cursor_idx:
@@ -2182,8 +2174,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 ob, reward, done, info = self.step(action)
                 logger.info(f"Action: {action}")
 
-                if self._config.record:
-                    vr.capture_frame(self.render("rgb_array")[0])
+                if self.record_vid:
+                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
                 else:
                     self.render("rgb_array")
                 if self.action == "screenshot":
@@ -2208,7 +2200,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         imageio.imwrite("depth_ob.png", (depth * 255).astype(np.uint8))
 
                 if self.action == "save" and self._record_demo:
-                    self.save_demo()
+                    self._demo.save(self._file_prefix)
 
                 self._action_on = False
                 t += 1
@@ -2216,16 +2208,16 @@ class FurnitureEnv(metaclass=EnvMeta):
                     t = 0
                     flag = [-1, -1]
                     if self._record_demo:
-                        self.save_demo()
+                        self._demo.save(self._file_prefix)
                     self.reset(config.furniture_id, config.background)
-                    if self._config.record:
+                    if self._record_vid:
                         # print('capture_frame3')
-                        vr.capture_frame(self.render("rgb_array")[0])
+                        self.vid_rec.capture_frame(self.render("rgb_array")[0])
                     else:
                         self.render("rgb_array")
         finally:
-            if self._config.record:
-                vr.close()
+            if self._record_vid:
+                self.vid_rec.close()
 
     def run_resizer(self, config):
         """
@@ -2273,6 +2265,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         ob = self.reset(config.furniture_id, config.background)
+        self.reset(config.furniture_id, config.background)
         self.render()
         flag = [-1, -1]
         n_img = 20
