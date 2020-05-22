@@ -118,7 +118,6 @@ def create_parser(env=None):
     parser.add_argument("--max_global_step", type=int, default=int(5e6))
     parser.add_argument("--gpu", type=int, default=None)
     parser.add_argument("--init_ckpt_path", type=str, default=None)
-    parser.add_argument("--use_ckpt", type=str2bool, default=True)
 
     # encoder
     parser.add_argument(
@@ -157,7 +156,7 @@ def create_parser(env=None):
     )
 
     # misc
-    parser.add_argument("--file_prefix", type=str, default="test")
+    parser.add_argument("--run_prefix", type=str, default=None)
     parser.add_argument("--notes", type=str, default="")
     parser.add_argument("--seed", type=int, default=123, help="random seed")
     parser.add_argument("--debug", type=str2bool, default=False)

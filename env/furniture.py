@@ -141,14 +141,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._unity.set_quality(config.quality)
 
         self.vid_rec = None
-        self._file_prefix = (
+        self.file_prefix = (
             self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
         )
         if self._record_vid:
             if self._record_demo:
-                self.vid_rec = VideoRecorder(prefix=self._file_prefix, demo_dir=config.demo_dir)
+                self.vid_rec = VideoRecorder(prefix=self.file_prefix, demo_dir=config.demo_dir)
             else:
-                self.vid_rec = VideoRecorder(prefix=self._file_prefix)
+                self.vid_rec = VideoRecorder(prefix=self.file_prefix)
 
 
     @property
@@ -2200,7 +2200,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         imageio.imwrite("depth_ob.png", (depth * 255).astype(np.uint8))
 
                 if self.action == "save" and self._record_demo:
-                    self._demo.save(self._file_prefix)
+                    self._demo.save(self.file_prefix)
 
                 self._action_on = False
                 t += 1
@@ -2208,7 +2208,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     t = 0
                     flag = [-1, -1]
                     if self._record_demo:
-                        self._demo.save(self._file_prefix)
+                        self._demo.save(self.file_prefix)
                     self.reset(config.furniture_id, config.background)
                     if self._record_vid:
                         # print('capture_frame3')

@@ -142,14 +142,16 @@ class RolloutRunner(object):
                 rollout.add({"ob": ob})
                 yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
-    def run_episode(self, max_step=10000, is_train=True, record=False):
+    def run_episode(self, max_step=10000, is_train=True, record_vid=False, record_demo=False, train_step=None):
         """
         Runs one episode and returns the rollout.
 
         Args:
             max_step: maximum number of steps of the rollout.
             is_train: whether rollout is for training or evaluation.
-            record: record videos of rollout if True.
+            record_vid: record videos of rollout if True.
+            record_demo: record demo of rollout if True.
+            train_step: give current training_step of model if available
         """
         config = self._config
         device = config.device
@@ -180,7 +182,7 @@ class RolloutRunner(object):
         # print('eval starting robot ob', (ob['robot_ob']))
 
         self._record_frames = []
-        if record:
+        if record_vid:
             self._store_frame(env)
 
         # run rollout
@@ -207,7 +209,7 @@ class RolloutRunner(object):
 
             for key, value in info.items():
                 reward_info[key].append(value)
-            if record:
+            if record_vid:
                 frame_info = info.copy()
                 if gail:
                     frame_info.update(
@@ -215,6 +217,11 @@ class RolloutRunner(object):
                     )
                 self._store_frame(env, frame_info)
 
+        if record_demo:
+            if train_step:
+                env._demo.save(env.file_prefix + '_train_step' + str(train_step) + '_')
+            else:
+                env._demo.save(env.file_prefix + '_novice_')
         # compute average/sum of information
         ep_info = {"len": ep_len, "rew": ep_rew}
         if gail:
