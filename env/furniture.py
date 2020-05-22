@@ -65,6 +65,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._debug:
             logger.setLevel(logging.DEBUG)
         self._rng = np.random.RandomState(config.seed)
+        self._seed = config.seed
 
         if config.render and not config.unity:
             self._render_mode = "human"
@@ -1678,7 +1679,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         agent = self._agent_type
         furniture_name = furniture_names[self._furniture_id]
-        self._demo.save(agent + "_" + furniture_name)
+        seed = self._seed
+        self._demo.save(f"{agent}_{furniture_name}_{seed}")
 
     def key_callback(self, window, key, scancode, action, mods):
         """
