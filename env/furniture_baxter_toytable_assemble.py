@@ -74,7 +74,8 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
             a = a.copy()
             a[-2] = -1 if a[-2] < 0 else 1
             a[-3] = -1 if a[-3] < 0 else 1
-
+        # always hold table
+        a[-3] = 1
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
         # check if table moved too much
@@ -245,9 +246,9 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = self._init_qpos[
             "r_gripper"
         ]
-        self.sim.data.qpos[
-            self._ref_gripper_left_joint_pos_indexes
-        ] = self._init_qpos["l_gripper"]
+        self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = self._init_qpos[
+            "l_gripper"
+        ]
 
         # enable robot collision
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
@@ -301,11 +302,6 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         id2 = self.sim.model.eq_obj2id[0]
         self._target_body1 = self.sim.model.body_id2name(id1)
         self._target_body2 = self.sim.model.body_id2name(id2)
-
-        # activate right hand gripper already
-        action = np.zeros((15,))
-        action[-3] = 1
-        self._step_continuous(action)
 
     def _place_objects(self):
         """
