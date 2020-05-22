@@ -2,10 +2,12 @@
 from typing import Tuple
 
 import numpy as np
+from tqdm import tqdm
 
 from env.furniture_baxter import FurnitureBaxterEnv
-from env.models import furniture_name2id
+from env.models import background_names, furniture_name2id, furniture_xmls
 from util.logger import logger
+from util.video_recorder import VideoRecorder
 
 
 class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
@@ -28,21 +30,6 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
                 "rot_dist_up": 0.95,
                 "rot_dist_forward": 0.9,
                 "project_dist": -1,
-                "site_dist_rew": config.site_dist_rew,
-                "site_up_rew": config.site_up_rew,
-                "grip_up_rew": config.grip_up_rew,
-                "grip_dist_rew": config.grip_dist_rew,
-                "aligned_rew": config.aligned_rew,
-                "connect_rew": config.connect_rew,
-                "success_rew": config.success_rew,
-                "pick_rew": config.pick_rew,
-                "ctrl_penalty": config.ctrl_penalty,
-                "grip_z_offset": config.grip_z_offset,
-                "topsite_z_offset": config.topsite_z_offset,
-                "hold_duration": config.hold_duration,
-                "grip_penalty": config.grip_penalty,
-                "xy_dist_rew": config.xy_dist_rew,
-                "z_dist_rew": config.z_dist_rew,
             }
         )
         self._gravity_compensation = 1
@@ -55,6 +42,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
+        self.sim.model.opt.gravity[-1] = -1
         # discretize gripper action
         if self._discretize_grip:
             a = a.copy()
@@ -64,10 +52,10 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
 
-        if self._debug:
-            for i, body in enumerate(self._object_names):
-                pose = self._get_qpos(body)
-                logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        # if self._debug:
+        # for i, body in enumerate(self._object_names):
+        #     pose = self._get_qpos(body)
+        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         info["ac"] = a
 
@@ -81,7 +69,182 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             furniture_id: ID of the furniture model to reset.
             background: name of the background scene to reset.
         """
-        super()._reset(furniture_id, background)
+        if self._config.furniture_name == "Random":
+            furniture_id = self._rng.randint(len(furniture_xmls))
+        if self._furniture_id is None or (
+            self._furniture_id != furniture_id and furniture_id is not None
+        ):
+            # construct mujoco xml for furniture_id
+            if furniture_id is None:
+                self._furniture_id = self._config.furniture_id
+            else:
+                self._furniture_id = furniture_id
+            self._reset_internal()
+
+        # reset simulation data and clear buffers
+        self.sim.reset()
+
+        # store robot's contype, conaffinity (search MuJoCo XML API for details)
+        # disable robot collision
+        robot_col = {}
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
+            ):
+                robot_col[geom_name] = (
+                    self.sim.model.geom_contype[geom_id],
+                    self.sim.model.geom_conaffinity[geom_id],
+                )
+                self.sim.model.geom_contype[geom_id] = 0
+                self.sim.model.geom_conaffinity[geom_id] = 0
+
+        # initialize collision for non-mesh geoms
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name in self._object_names and "collision" in geom_name:
+                self.sim.model.geom_contype[geom_id] = 1
+                self.sim.model.geom_conaffinity[geom_id] = 1
+
+        # initialize group
+        self._object_group = list(range(len(self._object_names)))
+
+        # initialize member variables
+        self._connect_step = 0
+        self._connected_sites = set()
+        self._connected_body1 = None
+        self._connected_body1_pos = None
+        self._connected_body1_quat = None
+        self._num_connected = 0
+
+        # initialize weld constraints
+        eq_obj1id = self.sim.model.eq_obj1id
+        eq_obj2id = self.sim.model.eq_obj2id
+        p = self._preassembled  # list of weld equality ids to activate
+        if len(p) > 0:
+            for eq_id in p:
+                self.sim.model.eq_active[eq_id] = 1
+                object_body_id1 = eq_obj1id[eq_id]
+                object_body_id2 = eq_obj2id[eq_id]
+                object_name1 = self._object_body_id2name[object_body_id1]
+                object_name2 = self._object_body_id2name[object_body_id2]
+                self._merge_groups(object_name1, object_name2)
+        elif eq_obj1id is not None:
+            for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
+                self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
+
+        self._do_simulation(None)
+        # stablize furniture pieces
+        for _ in range(100):
+            for obj_name in self._object_names:
+                self._stop_object(obj_name, gravity=0)
+            self.sim.forward()
+            self.sim.step()
+
+        logger.debug("*** furniture initialization ***")
+        # initialize the robot and block to initial demonstraiton state
+        self._init_qpos = {
+            "qpos": [
+                0.15259831,
+                -0.24533181,
+                0.68495219,
+                2.28670809,
+                -0.39624288,
+                -1.54411427,
+                -0.75568118,
+                -1.12699962,
+                -0.16681518,
+                0.05078415,
+                0.89042369,
+                -0.07658486,
+                1.0002326,
+                -1.9998653,
+            ],
+            "4_part4": [
+                -0.11734456,
+                -0.26209947,
+                0.24811555,
+                -0.4469388,
+                0.47928162,
+                0.52778792,
+                -0.54034688,
+            ],
+            "2_part2": [
+                -0.00578973,
+                -0.05484689,
+                0.04273277,
+                0.44693876,
+                -0.47928137,
+                -0.52778823,
+                0.54034683,
+            ],
+            "r_gripper": [-0.01900776, 0.01889891],
+            "l_gripper": [-0.01304315, 0.01261245],
+        }
+        # set toy table pose
+        pos_init = []
+        quat_init = []
+        for body in self._object_names:
+            qpos = self._init_qpos[body]
+            pos_init.append(qpos[:3])
+            quat_init.append(qpos[3:])
+        # set baxter pose
+        self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos["qpos"]
+        self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = self._init_qpos[
+            "r_gripper"
+        ]
+        self.sim.data.qpos[
+            self._ref_gripper_left_joint_pos_indexes
+        ] = self._init_qpos["l_gripper"]
+
+        # enable robot collision
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
+            ):
+                contype, conaffinity = robot_col[geom_name]
+                self.sim.model.geom_contype[geom_id] = contype
+                self.sim.model.geom_conaffinity[geom_id] = conaffinity
+
+        # set furniture positions
+        for i, body in enumerate(self._object_names):
+            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
+            if self._config.assembled:
+                self._object_group[i] = 0
+            else:
+                self._set_qpos(body, pos_init[i], quat_init[i])
+
+        self.sim.forward()
+
+        # store qpos of furniture and robot
+        if self._record_demo:
+            self._store_qpos()
+
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+            self._initial_right_hand_quat = self._right_hand_quat
+            if self._agent_type == "Baxter":
+                self._initial_left_hand_quat = self._left_hand_quat
+
+            if self._control_type == "ik":
+                # set up ik controller
+                self._controller.sync_state()
+
+        # set next subtask
+        self._get_next_subtask()
+
+        # set object positions in unity
+        if self._unity:
+            if background is None and self._background is None:
+                background = self._config.background
+            if self._config.background == "Random":
+                background = self._rng.choice(background_names)
+            if background and background != self._background:
+                self._background = background
+                self._unity.set_background(background)
 
         # set two bodies for picking or assemblying
         id1 = self.sim.model.eq_obj1id[0]
@@ -89,60 +252,15 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         self._target_body1 = self.sim.model.body_id2name(id1)
         self._target_body2 = self.sim.model.body_id2name(id2)
 
-        # reward variables
-        self._phase = "grip_leg"
-        self._leg_gripped = False
-        self._orig_left_hand_pos = self._get_pos("l_g_grip_site")
-
-    def _place_objects(self):
-        """
-        Returns fixed initial position and rotations of the toy table.
-        The first case has the table top on the left and legs on the right.
-
-        Returns:
-            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-            xquat((float * 4) * n_obj): quaternion of the objects
-        """
-        pos_init = [
-            [-0.34684698 + 0.05, -0.12887974, 0.03418991],
-            [0.03472849 - 0.0285, 0.11868485 - 0.05, 0.02096991],
-        ]
-        noise = self._init_random(3 * len(pos_init), "furniture")
-        for i in range(len(pos_init)):
-            for j in range(3):
-                pos_init[i][j] += noise[3 * i + j]
-        quat_init = [
-            [0, 1, 0, 0],
-            [0.707, 0.707, 0, 0],
-        ]
-
-        return pos_init, quat_init
-
     def _compute_reward(self, action) -> Tuple[float, bool, dict]:
         """
         phase 1: grip leg
         phase 2: disconnect leg
         phase 3: move leg up with left gripper
         """
-        rew = leg_grip_rew = 0
+        rew = 0
         info = {}
         done = False
-        leg_name = "2_part2"
-
-        # phase 1: grip leg and disconnect leg
-        left_hand_grip_leg = self._gripper_contact(leg_name, ["left"])["left"]
-
-        if left_hand_grip_leg and not self._leg_gripped and self._phase == "grip_leg":
-            leg_grip_rew = 1
-            self._leg_gripped = True
-            self._phase = "disconnect_leg"
-
-        # phase 2: move leg upwards
-        # leg_pos = self._get_pos(leg_name)
-
-        # phase 3: move leg to table
-
-        rew = leg_grip_rew
         return rew, done, info
 
     def _try_connect(self, part1=None, part2=None):
@@ -169,25 +287,56 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         select for left hand, 14 is connect action
         """
         cfg = self._config
+        for i in tqdm(range(num_demos)):
+            done = False
+            ob = self.reset(cfg.furniture_id, cfg.background)
+            if cfg.render:
+                self.render()
+            vr = None
+            if cfg.record:
+                vr = VideoRecorder()
+                vr.capture_frame(self.render("rgb_array")[0])
+            phase = 0
+            move_steps = 0
 
-        done = False
-        action = np.zeros((15,))
-        ob = self.reset(cfg.furniture_id, cfg.background)
-        disconnected = False
-        while not done:
-            # keep left and right hand closed, disconnect
-            action[-2] = action[-1] = 1
-            if not disconnected:
-                action[-1] = 1
-                disconnected = True
-            else:
-                # move left hand up
-                left_hand_pos = self._get_pos("l_g_grip_site")
-                above_left_hand_pos = left_hand_pos + [0, 0, 0.01]
-                d = above_left_hand_pos - left_hand_pos
-                action[6:9] = d
-            ob, reward, done, info = self.step(action)
-            self.render()
+            while not done:
+                action = np.zeros((15,))
+                # keep left and right hand closed, disconnect
+                action[-3] = action[-2] = 1
+                # if phase == 0:
+                #     action[-1] = 1
+                #     phase = 1
+                if phase == 0:
+                    # move left to the right, and move right hand to the left for X steps
+                    action[6] = 0.2
+                    action[0] = -0.05
+                    move_steps += 1
+                    # add some random noise to peg gripper
+                    if move_steps > 11:
+                        r = 0.5
+                        action[6] += self._rng.uniform(-0.2, r)
+                        action[7] += self._rng.uniform(-r, r)
+                    if move_steps == 15:
+                        phase = 2
+                        move_steps = 0
+                elif phase == 2:
+                    action[-2] = -1
+                    # action[-3] = -1
+                    move_steps += 1
+                    if move_steps == 2:
+                        phase = 3
+
+                ob, reward, done, info = self.step(action)
+                if cfg.render:
+                    self.render()
+                if cfg.record:
+                    vr.capture_frame(self.render("rgb_array")[0])
+                if phase == 3:
+                    done = True
+                    if cfg.record_demo:
+                        self.save_demo()
+                    if cfg.record:
+                        vr.close(f"baxtertoytabledis_{i}.mp4")
 
 
 def main():
@@ -202,10 +351,15 @@ def main():
     env.generate_demos(1)
 
     # import pickle
-    # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
+
+    # with open("demos/Baxter_toy_table_0009.pkl", "rb") as f:
     #     demo = pickle.load(f)
+    #     print(demo["qpos"][-1])
+    #     import ipdb
+
+    #     ipdb.set_trace()
     # env.reset()
-    # print(len(demo['actions']))
+    # print(len(demo["actions"]))
 
     # from util.video_recorder import VideoRecorder
     # vr = VideoRecorder()

@@ -68,6 +68,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
+        self.sim.model.opt.gravity[-1] = -1
         # discretize gripper action
         if self._discretize_grip:
             a = a.copy()
@@ -224,26 +225,13 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         name, path = self.all_fps[seed]
         demo = self.load_demo(seed)
         # initialize the robot and block to initial demonstraiton state
+        qpos_idx = 0
         self._init_qpos = {
-            "qpos": [
-                0.7495928,
-                -0.15656232,
-                -0.01962964,
-                0.7843142,
-                -0.15409112,
-                0.93465176,
-                -2.69662616,
-                -0.61843795,
-                -0.40832846,
-                0.17617432,
-                1.45303626,
-                -0.26138213,
-                0.58345237,
-                -2.83053238,
-            ],
-            "4_part4": demo["qpos"][0]["4_part4"],
-            "2_part2": demo["qpos"][0]["2_part2"],
-            "r_gripper": [-0.01962848, 0.01962187],
+            "qpos": demo["qpos"][qpos_idx]["qpos"],
+            "4_part4": demo["qpos"][qpos_idx]["4_part4"],
+            "2_part2": demo["qpos"][qpos_idx]["2_part2"],
+            "r_gripper": demo["qpos"][qpos_idx]["r_gripper"],
+            "l_gripper": demo["qpos"][qpos_idx]["l_gripper"],
         }
         # set toy table pose
         pos_init = []
@@ -259,7 +247,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         ]
         self.sim.data.qpos[
             self._ref_gripper_left_joint_pos_indexes
-        ] = self.gripper_left.init_qpos
+        ] = self._init_qpos["l_gripper"]
 
         # enable robot collision
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
@@ -342,7 +330,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         return rew, done, info
 
     def load_demo(self, seed):
-        name, path = self.all_fps[seed]
+        path = self.all_fps[seed][1]
         demo = {}
         with open(path, "rb") as f:
             data = pickle.load(f)

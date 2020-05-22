@@ -244,8 +244,8 @@ def main():
 
     # create an environment and run manual control of Cursor environment
     env = FurnitureCursorToyTableDisEnv(config)
-    env.generate_demos(config.num_demos)
-    # env.run_manual(config)
+    # env.generate_demos(config.num_demos)
+    env.run_manual(config)
 
 
 if __name__ == "__main__":
