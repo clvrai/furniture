@@ -10,6 +10,10 @@ import numpy as np
 import gym.spaces
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
+from torch import tensor
+from torchvision.utils import make_grid
+import matplotlib.pyplot as plt
+
 
 import env.transform_utils as T
 from env.base import EnvMeta
@@ -2260,6 +2264,29 @@ class FurnitureEnv(metaclass=EnvMeta):
             print("current_scale", 1 + self._manual_resize)
             self.reset(config.furniture_id, config.background)
             self._action_on = False
+
+
+    def run_img(self, config):
+        """
+        Run a resizing program in unity for adjusting furniture size in xml
+        """
+        if config.furniture_name is not None:
+            config.furniture_id = furniture_name2id[config.furniture_name]
+        ob = self.reset(config.furniture_id, config.background)
+        self.render()
+        flag = [-1, -1]
+        n_img = 20
+        grid = tensor(np.zeros((n_img, 3, self._screen_height, self._screen_width)))
+        blended = np.zeros((3, self._screen_height, self._screen_width))
+        for i in range(n_img):
+            grid[i] = (tensor(np.transpose((self.render("rgb_array")[0]), (2,0,1))))
+            blended += grid[i].numpy()
+            self.reset(config.furniture_id, config.background)
+
+        grid = make_grid(grid, nrow=4).numpy()
+        plt.imsave('grid' + str(n_img) +'.jpg', np.transpose(grid, (1,2,0)))
+        blended = blended / n_img
+        plt.imsave('blended' + str(n_img) + '.jpg', np.transpose(blended, (1,2,0)))
 
     def _get_reference(self):
         """

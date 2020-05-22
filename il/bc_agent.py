@@ -112,10 +112,14 @@ class BCAgent(BaseAgent):
                 pred_ac = [x.unsqueeze(0) for x in pred_ac]
             pred_ac = torch.cat(pred_ac, dim=-1)
 
-        actor_loss = (ac - pred_ac).pow(2).mean()
+        diff = (ac - pred_ac)
+        actor_loss = diff.pow(2).mean()
         info["actor_loss"] = actor_loss.cpu().item()
         info["pred_ac"] = pred_ac.cpu().detach()
         info["GT_ac"] = ac.cpu()
+        diff = torch.sum(torch.abs(diff), axis=0).cpu()
+        for i in range(diff.shape[0]):
+            info['action'+ str(i) + '_L1loss'] = diff[i].item()
 
         # update the actor
         self._actor_optim.zero_grad()
