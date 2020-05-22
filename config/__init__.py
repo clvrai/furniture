@@ -51,12 +51,12 @@ def create_parser(env="") -> argparse.ArgumentParser:
             import config.furniture_sawyer_toytable as f
 
             f.add_argument(parser)
-        elif "FurnitureBaxterToyTableAssembleEnv":
+        elif "FurnitureBaxterToyTableAssembleEnv" in [env, args.env]:
             import config.furniture_baxter_toytable_assemble as f
 
             f.add_argument(parser)
         elif "FurnitureBaxterToyTableEnv" in [env, args.env]:
-            import config.furniture_sawyer_toytable as f
+            import config.furniture_baxter_toytable as f
 
             f.add_argument(parser)
         elif "FurnitureSawyerPlaceEnv" in [env, args.env]:

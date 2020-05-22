@@ -348,7 +348,7 @@ def main():
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterToyTableEnv(config)
     # env.run_manual(config)
-    env.generate_demos(1)
+    env.generate_demos(config.num_demos)
 
     # import pickle
 

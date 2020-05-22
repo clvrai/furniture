@@ -18,3 +18,6 @@ def add_argument(parser):
     parser.add_argument('--discretize_grip', type=str2bool, default=False, help='make grip dimension discrete action')
     parser.add_argument('--xy_dist_rew', type=float, default=50, help='rew for successful xy dist')
     parser.add_argument('--z_dist_rew', type=float, default=50, help='rew for successful z')
+    parser.add_argument(
+        "--num_demos", type=int, default=10000, help="number of demos"
+    )
