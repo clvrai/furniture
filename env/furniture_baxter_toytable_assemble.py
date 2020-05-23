@@ -64,6 +64,11 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         self.seed_train = np.arange(0, len(train_fps))
         self.seed_test = np.arange(len(train_fps), len(train_fps) + len(test_fps))
 
+        # max rotation values
+        b = 0.2
+        self._right_rotation_min = self._left_rotation_min = -np.array([b, b, b])
+        self._right_rotation_max = self._left_rotation_max = np.array([b, b, b])
+
     def _step(self, a):
         """
         Takes a simulation step with @a and computes reward.
@@ -76,16 +81,29 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
             a[-3] = -1 if a[-3] < 0 else 1
         # always hold table
         a[-3] = 1
+        # restrict the arm rotations to 15 degrees
+        print(f"right arm relative rotation {a[3:6]}")
+        print(f"left arm relative rotation {a[9:12]}")
+        right_rotation = a[3:6] + self._right_rotation
+        left_rotation = a[9:12] + self._left_rotation
+        clip_right = np.clip(
+            right_rotation, self._right_rotation_min, self._right_rotation_max
+        )
+        clip_left = np.clip(
+            left_rotation, self._left_rotation_min, self._left_rotation_max
+        )
+        clip_right_action = clip_right - self._right_rotation
+        clip_left_action = clip_left - self._left_rotation
+        a[3:6] = clip_right_action
+        a[9:12] = clip_left_action
+        self._right_rotation = clip_right
+        self._left_rotation = clip_left
+        print('-' * 80)
+        print(f"right arm relative rotation {a[3:6]}")
+        print(f"left arm relative rotation {a[9:12]}")
+
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
-        # check if table moved too much
-        # table_pos = ob["object_ob"][:7]
-        # table_drift = np.abs(np.linalg.norm(table_pos - self._init_qpos["4_part4"]))
-        # if table_drift > 0.03:
-        #     done = True
-        #     info["table_oob"] = True
-        #     logger.warning(f"Table moved too much: {table_drift}")
-
         if self._debug:
             part2_ob_pose = ob["object_ob"][7:]
             cos_sim = forward_vector_cos_dist(
@@ -303,6 +321,10 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         self._target_body1 = self.sim.model.body_id2name(id1)
         self._target_body2 = self.sim.model.body_id2name(id2)
 
+        # limit action space
+        self._left_rotation = np.zeros(3)
+        self._right_rotation = np.zeros(3)
+
     def _place_objects(self):
         """
         Returns fixed initial position and rotations of the toy table.
@@ -325,8 +347,8 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
 
     def _compute_reward(self, action) -> Tuple[float, bool, dict]:
         rew = 0
-        self._success = self._is_aligned("leg-top,,conn_site4", "top-leg,,conn_site4")
-        done = self._success
+        # self._success = self._is_aligned("leg-top,,conn_site4", "top-leg,,conn_site4")
+        done = False
         info = {}
         return rew, done, info
 
@@ -398,7 +420,7 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         return True
 
     def get_env_success(self, ob, goal):
-        return self._success
+        return self.is_success(ob, goal)
 
     def compute_reward(self, achieved_goal, goal, info=None):
         success = self.is_success(achieved_goal, goal).astype(np.float32)
