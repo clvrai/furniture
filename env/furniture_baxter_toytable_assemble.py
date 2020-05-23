@@ -82,8 +82,6 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         # always hold table
         a[-3] = 1
         # restrict the arm rotations to 15 degrees
-        print(f"right arm relative rotation {a[3:6]}")
-        print(f"left arm relative rotation {a[9:12]}")
         right_rotation = a[3:6] + self._right_rotation
         left_rotation = a[9:12] + self._left_rotation
         clip_right = np.clip(
@@ -98,9 +96,6 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         a[9:12] = clip_left_action
         self._right_rotation = clip_right
         self._left_rotation = clip_left
-        print('-' * 80)
-        print(f"right arm relative rotation {a[3:6]}")
-        print(f"left arm relative rotation {a[9:12]}")
 
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
