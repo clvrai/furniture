@@ -132,7 +132,7 @@ class Trainer(object):
                 replay_buffers = {"replay": self._agent.replay_buffer()}
                 pickle.dump(replay_buffers, f)
 
-    def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
+    def _load_ckpt(self, ckpt_path, ckpt_num):
         """
         Loads checkpoint with path @ckpt_path or index number @ckpt_num. If @ckpt_num is None,
         it loads and returns the checkpoint with the largest index number.
@@ -157,9 +157,8 @@ class Trainer(object):
                     self._agent.load_replay_buffer(replay_buffers["replay"])
 
             return ckpt["step"], ckpt["update_iter"]
-        else:
-            logger.warn("Randomly initialize models")
-            return 0, 0
+        logger.warn("Randomly initialize models")
+        return 0, 0
 
     def _log_train(self, step, train_info, ep_info):
         """
@@ -205,9 +204,7 @@ class Trainer(object):
         config = self._config
 
         # load checkpoint
-        step, update_iter = self._load_ckpt()
-        if config.init_ckpt_path:
-            self._load_ckpt(ckpt_path=config.init_ckpt_path)
+        step, update_iter = self._load_ckpt(config.init_ckpt_path, config.ckpt_num)
 
         # sync the networks across the cpus
         self._agent.sync_networks()
@@ -238,7 +235,8 @@ class Trainer(object):
             # train an agent
             logger.info("Update networks %d", update_iter)
             train_info = self._agent.train()
-
+            print('loss: ', train_info['actor_loss'])
+            # print('GT ac: ', train_info['GT_ac'])
             logger.info("Update networks done")
 
             if runner and step < config.max_ob_norm_step:
@@ -265,7 +263,7 @@ class Trainer(object):
 
                 if update_iter % config.evaluate_interval == 1:
                     logger.info("Evaluate at %d", update_iter)
-                    rollout, info = self._evaluate(step=step, record=config.record)
+                    rollout, info = self._evaluate(step=step, record_vid=config.record_vid, record_demo=config.record_demo)
                     self._log_test(step, info)
 
                 if update_iter % config.ckpt_interval == 0:
@@ -278,9 +276,7 @@ class Trainer(object):
         config = self._config
 
         # load checkpoint
-        step, update_iter = self._load_ckpt()
-        if config.init_ckpt_path:
-            self._load_ckpt(ckpt_path=config.init_ckpt_path)
+        step, update_iter = self._load_ckpt(config.init_ckpt_path, config.ckpt_num)
 
         # sync the networks across the cpus
         self._agent.sync_networks()
@@ -343,7 +339,7 @@ class Trainer(object):
 
                 if update_iter % config.evaluate_interval == 1:
                     logger.info("Evaluate at %d", update_iter)
-                    rollout, info = self._evaluate(step=step, record=config.record)
+                    rollout, info = self._evaluate(step=step, record_vid=config.record_vid, record_demo=config.record_demo)
                     self._log_test(step, info)
 
                 if update_iter % config.ckpt_interval == 0:
@@ -356,14 +352,15 @@ class Trainer(object):
         if self._config.ob_norm:
             self._agent.update_normalizer(rollout["ob"])
 
-    def _evaluate(self, step=None, record=False, idx=None):
+    def _evaluate(self, step=None, record_vid=False, record_demo=False, idx=None):
         """
         Runs one rollout if in eval mode (@idx is not None).
         Runs num_record_samples rollouts if in train mode (@idx is None).
 
         Args:
             step: the number of environment steps.
-            record: whether to record video or not.
+            record_vid: whether to record video or not.
+            record_demo: whether to record demo or not.
         """
         logger.info(
             "Run %d evaluations at step=%d", self._config.num_record_samples, step
@@ -371,10 +368,10 @@ class Trainer(object):
 
         for i in range(self._config.num_record_samples):
             rollout, info, frames = self._runner.run_episode(
-                is_train=False, record=record
+                is_train=False, record_vid=record_vid, record_demo=record_demo, train_step=step
             )
 
-            if record:
+            if record_vid:
                 ep_rew = info["rew"]
                 ep_success = "s" if info["episode_success"] else "f"
                 fname = "{}_step_{:011d}_{}_r_{}_{}.mp4".format(
@@ -395,7 +392,7 @@ class Trainer(object):
 
     def evaluate(self):
         """ Evaluates an agent stored in chekpoint with @self._config.ckpt_num. """
-        step, update_iter = self._load_ckpt(ckpt_num=self._config.ckpt_num)
+        step, update_iter = self._load_ckpt(self._config.init_ckpt_path, self._config.ckpt_num)
 
         logger.info(
             "Run %d evaluations at step=%d, update_iter=%d",
@@ -407,7 +404,7 @@ class Trainer(object):
         rollouts = []
         for i in trange(self._config.num_eval):
             logger.warn("Evalute run %d", i + 1)
-            rollout, info = self._evaluate(step=step, record=self._config.record, idx=i)
+            rollout, info = self._evaluate(step=step, record_vid=self._config.record_vid, record_demo=self._config.record_demo, idx=i)
             for k, v in info.items():
                 info_history[k].append(v)
             if self._config.save_rollout:

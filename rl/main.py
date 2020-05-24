@@ -81,7 +81,7 @@ def set_log_path(config):
     """
     method = "il" if config.algo in ["bc", "gail"] else "rl"
     config.run_name = "{}.{}.{}.{}.{}".format(
-        method, config.env, config.algo, config.prefix, config.seed
+        method, config.env, config.algo, config.run_prefix, config.seed
     )
     config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     config.record_dir = os.path.join(config.log_dir, "video")

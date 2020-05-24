@@ -143,14 +143,16 @@ class RolloutRunner(object):
                 rollout.add({"ob": ob})
                 yield rollout.get(), ep_info.get_dict(only_scalar=True)
 
-    def run_episode(self, max_step=10000, is_train=True, record=False):
+    def run_episode(self, max_step=10000, is_train=True, record_vid=False, record_demo=False, train_step=None):
         """
         Runs one episode and returns the rollout.
 
         Args:
             max_step: maximum number of steps of the rollout.
             is_train: whether rollout is for training or evaluation.
-            record: record videos of rollout if True.
+            record_vid: record videos of rollout if True.
+            record_demo: record demo of rollout if True.
+            train_step: give current training_step of model if available
         """
         config = self._config
         device = config.device
@@ -171,10 +173,9 @@ class RolloutRunner(object):
         if self._config.eval_on_train_set:
             with open("demos/Sawyer_toy_table_0000.pkl", "rb") as f:
                 demo = pickle.load(f)
-                # print(demo['obs'][0])
                 # print('train starting furn ob', (demo['obs'][0]['object_ob']))
                 # print('train starting robot ob', (demo['obs'][0]['robot_ob']))
-                env.set_init_qpos(demo["qpos"][0])
+                env.set_init_qpos(demo['qpos'][0])
             # print('demo_ob', demo_ob['robot_ob'])
 
         ob = env.reset()
@@ -182,14 +183,15 @@ class RolloutRunner(object):
         # print('eval starting robot ob', (ob['robot_ob']))
 
         self._record_frames = []
-        if record:
+        if record_vid:
             self._store_frame(env)
 
         # run rollout
         while not done and ep_len < max_step:
             # sample action from policy
             ac, ac_before_activation = pi.act(ob, is_train=is_train)
-
+            # if ep_len < 1:
+            #      print('pred_ac', ac)
             rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
@@ -208,7 +210,7 @@ class RolloutRunner(object):
 
             for key, value in info.items():
                 reward_info[key].append(value)
-            if record:
+            if record_vid:
                 frame_info = info.copy()
                 if gail:
                     frame_info.update(
@@ -216,6 +218,11 @@ class RolloutRunner(object):
                     )
                 self._store_frame(env, frame_info)
 
+        if record_demo:
+            if train_step:
+                env._demo.save(env.file_prefix + '_train_step' + str(train_step) + '_')
+            else:
+                env._demo.save(env.file_prefix + '_novice_')
         # compute average/sum of information
         ep_info = {"len": ep_len, "rew": ep_rew}
         if gail:

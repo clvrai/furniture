@@ -12,7 +12,7 @@ class FloorTask(Task):
     arena, and the objetcts into a single MJCF model.
     """
 
-    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, mujoco_equality, rng=None, initializer=None):
+    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, mujoco_equality, config, rng=None, initializer=None):
         """
         Args:
             mujoco_arena: MJCF model of robot workspace
@@ -27,11 +27,15 @@ class FloorTask(Task):
         self.merge_objects(mujoco_objects)
         self.merge_equality(mujoco_equality)
         if initializer is None:
-            initializer = UniformRandomSampler(rng=rng, ensure_object_boundary_in_range=False)
+            r = config.furn_placement_randomness
+            x = [-r, r]
+            y = [-r, r]
+            initializer = UniformRandomSampler(rng=rng, ensure_object_boundary_in_range=False, x_range=x, y_range=y)
 
         self.initializer = initializer
         self.initializer.setup(mujoco_objects, (0, -0.05, 0), (0.7, 0.7, 0))
 
+        self._config = config
         self.rng = rng
 
     def merge_robot(self, mujoco_robot):
@@ -70,5 +74,6 @@ class FloorTask(Task):
 
     def place_objects(self):
         """Places objects randomly until no collisions or max iterations hit."""
+        print('here')
         return self.initializer.sample()
 
