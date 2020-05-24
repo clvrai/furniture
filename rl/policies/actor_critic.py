@@ -12,7 +12,7 @@ from rl.policies.distributions import (
     Identity,
     MixedDistribution,
 )
-from util.pytorch import to_tensor
+from util.pytorch import to_tensor, center_crop
 
 
 class Actor(nn.Module):
@@ -29,6 +29,12 @@ class Actor(nn.Module):
         return {}
 
     def act(self, ob, is_train=True, return_log_prob=False):
+        if self._config.encoder_type == "cnn":
+            ob = ob.copy()
+            for k, v in ob.items():
+                if len(v.shape) in [3, 4]:
+                    ob[k] = center_crop(v, self._config.encoder_image_size)
+
         ob = to_tensor(ob, self._config.device)
         self._ob = ob
         means, stds = self.forward(ob)

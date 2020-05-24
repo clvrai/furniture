@@ -3,6 +3,8 @@ from time import time
 
 import numpy as np
 
+from util.pytorch import random_crop
+
 
 class ReplayBuffer:
     def __init__(self, keys, buffer_size, sample_func):
@@ -57,6 +59,9 @@ class ReplayBuffer:
 
 
 class RandomSampler:
+    def __init__(self, image_crop_size=84):
+        self._image_crop_size = image_crop_size
+
     def sample_func(self, episode_batch, batch_size_in_transitions):
         rollout_batch_size = len(episode_batch["ac"])
         batch_size = batch_size_in_transitions
@@ -88,6 +93,14 @@ class RandomSampler:
                 }
             else:
                 new_transitions[k] = np.stack(v)
+
+        for k, v in new_transitions["ob"].items():
+            if len(v.shape) in [4, 5]:
+                new_transitions["ob"][k] = random_crop(v, self._image_crop_size)
+
+        for k, v in new_transitions["ob_next"].items():
+            if len(v.shape) in [4, 5]:
+                new_transitions["ob_next"][k] = random_crop(v, self._image_crop_size)
 
         return new_transitions
 

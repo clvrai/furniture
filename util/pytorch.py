@@ -166,14 +166,15 @@ def _set_flat_grads(network, grads_shape, flat_grads):
         device = torch.device("cpu")
 
     for key_name, value in network.named_parameters():
-        len_grads = np.prod(grads_shape[key_name])
-        copy_grads = flat_grads[pointer : pointer + len_grads].reshape(
-            grads_shape[key_name]
-        )
-        copy_grads = torch.tensor(copy_grads).to(device)
-        # copy the grads
-        value.grad.data.copy_(copy_grads.data)
-        pointer += len_grads
+        if key_name in grads_shape:
+            len_grads = np.prod(grads_shape[key_name])
+            copy_grads = flat_grads[pointer : pointer + len_grads].reshape(
+                grads_shape[key_name]
+            )
+            copy_grads = torch.tensor(copy_grads).to(device)
+            # copy the grads
+            value.grad.data.copy_(copy_grads.data)
+            pointer += len_grads
 
 
 def _get_flat_grads(network):
@@ -184,9 +185,8 @@ def _get_flat_grads(network):
             grads_shape[key_name] = value.grad.data.cpu().numpy().shape
         except:
             print("Cannot get grad of tensor {}".format(key_name))
-            import ipdb
+            continue
 
-            ipdb.set_trace()
         if flat_grads is None:
             flat_grads = value.grad.data.cpu().numpy().flatten()
         else:
@@ -284,3 +284,52 @@ def unflatten(flattened, separator="."):
         d[parts[-1]] = value
 
     return result
+
+
+# from https://github.com/MishaLaskin/rad/blob/master/utils.py
+def center_crop(img, out=84):
+    """
+        args:
+        imgs: np.array shape (H,W,C) or (N,H,W,C)
+        out: output size (e.g. 84)
+        returns np.array shape (1,C,H,W) or (1,N*C,H,W)
+    """
+    if len(img.shape) == 3:
+        img = img.transpose(2, 0, 1)
+    elif len(img.shape) == 4:
+        img = img.transpose(0, 3, 1, 2).reshape(-1, img.shape[1], img.shape[2])
+
+    h, w = img.shape[1:]
+    new_h, new_w = out, out
+
+    top = (h - new_h) // 2
+    left = (w - new_w) // 2
+
+    img = img[:, top : top + new_h, left : left + new_w]
+    img = np.expand_dims(img, axis=0)
+    return img
+
+
+# from https://github.com/MishaLaskin/rad/blob/master/data_augs.py
+def random_crop(imgs, out=84):
+    """
+        args:
+        imgs: np.array shape (B,H,W,C) or (B,N,H,W,C)
+        out: output size (e.g. 84)
+        returns np.array shape (B,C,H,W) or (B,N*C,H,W)
+    """
+    if len(imgs.shape) == 4:
+        imgs = imgs.transpose(0, 3, 1, 2)
+    elif len(imgs.shape) == 5:
+        imgs = imgs.transpose(0, 1, 4, 2, 3).reshape(
+            imgs.shape[0], -1, imgs.shape[2], imgs.shape[3]
+        )
+
+    b, c, h, w = imgs.shape
+    crop_max = h - out + 1
+    w1 = np.random.randint(0, crop_max, b)
+    h1 = np.random.randint(0, crop_max, b)
+    cropped = np.empty((b, c, out, out), dtype=imgs.dtype)
+    for i, (img, w11, h11) in enumerate(zip(imgs, w1, h1)):
+        cropped[i] = img[:, h11 : h11 + out, w11 : w11 + out]
+    return cropped

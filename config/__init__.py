@@ -52,7 +52,7 @@ def create_parser(env=None):
     )
 
     # rl
-    parser.add_argument("--rl_hid_size", type=int, default=128)
+    parser.add_argument("--rl_hid_size", type=int, default=1024)
     parser.add_argument(
         "--rl_activation", type=str, default="relu", choices=["relu", "elu", "tanh"]
     )
@@ -123,9 +123,15 @@ def create_parser(env=None):
     parser.add_argument(
         "--encoder_type", type=str, default="mlp", choices=["mlp", "cnn"]
     )
-    parser.add_argument("--encoder_num_filters", type=int, default=32)
-    parser.add_argument("--encoder_num_layers", type=int, default=4)
-    parser.add_argument("--encoder_output_dim", type=int, default=1024)
+    parser.add_argument("--encoder_image_size", type=int, default=84)
+    parser.add_argument("--encoder_conv_dim", type=int, default=32)
+    parser.add_argument("--encoder_mlp_dim", nargs="+", default=[128, 128])
+    parser.add_argument("--encoder_kernel_size", nargs="+", default=[3, 3, 3, 3])
+    parser.add_argument("--encoder_stride", nargs="+", default=[2, 1, 1, 1])
+    parser.add_argument("--encoder_conv_output_dim", type=int, default=50)
+    args, unparsed = parser.parse_known_args()
+    if args.encoder_type == "cnn":
+        parser.set_defaults(screen_width=100, screen_height=100)
 
     # log
     parser.add_argument("--log_interval", type=int, default=1)
@@ -207,6 +213,5 @@ def argparser():
     """
     parser = create_parser()
     args, unparsed = parser.parse_known_args()
-    args.env_args_str = args.env_args
 
     return args, unparsed

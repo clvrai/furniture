@@ -55,7 +55,7 @@ class SACAgent(BaseAgent):
             self._critic2.parameters(), lr=config.lr_critic
         )
 
-        sampler = RandomSampler()
+        sampler = RandomSampler(image_crop_size=config.encoder_image_size)
         buffer_keys = ["ob", "ac", "done", "rew"]
         self._buffer = ReplayBuffer(
             buffer_keys, config.buffer_size, sampler.sample_func

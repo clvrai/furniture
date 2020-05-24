@@ -12,6 +12,7 @@ from il.bc_dataset import ILDataset
 import random
 import pickle
 
+
 class Rollout(object):
     """
     Rollout storing an episode.
@@ -170,15 +171,15 @@ class RolloutRunner(object):
         if self._config.eval_on_train_set:
             with open("demos/Sawyer_toy_table_0000.pkl", "rb") as f:
                 demo = pickle.load(f)
-                #print(demo['obs'][0])
-                print('train starting furn ob', (demo['obs'][0]['object_ob']))
-                print('train starting robot ob', (demo['obs'][0]['robot_ob']))
-                env.set_init_qpos(demo['qpos'][0])
+                # print(demo['obs'][0])
+                # print('train starting furn ob', (demo['obs'][0]['object_ob']))
+                # print('train starting robot ob', (demo['obs'][0]['robot_ob']))
+                env.set_init_qpos(demo["qpos"][0])
             # print('demo_ob', demo_ob['robot_ob'])
 
         ob = env.reset()
-        print('eval starting furn ob', (ob['object_ob']))
-        print('eval starting robot ob', (ob['robot_ob']))
+        # print('eval starting furn ob', (ob['object_ob']))
+        # print('eval starting robot ob', (ob['robot_ob']))
 
         self._record_frames = []
         if record:

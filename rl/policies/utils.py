@@ -5,15 +5,14 @@ import torch.nn.functional as F
 
 
 class CNN(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, input_dim):
         super().__init__()
-        self.activation_fn = getattr(F, config.rl_activation)
 
         self.convs = nn.ModuleList()
-        d_prev = 3
-        d = config.conv_dim
-        w = config.screen_width
-        for k, s in zip(config.kernel_size, config.stride):
+        d_prev = input_dim
+        d = config.encoder_conv_dim
+        w = config.encoder_image_size
+        for k, s in zip(config.encoder_kernel_size, config.encoder_stride):
             self.convs.append(nn.Conv2d(d_prev, d, int(k), int(s)))
             w = int(np.floor((w - (int(k) - 1) - 1) / int(s) + 1))
             d_prev = d
@@ -23,15 +22,33 @@ class CNN(nn.Module):
         # screen_width == 128 (8,4)-(3,2)-(3,2)-(3,2) -> 3x3
         # screen_width == 256 (8,4)-(3,2)-(3,2)-(3,2) -> 7x7
 
-        print("Output of CNN = %d x %d x %d" % (w, w, d))
-        self.output_size = w * w * d
+        print("Output of CNN (%d) = %d x %d x %d" % (w * w * d, w, w, d))
+        self.output_dim = config.encoder_conv_output_dim
 
-    def forward(self, ob):
+        self.fc = nn.Linear(w * w * d, self.output_dim)
+        self.ln = nn.LayerNorm(self.output_dim)
+
+    def forward(self, ob, detach_cnn=False):
         out = ob
         for conv in self.convs:
-            out = self.activation_fn(conv(out))
+            out = F.relu(conv(out))
         out = out.flatten(start_dim=1)
+
+        if detach_cnn:
+            out = out.detach()
+
+        out = self.fc(out)
+        out = self.ln(out)
+        out = F.tanh(out)
+
         return out
+
+    # from https://github.com/MishaLaskin/rad/blob/master/encoder.py
+    def copy_conv_weights_from(self, source):
+        """Tie convolutional layers"""
+        # only tie conv layers
+        for i, conv in enumerate(self.convs):
+            tie_weights(src=source.convs[i], trg=conv)
 
 
 def fanin_init(tensor):
@@ -65,6 +82,8 @@ class MLP(nn.Module):
         self.fcs.append(nn.Linear(prev_dim, output_dim))
         self.fcs[-1].weight.data.uniform_(-1e-3, 1e-3)
         self.fcs[-1].bias.data.uniform_(-1e-3, 1e-3)
+
+        self.output_dim = output_dim
 
     def forward(self, ob):
         out = ob
@@ -113,3 +132,11 @@ def flatten_ob(ob: dict, ac=None):
         inp.extend(ac)
     inp = torch.cat(inp, dim=-1)
     return inp
+
+
+def flatten_ac(ac: dict):
+    ac = list(ac.values())
+    if len(ac[0].shape) == 1:
+        ac = [x.unsqueeze(0) for x in ac]
+    ac = torch.cat(ac, dim=-1)
+    return ac

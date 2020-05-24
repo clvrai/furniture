@@ -10,5 +10,15 @@ def get_actor_critic_by_name(name, algo):
         else:
             actor = MlpActor
         return actor, MlpCritic
+
+    elif name == "cnn":
+        from .cnn_actor_critic import CnnActor, CnnCritic
+
+        if algo in ["bc"]:
+            return CnnActor, None
+        else:
+            actor = CnnActor
+        return actor, CnnCritic
+
     else:
-        raise ValueError("--policy %s is not supported." % name)
+        raise ValueError("--encoder_type %s is not supported." % name)
