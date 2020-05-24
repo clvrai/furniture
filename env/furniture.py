@@ -1779,8 +1779,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif key == glfw.KEY_Y:
             action = "save"
         elif key == glfw.KEY_ESCAPE:
-            self.reset()
-            return
+            action = "reset"
         else:
             return
 
@@ -1837,8 +1836,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif key == "Y":
             action = "save"
         elif key == "Escape":
-            self.reset()
-            return
+            action = "reset"
         else:
             return
 
@@ -1866,8 +1864,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif key == "Y":
             action = "save"
         elif key == "Escape":
-            self.reset()
-            return
+            action = "reset"
         else:
             return
 
@@ -1883,9 +1880,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
         if self._config.record:
-            prefix = (
-                self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
-            )
+            prefix = self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
             if self._record_demo:
                 vr = VideoRecorder(prefix=prefix, demo_dir=config.demo_dir)
             else:
@@ -2046,16 +2041,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             config.furniture_id = furniture_name2id[config.furniture_name]
         ob = self.reset(config.furniture_id, config.background)
 
-        if config.render:
-            self.render()
-
-        from util.video_recorder import VideoRecorder
-
         vr = None
         if self._config.record:
-            prefix = (
-                self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
-            )
+            prefix = self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
             if self._record_demo:
                 vr = VideoRecorder(prefix=prefix, demo_dir=config.demo_dir)
             else:
@@ -2077,14 +2065,20 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if config.unity:
                     self.key_input_unity()
 
-                if config.render:
-                    self.render()
-
                 if not self._action_on:
                     time.sleep(0.1)
                     continue
 
                 action = np.zeros((8,))
+
+                if self.action == "reset":
+                    self.reset()
+                    if self._config.record:
+                        vr.capture_frame(self.render("rgb_array")[0])
+                    else:
+                        self.render()
+                    self._action_on = False
+                    continue
 
                 if self.action == "switch1":
                     cursor_idx = 0
@@ -2228,17 +2222,23 @@ class FurnitureEnv(metaclass=EnvMeta):
             config.furniture_id = furniture_name2id[config.furniture_name]
         ob = self.reset(config.furniture_id, config.background)
         self.render()
-        self.render()
         cursor_idx = 0
         flag = [-1, -1]
         t = 0
         while True:
             if config.unity:
                 self.resize_key_input_unity()
-            self.render()
+
             if not self._action_on:
                 time.sleep(0.1)
                 continue
+
+            if self.action == "reset":
+                self.reset()
+                self.render()
+                self._action_on = False
+                continue
+
             # move
             if self.action == "smaller":
                 self._manual_resize -= 0.1
