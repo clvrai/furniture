@@ -1,6 +1,9 @@
 from collections import defaultdict
 from time import time
+
 import numpy as np
+
+from util.segment_tree import MinSegmentTree, SumSegmentTree
 
 
 class ReplayBuffer:
@@ -15,9 +18,30 @@ class ReplayBuffer:
         # create the buffer to store info
         self._keys = {"ob", "ag", "g", "ac", "rew"}
         self._buffers = defaultdict(list)
+    
+    def store_current_transition(self, transition, init=False):
+        """
+        Stores a transition in the current episode. First init
+        an episode idx. Use this episode idx for the rest of the episode
+        for storing into replay buffer. If episode idx is larger than buffer
+        size, than cycle episode idx back to 0 to overwrite oldest episode.
+        """
+        idx = -1
+        if init:
+            self._current_size += 1
+            if self._current_size < self._size:
+                for k in self._keys:
+                    self._buffers[k].append([])
+            else:
+                idx = self._current_size % self._size
+        for k in transition.keys():
+            if k in self._keys:
+                self._buffers[k][idx].append(transition[k])
 
-    # store the episode
     def store_episode(self, rollout):
+        """
+        Stores a full episode
+        """
         idx = self._idx = (self._idx + 1) % self._size
         self._current_size += 1
 
@@ -141,10 +165,13 @@ class HERSampler:
 
         # select which rollouts and which timesteps to be used
         episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
-        t_samples = [
-            np.random.randint(len(episode_batch["ac"][episode_idx]))
-            for episode_idx in episode_idxs
-        ]
+        t_samples = []
+        for episode_idx in episode_idxs:
+            if len(episode_batch["ac"][episode_idx]) + 1 == len(episode_batch["ob"][episode_idx]):
+                t = np.random.randint(len(episode_batch["ac"][episode_idx]))
+            else:
+                t = np.random.randint(len(episode_batch["ac"][episode_idx]) - 1)
+            t_samples.append(t)
 
         transitions = {}
         for key in episode_batch.keys():
@@ -152,6 +179,9 @@ class HERSampler:
                 episode_batch[key][episode_idx][t]
                 for episode_idx, t in zip(episode_idxs, t_samples)
             ]
+        # for episode_idx, t in zip(episode_idxs, t_samples):
+        #     if t+1 >= len(episode_batch["ob"][episode_idx]):
+        #         import ipdb; ipdb.set_trace()
 
         transitions["ob_next"] = [
             episode_batch["ob"][episode_idx][t + 1]
@@ -163,9 +193,17 @@ class HERSampler:
         for i, (episode_idx, t) in enumerate(zip(episode_idxs, t_samples)):
             replace_goal = np.random.uniform() < self.future_p
             if replace_goal:
-                future_t = np.random.randint(
-                    t + 1, len(episode_batch["ac"][episode_idx]) + 1
-                )
+                if len(episode_batch["ac"][episode_idx]) + 1 == len(episode_batch["ob"][episode_idx]):
+                    future_t = np.random.randint(
+                        t + 1, len(episode_batch["ac"][episode_idx]) + 1
+                    )
+                else:
+                    future_t = np.random.randint(
+                        t + 1, len(episode_batch["ac"][episode_idx])
+                    )
+                # if episode_idx >= len(episode_batch) or future_t >= len(episode_batch["ag"][episode_idx]):
+                #     import ipdb; ipdb.set_trace()
+
                 future_ag = episode_batch["ag"][episode_idx][future_t]
                 if (
                     self.reward_func(
@@ -201,7 +239,6 @@ class HERSampler:
          https://arxiv.org/pdf/1707.08817.pdf
 """
 
-from util.segment_tree import MinSegmentTree, SumSegmentTree
 
 
 class PrioritizedReplayBuffer:

@@ -216,6 +216,15 @@ class SACAgent(object):
     def store_episode(self, rollouts):
         self._buffer.store_episode(rollouts)
 
+    def store_current_transition(self, transition, init=False):
+        """
+        Stores a transition in the current episode. First init
+        an episode idx. Use this episode idx for the rest of the episode
+        for storing into replay buffer. If episode idx is larger than buffer
+        size, than cycle episode idx back to 0 to overwrite oldest episode.
+        """
+        self._buffer.store_current_transition(transition, init)
+
     def state_dict(self):
         return {
             "log_alpha": self._log_alpha.cpu().detach().numpy(),

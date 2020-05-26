@@ -222,12 +222,12 @@ class Trainer(object):
             )
             ep_info = defaultdict(list)
 
-        st_time = time()
-        st_step = step
+        # st_time = time()
+        # st_step = step
         while step < config.max_global_step:
-            rollout, meta_rollout, info = self._runner.run_episode()
+            rollout, meta_rollout, info, train_info = self._runner.run_episode()
             logger.info("rollout: %s", info)
-            self._agent.store_episode(rollout)
+            # self._agent.store_episode(rollout)
             self._meta_agent.store_episode(meta_rollout)
             if step < config.max_ob_norm_step:
                 self._update_normalizer(rollout)
@@ -239,9 +239,9 @@ class Trainer(object):
             meta_train_info = self._meta_agent.train()
             logger.info("Update meta networks done")
 
-            logger.info("Update networks %d", update_iter)
-            train_info = self._agent.train()
-            logger.info("Update networks done")
+            # logger.info("Update networks %d", update_iter)
+            # train_info = self._agent.train()
+            # logger.info("Update networks done")
             train_time = time() - train_start
             logger.info(f"Update took {train_time} seconds")
 
@@ -257,16 +257,16 @@ class Trainer(object):
                             ep_info[k].extend(v)
                         else:
                             ep_info[k].append(v)
-                    train_info.update(
-                        {
-                            "sec": (time() - st_time) / config.log_interval,
-                            "steps_per_sec": (step - st_step) / (time() - st_time),
-                            "update_iter": update_iter,
-                            "train_sec": train_time,
-                        }
-                    )
-                    st_time = time()
-                    st_step = step
+                    # train_info.update(
+                    #     {
+                    #         "sec": (time() - st_time) / config.log_interval,
+                    #         "steps_per_sec": (step - st_step) / (time() - st_time),
+                    #         "update_iter": update_iter,
+                    #         "train_sec": train_time,
+                    #     }
+                    # )
+                    # st_time = time()
+                    # st_step = step
                     self._log_train(
                         step,
                         meta_rollout,
@@ -307,7 +307,7 @@ class Trainer(object):
             self._g_norm.recompute_stats()
 
     def _evaluate(self, step=None, record=False, idx=None):
-        rollout, meta_rollout, info = self._runner.run_episode(
+        rollout, meta_rollout, info, _ = self._runner.run_episode(
             is_train=False, record=record, step=step, idx=idx
         )
         logger.info("eval rollout: %s", info)
@@ -369,6 +369,6 @@ class Trainer(object):
         )
         for i in trange(self._config.num_eval):
             logger.warn("Evalute run %d", i + 1)
-            rollout, meta_rollout, info = self._runner.run_episode(
+            rollout, meta_rollout, info, _ = self._runner.run_episode(
                 is_train=False, record_demo=True
             )

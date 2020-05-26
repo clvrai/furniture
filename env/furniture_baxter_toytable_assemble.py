@@ -394,6 +394,9 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
         return self.is_success(ob, goal)
 
     def compute_reward(self, achieved_goal, goal, info=None):
+        """
+        Used for HER reward function
+        """
         success = self.is_success(achieved_goal, goal).astype(np.float32)
         return success - 1.0
 

@@ -58,6 +58,7 @@ class RolloutRunner(object):
         self._meta_pi = meta_pi
         self._pi = pi
         self._g_estimator = g_estimator
+        self._train_step = 0
 
         if config.ob_norm:
             self._ob_norm = ob_norm.normalize
@@ -94,6 +95,7 @@ class RolloutRunner(object):
         ob_norm = self._ob_norm
         g_norm = self._g_norm
 
+        train_info = {}
         rollout = Rollout(self._config.visual_ob)
         meta_rollout = MetaRollout(self._config.visual_ob)
         reward_info = defaultdict(list)
@@ -174,16 +176,13 @@ class RolloutRunner(object):
             skipped_frames += meta_next_ac
 
             # low-level policy
-            meta_len = 0
             meta_rew = 0.0
-            low_level_len = 0
             gcp_out_of_time = False
             while not done:
-                meta_len += 1
                 ep_len += 1
-                low_level_len += 1
                 ac = pi.act(ob_norm(ob), g_norm(g), is_train=is_train)
                 meta_obs.append(ob)
+                transition = {"ob": ob, "ag": ag, "g": g, "ac": ac}
                 rollout.add({"ob": ob, "ag": ag, "g": g, "ac": ac})
 
                 ob, reward, done, info = env.step(ac)
@@ -197,6 +196,14 @@ class RolloutRunner(object):
                     done = True
 
                 rollout.add({"done": done, "rew": reward})
+                transition.update({"done": done, "rew": reward})
+                init = ep_len == 1
+                self._pi.store_current_transition(transition, init)
+                self._train_step += 1
+                # update SAC policy once buffer is large enough
+                if self._train_step > 256 and ep_len > 2:
+                    train_info = self._pi.train()
+
                 acs.append(ac)
 
                 for key, value in info.items():
@@ -211,7 +218,7 @@ class RolloutRunner(object):
                     max_meta_ac = meta_ac
                     break
 
-                if low_level_len > self._config.gcp_horizon:
+                if ep_len > self._config.gcp_horizon:
                     gcp_out_of_time = True
                     break
             goal_success = env.is_success(ag, g)
@@ -260,6 +267,7 @@ class RolloutRunner(object):
 
         # last frame
         rollout.add({"ob": ob, "ag": ag})
+        self._pi.store_current_transition({"ob": ob, "ag": ag})
         meta_rollout.add({"meta_ob": ob, "meta_ac": meta_ac})
         env_success = env.get_env_success(ob, demo["goal_gt"])
 
@@ -311,7 +319,7 @@ class RolloutRunner(object):
                 else:
                     ep_info[key] = np.sum(value)
 
-        return rollout.get(), meta_rollout.get(), ep_info
+        return rollout.get(), meta_rollout.get(), ep_info, train_info
 
     def _store_frame(self, env, info={}):
         """
