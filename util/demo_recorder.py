@@ -32,7 +32,7 @@ class DemoRecorder(object):
 
     def save(self, prefix):
         count = min(9999, self._get_demo_count(prefix))
-        fname = prefix + "_{:04d}.pkl".format(count)
+        fname = prefix + "{:04d}.pkl".format(count)
         path = os.path.join(self._demo_dir, fname)
         demo = {
             "qpos": self._qpos,
@@ -46,4 +46,4 @@ class DemoRecorder(object):
         self.reset()
 
     def _get_demo_count(self, prefix):
-        return len(glob.glob(os.path.join(self._demo_dir, prefix) + "_*"))
+        return len(glob.glob(os.path.join(self._demo_dir, prefix) + "*"))

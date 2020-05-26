@@ -365,11 +365,17 @@ class Trainer(object):
         logger.info(
             "Run %d evaluations at step=%d", self._config.num_record_samples, step
         )
-
+        if self._env.name == "furniture_toy_table":
+            pick_accr = 0
+            peg_accr = 0
         for i in range(self._config.num_record_samples):
             rollout, info, frames = self._runner.run_episode(
                 is_train=False, record_vid=record_vid, record_demo=record_demo, train_step=step
             )
+            if self._env.name == "furniture_toy_table":
+                pick_accr += info["successful_pick"]
+                peg_accr += 1 if info["success_rew"]!=0 else 0
+            info.pop("successful_pick", None)
 
             if record_vid:
                 ep_rew = info["rew"]
@@ -386,7 +392,9 @@ class Trainer(object):
 
             if idx is not None:
                 break
-
+        if self._env.name == "furniture_toy_table":
+            info["pick_accr"] = pick_accr / self._config.num_record_samples
+            info["peg_accr"] = peg_accr / self._config.num_record_samples
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         return rollout, info
 

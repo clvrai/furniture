@@ -1,5 +1,6 @@
 """ Define sawyer environment class FurnitureSawyerToyTableEnv. """
 import numpy as np
+import pickle
 
 import env.transform_utils as T
 from env.furniture_sawyer import FurnitureSawyerEnv
@@ -50,6 +51,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         # parts.
         self._num_connect_steps = 0
         self._discretize_grip = config.discretize_grip
+        self._gripped_count = 0
 
     def _step(self, a):
         """
@@ -233,6 +235,15 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
 
         touch_left, touch_right = self._finger_contact("2_part2")
         gripped = touch_left and touch_right
+        # consider 10 consective gripped a successful pick for IL results
+
+        if self._gripped_count < 10:
+            if gripped:
+                self._gripped_count += 1
+            else:
+                self._gripped_count = 0
+
+
         # penalize letting go if holding leg
         grip_penalty = 0
         if gripped and self._phase not in [
@@ -489,6 +500,18 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         )
         return rew, done, info
 
+    def run_demo(self, config):
+        """
+        Since we save all qpos, just play back qpos
+        """
+        print('here')
+        with open(self._load_demo, "rb") as f:
+            demo = pickle.load(f)
+            self.reset()
+            for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
+                self.step(action)
+                self.render("rgb_array")
+
 
 def main():
     from config import create_parser
@@ -501,8 +524,8 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerToyTableEnv(config)
-    env.run_manual(config)
-
+    #env.run_manual(config)
+    env.run_demo(config)
     # import pickle
     # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
     #     demo = pickle.load(f)
