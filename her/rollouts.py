@@ -197,12 +197,13 @@ class RolloutRunner(object):
 
                 rollout.add({"done": done, "rew": reward})
                 transition.update({"done": done, "rew": reward})
-                init = ep_len == 1
-                self._pi.store_current_transition(transition, init)
-                self._train_step += 1
-                # update SAC policy once buffer is large enough
-                if self._train_step > 256 and ep_len > 2:
-                    train_info = self._pi.train()
+                if is_train:
+                    init = ep_len == 1
+                    self._pi.store_current_transition(transition, init)
+                    self._train_step += 1
+                    # update SAC policy once buffer is large enough
+                    if self._train_step > 256 and ep_len > 2:
+                        train_info = self._pi.train()
 
                 acs.append(ac)
 
@@ -267,7 +268,8 @@ class RolloutRunner(object):
 
         # last frame
         rollout.add({"ob": ob, "ag": ag})
-        self._pi.store_current_transition({"ob": ob, "ag": ag})
+        if is_train:
+            self._pi.store_current_transition({"ob": ob, "ag": ag})
         meta_rollout.add({"meta_ob": ob, "meta_ac": meta_ac})
         env_success = env.get_env_success(ob, demo["goal_gt"])
 
