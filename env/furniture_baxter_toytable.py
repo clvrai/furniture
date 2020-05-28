@@ -195,9 +195,9 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         self.sim.data.qpos[self._ref_gripper_right_joint_pos_indexes] = self._init_qpos[
             "r_gripper"
         ]
-        self.sim.data.qpos[
-            self._ref_gripper_left_joint_pos_indexes
-        ] = self._init_qpos["l_gripper"]
+        self.sim.data.qpos[self._ref_gripper_left_joint_pos_indexes] = self._init_qpos[
+            "l_gripper"
+        ]
 
         # enable robot collision
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
@@ -307,16 +307,17 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
                 #     action[-1] = 1
                 #     phase = 1
                 if phase == 0:
-                    # move left to the right, and move right hand to the left for X steps
+                    # move left to the right
                     action[6] = 0.2
+                    # move right hand to the left
                     action[0] = -0.05
                     move_steps += 1
                     # add some random noise to peg gripper
-                    if move_steps > 11:
-                        r = 0.5
-                        action[6] += self._rng.uniform(-0.2, r)
+                    if move_steps > 16:
+                        r = 0.8
+                        action[6] += self._rng.uniform(-r, r)
                         action[7] += self._rng.uniform(-r, r)
-                    if move_steps == 15:
+                    if move_steps == 30:
                         phase = 2
                         move_steps = 0
                 elif phase == 2:
@@ -341,15 +342,27 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
 
 def main():
     from config import create_parser
+    from multiprocessing import Process
 
     parser = create_parser(env="FurnitureBaxterToyTableEnv")
     config, unparsed = parser.parse_known_args()
 
-    # create an environment and run manual control of Baxter environment
-    env = FurnitureBaxterToyTableEnv(config)
-    # env.run_manual(config)
-    env.generate_demos(config.num_demos)
+    def generate_demos(rank, config):
+        config.seed = config.seed + rank
+        # create an environment and run manual control of Baxter environment
+        env = FurnitureBaxterToyTableEnv(config)
+        # env.run_manual(config)
+        env.generate_demos(config.num_demos)
 
+    num_workers = 10
+    workers = []
+    for rank in range(num_workers):
+        p = Process(target=generate_demos, args=(rank, config), daemon=True)
+        workers.append(p)
+        p.start()
+
+    for w in workers:
+        p.join()
     # import pickle
 
     # with open("demos/Baxter_toy_table_0009.pkl", "rb") as f:
