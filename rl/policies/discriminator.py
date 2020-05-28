@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import gym
 
 from rl.policies.utils import MLP
 from util.pytorch import to_tensor

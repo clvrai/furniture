@@ -178,6 +178,9 @@ def create_parser(env=None):
         "--lr_bc", type=float, default=1e-3, help="learning rate for bc"
     )
     parser.add_argument(
+        "--val_split", type=float, default=0.1, help="how much of dataset to leave for validation set"
+    )
+    parser.add_argument(
         "--sched_lambda", type=float, default=None, help="learning rate scheduler factor"
     )
     parser.add_argument("--demo_path", type=str, default=None, help="path to demos")

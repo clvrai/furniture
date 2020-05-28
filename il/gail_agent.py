@@ -127,26 +127,34 @@ class GAILAgent(BaseAgent):
             "ob_norm_state_dict": self._ob_norm.state_dict(),
         }
 
-    def load_state_dict(self, ckpt):
-        self._actor.load_state_dict(ckpt["actor_state_dict"])
-        if "critic_state_dict" not in ckpt:
-            logger.warn("Critic cannot be found in ckpt")
+    def load_state_dict(self, ckpt, bc_init=True):
+        if bc_init:
+            missing = self._actor.load_state_dict(ckpt["actor_state_dict"], strict=False)
+            for missing_key in missing.missing_keys:
+                if 'stds' not in missing_key:
+                    logger.warn("Missing key", missing_key)
+            if len(missing.unexpected_keys) > 0:
+                logger.warn("Unexpected keys", missing.unexpected_keys)
         else:
-            self._critic.load_state_dict(ckpt["critic_state_dict"])
-        if "discriminator_state_dict" not in ckpt:
-            logger.warn("Discriminator cannot be found in ckpt")
-        else:
-            self._discriminator.load_state_dict(ckpt["discriminator_state_dict"])
-        self._ob_norm.load_state_dict(ckpt["ob_norm_state_dict"])
-        self._network_cuda(self._config.device)
+            self._actor.load_state_dict(ckpt["actor_state_dict"])
+            if "critic_state_dict" not in ckpt:
+                logger.warn("Critic cannot be found in ckpt")
+            else:
+                self._critic.load_state_dict(ckpt["critic_state_dict"])
+            if "discriminator_state_dict" not in ckpt:
+                logger.warn("Discriminator cannot be found in ckpt")
+            else:
+                self._discriminator.load_state_dict(ckpt["discriminator_state_dict"])
+            self._ob_norm.load_state_dict(ckpt["ob_norm_state_dict"])
+            self._network_cuda(self._config.device)
 
-        self._actor_optim.load_state_dict(ckpt["actor_optim_state_dict"])
-        if "critic_optim_state_dict" in ckpt:
-            self._critic_optim.load_state_dict(ckpt["critic_optim_state_dict"])
-        if "discriminator_optim_state_dict" in ckpt:
-            self._discriminator_optim.load_state_dict(
-                ckpt["discriminator_optim_state_dict"]
-            )
+            self._actor_optim.load_state_dict(ckpt["actor_optim_state_dict"])
+            if "critic_optim_state_dict" in ckpt:
+                self._critic_optim.load_state_dict(ckpt["critic_optim_state_dict"])
+            if "discriminator_optim_state_dict" in ckpt:
+                self._discriminator_optim.load_state_dict(
+                    ckpt["discriminator_optim_state_dict"]
+                )
         optimizer_cuda(self._actor_optim, self._config.device)
         optimizer_cuda(self._critic_optim, self._config.device)
         optimizer_cuda(self._discriminator_optim, self._config.device)

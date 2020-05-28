@@ -9,6 +9,7 @@ from il.bc_dataset import ILDataset
 from rl.base_agent import BaseAgent
 from util.logger import logger
 from util.mpi import mpi_average
+from torch.utils.data.sampler import SubsetRandomSampler
 from torch.optim.lr_scheduler import MultiplicativeLR
 from util.pytorch import (
     optimizer_cuda,
@@ -42,9 +43,22 @@ class BCAgent(BaseAgent):
             self._scheduler = MultiplicativeLR(self._actor_optim, lr_lambda=schedule)
 
         self._dataset = ILDataset(config.demo_path)
-        self._data_loader = torch.utils.data.DataLoader(
-            self._dataset, batch_size=self._config.batch_size, shuffle=True
-        )
+
+        if self._config.val_split != 0:
+            dataset_size = len(self._dataset)
+            indices = list(range(dataset_size))
+            split = int(np.floor((1-self._config.val_split) * dataset_size))
+            train_indices, val_indices = indices[split:], indices[:split]
+            train_sampler = SubsetRandomSampler(train_indices)
+            val_sampler = SubsetRandomSampler(val_indices)
+            self._train_loader = torch.utils.data.DataLoader(
+                dataset, batch_size=self._config.batch_size, sampler=train_sampler)
+            self._val_loader = torch.utils.data.DataLoader(
+                dataset, batch_size=self._config.batch_size, sampler=val_sampler)
+        else:
+            self._train_loader = torch.utils.data.DataLoader(
+                dataset, batch_size=self._config.batch_size, shuffle=True)
+
         self._log_creation()
 
     def _log_creation(self):
@@ -75,8 +89,8 @@ class BCAgent(BaseAgent):
 
     def train(self):
         train_info = {}
-        for transitions in self._data_loader:
-            _train_info = self._update_network(transitions)
+        for transitions in self._train_loader:
+            _train_info = self._update_network(transitions, train=True)
             train_info.update(_train_info)
         self._epoch += 1
         if self._sched:
@@ -90,7 +104,20 @@ class BCAgent(BaseAgent):
         )
         return train_info
 
-    def _update_network(self, transitions):
+    def evaluate(self):
+        if self._val_loader:
+            eval_info = {}
+            for transitions in self._val_loader:
+                _val_info = self._update_network(transitions, train=False)
+                val_info.update(_val_info)
+            self._epoch += 1
+            if self._sched:
+                self._scheduler.step()
+            return val_info
+        logger.warning("No validation set available, make sure '--val_split' is set")
+        return None
+
+    def _update_network(self, transitions, train=True):
         info = {}
 
         # pre-process observations
@@ -121,11 +148,12 @@ class BCAgent(BaseAgent):
         for i in range(diff.shape[0]):
             info['action'+ str(i) + '_L1loss'] = diff[i].mean().item()
 
-        # update the actor
-        self._actor_optim.zero_grad()
-        actor_loss.backward()
-        # torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
-        sync_grads(self._actor)
-        self._actor_optim.step()
+        if train:
+            # update the actor
+            self._actor_optim.zero_grad()
+            actor_loss.backward()
+            # torch.nn.utils.clip_grad_norm_(self._actor.parameters(), self._config.max_grad_norm)
+            sync_grads(self._actor)
+            self._actor_optim.step()
 
         return mpi_average(info)

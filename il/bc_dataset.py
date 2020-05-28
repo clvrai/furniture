@@ -13,7 +13,6 @@ class ILDataset(Dataset):
         self, path, train=True, transform=None, target_transform=None, download=False
     ):
         self.train = train  # training set or test set
-        # TODO: split dataset into train/val
 
         self._obs = []
         self._acs = []
