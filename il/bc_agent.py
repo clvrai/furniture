@@ -119,7 +119,7 @@ class BCAgent(BaseAgent):
         info["GT_ac"] = ac.cpu()
         diff = torch.sum(torch.abs(diff), axis=0).cpu()
         for i in range(diff.shape[0]):
-            info['action'+ str(i) + '_L1loss'] = diff[i].item()
+            info['action'+ str(i) + '_L1loss'] = diff[i].mean().item()
 
         # update the actor
         self._actor_optim.zero_grad()
