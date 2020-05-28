@@ -365,18 +365,16 @@ class Trainer(object):
         logger.info(
             "Run %d evaluations at step=%d", self._config.num_record_samples, step
         )
-        if self._env.name == "furniture_toy_table":
-            pick_accr = 0
-            peg_accr = 0
+        pick_acc = 0
+        peg_acc = 0
         for i in range(self._config.num_record_samples):
             rollout, info, frames = self._runner.run_episode(
                 is_train=False, record_vid=record_vid, record_demo=record_demo, train_step=step
             )
-            if self._env.name == "furniture_toy_table":
-                pick_accr += info["successful_pick"]
-                peg_accr += 1 if info["success_rew"]!=0 else 0
-            info.pop("successful_pick", None)
-
+            if info["pick_acc"] is not None:
+                pick_acc += info["pick_acc"]
+                print('here', pick_acc, info["pick_acc"])
+                peg_acc += 1 if info["success_rew"] > 0 else 0
             if record_vid:
                 ep_rew = info["rew"]
                 ep_success = "s" if info["episode_success"] else "f"
@@ -390,11 +388,11 @@ class Trainer(object):
                 video_path = self._save_video(fname, frames)
                 info["video"] = wandb.Video(video_path, fps=15, format="mp4")
 
-            if idx is not None:
-                break
-        if self._env.name == "furniture_toy_table":
-            info["pick_accr"] = pick_accr / self._config.num_record_samples
-            info["peg_accr"] = peg_accr / self._config.num_record_samples
+            # if idx is not None:
+            #     print('breaking')
+            #     break
+        info["pick_acc"] = pick_acc / self._config.num_record_samples
+        info["peg_acc"] = peg_acc / self._config.num_record_samples
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         return rollout, info
 

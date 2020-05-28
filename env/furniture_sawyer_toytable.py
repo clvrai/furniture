@@ -51,7 +51,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         # parts.
         self._num_connect_steps = 0
         self._discretize_grip = config.discretize_grip
-        self._gripped_count = 0
+        self.gripped_count = 0
 
     def _step(self, a):
         """
@@ -149,6 +149,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             self._phase = "move_leg"
             self._leg_picked = True
 
+        self.gripped_count = 0
         self._num_connect_successes = 0
         self._held_leg = 0
 
@@ -236,14 +237,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         touch_left, touch_right = self._finger_contact("2_part2")
         gripped = touch_left and touch_right
         # consider 10 consective gripped a successful pick for IL results
-
-        if self._gripped_count < 10:
-            if gripped:
-                self._gripped_count += 1
-            else:
-                self._gripped_count = 0
-
-
+        self.gripped_count += int(gripped)
         # penalize letting go if holding leg
         grip_penalty = 0
         if gripped and self._phase not in [

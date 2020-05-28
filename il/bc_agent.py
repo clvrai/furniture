@@ -52,12 +52,12 @@ class BCAgent(BaseAgent):
             train_sampler = SubsetRandomSampler(train_indices)
             val_sampler = SubsetRandomSampler(val_indices)
             self._train_loader = torch.utils.data.DataLoader(
-                dataset, batch_size=self._config.batch_size, sampler=train_sampler)
+                self._dataset, batch_size=self._config.batch_size, sampler=train_sampler)
             self._val_loader = torch.utils.data.DataLoader(
-                dataset, batch_size=self._config.batch_size, sampler=val_sampler)
+                self._dataset, batch_size=self._config.batch_size, sampler=val_sampler)
         else:
             self._train_loader = torch.utils.data.DataLoader(
-                dataset, batch_size=self._config.batch_size, shuffle=True)
+                self._dataset, batch_size=self._config.batch_size, shuffle=True)
 
         self._log_creation()
 

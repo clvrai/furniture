@@ -173,14 +173,9 @@ class RolloutRunner(object):
         if self._config.eval_on_train_set:
             with open("demos/Sawyer_toy_table_0000.pkl", "rb") as f:
                 demo = pickle.load(f)
-                # print('train starting furn ob', (demo['obs'][0]['object_ob']))
-                # print('train starting robot ob', (demo['obs'][0]['robot_ob']))
                 env.set_init_qpos(demo['qpos'][0])
-            # print('demo_ob', demo_ob['robot_ob'])
 
         ob = env.reset()
-        # print('eval starting furn ob', (ob['object_ob']))
-        # print('eval starting robot ob', (ob['robot_ob']))
 
         self._record_frames = []
         if record_vid:
@@ -224,7 +219,8 @@ class RolloutRunner(object):
             else:
                 env._demo.save(env.file_prefix + '_novice_')
         # compute average/sum of information
-        ep_info = {"len": ep_len, "rew": ep_rew}
+        pick_acc = 1 if env.gripped_count > 10 else 0
+        ep_info = {"len": ep_len, "rew": ep_rew, "pick_acc": pick_acc}
         if gail:
             ep_info["rew_gail"] = ep_rew_gail
         for key, value in reward_info.items():
