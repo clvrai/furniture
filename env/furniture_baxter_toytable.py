@@ -354,17 +354,17 @@ def main():
         # env.run_manual(config)
         env.generate_demos(config.num_demos)
 
-    num_workers = 10
+    num_workers = 40
     workers = []
     for rank in range(num_workers):
         p = Process(target=generate_demos, args=(rank, config), daemon=True)
         workers.append(p)
     
     for w in workers:
-        p.start()
+        w.start()
 
     for w in workers:
-        p.join()
+        w.join()
     # import pickle
 
     # with open("demos/Baxter_toy_table_0009.pkl", "rb") as f:
