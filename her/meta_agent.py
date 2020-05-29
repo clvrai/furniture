@@ -1,24 +1,19 @@
+from time import time
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from her.distributions import Categorical, DiagGaussian
-
-from her.her_policy import CNN, MLP
 from her.dataset import MetaReplayBuffer, PrioritizedReplayBuffer
+from her.distributions import Categorical, DiagGaussian
+from her.her_policy import CNN, MLP
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (
-    optimizer_cuda,
-    count_parameters,
-    compute_gradient_norm,
-    compute_weight_norm,
-    sync_networks,
-    sync_grads,
-)
-from time import time
+from util.pytorch import (compute_gradient_norm, compute_weight_norm,
+                          count_parameters, optimizer_cuda, sync_grads,
+                          sync_networks)
 
 
 class MetaActor(nn.Module):
@@ -140,10 +135,10 @@ class MetaAgent(object):
 
             if config.use_per:
                 self._buffer = PrioritizedReplayBuffer(
-                    config.buffer_size, config.meta_window
+                    config.meta_buffer_size, config.meta_window
                 )
             else:
-                self._buffer = MetaReplayBuffer(config.buffer_size, config.meta_window)
+                self._buffer = MetaReplayBuffer(config.meta_buffer_size, config.meta_window)
 
         if config.is_chef:
             logger.info("Creating a meta agent")

@@ -149,6 +149,9 @@ def add_argument(parser):
         "--buffer_size", type=int, default=int(1e5), help="the size of the buffer"
     )
     train_arg.add_argument(
+        "--meta_buffer_size", type=int, default=int(1e5), help="the size of the meta buffer"
+    )
+    train_arg.add_argument(
         "--clip_obs", type=float, default=200, help="the clip range of observation"
     )
     train_arg.add_argument(
