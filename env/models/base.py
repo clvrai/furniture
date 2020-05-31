@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 import io
 import numpy as np
 
-from env.xml_adjusting.rescale import *
 
 
 class robosuiteError(Exception):
@@ -50,10 +49,6 @@ class MujocoXML(object):
         self.default = self.create_default_element("default")
         self.resolve_asset_dependency()
         self.debug = debug
-
-    def set_resized_tree(self, resize_factor):
-        self.tree = rescale(self.tree, self.root, resize_factor, write=False) 
-        self.root = self.tree.getroot()
 
     def resolve_asset_dependency(self):
         """

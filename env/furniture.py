@@ -1704,14 +1704,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         # load models for objects
         path = xml_path_completion(furniture_xmls[self._furniture_id])
         logger.debug("load furniture %s" % path)
-        objects = MujocoXMLObject(path, debug=self._debug)
+        resize_factor = None
         if self._manual_resize is not None:
             resize_factor = 1 + self._manual_resize
-            objects.set_resized_tree(resize_factor)
         elif self._config.furn_size_randomness != 0:
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
-            objects.set_resized_tree(resize_factor)
+        objects = MujocoXMLObject(path, debug=self._debug, resize=resize_factor)
         part_names = objects.get_children_names()
 
         # furniture pieces
@@ -1729,14 +1728,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         # task includes arena, robot, and objects of interest
         from env.models.tasks import FloorTask
-
         self.mujoco_model = FloorTask(
             self.mujoco_arena,
             self.mujoco_robot,
             self.mujoco_objects,
             self.mujoco_equality,
             self._config,
-            rng = self._rng
+            rng = self._rng,
+            hide_noviz = True
         )
 
     def key_callback(self, window, key, scancode, action, mods):

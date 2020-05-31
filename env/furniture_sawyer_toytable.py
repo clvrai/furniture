@@ -518,21 +518,8 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerToyTableEnv(config)
-    #env.run_manual(config)
-    env.run_demo(config)
-    # import pickle
-    # with open("demos/Sawyer_toy_table_0022.pkl", "rb") as f:
-    #     demo = pickle.load(f)
-    # env.reset()
-    # print(len(demo['actions']))
+    env.run_manual(config)
 
-    # from util.video_recorder import VideoRecorder
-    # vr = VideoRecorder()
-    # vr.add(env.render('rgb_array')[0])
-    # for ac in demo['actions']:
-    #     env.step(ac)
-    #     vr.add(env.render('rgb_array')[0])
-    # vr.save_video('test.mp4')
 
 
 if __name__ == "__main__":

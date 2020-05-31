@@ -12,7 +12,7 @@ class FloorTask(Task):
     arena, and the objetcts into a single MJCF model.
     """
 
-    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, mujoco_equality, config, rng=None, initializer=None):
+    def __init__(self, mujoco_arena, mujoco_robot, mujoco_objects, mujoco_equality, config, rng=None, initializer=None, hide_noviz=True):
         """
         Args:
             mujoco_arena: MJCF model of robot workspace
@@ -26,6 +26,8 @@ class FloorTask(Task):
         self.merge_robot(mujoco_robot)
         self.merge_objects(mujoco_objects)
         self.merge_equality(mujoco_equality)
+        if hide_noviz:
+            self.hide_noviz_objects()
         if initializer is None:
             r = config.furn_placement_randomness
             x = [-r, r]
@@ -34,9 +36,22 @@ class FloorTask(Task):
 
         self.initializer = initializer
         self.initializer.setup(mujoco_objects, (0, -0.05, 0), (0.7, 0.7, 0))
-
         self._config = config
         self.rng = rng
+
+    def hide_noviz_objects(self):
+        for body in self.root.find('worldbody'):
+            for child in body.getiterator():
+                if child.tag == 'site' and 'name' in child.attrib:
+                    if 'conn_site' not in child.attrib['name']:
+                        print('before', child.attrib['name'], child.attrib['rgba'])
+                        child.attrib['rgba'] = '0 0 0 0'
+                        print('after', child.attrib['rgba'])
+                elif child.tag == 'geom' and 'name' in child.attrib:
+                    if 'noviz' in child.attrib['name']:
+                        child.attrib['rgba'] = '0 0 0 0'
+                        print(child.attrib['name'], child.attrib['rgba'])
+
 
     def merge_robot(self, mujoco_robot):
         """Adds robot model to the MJCF model."""

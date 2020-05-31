@@ -4,6 +4,7 @@ import numpy as np
 
 from env.models.base import MujocoXML
 from env.mjcf_utils import string_to_array, array_to_string
+from env.xml_adjusting.rescale import *
 
 
 class MujocoObject:
@@ -130,12 +131,18 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
     MujocoObjects that are loaded from xml files
     """
 
-    def __init__(self, fname, debug=False):
+    def __init__(self, fname, debug=False, resize=None):
         """
         Args:
             fname (TYPE): XML File path
         """
         MujocoXML.__init__(self, fname, debug)
+        if resize:
+            self.set_resized_tree(resize)
+
+    def set_resized_tree(self, resize_factor):
+        self.tree = rescale(self.tree, self.root, resize_factor, write=False)
+        self.root = self.tree.getroot()
 
     def get_bottom_offset(self, name=None):
         if name is None:
