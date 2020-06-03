@@ -1,9 +1,9 @@
+import glob
+import gzip
 import os
 import pickle
-import glob
 
 from torch.utils.data import Dataset
-import gzip
 
 
 class ILDataset(Dataset):
@@ -34,9 +34,11 @@ class ILDataset(Dataset):
 
     def _load_demo_files(self, file_path: str) -> None:
         demos = []
-        for f in glob.glob(file_path + "_*"):
-            if os.path.isfile(f):
-                demos.append(f)
+        demos = [
+            d.path
+            for d in os.scandir(file_path)
+            if d.is_file() and d.path.endswith("pkl")
+        ]
         # now load the picked numpy arrays
         for file_path in demos:
             with open(file_path, "rb") as f:

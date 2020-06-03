@@ -21,12 +21,12 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
             config: configurations for the environment.
         """
         config.furniture_id = furniture_name2id["toy_table"]
-
+        self._algo = config.algo
         super().__init__(config)
         # default values for rew function
         self._env_config.update(
             {
-                "pos_dist": 0.04,
+                "pos_dist": 0.02,
                 "rot_dist_up": 0.95,
                 "rot_dist_forward": 0.9,
                 "project_dist": -1,
@@ -79,15 +79,20 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
 
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
-        if self._debug:
-            part2_ob_pose = ob["object_ob"][7:]
-            cos_sim = forward_vector_cos_dist(
-                part2_ob_pose[3:], self._init_qpos["2_part2"][3:]
-            )
-            logger.debug(f"cos sim: {cos_sim}")
-            for i, body in enumerate(self._object_names):
-                pose = self._get_qpos(body)
-                logger.debug(f"{body} {pose[:3]} {pose[3:]}")
+        # check if observation is end state if behavior cloning
+        if self._algo == "bc":
+            self._success = self.is_success(ob, self._end_state)
+            if not done and self._success:
+                done = self._success
+        # if self._debug:
+        #     part2_ob_pose = ob["object_ob"][7:]
+        #     cos_sim = forward_vector_cos_dist(
+        #         part2_ob_pose[3:], self._init_qpos["2_part2"][3:]
+        #     )
+        #     logger.debug(f"cos sim: {cos_sim}")
+        #     for i, body in enumerate(self._object_names):
+        #         pose = self._get_qpos(body)
+        #         logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         info["ac"] = a
 
@@ -227,6 +232,8 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
             "r_gripper": demo["qpos"][qpos_idx]["r_gripper"],
             "l_gripper": demo["qpos"][qpos_idx]["l_gripper"],
         }
+        # used for calculating episode success in BC
+        self._end_state = demo["goal_gt"]
         # set toy table pose
         pos_init = []
         quat_init = []
@@ -318,7 +325,6 @@ class FurnitureBaxterToyTableAssembleEnv(FurnitureBaxterEnv):
 
     def _compute_reward(self, action) -> Tuple[float, bool, dict]:
         rew = 0
-        # self._success = self._is_aligned("leg-top,,conn_site4", "top-leg,,conn_site4")
         done = False
         info = {}
         return rew, done, info
@@ -417,7 +423,6 @@ def main():
 
     parser = create_parser(env="FurnitureBaxterToyTableAssembleEnv")
     config, unparsed = parser.parse_known_args()
-
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterToyTableAssembleEnv(config)
     env.run_manual(config)

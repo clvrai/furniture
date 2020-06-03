@@ -3,26 +3,26 @@ Base code for RL and IL training.
 Collects rollouts and updates policy networks.
 """
 
-import os
-from time import time
-from collections import defaultdict
-import gzip
-import pickle
-import h5py
 import copy
+import gzip
+import os
+import pickle
+from collections import defaultdict
+from time import time
 
+import h5py
+import moviepy.editor as mpy
+import numpy as np
 import torch
 import wandb
-import numpy as np
-import moviepy.editor as mpy
 from tqdm import tqdm, trange
 
+from env import make_env
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import RolloutRunner
 from util.logger import logger
-from util.pytorch import get_ckpt_path
 from util.mpi import mpi_sum
-from env import make_env
+from util.pytorch import get_ckpt_path
 
 
 def get_agent_by_name(algo):
@@ -240,7 +240,7 @@ class Trainer(object):
 
             logger.info("Update networks done")
 
-            if step < config.max_ob_norm_step:
+            if self._config.algo != "bc" and step < config.max_ob_norm_step:
                 self._update_normalizer(rollout)
 
             step += step_per_batch
@@ -262,10 +262,11 @@ class Trainer(object):
                     st_step = step
                     self._log_train(step, train_info, {})
 
-                if update_iter % config.evaluate_interval == 1:
+                if update_iter % config.evaluate_interval == 0:
                     logger.info("Evaluate at %d", update_iter)
-                    rollout, info = self._evaluate(step=step, record=config.record)
-                    self._log_test(step, info)
+                    # rollout, info = self._evaluate(step=step, record=config.record)
+                    # self._log_test(step, info)
+                    rollout, info = self._bc_evaluate(step)
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
@@ -354,6 +355,22 @@ class Trainer(object):
         """ Updates normalizer with @rollout. """
         if self._config.ob_norm:
             self._agent.update_normalizer(rollout["ob"])
+
+    def _bc_evaluate(self, step):
+        """
+        Evaluates the BC policy over the entire test dataset
+        """
+        num_eval = len(self._env.seed_test)
+        logger.info("Run %d evaluations at step=%d", num_eval, step)
+        info_history = defaultdict(list)
+        for i in tqdm(range(num_eval), desc="evaluating..."):
+            rollout, info, frames = self._runner.run_episode(
+                is_train=False, record=False, record_demo=False, seed=i
+            )
+            for k, v in info.items():
+                info_history[k].append(v)
+
+        return rollout, info_history
 
     def _evaluate(self, step=None, record=False, idx=None, record_demo=False):
         """

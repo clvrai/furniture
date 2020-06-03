@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 
 import numpy as np
@@ -8,15 +9,9 @@ from il.bc_dataset import ILDataset
 from rl.base_agent import BaseAgent
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (
-    optimizer_cuda,
-    count_parameters,
-    compute_gradient_norm,
-    compute_weight_norm,
-    sync_networks,
-    sync_grads,
-    to_tensor,
-)
+from util.pytorch import (compute_gradient_norm, compute_weight_norm,
+                          count_parameters, optimizer_cuda, sync_grads,
+                          sync_networks, to_tensor)
 
 
 class BCAgent(BaseAgent):
@@ -32,7 +27,7 @@ class BCAgent(BaseAgent):
         self._network_cuda(config.device)
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_bc)
 
-        self._dataset = ILDataset(config.demo_path)
+        self._dataset = ILDataset(os.path.join(config.data_dir, "train"))
         self._data_loader = torch.utils.data.DataLoader(
             self._dataset, batch_size=self._config.batch_size, shuffle=True
         )
