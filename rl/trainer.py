@@ -356,21 +356,29 @@ class Trainer(object):
         if self._config.ob_norm:
             self._agent.update_normalizer(rollout["ob"])
 
-    def _bc_evaluate(self, step):
+    def _bc_evaluate(self, step, mode="sample", num_eval=10):
         """
-        Evaluates the BC policy over the entire test dataset
+        Evaluates the BC policy over a subset or entire test dataset
         """
-        num_eval = len(self._env.seed_test)
-        logger.info("Run %d evaluations at step=%d", num_eval, step)
-        info_history = defaultdict(list)
-        for i in tqdm(range(num_eval), desc="evaluating..."):
-            rollout, info, frames = self._runner.run_episode(
-                is_train=False, record=False, record_demo=False, seed=i
-            )
-            for k, v in info.items():
-                info_history[k].append(v)
+        if mode == "sample":
+            logger.info("Run %d evaluations at step=%d", num_eval, step)
+            info_history = defaultdict(list)
+            for i in tqdm(range(num_eval), desc="evaluating..."):
+                rollout, info, frames = self._runner.run_episode(is_train=False)
+                for k, v in info.items():
+                    info_history[k].append(v)
 
-        return rollout, info_history
+            return rollout, info_history
+        elif mode == "all":
+            num_eval = len(self._env.seed_test)
+            logger.info("Run %d evaluations at step=%d", num_eval, step)
+            info_history = defaultdict(list)
+            for i in tqdm(range(num_eval), desc="evaluating..."):
+                rollout, info, frames = self._runner.run_episode(is_train=False, seed=i)
+                for k, v in info.items():
+                    info_history[k].append(v)
+
+            return rollout, info_history
 
     def _evaluate(self, step=None, record=False, idx=None, record_demo=False):
         """
