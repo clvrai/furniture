@@ -267,6 +267,7 @@ class Trainer(object):
                     # rollout, info = self._evaluate(step=step, record=config.record)
                     # self._log_test(step, info)
                     rollout, info = self._bc_evaluate(step)
+                    self._log_test(step, info)
 
                 if update_iter % config.ckpt_interval == 0:
                     self._save_ckpt(step, update_iter)
