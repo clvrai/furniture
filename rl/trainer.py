@@ -365,7 +365,9 @@ class Trainer(object):
             logger.info("Run %d evaluations at step=%d", num_eval, step)
             info_history = defaultdict(list)
             for i in tqdm(range(num_eval), desc="evaluating..."):
-                rollout, info, frames = self._runner.run_episode(is_train=False)
+                rollout, info, frames = self._runner.run_episode(
+                    record=i == 0, is_train=False
+                )
                 for k, v in info.items():
                     info_history[k].append(v)
 
