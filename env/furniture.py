@@ -2078,7 +2078,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self.action == "reset":
                     self.reset()
                     if self._config.record:
-                        vr.capture_frame(self.render("rgb_array")[0])
+                        self.vid_rec.capture_frame(self.render("rgb_array")[0])
                     else:
                         self.render()
                     self._action_on = False

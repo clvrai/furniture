@@ -147,20 +147,17 @@ def create_parser(env=None):
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)
-    parser.add_argument("--num_eval", type=int, default=10)
+    parser.add_argument("--num_eval", 
+        type=int, 
+        default=1, 
+        help="number of trajectories to collect during eval"
+    )
     parser.add_argument(
         "--save_rollout",
         type=str2bool,
         default=False,
         help="save rollout information during evaluation",
     )
-    parser.add_argument(
-        "--num_record_samples",
-        type=int,
-        default=1,
-        help="number of trajectories to collect during eval",
-    )
-
     # misc
     parser.add_argument("--run_prefix", type=str, default=None)
     parser.add_argument("--notes", type=str, default="")
@@ -178,7 +175,7 @@ def create_parser(env=None):
         "--lr_bc", type=float, default=1e-3, help="learning rate for bc"
     )
     parser.add_argument(
-        "--val_split", type=float, default=0.1, help="how much of dataset to leave for validation set"
+        "--val_split", type=float, default=0, help="how much of dataset to leave for validation set"
     )
     parser.add_argument(
         "--sched_lambda", type=float, default=None, help="learning rate scheduler factor"

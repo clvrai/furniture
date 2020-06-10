@@ -44,13 +44,10 @@ class FloorTask(Task):
             for child in body.getiterator():
                 if child.tag == 'site' and 'name' in child.attrib:
                     if 'conn_site' not in child.attrib['name']:
-                        print('before', child.attrib['name'], child.attrib['rgba'])
                         child.attrib['rgba'] = '0 0 0 0'
-                        print('after', child.attrib['rgba'])
                 elif child.tag == 'geom' and 'name' in child.attrib:
                     if 'noviz' in child.attrib['name']:
                         child.attrib['rgba'] = '0 0 0 0'
-                        print(child.attrib['name'], child.attrib['rgba'])
 
 
     def merge_robot(self, mujoco_robot):
@@ -89,6 +86,5 @@ class FloorTask(Task):
 
     def place_objects(self):
         """Places objects randomly until no collisions or max iterations hit."""
-        print('here')
         return self.initializer.sample()
 

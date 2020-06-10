@@ -155,8 +155,10 @@ class Trainer(object):
                 with gzip.open(replay_path, "rb") as f:
                     replay_buffers = pickle.load(f)
                     self._agent.load_replay_buffer(replay_buffers["replay"])
-
-            return ckpt["step"], ckpt["update_iter"]
+            if 'bc' in self._config.init_ckpt_path and 'gail' in self._config.algo:
+                return 0, 0
+            else:
+                return ckpt["step"], ckpt["update_iter"]
         logger.warn("Randomly initialize models")
         return 0, 0
 
@@ -363,17 +365,16 @@ class Trainer(object):
             record_demo: whether to record demo or not.
         """
         logger.info(
-            "Run %d evaluations at step=%d", self._config.num_record_samples, step
+            "Run %d evaluations at step=%d", self._config.num_eval, step
         )
         pick_acc = 0
         peg_acc = 0
-        for i in range(self._config.num_record_samples):
+        for i in range(self._config.num_eval):
             rollout, info, frames = self._runner.run_episode(
                 is_train=False, record_vid=record_vid, record_demo=record_demo, train_step=step
             )
             if info["pick_acc"] is not None:
                 pick_acc += info["pick_acc"]
-                print('here', pick_acc, info["pick_acc"])
                 peg_acc += 1 if info["success_rew"] > 0 else 0
             if record_vid:
                 ep_rew = info["rew"]
@@ -391,8 +392,8 @@ class Trainer(object):
             # if idx is not None:
             #     print('breaking')
             #     break
-        info["pick_acc"] = pick_acc / self._config.num_record_samples
-        info["peg_acc"] = peg_acc / self._config.num_record_samples
+        info["pick_acc"] = pick_acc / self._config.num_eval
+        info["peg_acc"] = peg_acc / self._config.num_eval
         logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
         return rollout, info
 
