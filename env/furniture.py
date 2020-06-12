@@ -5,15 +5,12 @@ import os
 import pickle
 import time
 from collections import OrderedDict
+from sys import platform
 
 import numpy as np
 import gym.spaces
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
-from torch import tensor
-from torchvision.utils import make_grid
-import matplotlib.pyplot as plt
-
 
 import env.transform_utils as T
 from env.base import EnvMeta
@@ -150,6 +147,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             else:
                 self.vid_rec = VideoRecorder(prefix=self.file_prefix)
 
+        if config.render and platform == "win32":
+            from mujoco_py import GlfwContext
+            GlfwContext(offscreen=True)  # Create a window to init GLFW.print(1)
 
     @property
     def observation_space(self):
@@ -495,7 +495,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             return img
 
         elif mode == "human" and not self._unity:
-            self._get_viewer().render()
+            if platform is not "win32":
+                self._get_viewer().render()
 
         return None
 
@@ -2048,7 +2049,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
-        ob = self.reset(config.furniture_id, config.background)
+        self.reset(config.furniture_id, config.background)
 
         if self._record_vid:
             self.vid_rec.capture_frame(self.render("rgb_array")[0])
@@ -2059,6 +2060,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             # override keyboard callback function of viewer
             import glfw
 
+            assert self._config.render, "Set --render True for manual control"
             glfw.set_key_callback(self._viewer.window, self.key_callback)
 
         cursor_idx = 0
@@ -2070,14 +2072,15 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self.key_input_unity()
 
                 if not self._action_on:
-                    time.sleep(0.1)
+                    self.render()
+                    time.sleep(0.01)
                     continue
 
                 action = np.zeros((8,))
 
                 if self.action == "reset":
                     self.reset()
-                    if self._config.record:
+                    if self._config.record_vid:
                         self.vid_rec.capture_frame(self.render("rgb_array")[0])
                     else:
                         self.render()
@@ -2175,7 +2178,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
                 else:
-                    self.render("rgb_array")
+                    self.render()
                 if self.action == "screenshot":
                     import imageio
 
@@ -2212,7 +2215,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         # print('capture_frame3')
                         self.vid_rec.capture_frame(self.render("rgb_array")[0])
                     else:
-                        self.render("rgb_array")
+                        self.render()
         finally:
             if self._record_vid:
                 self.vid_rec.close()

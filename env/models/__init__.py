@@ -1,5 +1,6 @@
 import os
 import glob
+
 from .world import MujocoWorldBase
 
 
@@ -9,7 +10,7 @@ assets_root = os.path.join(os.path.dirname(__file__), "assets")
 # load all xmls in assets/objects/
 _furniture_xmls = glob.glob(os.path.join(assets_root, "objects") + "/*.xml")
 _furniture_xmls.sort()
-_furniture_names = [x.rsplit('/')[-1] for x in _furniture_xmls]
+_furniture_names = [os.path.basename(x) for x in _furniture_xmls]
 furniture_xmls = ["objects/" + name for name in _furniture_names]
 
 # list of furniture models

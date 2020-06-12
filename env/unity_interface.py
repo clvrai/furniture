@@ -186,6 +186,10 @@ class UnityInterface(object):
                     os.path.join(file_name + ".app", "Contents", "MacOS", "*")
                 )
 
+        elif platform == "win32":
+            candidates = glob.glob(os.path.join(cwd, file_name) + ".exe")
+
+
         if len(candidates) > 0:
             launch_string = candidates[0]
 
@@ -199,21 +203,38 @@ class UnityInterface(object):
             new_env["DISPLAY"] = self._virtual_display
 
         os.makedirs("unity-log", exist_ok=True)
+
         # Launch Unity environment
-        self.proc1 = subprocess.Popen(
-            " ".join(
-                [
-                    launch_string,
-                    "-logFile",
-                    "./unity-log/log" + str(port) + ".txt",
-                    "--port",
-                    str(port),
-                ]
-            ),
-            shell=True,
-            env=new_env,
-            preexec_fn=os.setsid,
-        )
+        if platform == "win32":
+            self.proc1 = subprocess.Popen(
+                " ".join(
+                    [
+                        launch_string,
+                        "-logFile",
+                        "./unity-log/log" + str(port) + ".txt",
+                        "--port",
+                        str(port),
+                    ]
+                ),
+                shell=False,
+                env=new_env,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            )
+        else:
+            self.proc1 = subprocess.Popen(
+                " ".join(
+                    [
+                        launch_string,
+                        "-logFile",
+                        "./unity-log/log" + str(port) + ".txt",
+                        "--port",
+                        str(port),
+                    ]
+                ),
+                shell=True,
+                env=new_env,
+                preexec_fn=os.setsid,
+            )
 
     def __delete__(self):
         """ Closes the connection between Unity. """
@@ -222,4 +243,8 @@ class UnityInterface(object):
     def close(self):
         """ Kills the unity app. """
         if self.proc1 is not None:
-            os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)
+            if platform == "win32":
+                self.proc1.send_signal(signal.CTRL_BREAK_EVENT)
+                self.proc1.kill()
+            else:
+                os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)

@@ -25,6 +25,7 @@ videos
 # Mujoco
 MUJOCO_LOG.TXT
 /unity-xml
+/unity-log
 
 # Unity
 UnitySDK.log
