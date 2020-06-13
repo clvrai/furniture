@@ -193,8 +193,8 @@ def add_argument(parser):
         "--wandb_api_key", type=str, default="612ffd4fad3a25888b3995b752de10aca45efe4e"
     )
     train_arg.add_argument("--log_interval", type=int, default=1)
-    train_arg.add_argument("--evaluate_interval", type=int, default=20)
-    train_arg.add_argument("--ckpt_interval", type=int, default=60)
+    train_arg.add_argument("--evaluate_interval", type=int, default=100)
+    train_arg.add_argument("--ckpt_interval", type=int, default=100)
     train_arg.add_argument("--prefix", type=str, default="test")
     train_arg.add_argument("--log_dir", type=str, default="logs")
     train_arg.add_argument("--data_dir", type=str, default="remove_demos")
