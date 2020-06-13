@@ -884,7 +884,7 @@ class ResetTrainer(Trainer):
         r_ep_info.update({"len": ep_len, "rew": ep_rew})
         if record:
             ep_rew = r_ep_info["reward"]
-            ep_success = "s" if r_ep_info["reset_success"] else "f"
+            ep_success = "s" if r_ep_info["episode_success"] else "f"
             fname = "reset_step_{:011d}_r_{}_{}.mp4".format(
                 self._step, ep_rew, ep_success
             )

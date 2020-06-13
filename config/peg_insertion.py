@@ -28,7 +28,7 @@ def add_argument(parser):
 
     # reset config
     parser.add_argument("--max_failed_reset", type=float, default=2)
-    parser.add_argument("--max_reset_episode_steps", type=float, default=99)
+    parser.add_argument("--max_reset_episode_steps", type=float, default=30)
 
     # reward config
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
