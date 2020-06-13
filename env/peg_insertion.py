@@ -26,7 +26,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._task = config.task
         self._lfd = config.lfd
         self.name = "Peg" + self._task.capitalize()
-        self._max_episode_steps = config.max_episode_steps
+        self._max_episode_steps = float('inf')
         self._robot_ob = config.robot_ob
         self._goal_pos_threshold = config.goal_pos_threshold
         self._goal_quat_threshold = config.goal_quat_threshold
@@ -90,6 +90,12 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
         self.seed()
+    
+    def reset_reward(self, prev_ob, ob):
+        return 0
+
+    def reset_done(self, ob):
+        return False
 
     def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):

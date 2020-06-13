@@ -26,6 +26,10 @@ def add_argument(parser):
         "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
     )
 
+    # reset config
+    parser.add_argument("--max_failed_reset", type=float, default=1)
+    parser.add_argument("--max_reset_episode_steps", type=float, default=99)
+
     # reward config
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
     parser.add_argument("--success_rew", type=float, default=1)

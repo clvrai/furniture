@@ -19,7 +19,7 @@ from tqdm import tqdm, trange
 
 from env import make_env
 from rl.policies import get_actor_critic_by_name
-from rl.rollouts import RolloutRunner
+from rl.rollouts import Rollout, RolloutRunner
 from util.logger import logger
 from util.mpi import mpi_sum
 from util.pytorch import get_ckpt_path
@@ -365,7 +365,7 @@ class Trainer(object):
             logger.info("Run %d evaluations at step=%d", num_eval, step)
             info_history = defaultdict(list)
             for i in tqdm(range(num_eval), desc="evaluating..."):
-                record = i==0
+                record = i == 0
                 rollout, info, frames = self._runner.run_episode(
                     record=record, is_train=False
                 )
@@ -373,14 +373,12 @@ class Trainer(object):
                     ep_rew = info["rew"]
                     ep_success = "s" if info["episode_success"] else "f"
                     fname = "{}_step_{:011d}_{}_r_{}_{}.mp4".format(
-                        self._env.name,
-                        step,
-                        i,
-                        ep_rew,
-                        ep_success,
+                        self._env.name, step, i, ep_rew, ep_success,
                     )
                     video_path = self._save_video(fname, frames)
-                    info_history["video"] = wandb.Video(video_path, fps=15, format="mp4")
+                    info_history["video"] = wandb.Video(
+                        video_path, fps=15, format="mp4"
+                    )
                 for k, v in info.items():
                     info_history[k].append(v)
 
@@ -506,3 +504,247 @@ class Trainer(object):
             rollout, info = self._evaluate(
                 step=step, record=self._config.record, record_demo=True
             )
+
+
+class ResetTrainer(Trainer):
+    def __init__(self, config):
+        """
+        Initializes class with the configuration.
+        """
+        self._config = config
+        self._is_chef = config.is_chef
+        self._is_rl = config.algo in ["ppo", "sac"]
+
+        self._build_envs()
+        self._build_agents()
+        self._setup_log()
+
+    def _build_envs(self):
+        config = self._config
+        # create environment
+        self._env_eval = (
+            make_env(config.env, copy.copy(config)) if self._is_chef else None
+        )
+        config.unity = False  # disable Unity for training
+        self._env = make_env(config.env, config)
+
+    def _build_agents(self):
+        config = self._config
+        ob_space = self._env.observation_space
+        ac_space = self._env.action_space
+
+        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
+        self._agent = get_agent_by_name(config.algo)(
+            config, ob_space, ac_space, actor, critic
+        )
+        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
+        self._reset_agent = get_agent_by_name(config.algo)(
+            config, ob_space, ac_space, actor, critic
+        )
+
+    def _setup_log(self):
+        # setup log
+        config = self._config
+        if self._is_chef and self._config.is_train:
+            exclude = ["device"]
+            if not self._config.wandb:
+                os.environ["WANDB_MODE"] = "dryrun"
+
+            # user or team name
+            entity = "clvr"
+            # project name
+            project = "resetrl"
+
+            # assert entity != 'clvr', "Please change 'entity' with your wandb id" \
+            #    "or disable wandb by setting os.environ['WANDB_MODE'] = 'dryrun'"
+
+            wandb.init(
+                resume=config.run_name,
+                project=project,
+                config={k: v for k, v in config.__dict__.items() if k not in exclude},
+                dir=config.log_dir,
+                entity=entity,
+                notes=config.notes,
+            )
+
+    def train(self):
+        """
+        Training loop for reset RL.
+        """
+        cfg = self._config
+        total_reset = reset_fail = 0
+        env = self._env
+
+        # load checkpoint
+        self._step, self._update_iter = self._load_ckpt()
+        if cfg.init_ckpt_path:
+            self._load_ckpt(ckpt_path=cfg.init_ckpt_path)
+        # sync the networks across the cpus
+        self._agent.sync_networks()
+        if self._is_chef:
+            self._pbar = tqdm(
+                initial=self._step, total=cfg.max_global_step, desc=cfg.run_name
+            )
+
+        ob = env.reset(is_train=True)
+        while self._step < cfg.max_global_step:
+            # 1. Run and train forward policy
+            rollout = Rollout()
+            ep_info = defaultdict(list)
+            done = False
+            ep_len = ep_rew = 0
+
+            while not done or ep_len < cfg.max_episode_steps:  # env return done if time limit is reached or task done
+                ac, ac_before_activation = self._agent.act(ob, is_train=True)
+                rollout.add(
+                    {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+                )
+                ob, reward, done, info = env.step(ac)
+                done = done or ep_len >= cfg.max_episode_steps
+                rollout.add({"done": done, "rew": reward})
+                ep_len += 1
+                ep_rew += reward
+                for key, value in info.items():
+                    ep_info[key].append(value)
+            print('done with forward rollout')
+            # last frame
+            rollout.add({"ob": ob})
+            # compute average/sum of information
+            ep_info = self._reduce_info(ep_info)
+            ep_info.update({"len": ep_len, "rew": ep_rew})
+            # train forward agent
+            rollout = rollout.get()
+            self._agent.store_episode(rollout)
+            train_info = self._agent.train()
+            self._update_normalizer(rollout, self._agent)
+            step_per_batch = mpi_sum(len(rollout["ac"]))
+            self._step += step_per_batch
+            if self._is_chef:
+                self._pbar.update(step_per_batch)
+                if self._update_iter % cfg.log_interval == 0:
+                    train_info.update({"update_iter": self._update_iter})
+                    self._log_train(self._step, train_info, ep_info, "forward")
+
+            # 2. TODO: Update AoT Classifier
+
+            # 3. Run and train reverse policy
+            r_rollout = Rollout()
+            r_ep_info = defaultdict(list)
+            reset_done = reset_success = False
+            ep_len = ep_rew = 0
+
+            while not reset_done:
+                ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
+                prev_ob = ob
+                r_rollout.add(
+                    {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+                )
+                ob, _, _, info = env.step(ac)
+                import ipdb; ipdb.set_trace()
+                reward = env.reset_reward(prev_ob, ob)
+                # overwrite reset reward
+                reset_success = env.reset_done(ob)
+                reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+                r_rollout.add({"done": reset_done, "rew": reward})
+                ep_len += 1
+                ep_rew += reward
+                for key, value in info.items():
+                    r_ep_info[key].append(value)
+            print('done with reset rollout')
+            # last frame
+            r_rollout.add({"ob": ob})
+            # compute average/sum of information
+            r_ep_info = self._reduce_info(r_ep_info)
+            r_ep_info.update({"len": ep_len, "rew": ep_rew})
+            # train forward agent
+            r_rollout = r_rollout.get()
+            self._reset_agent.store_episode(r_rollout)
+            r_train_info = self._reset_agent.train()
+            self._update_normalizer(rollout, self._reset_agent)
+            step_per_batch = mpi_sum(len(r_rollout["ac"]))
+            self._step += step_per_batch
+            if self._is_chef:
+                self._pbar.update(step_per_batch)
+                if self._update_iter % cfg.log_interval == 0:
+                    train_info.update({"update_iter": self._update_iter})
+                    self._log_train(self._step, r_train_info, r_ep_info, "reset")
+
+            # 4. Hard Reset if necessary
+            if not reset_success:
+                reset_fail += 1
+                print(f"failed reset {reset_fail}")
+                if reset_fail % cfg.max_failed_reset == 0:
+                    reset_fail = 0
+                    total_reset += 1
+                    ob = env.reset(is_train=True)
+                    print("need to hard reset")
+            else:
+                print("successful learned reset")
+
+            self._update_iter += 1
+                            
+            # evaluate
+
+            # checkpoint
+
+    def _reduce_info(self, ep_info):
+        for key, value in ep_info.items():
+            if isinstance(value[0], (int, float, bool, np.float32)):
+                if "_mean" in key:
+                    ep_info[key] = np.mean(value)
+                else:
+                    ep_info[key] = np.sum(value)
+        return ep_info
+
+    def _log_agent(self, step_per_batch, rollout_info, train_info, agent):
+        """
+        Adds most recent rollout to ep_info
+        """
+        if not self._is_chef:
+            return
+        cfg = self._config
+        self._pbar.update(step_per_batch)
+        if self._update_iter % cfg.log_interval == 0:
+            for k, v in rollout_info.items():
+                if isinstance(v, list):
+                    self._ep_info[k].extend(v)
+                else:
+                    self._ep_info[k].append(v)
+            self._log_train(self._step, train_info, self._ep_info, agent)
+            self._ep_info.clear()
+
+    def _eval_agents(self):
+        raise NotImplementedError
+
+    def _update_normalizer(self, rollout, agent):
+        if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
+            agent.update_normalizer(rollout["ob"])
+
+    def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
+        return 0,0
+
+    def _save_ckpt(self, ckpt_num, update_iter):
+        raise NotImplementedError
+
+    def _log_test(self, step, ep_info, agent):
+        raise NotImplementedError
+
+    def _log_train(self, step, train_info, ep_info, agent):
+        """
+        Logs training and episode information to wandb.
+        Args:
+            step: the number of environment steps.
+            train_info: agent information to log, such as loss, gradient.
+            ep_info: episode information to log, such as reward, episode time.
+        """
+        for k, v in train_info.items():
+            if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
+                wandb.log({f"{agent}_train_rl/%s" % k: v}, step=step)
+            else:
+                wandb.log({f"{agent}_train_rl/%s" % k: [wandb.Image(v)]}, step=step)
+
+        for k, v in ep_info.items():
+            wandb.log({f"{agent}_train_ep/%s" % k: v}, step=step)
+
+    def _evaluate(self, step=None, record=False, idx=None, record_demo=False):
+        raise NotImplementedError

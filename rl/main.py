@@ -1,20 +1,19 @@
 """ Launch RL training and evaluation. """
 
-import sys
-import signal
-import os
 import json
+import os
+import signal
+import sys
 
 import numpy as np
 import torch
-from six.moves import shlex_quote
 from mpi4py import MPI
+from six.moves import shlex_quote
 
 from config import argparser
-from rl.trainer import Trainer
+from rl.trainer import ResetTrainer, Trainer
 from util.logger import logger
 from util.mpi import mpi_sync
-
 
 np.set_printoptions(precision=3)
 np.set_printoptions(suppress=True)
@@ -65,7 +64,7 @@ def run(config):
         config.device = torch.device("cpu")
 
     # build a trainer
-    trainer = Trainer(config)
+    trainer = ResetTrainer(config)
     if config.is_train:
         trainer.train()
         logger.info("Finish training")
