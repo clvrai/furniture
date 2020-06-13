@@ -888,6 +888,6 @@ class ResetTrainer(Trainer):
             fname = "reset_step_{:011d}_r_{}_{}.mp4".format(
                 self._step, ep_rew, ep_success
             )
-            video_path = self._save_video(fname, forward_frames)
+            video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         self._log_test(self._step, r_ep_info, "reverse")
