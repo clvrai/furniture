@@ -90,12 +90,19 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.init_qpos = self.sim.data.qpos.ravel().copy()
         self.init_qvel = self.sim.data.qvel.ravel().copy()
         self.seed()
-    
-    def reset_reward(self, prev_ob, ob):
-        return 0
 
-    def reset_done(self, ob):
-        return False
+    def reset_reward(self, ob, a, next_ob):
+        if isinstance(a, dict):
+            a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
+        return self._remove_reward(ob, a)
+
+    def reset_done(self):
+        peg_pos = np.hstack(
+            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        )
+        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        peg_at_start = dist_to_start < self._goal_pos_threshold
+        return peg_at_start
 
     def step(self, a) -> Tuple[dict, float, bool, dict]:
         if isinstance(a, dict):
@@ -187,15 +194,14 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
-
+        self._start_pos = np.array(
+            [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
+        )
+        self._goal_pos = np.array([0.0, 0.3, -0.5, 0.0, 0.3, -0.2])
         if self._task == "remove":
-            self._start_pos = np.array(
-                [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
-            )
             dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
             self._prev_dist = dist_to_start
         elif self._task == "insert":
-            self._goal_pos = np.array([0.0, 0.3, -0.5, 0.0, 0.3, -0.2])
             dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
             self._prev_dist = dist_to_goal
 
@@ -314,7 +320,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         info["control_rew"] = control_reward
         info["peg_to_goal_rew"] = peg_to_goal_reward
         info["success_rew"] = success_reward
-        info["leg_bottom_z"] = self.get_body_com("leg_bottom")[2]
+        # info["leg_bottom_z"] = self.get_body_com("leg_bottom")[2]
 
         return insert_reward, info
 

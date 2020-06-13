@@ -428,7 +428,7 @@ class Trainer(object):
             if idx is not None:
                 break
 
-        logger.info("rollout: %s", {k: v for k, v in info.items() if not "qpos" in k})
+        logger.info("rollout: %s", {k: v for k, v in info.items() if "qpos" not in k})
         return rollout, info
 
     def evaluate(self):
@@ -594,7 +594,7 @@ class ResetTrainer(Trainer):
             done = False
             ep_len = ep_rew = 0
 
-            while not done or ep_len < cfg.max_episode_steps:  # env return done if time limit is reached or task done
+            while not done:  # env return done if time limit is reached or task done
                 ac, ac_before_activation = self._agent.act(ob, is_train=True)
                 rollout.add(
                     {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
@@ -606,7 +606,6 @@ class ResetTrainer(Trainer):
                 ep_rew += reward
                 for key, value in info.items():
                     ep_info[key].append(value)
-            print('done with forward rollout')
             # last frame
             rollout.add({"ob": ob})
             # compute average/sum of information
@@ -640,17 +639,23 @@ class ResetTrainer(Trainer):
                     {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
                 )
                 ob, _, _, info = env.step(ac)
-                import ipdb; ipdb.set_trace()
-                reward = env.reset_reward(prev_ob, ob)
-                # overwrite reset reward
-                reset_success = env.reset_done(ob)
+                reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+                info.update(reset_rew_info)
+                for k in [
+                    "dist_to_goal",
+                    "control_rew",
+                    "peg_to_goal_rew",
+                    "success_rew",
+                ]:
+                    del info[k]
+                info["reward"] = reward
+                reset_success = env.reset_done()
                 reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
                 r_rollout.add({"done": reset_done, "rew": reward})
                 ep_len += 1
                 ep_rew += reward
                 for key, value in info.items():
                     r_ep_info[key].append(value)
-            print('done with reset rollout')
             # last frame
             r_rollout.add({"ob": ob})
             # compute average/sum of information
@@ -682,10 +687,8 @@ class ResetTrainer(Trainer):
                 print("successful learned reset")
 
             self._update_iter += 1
-                            
-            # evaluate
-
-            # checkpoint
+            self._evaluate(record=True)
+            self._save_ckpt(self._step, self._update_iter)
 
     def _reduce_info(self, ep_info):
         for key, value in ep_info.items():
@@ -713,21 +716,82 @@ class ResetTrainer(Trainer):
             self._log_train(self._step, train_info, self._ep_info, agent)
             self._ep_info.clear()
 
-    def _eval_agents(self):
-        raise NotImplementedError
-
     def _update_normalizer(self, rollout, agent):
         if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
             agent.update_normalizer(rollout["ob"])
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
-        return 0,0
+        """
+        Loads checkpoint with path @ckpt_path or index number @ckpt_num. If @ckpt_num is None,
+        it loads and returns the checkpoint with the largest index number.
+        """
+        if ckpt_path is None:
+            ckpt_path, ckpt_num = get_ckpt_path(self._config.log_dir, ckpt_num)
+        else:
+            ckpt_num = int(ckpt_path.rsplit("_", 1)[-1].split(".")[0])
+
+        if ckpt_path is not None:
+            logger.warn("Load checkpoint %s", ckpt_path)
+            ckpt = torch.load(ckpt_path)
+            self._agent.load_state_dict(ckpt["agent"])
+            self._reset_agent.load_state_dict(ckpt["reset_agent"])
+
+            if self._config.is_train and self._config.algo in ["sac", "ddpg"]:
+                replay_path = os.path.join(
+                    self._config.log_dir, "replay_%08d.pkl" % ckpt_num
+                )
+                logger.warn("Load replay_buffer %s", replay_path)
+                with gzip.open(replay_path, "rb") as f:
+                    replay_buffers = pickle.load(f)
+                    self._agent.load_replay_buffer(replay_buffers["replay"])
+                    self._reset_agent.load_replay_buffer(replay_buffers["reset_replay"])
+            return ckpt["step"], ckpt["update_iter"]
+        else:
+            logger.warn("Randomly initialize models")
+            return 0, 0
 
     def _save_ckpt(self, ckpt_num, update_iter):
-        raise NotImplementedError
+        """
+        Save checkpoint to log directory.
+
+        Args:
+            ckpt_num: number appended to checkpoint name. The number of
+                environment step is used in this code.
+            update_iter: number of policy update. It will be used for resuming training.
+        """
+        if not (self._is_chef and update_iter % self._config.ckpt_interval == 0):
+            return
+        ckpt_path = os.path.join(self._config.log_dir, "ckpt_%08d.pt" % ckpt_num)
+        state_dict = {"step": ckpt_num, "update_iter": update_iter}
+        state_dict["agent"] = self._agent.state_dict()
+        state_dict["reset_agent"] = self._reset_agent.state_dict()
+        torch.save(state_dict, ckpt_path)
+        logger.warn("Save checkpoint: %s", ckpt_path)
+
+        if self._config.algo in ["sac", "ddpg"]:
+            replay_path = os.path.join(
+                self._config.log_dir, "replay_%08d.pkl" % ckpt_num
+            )
+            with gzip.open(replay_path, "wb") as f:
+                replay_buffers = {
+                    "replay": self._agent.replay_buffer(),
+                    "reset_replay": self._reset_agent.replay_buffer(),
+                }
+                pickle.dump(replay_buffers, f)
 
     def _log_test(self, step, ep_info, agent):
-        raise NotImplementedError
+        """
+        Logs episode information during testing to wandb.
+        Args:
+            step: the number of environment steps.
+            ep_info: episode information to log, such as reward, episode time.
+        """
+        if self._config.is_train:
+            for k, v in ep_info.items():
+                if isinstance(v, wandb.Video):
+                    wandb.log({f"{agent}_test_ep/{k}": v}, step=step)
+                else:
+                    wandb.log({f"{agent}_test_ep/{k}": np.mean(v)}, step=step)
 
     def _log_train(self, step, train_info, ep_info, agent):
         """
@@ -739,12 +803,107 @@ class ResetTrainer(Trainer):
         """
         for k, v in train_info.items():
             if np.isscalar(v) or (hasattr(v, "shape") and np.prod(v.shape) == 1):
-                wandb.log({f"{agent}_train_rl/%s" % k: v}, step=step)
+                wandb.log({f"{agent}_train_rl/{k}": v}, step=step)
             else:
-                wandb.log({f"{agent}_train_rl/%s" % k: [wandb.Image(v)]}, step=step)
+                wandb.log({f"{agent}_train_rl/{k}": [wandb.Image(v)]}, step=step)
 
         for k, v in ep_info.items():
-            wandb.log({f"{agent}_train_ep/%s" % k: v}, step=step)
+            wandb.log({f"{agent}_train_ep/{k}": v}, step=step)
 
-    def _evaluate(self, step=None, record=False, idx=None, record_demo=False):
-        raise NotImplementedError
+    def _evaluate(self, record=False):
+        """
+        Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
+        Runs num_record_samples rollouts if in train mode (@idx is None).
+
+        Args:
+            step: the number of environment steps.
+            record: whether to record video or not.
+        """
+        if not (
+            self._is_chef and self._update_iter % self._config.evaluate_interval == 0
+        ):
+            return
+        cfg = self._config
+        # 1. Run forward policy
+        ep_info = defaultdict(list)
+        done = False
+        ep_len = ep_rew = 0
+        env = self._env_eval
+
+        forward_frames = []
+        reset_frames = []
+
+        ob = env.reset(is_train=False)
+        if record:
+            frame = env.render("rgb_array")[0] * 255.0
+            forward_frames.append(frame)
+
+        while not done:  # env return done if time limit is reached or task done
+            ac, ac_before_activation = self._agent.act(ob, is_train=False)
+            ob, reward, done, info = env.step(ac)
+            done = done or ep_len >= cfg.max_episode_steps
+            ep_len += 1
+            ep_rew += reward
+            for key, value in info.items():
+                ep_info[key].append(value)
+            if record:
+                frame = env.render("rgb_array")[0] * 255.0
+                forward_frames.append(frame)
+        # compute average/sum of information
+        ep_info = self._reduce_info(ep_info)
+        ep_info.update({"len": ep_len, "rew": ep_rew})
+        if record:
+            ep_rew = ep_info["reward"]
+            ep_success = "s" if ep_info["episode_success"] else "f"
+            fname = "forward_step_{:011d}_r_{}_{}.mp4".format(
+                self._step, ep_rew, ep_success
+            )
+            video_path = self._save_video(fname, forward_frames)
+            ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
+        self._log_test(self._step, ep_info, "forward")
+
+        # 2. TODO: Update AoT Classifier
+
+        # 3. Run and train reverse policy
+        r_ep_info = defaultdict(list)
+        reset_done = reset_success = False
+        ep_len = ep_rew = 0
+        if record:
+            frame = env.render("rgb_array")[0] * 255.0
+            reset_frames.append(frame)
+
+        while not reset_done:
+            ac, ac_before_activation = self._reset_agent.act(ob, is_train=False)
+            prev_ob = ob
+            ob, _, _, info = env.step(ac)
+            reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+            info.update(reset_rew_info)
+            for k in [
+                "dist_to_goal",
+                "control_rew",
+                "peg_to_goal_rew",
+                "success_rew",
+            ]:
+                del info[k]
+            info["reward"] = reward
+            reset_success = env.reset_done()
+            reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+            ep_len += 1
+            ep_rew += reward
+            for key, value in info.items():
+                r_ep_info[key].append(value)
+            if record:
+                frame = env.render("rgb_array")[0] * 255.0
+                reset_frames.append(frame)
+        # compute average/sum of information
+        r_ep_info = self._reduce_info(r_ep_info)
+        r_ep_info.update({"len": ep_len, "rew": ep_rew})
+        if record:
+            ep_rew = r_ep_info["reward"]
+            ep_success = "s" if r_ep_info["episode_success"] else "f"
+            fname = "reset_step_{:011d}_r_{}_{}.mp4".format(
+                self._step, ep_rew, ep_success
+            )
+            video_path = self._save_video(fname, forward_frames)
+            r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
+        self._log_test(self._step, r_ep_info, "reverse")
