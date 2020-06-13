@@ -626,7 +626,7 @@ class ResetTrainer(Trainer):
 
             # 2. TODO: Update AoT Classifier
 
-            # 3. Run and train reverse policy
+            # 3. Run and train reset policy
             r_rollout = Rollout()
             r_ep_info = defaultdict(list)
             reset_done = reset_success = False
@@ -847,7 +847,7 @@ class ResetTrainer(Trainer):
 
         # 2. TODO: Update AoT Classifier
 
-        # 3. Run and train reverse policy
+        # 3. Run and train reset policy
         r_ep_info = defaultdict(list)
         reset_done = reset_success = False
         ep_len = ep_rew = 0
@@ -890,4 +890,4 @@ class ResetTrainer(Trainer):
             )
             video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        self._log_test(self._step, r_ep_info, "reverse")
+        self._log_test(self._step, r_ep_info, "reset")
