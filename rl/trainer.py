@@ -631,7 +631,7 @@ class ResetTrainer(Trainer):
             r_ep_info = defaultdict(list)
             reset_done = reset_success = False
             ep_len = ep_rew = 0
-
+            env.begin_reset()
             while not reset_done:
                 ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
                 prev_ob = ob
@@ -854,7 +854,7 @@ class ResetTrainer(Trainer):
         if record:
             frame = env.render("rgb_array")[0] * 255.0
             reset_frames.append(frame)
-
+        env.begin_reset()
         while not reset_done:
             ac, ac_before_activation = self._reset_agent.act(ob, is_train=False)
             prev_ob = ob

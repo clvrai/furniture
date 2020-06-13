@@ -26,7 +26,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._task = config.task
         self._lfd = config.lfd
         self.name = "Peg" + self._task.capitalize()
-        self._max_episode_steps = float('inf')
+        self._max_episode_steps = float("inf")
         self._robot_ob = config.robot_ob
         self._goal_pos_threshold = config.goal_pos_threshold
         self._goal_quat_threshold = config.goal_quat_threshold
@@ -155,7 +155,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         If seed is none, then we choose a random seed else use the given seed.
         Used by run_episode in evaluation code for BC in rl/rollouts.py
         """
-        #if seed is not None:
+        # if seed is not None:
         #    assert self._lfd
         # determine seed if lfd and seed not given
         if self._lfd and seed is None:
@@ -181,6 +181,18 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.viewer.cam.trackbodyid = -1
         self.viewer.cam.distance = 4.0
 
+    def begin_reset(self):
+        """
+        Switch to reset mode. Init reset reward
+        """
+        peg_pos = np.hstack(
+            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        )
+        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        self._prev_remove_dist = dist_to_start
+        dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
+        self._prev_insert_dist = dist_to_goal
+
     def _reset_episodic_vars(self):
         """
         Resets episodic variables
@@ -198,12 +210,10 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             [0.10600084, 0.15715909, 0.1496843, 0.24442536, -0.09417238, 0.23726938]
         )
         self._goal_pos = np.array([0.0, 0.3, -0.5, 0.0, 0.3, -0.2])
-        if self._task == "remove":
-            dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
-            self._prev_dist = dist_to_start
-        elif self._task == "insert":
-            dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
-            self._prev_dist = dist_to_goal
+        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        self._prev_remove_dist = dist_to_start
+        dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
+        self._prev_insert_dist = dist_to_goal
 
     def reset_model(self, seed=None) -> dict:
         """
@@ -263,8 +273,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         )
         dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
         # we want the current distance to be smaller than the previous step's distnace
-        dist_diff = self._prev_dist - dist_to_start
-        self._prev_dist = dist_to_start
+        dist_diff = self._prev_remove_dist - dist_to_start
+        self._prev_remove_dist = dist_to_start
         peg_to_start_reward = dist_diff * self._peg_to_point_rew_coeff
 
         control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
@@ -296,8 +306,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
         dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
-        dist_diff = self._prev_dist - dist_to_goal
-        self._prev_dist = dist_to_goal
+        dist_diff = self._prev_insert_dist - dist_to_goal
+        self._prev_insert_dist = dist_to_goal
         peg_to_goal_reward = dist_diff * self._peg_to_point_rew_coeff
 
         control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
@@ -393,8 +403,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             assert len(object_pos.shape) == 1
 
             pos_success = (
-                np.linalg.norm(object_pos - goal_object_pos)
-                < self._goal_pos_threshold
+                np.linalg.norm(object_pos - goal_object_pos) < self._goal_pos_threshold
             )
 
             quat_success = (
