@@ -673,14 +673,12 @@ class ResetTrainer(Trainer):
             # 4. Hard Reset if necessary
             if not reset_success:
                 reset_fail += 1
-                print(f"failed reset {reset_fail}")
                 if reset_fail % cfg.max_failed_reset == 0:
                     reset_fail = 0
                     total_reset += 1
                     ob = env.reset(is_train=True)
-                    print("need to hard reset")
             else:
-                print("successful learned reset")
+                logger.info("successful learned reset")
             if self._is_chef:
                 self._pbar.update(step_per_batch)
                 if self._update_iter % cfg.log_interval == 0:
