@@ -650,6 +650,7 @@ class ResetTrainer(Trainer):
                     del info[k]
                 info["reward"] = reward
                 reset_success = env.reset_done()
+                info["episode_success"] = int(reset_success)
                 reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
                 r_rollout.add({"done": reset_done, "rew": reward})
                 ep_len += 1
@@ -668,11 +669,6 @@ class ResetTrainer(Trainer):
             self._update_normalizer(rollout, self._reset_agent)
             step_per_batch = mpi_sum(len(r_rollout["ac"]))
             self._step += step_per_batch
-            if self._is_chef:
-                self._pbar.update(step_per_batch)
-                if self._update_iter % cfg.log_interval == 0:
-                    train_info.update({"update_iter": self._update_iter})
-                    self._log_train(self._step, r_train_info, r_ep_info, "reset")
 
             # 4. Hard Reset if necessary
             if not reset_success:
@@ -685,6 +681,12 @@ class ResetTrainer(Trainer):
                     print("need to hard reset")
             else:
                 print("successful learned reset")
+            if self._is_chef:
+                self._pbar.update(step_per_batch)
+                if self._update_iter % cfg.log_interval == 0:
+                    train_info.update({"update_iter": self._update_iter})
+                    r_ep_info.update({"total_reset": total_reset})
+                    self._log_train(self._step, r_train_info, r_ep_info, "reset")
 
             self._update_iter += 1
             self._evaluate(record=True)
@@ -698,23 +700,6 @@ class ResetTrainer(Trainer):
                 else:
                     ep_info[key] = np.sum(value)
         return ep_info
-
-    def _log_agent(self, step_per_batch, rollout_info, train_info, agent):
-        """
-        Adds most recent rollout to ep_info
-        """
-        if not self._is_chef:
-            return
-        cfg = self._config
-        self._pbar.update(step_per_batch)
-        if self._update_iter % cfg.log_interval == 0:
-            for k, v in rollout_info.items():
-                if isinstance(v, list):
-                    self._ep_info[k].extend(v)
-                else:
-                    self._ep_info[k].append(v)
-            self._log_train(self._step, train_info, self._ep_info, agent)
-            self._ep_info.clear()
 
     def _update_normalizer(self, rollout, agent):
         if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
@@ -887,6 +872,7 @@ class ResetTrainer(Trainer):
                 del info[k]
             info["reward"] = reward
             reset_success = env.reset_done()
+            info["episode_success"] = int(reset_success)
             reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
             ep_len += 1
             ep_rew += reward
@@ -900,7 +886,7 @@ class ResetTrainer(Trainer):
         r_ep_info.update({"len": ep_len, "rew": ep_rew})
         if record:
             ep_rew = r_ep_info["reward"]
-            ep_success = "s" if r_ep_info["episode_success"] else "f"
+            ep_success = "s" if r_ep_info["reset_success"] else "f"
             fname = "reset_step_{:011d}_r_{}_{}.mp4".format(
                 self._step, ep_rew, ep_success
             )
