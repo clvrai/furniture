@@ -5,7 +5,7 @@ def add_argument(parser):
     parser.add_argument(
         "--max_episode_steps",
         type=int,
-        default=30,
+        default=99,
         help="max number of steps for an episode",
     )
     parser.add_argument(
@@ -28,7 +28,7 @@ def add_argument(parser):
 
     # reset config
     parser.add_argument("--max_failed_reset", type=int, default=2)
-    parser.add_argument("--max_reset_episode_steps", type=int, default=30)
+    parser.add_argument("--max_reset_episode_steps", type=int, default=99)
 
     # aot config
     parser.add_argument("--use_aot", type=str2bool, default=False)
