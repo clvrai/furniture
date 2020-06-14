@@ -685,7 +685,7 @@ class ResetTrainer(Trainer):
             r_rollout = r_rollout.get()
             self._reset_agent.store_episode(r_rollout)
             r_train_info = self._reset_agent.train()
-            self._update_normalizer(rollout, self._reset_agent)
+            self._update_normalizer(r_rollout, self._reset_agent)
             step_per_batch = mpi_sum(len(r_rollout["ac"]))
             self._step += step_per_batch
 

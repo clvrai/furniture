@@ -185,6 +185,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         Switch to reset mode. Init reset reward
         """
+        self._success = False
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
@@ -197,6 +198,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         Switch to forward mode. Init forward reward
         """
+        self._success = False
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
