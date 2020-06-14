@@ -6,6 +6,10 @@ import numpy as np
 
 class ReplayBuffer:
     def __init__(self, keys, buffer_size, sample_func):
+        """
+        Stores by key, value is list of episodes.
+        To get Episode 100's ob, do buffer['ob'][100]
+        """
         self._size = buffer_size
         self._sample_func = sample_func
 
@@ -52,6 +56,7 @@ class ReplayBuffer:
     def load_state_dict(self, state_dict):
         self._buffer = state_dict
         self._current_size = len(self._buffer['ac'])
+
 
 
 class RandomSampler:
@@ -131,4 +136,3 @@ class HERSampler:
                 new_transitions[k] = np.stack(v)
 
         return new_transitions
-

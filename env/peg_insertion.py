@@ -193,6 +193,18 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
         self._prev_insert_dist = dist_to_goal
 
+    def begin_forward(self):
+        """
+        Switch to forward mode. Init forward reward
+        """
+        peg_pos = np.hstack(
+            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        )
+        dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        self._prev_remove_dist = dist_to_start
+        dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
+        self._prev_insert_dist = dist_to_goal
+
     def _reset_episodic_vars(self):
         """
         Resets episodic variables

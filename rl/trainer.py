@@ -531,6 +531,7 @@ class ResetTrainer(Trainer):
     def _build_agents(self):
         config = self._config
         ob_space = self._env.observation_space
+        goal_space = self._env.goal_space
         ac_space = self._env.action_space
 
         actor, critic = get_actor_critic_by_name(config.policy, config.algo)
@@ -541,6 +542,13 @@ class ResetTrainer(Trainer):
         self._reset_agent = get_agent_by_name(config.algo)(
             config, ob_space, ac_space, actor, critic
         )
+        self._aot_agent = None
+        if config.use_aot:
+            from rl.aot_agent import AoTAgent
+
+            self._aot_agent = AoTAgent(
+                config, goal_space, self._agent._buffer, self._env.get_goal
+            )
 
     def _setup_log(self):
         # setup log
@@ -570,6 +578,11 @@ class ResetTrainer(Trainer):
     def train(self):
         """
         Training loop for reset RL.
+        1. Train forward policy
+        2. Train AoT model on forward policy
+        3. Train Reset policy
+        4. Reset env if needed
+        Repeat
         """
         cfg = self._config
         total_reset = reset_fail = 0
@@ -581,6 +594,10 @@ class ResetTrainer(Trainer):
             self._load_ckpt(ckpt_path=cfg.init_ckpt_path)
         # sync the networks across the cpus
         self._agent.sync_networks()
+        self._reset_agent.sync_networks()
+        if self._aot_agent is not None:
+            self._aot_agent.sync_networks()
+
         if self._is_chef:
             self._pbar = tqdm(
                 initial=self._step, total=cfg.max_global_step, desc=cfg.run_name
@@ -593,7 +610,7 @@ class ResetTrainer(Trainer):
             ep_info = defaultdict(list)
             done = False
             ep_len = ep_rew = 0
-
+            env.begin_forward()
             while not done:  # env return done if time limit is reached or task done
                 ac, ac_before_activation = self._agent.act(ob, is_train=True)
                 rollout.add(
@@ -624,7 +641,9 @@ class ResetTrainer(Trainer):
                     train_info.update({"update_iter": self._update_iter})
                     self._log_train(self._step, train_info, ep_info, "forward")
 
-            # 2. TODO: Update AoT Classifier
+            # 2. Update AoT Classifier
+            if self._aot_agent is not None:
+                arrow_train_info = self._aot_agent.train()
 
             # 3. Run and train reset policy
             r_rollout = Rollout()
@@ -690,18 +709,102 @@ class ResetTrainer(Trainer):
             self._evaluate(record=True)
             self._save_ckpt(self._step, self._update_iter)
 
-    def _reduce_info(self, ep_info):
-        for key, value in ep_info.items():
-            if isinstance(value[0], (int, float, bool, np.float32)):
-                if "_mean" in key:
-                    ep_info[key] = np.mean(value)
-                else:
-                    ep_info[key] = np.sum(value)
-        return ep_info
+    def _evaluate(self, record=False):
+        """
+        Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
+        Runs num_record_samples rollouts if in train mode (@idx is None).
 
-    def _update_normalizer(self, rollout, agent):
-        if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
-            agent.update_normalizer(rollout["ob"])
+        Args:
+            step: the number of environment steps.
+            record: whether to record video or not.
+        """
+        if not (
+            self._is_chef and self._update_iter % self._config.evaluate_interval == 0
+        ):
+            return
+        cfg = self._config
+        # 1. Run forward policy
+        ep_info = defaultdict(list)
+        done = False
+        ep_len = ep_rew = 0
+        env = self._env_eval
+
+        forward_frames = []
+        reset_frames = []
+
+        ob = env.reset(is_train=False)
+        if record:
+            frame = env.render("rgb_array")[0] * 255.0
+            forward_frames.append(frame)
+        env.begin_forward()
+        while not done:  # env return done if time limit is reached or task done
+            ac, ac_before_activation = self._agent.act(ob, is_train=False)
+            ob, reward, done, info = env.step(ac)
+            done = done or ep_len >= cfg.max_episode_steps
+            ep_len += 1
+            ep_rew += reward
+            for key, value in info.items():
+                ep_info[key].append(value)
+            if record:
+                frame = env.render("rgb_array")[0] * 255.0
+                forward_frames.append(frame)
+        # compute average/sum of information
+        ep_info = self._reduce_info(ep_info)
+        ep_info.update({"len": ep_len, "rew": ep_rew})
+        if record:
+            ep_rew = ep_info["reward"]
+            ep_success = "s" if ep_info["episode_success"] else "f"
+            fname = f"forward_step_{self._step:011d}_r_{ep_rew:03d}_{ep_success}.mp4"
+            video_path = self._save_video(fname, forward_frames)
+            ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
+        self._log_test(self._step, ep_info, "forward")
+
+        # 2. Update AoT Classifier
+        if self._aot_agent is not None:
+            arrow_train_info = self._aot_agent.train()
+
+        # 3. Run and train reset policy
+        r_ep_info = defaultdict(list)
+        reset_done = reset_success = False
+        ep_len = ep_rew = 0
+        if record:
+            frame = env.render("rgb_array")[0] * 255.0
+            reset_frames.append(frame)
+        env.begin_reset()
+        while not reset_done:
+            ac, ac_before_activation = self._reset_agent.act(ob, is_train=False)
+            prev_ob = ob
+            ob, _, _, info = env.step(ac)
+            reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+            info.update(reset_rew_info)
+            for k in [
+                "dist_to_goal",
+                "control_rew",
+                "peg_to_goal_rew",
+                "success_rew",
+            ]:
+                del info[k]
+            info["reward"] = reward
+            reset_success = env.reset_done()
+            info["episode_success"] = int(reset_success)
+            reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+            ep_len += 1
+            ep_rew += reward
+            for key, value in info.items():
+                r_ep_info[key].append(value)
+            if record:
+                frame = env.render("rgb_array")[0] * 255.0
+                reset_frames.append(frame)
+        # compute average/sum of information
+        r_ep_info = self._reduce_info(r_ep_info)
+        r_ep_info.update({"len": ep_len, "rew": ep_rew})
+        if record:
+            ep_rew = r_ep_info["reward"]
+            ep_success = "s" if r_ep_info["episode_success"] else "f"
+            fname = f"reset_step_{self._step:011d}_r_{ep_rew:03d}_{ep_success}.mp4"
+            video_path = self._save_video(fname, reset_frames)
+            r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
+        self._log_test(self._step, r_ep_info, "reset")
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
         """
@@ -793,101 +896,15 @@ class ResetTrainer(Trainer):
         for k, v in ep_info.items():
             wandb.log({f"{agent}_train_ep/{k}": v}, step=step)
 
-    def _evaluate(self, record=False):
-        """
-        Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
-        Runs num_record_samples rollouts if in train mode (@idx is None).
+    def _update_normalizer(self, rollout, agent):
+        if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
+            agent.update_normalizer(rollout["ob"])
 
-        Args:
-            step: the number of environment steps.
-            record: whether to record video or not.
-        """
-        if not (
-            self._is_chef and self._update_iter % self._config.evaluate_interval == 0
-        ):
-            return
-        cfg = self._config
-        # 1. Run forward policy
-        ep_info = defaultdict(list)
-        done = False
-        ep_len = ep_rew = 0
-        env = self._env_eval
-
-        forward_frames = []
-        reset_frames = []
-
-        ob = env.reset(is_train=False)
-        if record:
-            frame = env.render("rgb_array")[0] * 255.0
-            forward_frames.append(frame)
-
-        while not done:  # env return done if time limit is reached or task done
-            ac, ac_before_activation = self._agent.act(ob, is_train=False)
-            ob, reward, done, info = env.step(ac)
-            done = done or ep_len >= cfg.max_episode_steps
-            ep_len += 1
-            ep_rew += reward
-            for key, value in info.items():
-                ep_info[key].append(value)
-            if record:
-                frame = env.render("rgb_array")[0] * 255.0
-                forward_frames.append(frame)
-        # compute average/sum of information
-        ep_info = self._reduce_info(ep_info)
-        ep_info.update({"len": ep_len, "rew": ep_rew})
-        if record:
-            ep_rew = ep_info["reward"]
-            ep_success = "s" if ep_info["episode_success"] else "f"
-            fname = "forward_step_{:011d}_r_{}_{}.mp4".format(
-                self._step, ep_rew, ep_success
-            )
-            video_path = self._save_video(fname, forward_frames)
-            ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        self._log_test(self._step, ep_info, "forward")
-
-        # 2. TODO: Update AoT Classifier
-
-        # 3. Run and train reset policy
-        r_ep_info = defaultdict(list)
-        reset_done = reset_success = False
-        ep_len = ep_rew = 0
-        if record:
-            frame = env.render("rgb_array")[0] * 255.0
-            reset_frames.append(frame)
-        env.begin_reset()
-        while not reset_done:
-            ac, ac_before_activation = self._reset_agent.act(ob, is_train=False)
-            prev_ob = ob
-            ob, _, _, info = env.step(ac)
-            reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
-            info.update(reset_rew_info)
-            for k in [
-                "dist_to_goal",
-                "control_rew",
-                "peg_to_goal_rew",
-                "success_rew",
-            ]:
-                del info[k]
-            info["reward"] = reward
-            reset_success = env.reset_done()
-            info["episode_success"] = int(reset_success)
-            reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
-            ep_len += 1
-            ep_rew += reward
-            for key, value in info.items():
-                r_ep_info[key].append(value)
-            if record:
-                frame = env.render("rgb_array")[0] * 255.0
-                reset_frames.append(frame)
-        # compute average/sum of information
-        r_ep_info = self._reduce_info(r_ep_info)
-        r_ep_info.update({"len": ep_len, "rew": ep_rew})
-        if record:
-            ep_rew = r_ep_info["reward"]
-            ep_success = "s" if r_ep_info["episode_success"] else "f"
-            fname = "reset_step_{:011d}_r_{}_{}.mp4".format(
-                self._step, ep_rew, ep_success
-            )
-            video_path = self._save_video(fname, reset_frames)
-            r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        self._log_test(self._step, r_ep_info, "reset")
+    def _reduce_info(self, ep_info):
+        for key, value in ep_info.items():
+            if isinstance(value[0], (int, float, bool, np.float32)):
+                if "_mean" in key:
+                    ep_info[key] = np.mean(value)
+                else:
+                    ep_info[key] = np.sum(value)
+        return ep_info
