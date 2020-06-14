@@ -754,7 +754,7 @@ class ResetTrainer(Trainer):
         if record:
             ep_rew = ep_info["reward"]
             ep_success = "s" if ep_info["episode_success"] else "f"
-            fname = f"forward_step_{self._step:11d}_r_{ep_rew:.3d}_{ep_success}.mp4"
+            fname = f"forward_step_{self._step:11d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, forward_frames)
             ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         self._log_test(self._step, ep_info, "forward")
@@ -801,7 +801,7 @@ class ResetTrainer(Trainer):
         if record:
             ep_rew = r_ep_info["reward"]
             ep_success = "s" if r_ep_info["episode_success"] else "f"
-            fname = f"reset_step_{self._step:11d}_r_{ep_rew:.3d}_{ep_success}.mp4"
+            fname = f"reset_step_{self._step:11d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         self._log_test(self._step, r_ep_info, "reset")
