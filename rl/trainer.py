@@ -640,68 +640,77 @@ class ResetTrainer(Trainer):
                 if self._update_iter % cfg.log_interval == 0:
                     train_info.update({"update_iter": self._update_iter})
                     self._log_train(self._step, train_info, ep_info, "forward")
-
-            # 2. Update AoT Classifier
-            if self._aot_agent is not None:
-                arrow_train_info = self._aot_agent.train()
-
-            # 3. Run and train reset policy
-            r_rollout = Rollout()
-            r_ep_info = defaultdict(list)
-            reset_done = reset_success = False
-            ep_len = ep_rew = 0
-            env.begin_reset()
-            while not reset_done:
-                ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
-                prev_ob = ob
-                r_rollout.add(
-                    {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
-                )
-                ob, _, _, info = env.step(ac)
-                reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
-                info.update(reset_rew_info)
-                for k in [
-                    "dist_to_goal",
-                    "control_rew",
-                    "peg_to_goal_rew",
-                    "success_rew",
-                ]:
-                    del info[k]
-                info["reward"] = reward
-                reset_success = env.reset_done()
-                info["episode_success"] = int(reset_success)
-                reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
-                r_rollout.add({"done": reset_done, "rew": reward})
-                ep_len += 1
-                ep_rew += reward
-                for key, value in info.items():
-                    r_ep_info[key].append(value)
-            # last frame
-            r_rollout.add({"ob": ob})
-            # compute average/sum of information
-            r_ep_info = self._reduce_info(r_ep_info)
-            r_ep_info.update({"len": ep_len, "rew": ep_rew})
-            # train forward agent
-            r_rollout = r_rollout.get()
-            self._reset_agent.store_episode(r_rollout)
-            r_train_info = self._reset_agent.train()
-            self._update_normalizer(r_rollout, self._reset_agent)
-            step_per_batch = mpi_sum(len(r_rollout["ac"]))
-            self._step += step_per_batch
-
-            # 4. Hard Reset if necessary
-            if not reset_success:
-                reset_fail += 1
-                if reset_fail % cfg.max_failed_reset == 0:
-                    reset_fail = 0
-                    total_reset += 1
-                    ob = env.reset(is_train=True)
+            if cfg.status_quo_baseline:
+                total_reset += 1
+                ob = env.reset(is_train=True)
+                r_train_info = {}
+                r_ep_info = {}
             else:
-                logger.info("successful learned reset")
+                # 2. Update AoT Classifier
+                if self._aot_agent is not None:
+                    arrow_train_info = self._aot_agent.train()
+
+                # 3. Run and train reset policy
+                r_rollout = Rollout()
+                r_ep_info = defaultdict(list)
+                reset_done = reset_success = False
+                ep_len = ep_rew = 0
+                env.begin_reset()
+                while not reset_done:
+                    ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
+                    prev_ob = ob
+                    r_rollout.add(
+                        {
+                            "ob": ob,
+                            "ac": ac,
+                            "ac_before_activation": ac_before_activation,
+                        }
+                    )
+                    ob, _, _, info = env.step(ac)
+                    reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+                    info.update(reset_rew_info)
+                    for k in [
+                        "dist_to_goal",
+                        "control_rew",
+                        "peg_to_goal_rew",
+                        "success_rew",
+                    ]:
+                        del info[k]
+                    info["reward"] = reward
+                    reset_success = env.reset_done()
+                    info["episode_success"] = int(reset_success)
+                    reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+                    r_rollout.add({"done": reset_done, "rew": reward})
+                    ep_len += 1
+                    ep_rew += reward
+                    for key, value in info.items():
+                        r_ep_info[key].append(value)
+                # last frame
+                r_rollout.add({"ob": ob})
+                # compute average/sum of information
+                r_ep_info = self._reduce_info(r_ep_info)
+                r_ep_info.update({"len": ep_len, "rew": ep_rew})
+                # train forward agent
+                r_rollout = r_rollout.get()
+                self._reset_agent.store_episode(r_rollout)
+                r_train_info = self._reset_agent.train()
+                self._update_normalizer(r_rollout, self._reset_agent)
+                step_per_batch = mpi_sum(len(r_rollout["ac"]))
+                self._step += step_per_batch
+
+                # 4. Hard Reset if necessary
+                if not reset_success:
+                    reset_fail += 1
+                    if reset_fail % cfg.max_failed_reset == 0:
+                        reset_fail = 0
+                        total_reset += 1
+                        ob = env.reset(is_train=True)
+                else:
+                    logger.info("successful learned reset")
             if self._is_chef:
-                self._pbar.update(step_per_batch)
+                if not cfg.status_quo_baseline:
+                    self._pbar.update(step_per_batch)
                 if self._update_iter % cfg.log_interval == 0:
-                    train_info.update({"update_iter": self._update_iter})
                     r_ep_info.update({"total_reset": total_reset})
                     self._log_train(self._step, r_train_info, r_ep_info, "reset")
 
@@ -754,11 +763,13 @@ class ResetTrainer(Trainer):
         if record:
             ep_rew = ep_info["reward"]
             ep_success = "s" if ep_info["episode_success"] else "f"
-            fname = f"forward_step_{self._step:11d}_r_{ep_rew:.3f}_{ep_success}.mp4"
+            fname = f"forward_step_{self._step:011d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, forward_frames)
             ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         self._log_test(self._step, ep_info, "forward")
 
+        if cfg.status_quo_baseline:
+            return
         # 2. Update AoT Classifier
         if self._aot_agent is not None:
             arrow_train_info = self._aot_agent.train()
@@ -801,7 +812,7 @@ class ResetTrainer(Trainer):
         if record:
             ep_rew = r_ep_info["reward"]
             ep_success = "s" if r_ep_info["episode_success"] else "f"
-            fname = f"reset_step_{self._step:11d}_r_{ep_rew:.3f}_{ep_success}.mp4"
+            fname = f"reset_step_{self._step:011d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         self._log_test(self._step, r_ep_info, "reset")
