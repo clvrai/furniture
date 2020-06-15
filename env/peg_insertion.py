@@ -33,6 +33,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._record_demo = config.record_demo
         self._goal_type = config.goal_type
         self._action_noise = config.action_noise
+        self._start_noise = config.start_noise
 
         # load demonstrations if learning from demonstrations
         if self._lfd:
