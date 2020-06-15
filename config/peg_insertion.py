@@ -25,6 +25,9 @@ def add_argument(parser):
     parser.add_argument(
         "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
     )
+    parser.add_argument(
+        "--start_noise", type=float, default=0.05, help="Adds U(-r,r) to the starting qpos"
+    )
 
     # reset config
     parser.add_argument("--max_failed_reset", type=int, default=2)

@@ -166,11 +166,11 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.sim.reset()
         ob = self.reset_model(seed)
         # add initialization noise for evaluation of bc
-        if not is_train and self._algo == "bc" and self._action_noise is not None:
-            r = self._action_noise
-            a = np.zeros(7) + self.np_random.uniform(-r, r, size=7)
-            self.do_simulation(a, self.frame_skip)
-            ob = self._get_obs()
+        # if self._action_noise is not None:
+        #     r = self._action_noise
+        #     a = np.zeros(7) + self.np_random.uniform(-r, r, size=7)
+        #     self.do_simulation(a, self.frame_skip)
+        #     ob = self._get_obs()
 
         self._reset_episodic_vars()
         if self._record_demo:
@@ -247,6 +247,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         else:
             if self._task == "insert":
                 # Reset peg above hole:
+                r = self._start_noise
+                n = self.np_random.uniform(-r, r, size=7)
                 qpos = np.array(
                     [
                         0.44542705,
@@ -257,7 +259,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                         -0.60320289,
                         1.57110214,
                     ]
-                )
+                ) + n
+
             else:
                 # Reset peg in hole
                 qpos = np.array(
@@ -481,8 +484,6 @@ if __name__ == "__main__":
     env = PegInsertionEnv(config)
 
     for _ in range(10000):
-        # action = np.zeros_like(env.action_space.sample())
-        # env.step(action)
         env.reset(seed=None)
         env.render()
         time.sleep(0.01)
