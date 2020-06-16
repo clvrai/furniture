@@ -29,12 +29,15 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._max_episode_steps = float("inf")
         self._robot_ob = config.robot_ob
         self._goal_pos_threshold = config.goal_pos_threshold
+        self._start_pos_threshold = config.start_pos_threshold
         self._goal_quat_threshold = config.goal_quat_threshold
         self._record_demo = config.record_demo
         self._goal_type = config.goal_type
         self._action_noise = config.action_noise
-        self._start_noise = config.start_noise
+        self._wrist_noise = config.wrist_noise
+        self._body_noise = config.body_noise
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
+        # self._dist_count = self._dist_sum = 0
 
         # load demonstrations if learning from demonstrations
         if self._lfd:
@@ -96,7 +99,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def reset_reward(self, ob, a, next_ob):
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
-        return self._remove_reward(ob, a)
+        return self._remove_reward(next_ob, a)
 
     def reset_done(self):
         peg_pos = np.hstack(
@@ -249,22 +252,23 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         else:
             if self._task == "insert":
                 # Reset peg above hole:
-                r = self._start_noise
-                n = self.np_random.uniform(-r, r, size=7)
-                qpos = (
-                    np.array(
-                        [
-                            0.44542705,
-                            0.64189252,
-                            -0.39544481,
-                            -2.32144865,
-                            -0.17935136,
-                            -0.60320289,
-                            1.57110214,
-                        ]
-                    )
-                    + n
+                wn = self._wrist_noise
+                bn = self._body_noise
+                wristnoise = self.np_random.uniform(-wn, wn, size=3)
+                bodynoise = self.np_random.uniform(-bn, bn, size=4)
+                qpos = np.array(
+                    [
+                        0.44542705,
+                        0.64189252,
+                        -0.39544481,
+                        -2.32144865,
+                        -0.17935136,
+                        -0.60320289,
+                        1.57110214,
+                    ]
                 )
+                qpos[:4] = qpos[:4] + bodynoise
+                qpos[4:] = qpos[4:] + wristnoise
 
             else:
                 # Reset peg in hole
@@ -281,6 +285,15 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                 )
             qvel = np.zeros(7)
         self.set_state(qpos, qvel)
+        # peg_pos = np.hstack(
+        #     [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        # )
+        # dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+        # self._dist_sum += dist_to_start
+        # self._dist_count += 1
+        # print(
+        #     f"avg dist: {self._dist_sum/self._dist_count}, dist to start: {dist_to_start}"
+        # )
         return self._get_obs()
 
     def _remove_reward(self, s, a) -> Tuple[float, dict]:
@@ -301,7 +314,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         peg_to_start_reward = dist_diff * self._peg_to_point_rew_coeff
 
         control_reward = np.dot(a, a) * self._control_penalty_coeff * -1
-        peg_at_start = dist_to_start < self._goal_pos_threshold
+        peg_at_start = dist_to_start < self._start_pos_threshold
 
         self._success = peg_at_start
         success_reward = 0

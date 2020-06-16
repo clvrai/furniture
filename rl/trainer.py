@@ -969,8 +969,12 @@ class ResetTrainer(Trainer):
         # Get 2 forward and reset trajectories
         for i in range(2):
             f, f_info, r, r_info = self._evaluate(record=False, log=False)
-            fob = [self._env.get_goal(x)[:3] for x in f["ob"]]
-            rob = [self._env.get_goal(x)[:3] for x in r["ob"]]
+
+            # plot the centroid of peg instead of top position
+            def centroid(obs):
+                return obs[:3] + 0.5 * (obs[3:] - obs[:3])
+            fob = [centroid(self._env.get_goal(x)) for x in f["ob"]]
+            rob = [centroid(self._env.get_goal(x)) for x in r["ob"]]
             X.extend(fob)
             X.extend(rob)
             f_aot = self._aot_agent.act(f["ob"], is_train=False)
