@@ -303,10 +303,10 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._success = peg_at_start
         success_reward = 0
         if self._success:
-            success_reward = self._success_rew
+            success_reward = self._config.aot_succ_rew
 
         if sparse:
-            remove_reward = success_reward
+            remove_reward = control_reward + success_reward
         else:
             remove_reward = peg_to_start_reward + control_reward + success_reward
 
