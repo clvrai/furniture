@@ -30,7 +30,7 @@ def add_argument(parser):
     )
 
     # reset config
-    parser.add_argument("--max_failed_reset", type=int, default=2)
+    parser.add_argument("--max_failed_reset", type=int, default=1)
     parser.add_argument("--max_reset_episode_steps", type=int, default=99)
 
     # aot config
