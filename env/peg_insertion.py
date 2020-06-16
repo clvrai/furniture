@@ -93,9 +93,11 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.seed()
 
     def reset_reward(self, ob, a, next_ob):
+        """If we are using AoT intrinsic rew, then we use sparse rew"""
+        sparse = self._config.use_aot
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
-        return self._remove_reward(ob, a)
+        return self._remove_reward(ob, a, sparse)
 
     def reset_done(self):
         peg_pos = np.hstack(
@@ -279,7 +281,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.set_state(qpos, qvel)
         return self._get_obs()
 
-    def _remove_reward(self, s, a) -> Tuple[float, dict]:
+    def _remove_reward(self, s, a, sparse=False) -> Tuple[float, dict]:
         """Compute the peg removal reward.
         Note: We assume that the reward is computed on-policy, so the given
         state is equal to the current observation.
@@ -303,8 +305,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if self._success:
             success_reward = self._success_rew
 
-        if self._sparse:
-            remove_reward = control_reward + success_reward
+        if sparse:
+            remove_reward = success_reward
         else:
             remove_reward = peg_to_start_reward + control_reward + success_reward
 

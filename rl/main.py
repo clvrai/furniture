@@ -99,7 +99,7 @@ def make_log_files(config):
     logger.info('Create video directory: %s', config.record_dir)
     os.makedirs(config.record_dir, exist_ok=True)
 
-    logger.info('Create plot directory: %s', config.rplot_dir)
+    logger.info('Create plot directory: %s', config.plot_dir)
     os.makedirs(config.plot_dir, exist_ok=True)
 
     if config.is_train:

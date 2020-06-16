@@ -546,16 +546,18 @@ class ResetTrainer(Trainer):
         )
 
         self._aot_agent = None
+        rew = None
         if config.use_aot:
             from rl.aot_agent import AoTAgent
 
             self._aot_agent = AoTAgent(
                 config, goal_space, self._agent._buffer, self._env.get_goal
             )
+            rew = self._aot_agent.rew
 
         actor, critic = get_actor_critic_by_name(config.policy, config.algo)
         self._reset_agent = get_agent_by_name(config.algo)(
-            config, ob_space, ac_space, actor, critic, True, self._aot_agent.rew
+            config, ob_space, ac_space, actor, critic, True, rew
         )
 
     def _setup_log(self):
@@ -677,7 +679,14 @@ class ResetTrainer(Trainer):
                         }
                     )
                     ob, _, _, info = env.step(ac)
-                    reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+                    env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+                    reward = env_reward
+                    if cfg.use_aot:
+                        intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
+                        info["intr_reward"] = intr_reward
+                        info["env_reward"] = env_reward
+                        reward += intr_reward
+                    info["reward"] = reward
                     info.update(reset_rew_info)
                     for k in [
                         "dist_to_goal",
@@ -686,11 +695,15 @@ class ResetTrainer(Trainer):
                         "success_rew",
                     ]:
                         del info[k]
-                    info["reward"] = reward
+
                     reset_success = env.reset_done()
                     info["episode_success"] = int(reset_success)
                     reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
-                    r_rollout.add({"done": reset_done, "rew": reward})
+                    # don't add rew to rollout because it gets computed online
+                    if cfg.use_aot:
+                        r_rollout.add({"done": reset_done, "env_rew": env_reward})
+                    else:
+                        r_rollout.add({"done": reset_done, "rew": reward})
                     ep_len += 1
                     ep_rew += reward
                     for key, value in info.items():
@@ -728,7 +741,6 @@ class ResetTrainer(Trainer):
             self._evaluate(record=True)
             self._save_ckpt(self._step, self._update_iter)
 
-    @torch.no_grad()
     def _evaluate(self, record=False, log=True) -> Tuple[dict, dict, dict, dict]:
         """
         Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
@@ -740,6 +752,7 @@ class ResetTrainer(Trainer):
         Returns:
             rollout, rollout info, reset rollout, reset rollout info
         """
+        torch.set_grad_enabled(False)
         if not (
             self._is_chef and self._update_iter % self._config.evaluate_interval == 0
         ):
@@ -807,20 +820,22 @@ class ResetTrainer(Trainer):
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
             ob, _, _, info = env.step(ac)
-            reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
-            info.update(reset_rew_info)
-            for k in [
-                "dist_to_goal",
-                "control_rew",
-                "peg_to_goal_rew",
-                "success_rew",
-            ]:
-                del info[k]
+            env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+            reward = env_reward
+            if cfg.use_aot:
+                intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
+                info["intr_reward"] = intr_reward
+                info["env_reward"] = env_reward
+                reward += intr_reward
             info["reward"] = reward
             reset_success = env.reset_done()
             info["episode_success"] = int(reset_success)
             reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
-            r_rollout.add({"done": reset_done, "rew": reward})
+            # don't add rew to rollout because it gets computed online
+            if cfg.use_aot:
+                r_rollout.add({"done": reset_done, "env_rew": env_reward})
+            else:
+                r_rollout.add({"done": reset_done, "rew": reward})
             ep_len += 1
             ep_rew += reward
             for key, value in info.items():
@@ -840,7 +855,10 @@ class ResetTrainer(Trainer):
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         if log:
             self._log_test(self._step, r_ep_info, "reset")
-            self._visualize_aot()
+            if cfg.use_aot:
+                self._visualize_aot()
+
+        torch.set_grad_enabled(True)
         return rollout, ep_info, r_rollout, r_ep_info
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
@@ -858,6 +876,8 @@ class ResetTrainer(Trainer):
             ckpt = torch.load(ckpt_path)
             self._agent.load_state_dict(ckpt["agent"])
             self._reset_agent.load_state_dict(ckpt["reset_agent"])
+            if self._config.use_aot:
+                self._aot_agent.load_state_dict(ckpt["aot_agent"])
 
             if self._config.is_train and self._config.algo in ["sac", "ddpg"]:
                 replay_path = os.path.join(
@@ -888,6 +908,8 @@ class ResetTrainer(Trainer):
         state_dict = {"step": ckpt_num, "update_iter": update_iter}
         state_dict["agent"] = self._agent.state_dict()
         state_dict["reset_agent"] = self._reset_agent.state_dict()
+        if self._config.use_aot:
+            state_dict["aot_agent"] = self._aot_agent.state_dict()
         torch.save(state_dict, ckpt_path)
         logger.warn("Save checkpoint: %s", ckpt_path)
 
@@ -933,7 +955,6 @@ class ResetTrainer(Trainer):
         for k, v in ep_info.items():
             wandb.log({f"{agent}_train_ep/{k}": v}, step=step)
 
-    @torch.no_grad()
     def _visualize_aot(self):
         """
         Visualize AoT and Reset Policy

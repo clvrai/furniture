@@ -56,6 +56,7 @@ class SACAgent(BaseAgent):
         )
         if config.use_aot and reset:
             assert rew is not None
+            buffer_keys.remove("rew")  # replace rew with env_rew
             buffer_keys.append("env_rew")
             self._buffer = LearnedRewardReplayBuffer(
                 buffer_keys, config.buffer_size, sampler.sample_func, rew

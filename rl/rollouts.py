@@ -33,7 +33,11 @@ class Rollout(object):
         batch["ac"] = self._history["ac"]
         batch["ac_before_activation"] = self._history["ac_before_activation"]
         batch["done"] = self._history["done"]
-        batch["rew"] = self._history["rew"]
+        if "env_rew" in self._history:
+            batch["env_rew"] = self._history["env_rew"]
+        else:
+            batch["rew"] = self._history["rew"]
+
         self._history = defaultdict(list)
         return batch
 

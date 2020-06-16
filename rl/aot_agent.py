@@ -7,9 +7,11 @@ from torch.optim import Adam
 from rl.base_agent import BaseAgent
 from rl.dataset import ReplayBuffer
 from rl.policies.utils import MLP
+from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import (compute_gradient_norm, compute_weight_norm,
-                          sync_grads, sync_networks, to_tensor)
+                          count_parameters, sync_grads, sync_networks,
+                          to_tensor)
 
 
 class AoTAgent(BaseAgent):
@@ -24,24 +26,29 @@ class AoTAgent(BaseAgent):
         self._config = deepcopy(config)
         self._config.ob_norm = False
         self._dataset = dataset
+        self._device = config.device
         input_dim = goal_space[0]
         # TODO: replace with ensemble
-        self.aot = MLP(config, input_dim, 1, [config.aot_hid_size] * 2).to(
-            config.device
-        )
+        self._aot = MLP(config, input_dim, 1, [config.aot_hid_size] * 2)
+        self._network_cuda(self._device)
         self._aot_optim = Adam(
-            self.aot.parameters(),
+            self._aot.parameters(),
             lr=config.lr_aot,
             weight_decay=config.aot_weight_decay,
         )
         self._reg_coeff = config.aot_reg_coeff
         self._preprocess_ob_func = preprocess_ob_func
-        self._device = config.device
+        self._log_creation()
+
+    def _log_creation(self):
+        if self._config.is_chef:
+            logger.info("Creating an AoT agent")
+            logger.info("The AoT has %d parameters", count_parameters(self._aot))
 
     def act(self, ob, is_train=True):
-        self.aot.train(is_train)
+        self._aot.train(is_train)
         ob = to_tensor(self._preprocess(ob), self._device)
-        return self.aot(ob)
+        return self._aot(ob)
 
     @torch.no_grad()
     def rew(self, ob, ob_next):
@@ -50,8 +57,9 @@ class AoTAgent(BaseAgent):
         find a next state whose AoT is lower than our current one. Hence rew is
         AoT(s) - AoT(s').
         """
-        self.aot.eval()
-        return self.aot(ob) - self.aot(ob_next)
+        rew = self.act(ob, False) - self.act(ob_next, False)
+        rew = rew.numpy().flatten()
+        return rew
 
     def train(self) -> dict:
         """
@@ -66,8 +74,8 @@ class AoTAgent(BaseAgent):
             train_info = self._update_network(transitions)
         train_info.update(
             {
-                "aot_grad_norm": np.mean(compute_gradient_norm(self.aot)),
-                "aot_weight_norm": np.mean(compute_weight_norm(self.aot)),
+                "aot_grad_norm": np.mean(compute_gradient_norm(self._aot)),
+                "aot_weight_norm": np.mean(compute_weight_norm(self._aot)),
             }
         )
         return train_info
@@ -76,12 +84,12 @@ class AoTAgent(BaseAgent):
         """
         Transitions is (N,2) batch of timesteps
         """
-        self.aot.train()
+        self._aot.train()
         info = {}
 
         transitions = to_tensor(transitions, self._config.device)
-        t = self.aot(transitions[:, :, 0])
-        t1 = self.aot(transitions[:, :, 1])
+        t = self._aot(transitions[:, :, 0])
+        t1 = self._aot(transitions[:, :, 1])
         diff = t - t1  # (N, 1)
         aot_loss = diff.mean()
         aot_regularizer = diff.pow(2).mean() * self._reg_coeff
@@ -92,7 +100,7 @@ class AoTAgent(BaseAgent):
 
         self._aot_optim.zero_grad()
         loss.backward()
-        sync_grads(self.aot)
+        sync_grads(self._aot)
         self._aot_optim.step()
 
         return mpi_average(info)
@@ -105,8 +113,8 @@ class AoTAgent(BaseAgent):
         episodes = [data[i] for i in sampled_eps_idx]
         t, t1 = [], []
         for ep in episodes:
-            num_samples = min(len(ep) - 1, num_timepairs)  # don't oversample
-            sampled_t = np.random.randint(0, len(ep) - 1, num_samples)
+            # num_samples = min(len(ep) - 1, num_timepairs)  # don't oversample
+            sampled_t = np.random.randint(0, len(ep) - 1, num_timepairs)
             for i in sampled_t:
                 t.append(self._preprocess(ep[i]))
                 t1.append(self._preprocess(ep[i + 1]))
@@ -115,7 +123,7 @@ class AoTAgent(BaseAgent):
         return all_pairs
 
     def sync_networks(self):
-        sync_networks(self.aot)
+        sync_networks(self._aot)
 
     def _preprocess(self, ob):
         if isinstance(ob, dict):
@@ -123,7 +131,21 @@ class AoTAgent(BaseAgent):
         elif isinstance(ob, list):
             return np.stack([self._preprocess_ob_func(o) for o in ob])
         else:
-            raise NotImplementedError
+            raise NotImplementedError(type(ob))
+
+    def state_dict(self):
+        return {
+            "aot_state_dict": self._aot.state_dict(),
+            "aot_optim_state_dict": self._aot_optim.state_dict()
+        }
+
+    def load_state_dict(self, ckpt):
+        self._aot.load_state_dict(ckpt["aot_state_dict"])
+        self._aot_optim.load_state_dict(ckpt["aot_optim_state_dict"])
+        self._network_cuda(self._config.device)
+
+    def _network_cuda(self, device):
+        self._aot.to(device)
 
 
 def test_get_time_pairs():

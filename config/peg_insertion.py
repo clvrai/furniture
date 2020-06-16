@@ -34,12 +34,12 @@ def add_argument(parser):
     parser.add_argument("--max_reset_episode_steps", type=int, default=99)
 
     # aot config
-    parser.add_argument("--use_aot", type=str2bool, default=False)
     parser.add_argument("--status_quo_baseline", type=str2bool, default=False)
+    parser.add_argument("--use_aot", type=str2bool, default=False)
     parser.add_argument("--aot_num_episodes", type=int, default=10)
-    parser.add_argument("--aot_num_timepairs", type=int, default=10)
-    parser.add_argument("--aot_num_batches", type=int, default=30)
-    parser.add_argument("--lr_aot", type=float, default=1e-4)
+    parser.add_argument("--aot_num_timepairs", type=int, default=50)
+    parser.add_argument("--aot_num_batches", type=int, default=1000)
+    parser.add_argument("--lr_aot", type=float, default=3e-4)
     parser.add_argument("--aot_reg_coeff", type=float, default=0.5)
     parser.add_argument("--aot_weight_decay", type=float, default=0.005)
     parser.add_argument("--aot_hid_size", type=int, default=256)
