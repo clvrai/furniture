@@ -52,9 +52,10 @@ def add_argument(parser):
     # reward config
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
     parser.add_argument("--success_rew", type=float, default=1)
-    parser.add_argument("--control_penalty_coeff", type=float, default=0.0001)
+    parser.add_argument("--control_penalty_coeff", type=float, default=0.001)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.05)
     parser.add_argument("--goal_quat_threshold", type=float, default=0.1)
+    parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
 
     # demo loading
     parser.add_argument(

@@ -827,6 +827,7 @@ class ResetTrainer(Trainer):
                 info["env_reward"] = env_reward
                 reward += intr_reward
             info["reward"] = reward
+            info.update(reset_rew_info)
             reset_success = env.reset_done()
             info["episode_success"] = int(reset_success)
             reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps

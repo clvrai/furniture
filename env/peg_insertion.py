@@ -34,6 +34,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._goal_type = config.goal_type
         self._action_noise = config.action_noise
         self._start_noise = config.start_noise
+        self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
 
         # load demonstrations if learning from demonstrations
         if self._lfd:
@@ -93,11 +94,9 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.seed()
 
     def reset_reward(self, ob, a, next_ob):
-        """If we are using AoT intrinsic rew, then we use sparse rew"""
-        sparse = self._config.use_aot
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
-        return self._remove_reward(ob, a, sparse)
+        return self._remove_reward(ob, a)
 
     def reset_done(self):
         peg_pos = np.hstack(
@@ -111,9 +110,9 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
         # no action noise during bc evaluation!
-        if self._algo != "bc" and self._action_noise is not None:
-            r = self._action_noise
-            a = a + self.np_random.uniform(-r, r, size=len(a))
+        # if self._algo != "bc" and self._action_noise is not None:
+        #     r = self._action_noise
+        #     a = a + self.np_random.uniform(-r, r, size=len(a))
         self.do_simulation(a, self.frame_skip)
 
         done = False
@@ -252,17 +251,20 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                 # Reset peg above hole:
                 r = self._start_noise
                 n = self.np_random.uniform(-r, r, size=7)
-                qpos = np.array(
-                    [
-                        0.44542705,
-                        0.64189252,
-                        -0.39544481,
-                        -2.32144865,
-                        -0.17935136,
-                        -0.60320289,
-                        1.57110214,
-                    ]
-                ) + n
+                qpos = (
+                    np.array(
+                        [
+                            0.44542705,
+                            0.64189252,
+                            -0.39544481,
+                            -2.32144865,
+                            -0.17935136,
+                            -0.60320289,
+                            1.57110214,
+                        ]
+                    )
+                    + n
+                )
 
             else:
                 # Reset peg in hole
@@ -281,16 +283,17 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.set_state(qpos, qvel)
         return self._get_obs()
 
-    def _remove_reward(self, s, a, sparse=False) -> Tuple[float, dict]:
+    def _remove_reward(self, s, a) -> Tuple[float, dict]:
         """Compute the peg removal reward.
         Note: We assume that the reward is computed on-policy, so the given
         state is equal to the current observation.
         Returns reward and info dict
         """
         info = {}
-        peg_pos = np.hstack(
-            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
-        )
+        peg_pos = s["object_ob"]
+        # peg_pos = np.hstack(
+        #     [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        # )
         dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
         # we want the current distance to be smaller than the previous step's distnace
         dist_diff = self._prev_remove_dist - dist_to_start
@@ -305,7 +308,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if self._success:
             success_reward = self._config.aot_succ_rew
 
-        if sparse:
+        if self._sparse_remove_rew:
             remove_reward = control_reward + success_reward
         else:
             remove_reward = peg_to_start_reward + control_reward + success_reward
@@ -322,9 +325,10 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         state is equal to the current observation.
         """
         info = {}
-        peg_pos = np.hstack(
-            [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
-        )
+        peg_pos = s["object_ob"]
+        # peg_pos = np.hstack(
+        #     [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+        # )
         dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
         dist_diff = self._prev_insert_dist - dist_to_goal
         self._prev_insert_dist = dist_to_goal
@@ -359,9 +363,14 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         Returns the robot actuator states, and the object pose.
         By default, returns the object pose.
         """
+        # obs = {
+        #     "object_ob": np.concatenate(
+        #         [self.data.get_body_xpos("ball"), self.data.get_body_xquat("ball")]
+        #     )
+        # }
         obs = {
-            "object_ob": np.concatenate(
-                [self.data.get_body_xpos("ball"), self.data.get_body_xquat("ball")]
+            "object_ob": np.hstack(
+                [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
             )
         }
         if self._robot_ob:
@@ -418,19 +427,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if isinstance(ob, dict):
             ob = self.get_goal(ob)
         if self._goal_type == "state_obj":
-            object_pos, object_quat = ob[:3], ob[3:]
-            goal_object_pos, goal_object_quat = goal[:3], goal[3:]
-            assert len(object_pos.shape) == 1
-
-            pos_success = (
-                np.linalg.norm(object_pos - goal_object_pos) < self._goal_pos_threshold
-            )
-
-            quat_success = (
-                np.linalg.norm(object_quat - goal_object_quat)
-                < self._goal_quat_threshold
-            )
-            return pos_success and quat_success
+            pos_success = np.linalg.norm(ob - goal) < self._goal_pos_threshold
+            return pos_success
         else:
             raise NotImplementedError()
 
@@ -454,10 +452,10 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     @property
     def observation_space(self) -> dict:
         """
-        Object ob: 7D pose of peg
+        Object ob: top and bottom pos of peg
         Robot ob: 14D qpos and qvel of robot
         """
-        ob_space = {"robot_ob": [14], "object_ob": [7]}
+        ob_space = {"robot_ob": [14], "object_ob": [6]}
 
         return ob_space
 
@@ -472,9 +470,9 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     @property
     def goal_space(self):
         if self._goal_type == "state_obj":
-            return [7]  # peg pose
+            return [6]  # peg pos
         elif self._goal_type == "state_obj_robot":
-            return [21]  # peg pose and robot qpos and robot qvel
+            return [20]  # peg pose and robot qpos and robot qvel
 
 
 if __name__ == "__main__":
