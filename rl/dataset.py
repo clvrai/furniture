@@ -1,5 +1,4 @@
 from collections import defaultdict
-from time import time
 
 import numpy as np
 
@@ -57,6 +56,42 @@ class ReplayBuffer:
         self._buffer = state_dict
         self._current_size = len(self._buffer['ac'])
 
+
+class LearnedRewardReplayBuffer(ReplayBuffer):
+    def __init__(self, keys, buffer_size, sample_func, rew):
+        super().__init__(keys, buffer_size, sample_func)
+        self._rew = rew
+
+    def sample(self, batch_size_in_transitions):
+        # sample transitions
+        episode_batch = self._buffer
+        rollout_batch_size = len(episode_batch['ac'])
+        batch_size = batch_size_in_transitions
+
+        episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
+        t_samples = [np.random.randint(len(episode_batch['ac'][episode_idx])) for episode_idx in episode_idxs]
+
+        transitions = {}
+        for key in episode_batch.keys():
+            transitions[key] = \
+                [episode_batch[key][episode_idx][t] for episode_idx, t in zip(episode_idxs, t_samples)]
+
+        transitions['ob_next'] = [
+            episode_batch['ob'][episode_idx][t + 1] for episode_idx, t in zip(episode_idxs, t_samples)]
+
+        transitions['rew'] = transitions['env_rew'] + self._rew(transitions['ob'], transitions['ob_next'])
+
+        new_transitions = {}
+        for k, v in transitions.items():
+            if isinstance(v[0], dict):
+                sub_keys = v[0].keys()
+                new_transitions[k] = {
+                    sub_key: np.stack([v_[sub_key] for v_ in v]) for sub_key in sub_keys
+                }
+            else:
+                new_transitions[k] = np.stack(v)
+
+        return new_transitions
 
 
 class RandomSampler:

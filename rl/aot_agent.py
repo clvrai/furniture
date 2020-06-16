@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+import torch
 from torch.optim import Adam
 
 from rl.base_agent import BaseAgent
@@ -34,7 +35,23 @@ class AoTAgent(BaseAgent):
             weight_decay=config.aot_weight_decay,
         )
         self._reg_coeff = config.aot_reg_coeff
-        self._preprocess = preprocess_ob_func
+        self._preprocess_ob_func = preprocess_ob_func
+        self._device = config.device
+
+    def act(self, ob, is_train=True):
+        self.aot.train(is_train)
+        ob = to_tensor(self._preprocess(ob), self._device)
+        return self.aot(ob)
+
+    @torch.no_grad()
+    def rew(self, ob, ob_next):
+        """
+        Reward function using AoT. Since AoT increases for s1, s2, s3, we want to
+        find a next state whose AoT is lower than our current one. Hence rew is
+        AoT(s) - AoT(s').
+        """
+        self.aot.eval()
+        return self.aot(ob) - self.aot(ob_next)
 
     def train(self) -> dict:
         """
@@ -59,11 +76,10 @@ class AoTAgent(BaseAgent):
         """
         Transitions is (N,2) batch of timesteps
         """
+        self.aot.train()
         info = {}
-        def _to_tensor(x):
-            return to_tensor(x, self._config.device)
 
-        transitions = _to_tensor(transitions)
+        transitions = to_tensor(transitions, self._config.device)
         t = self.aot(transitions[:, :, 0])
         t1 = self.aot(transitions[:, :, 1])
         diff = t - t1  # (N, 1)
@@ -100,6 +116,14 @@ class AoTAgent(BaseAgent):
 
     def sync_networks(self):
         sync_networks(self.aot)
+
+    def _preprocess(self, ob):
+        if isinstance(ob, dict):
+            return self._preprocess_ob_func(ob)
+        elif isinstance(ob, list):
+            return np.stack([self._preprocess_ob_func(o) for o in ob])
+        else:
+            raise NotImplementedError
 
 
 def test_get_time_pairs():
@@ -162,11 +186,46 @@ def test_aot_train():
         r.add({"ob": ob, "done": True})
         rb.store_episode(r.get())
 
-    train_info = aot.train()
+    _ = aot.train()
     print("AoT train works")
+
+
+def test_act():
+    # test agent training
+    from config import create_parser
+    from env import PegInsertionEnv
+    from rl.dataset import RandomSampler
+    import torch
+
+    parser = create_parser("PegInsertionEnv")
+    config, _ = parser.parse_known_args()
+    config.aot_num_episodes = 2
+    config.aot_num_timepairs = 2
+    config.aot_num_batches = 10
+    config.aot_hid_size = 10
+    config.device = torch.device("cpu")
+
+    env = PegInsertionEnv(config)
+    sampler = RandomSampler()
+    rb = ReplayBuffer(["ob", "ac"], 100, sampler.sample_func)
+    aot = AoTAgent(config, env.goal_space, rb, env.get_goal)
+
+    # test 1 ob
+    ob = {k: np.ones(v) * 5 for k, v in env.observation_space.items()}
+    output = aot.act(ob)
+    assert list(output.shape) == [1], output.shape
+
+    # test batched ob
+    batch_ob = [
+        {k: np.ones(v) * 5 for k, v in env.observation_space.items()} for i in range(5)
+    ]
+    output = aot.act(batch_ob)
+    assert list(output.shape) == [5, 1], output.shape
+    print("AoT act works")
 
 
 if __name__ == "__main__":
 
-    # test_get_time_pairs()
+    test_get_time_pairs()
     test_aot_train()
+    test_act()

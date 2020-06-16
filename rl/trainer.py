@@ -9,12 +9,18 @@ import os
 import pickle
 from collections import defaultdict
 from time import time
+from typing import Tuple
 
 import h5py
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import moviepy.editor as mpy
 import numpy as np
 import torch
 import wandb
+from matplotlib.colors import BoundaryNorm
+from matplotlib.ticker import MaxNLocator
+from sklearn.decomposition import PCA
 from tqdm import tqdm, trange
 
 from env import make_env
@@ -538,10 +544,7 @@ class ResetTrainer(Trainer):
         self._agent = get_agent_by_name(config.algo)(
             config, ob_space, ac_space, actor, critic
         )
-        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
-        self._reset_agent = get_agent_by_name(config.algo)(
-            config, ob_space, ac_space, actor, critic
-        )
+
         self._aot_agent = None
         if config.use_aot:
             from rl.aot_agent import AoTAgent
@@ -549,6 +552,11 @@ class ResetTrainer(Trainer):
             self._aot_agent = AoTAgent(
                 config, goal_space, self._agent._buffer, self._env.get_goal
             )
+
+        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
+        self._reset_agent = get_agent_by_name(config.algo)(
+            config, ob_space, ac_space, actor, critic, True, self._aot_agent.rew
+        )
 
     def _setup_log(self):
         # setup log
@@ -649,6 +657,8 @@ class ResetTrainer(Trainer):
                 # 2. Update AoT Classifier
                 if self._aot_agent is not None:
                     arrow_train_info = self._aot_agent.train()
+                    if self._is_chef and self._update_iter % cfg.log_interval == 0:
+                        self._log_train(self._step, arrow_train_info, {}, "aot")
 
                 # 3. Run and train reset policy
                 r_rollout = Rollout()
@@ -718,14 +728,17 @@ class ResetTrainer(Trainer):
             self._evaluate(record=True)
             self._save_ckpt(self._step, self._update_iter)
 
-    def _evaluate(self, record=False):
+    @torch.no_grad()
+    def _evaluate(self, record=False, log=True) -> Tuple[dict, dict, dict, dict]:
         """
         Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
         Runs num_record_samples rollouts if in train mode (@idx is None).
 
         Args:
-            step: the number of environment steps.
             record: whether to record video or not.
+            log: whether to log results
+        Returns:
+            rollout, rollout info, reset rollout, reset rollout info
         """
         if not (
             self._is_chef and self._update_iter % self._config.evaluate_interval == 0
@@ -734,6 +747,7 @@ class ResetTrainer(Trainer):
         cfg = self._config
         # 1. Run forward policy
         ep_info = defaultdict(list)
+        rollout = Rollout()
         done = False
         ep_len = ep_rew = 0
         env = self._env_eval
@@ -748,8 +762,12 @@ class ResetTrainer(Trainer):
         env.begin_forward()
         while not done:  # env return done if time limit is reached or task done
             ac, ac_before_activation = self._agent.act(ob, is_train=False)
+            rollout.add(
+                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+            )
             ob, reward, done, info = env.step(ac)
             done = done or ep_len >= cfg.max_episode_steps
+            rollout.add({"done": done, "rew": reward})
             ep_len += 1
             ep_rew += reward
             for key, value in info.items():
@@ -757,7 +775,8 @@ class ResetTrainer(Trainer):
             if record:
                 frame = env.render("rgb_array")[0] * 255.0
                 forward_frames.append(frame)
-        # compute average/sum of information
+        rollout.add({"ob": ob})
+        rollout = rollout.get()
         ep_info = self._reduce_info(ep_info)
         ep_info.update({"len": ep_len, "rew": ep_rew})
         if record:
@@ -766,15 +785,14 @@ class ResetTrainer(Trainer):
             fname = f"forward_step_{self._step:011d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, forward_frames)
             ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        self._log_test(self._step, ep_info, "forward")
+        if log:
+            self._log_test(self._step, ep_info, "forward")
 
         if cfg.status_quo_baseline:
             return
-        # 2. Update AoT Classifier
-        if self._aot_agent is not None:
-            arrow_train_info = self._aot_agent.train()
 
         # 3. Run and train reset policy
+        r_rollout = Rollout()
         r_ep_info = defaultdict(list)
         reset_done = reset_success = False
         ep_len = ep_rew = 0
@@ -785,6 +803,9 @@ class ResetTrainer(Trainer):
         while not reset_done:
             ac, ac_before_activation = self._reset_agent.act(ob, is_train=False)
             prev_ob = ob
+            r_rollout.add(
+                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+            )
             ob, _, _, info = env.step(ac)
             reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
             info.update(reset_rew_info)
@@ -799,6 +820,7 @@ class ResetTrainer(Trainer):
             reset_success = env.reset_done()
             info["episode_success"] = int(reset_success)
             reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+            r_rollout.add({"done": reset_done, "rew": reward})
             ep_len += 1
             ep_rew += reward
             for key, value in info.items():
@@ -806,7 +828,8 @@ class ResetTrainer(Trainer):
             if record:
                 frame = env.render("rgb_array")[0] * 255.0
                 reset_frames.append(frame)
-        # compute average/sum of information
+        r_rollout.add({"ob": ob})
+        r_rollout = r_rollout.get()
         r_ep_info = self._reduce_info(r_ep_info)
         r_ep_info.update({"len": ep_len, "rew": ep_rew})
         if record:
@@ -815,7 +838,10 @@ class ResetTrainer(Trainer):
             fname = f"reset_step_{self._step:011d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        self._log_test(self._step, r_ep_info, "reset")
+        if log:
+            self._log_test(self._step, r_ep_info, "reset")
+            self._visualize_aot()
+        return rollout, ep_info, r_rollout, r_ep_info
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
         """
@@ -907,6 +933,76 @@ class ResetTrainer(Trainer):
         for k, v in ep_info.items():
             wandb.log({f"{agent}_train_ep/{k}": v}, step=step)
 
+    @torch.no_grad()
+    def _visualize_aot(self):
+        """
+        Visualize AoT and Reset Policy
+        Sample 5 forward policy trajectories
+        Sample 5 reset policy trajectories
+        Get AoT outputs for each trajectory
+        Plot onto 2D space using PCA or TSNE. Color each point by value of AoT
+        """
+        pca = PCA(2)
+        X = []
+        aots = []
+        trajectories = []
+        # Get 5 forward and reset trajectories
+        for i in range(5):
+            f, f_info, r, r_info = self._evaluate(record=False, log=False)
+            fob = [self._env.get_goal(x)[:3] for x in f["ob"]]
+            rob = [self._env.get_goal(x)[:3] for x in r["ob"]]
+            X.extend(fob)
+            X.extend(rob)
+            f_aot = self._aot_agent.act(f["ob"], is_train=False)
+            r_aot = self._aot_agent.act(r["ob"], is_train=False)
+            f_aot = f_aot.cpu().numpy().flatten()
+            r_aot = r_aot.cpu().numpy().flatten()
+            aot_min = min(f_aot.min(), r_aot.min())
+            aot_max = max(f_aot.max(), r_aot.max())
+            if i == 0:
+                amin = aot_min
+                amax = aot_max
+            if aot_min < amin:
+                amin = aot_min
+            if aot_max > amax:
+                amax = aot_max
+
+            aots.extend([f_aot, r_aot])
+            trajectories.extend([fob, rob])
+        levels = MaxNLocator(nbins=15).tick_values(amin, amax)
+        cmap = plt.get_cmap("hot")
+        norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+        pca.fit(X)
+
+        f, ax = plt.subplots()
+        ax.set_facecolor((0, 0, 0, 0.1))
+        for j, traj in enumerate(trajectories):
+            traj = pca.transform(traj)
+            aot = aots[j]
+            # draw dots with arrows for traj
+            ax.scatter(
+                traj[:, 0],
+                traj[:, 1],
+                marker=".",
+                s=2,
+                c=aot,
+                cmap=cmap,
+                norm=norm,
+                zorder=2,
+            )
+            # annotate start and end points of trajectory
+            dir = "f" if j % 2 == 0 else "r"
+            ax.annotate(f"s_{dir}", traj[0, :], fontsize="xx-small")
+            ax.annotate(f"e_{dir}", traj[-1, :], fontsize="xx-small")
+        f.colorbar(
+            cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="vertical"
+        )
+
+        fpath = os.path.join(self._config.plot_dir, f"aot_{self._step:011d}.png")
+        wandb.log({"reset_test_ep/eval_plot": [wandb.Image(plt)]}, step=self._step)
+        f.savefig(fpath, dpi=300)
+        plt.close("all")
+
     def _update_normalizer(self, rollout, agent):
         if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
             agent.update_normalizer(rollout["ob"])
@@ -919,3 +1015,23 @@ class ResetTrainer(Trainer):
                 else:
                     ep_info[key] = np.sum(value)
         return ep_info
+
+
+def test_aot_visualization():
+    from config import create_parser
+
+    parser = create_parser("PegInsertionEnv")
+    config, _ = parser.parse_known_args()
+    config.use_aot = True
+    config.is_chef = True
+    config.device = torch.device("cpu")
+    config.is_train = False
+    config.wandb = False
+
+    trainer = ResetTrainer(config)
+    trainer._update_iter = 0
+    trainer._visualize_aot()
+
+
+if __name__ == "__main__":
+    test_aot_visualization()

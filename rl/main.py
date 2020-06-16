@@ -45,7 +45,7 @@ def run(config):
 
     def shutdown(signal, frame):
         logger.warn('Received signal %s: exiting', signal)
-        sys.exit(128+signal)
+        sys.exit(128 + signal)
 
     signal.signal(signal.SIGHUP, shutdown)
     signal.signal(signal.SIGINT, shutdown)
@@ -86,6 +86,7 @@ def set_log_path(config):
                                               config.prefix, config.seed)
     config.log_dir = os.path.join(config.log_root_dir, config.run_name)
     config.record_dir = os.path.join(config.log_dir, "video")
+    config.plot_dir = os.path.join(config.log_dir, "plot")
 
 
 def make_log_files(config):
@@ -97,6 +98,9 @@ def make_log_files(config):
 
     logger.info('Create video directory: %s', config.record_dir)
     os.makedirs(config.record_dir, exist_ok=True)
+
+    logger.info('Create plot directory: %s', config.rplot_dir)
+    os.makedirs(config.plot_dir, exist_ok=True)
 
     if config.is_train:
         # log git diff
