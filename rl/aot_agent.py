@@ -58,7 +58,7 @@ class AoTAgent(BaseAgent):
         AoT(s) - AoT(s').
         """
         rew = self.act(ob, False) - self.act(ob_next, False)
-        rew = rew.numpy().flatten()
+        rew = rew.cpu().numpy().flatten()
         return rew
 
     def train(self) -> dict:
