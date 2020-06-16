@@ -106,7 +106,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
         dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
-        peg_at_start = dist_to_start < self._goal_pos_threshold
+        peg_at_start = dist_to_start < self._start_pos_threshold
         return peg_at_start
 
     def step(self, a) -> Tuple[dict, float, bool, dict]:
