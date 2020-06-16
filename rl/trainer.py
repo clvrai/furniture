@@ -752,7 +752,6 @@ class ResetTrainer(Trainer):
         Returns:
             rollout, rollout info, reset rollout, reset rollout info
         """
-        torch.set_grad_enabled(False)
         if not (
             self._is_chef and self._update_iter % self._config.evaluate_interval == 0
         ):
@@ -858,7 +857,6 @@ class ResetTrainer(Trainer):
             if cfg.use_aot:
                 self._visualize_aot()
 
-        torch.set_grad_enabled(True)
         return rollout, ep_info, r_rollout, r_ep_info
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
@@ -976,8 +974,8 @@ class ResetTrainer(Trainer):
             X.extend(rob)
             f_aot = self._aot_agent.act(f["ob"], is_train=False)
             r_aot = self._aot_agent.act(r["ob"], is_train=False)
-            f_aot = f_aot.cpu().numpy().flatten()
-            r_aot = r_aot.cpu().numpy().flatten()
+            f_aot = f_aot.cpu().detach().numpy().flatten()
+            r_aot = r_aot.cpu().detach().numpy().flatten()
             aot_min = min(f_aot.min(), r_aot.min())
             aot_max = max(f_aot.max(), r_aot.max())
             if i == 0:
