@@ -38,6 +38,7 @@ class AoTAgent(BaseAgent):
         )
         self._reg_coeff = config.aot_reg_coeff
         self._preprocess_ob_func = preprocess_ob_func
+        self._aot_rew_coeff = config.aot_rew_coeff
         self._log_creation()
 
     def _log_creation(self):
@@ -58,7 +59,7 @@ class AoTAgent(BaseAgent):
         AoT(s) - AoT(s').
         """
         rew = self.act(ob, False) - self.act(ob_next, False)
-        rew = rew.cpu().numpy().flatten()
+        rew = rew.cpu().numpy().flatten() * self._aot_rew_coeff
         return rew
 
     def train(self) -> dict:

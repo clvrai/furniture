@@ -43,6 +43,8 @@ def add_argument(parser):
     parser.add_argument("--aot_reg_coeff", type=float, default=0.5)
     parser.add_argument("--aot_weight_decay", type=float, default=0.005)
     parser.add_argument("--aot_hid_size", type=int, default=256)
+    parser.add_argument("--aot_rew_coeff", type=float, default=1)
+
 
 
     # reward config
