@@ -965,8 +965,8 @@ class ResetTrainer(Trainer):
         X = []
         aots = []
         trajectories = []
-        # Get 5 forward and reset trajectories
-        for i in range(5):
+        # Get 2 forward and reset trajectories
+        for i in range(2):
             f, f_info, r, r_info = self._evaluate(record=False, log=False)
             fob = [self._env.get_goal(x)[:3] for x in f["ob"]]
             rob = [self._env.get_goal(x)[:3] for x in r["ob"]]
