@@ -1,12 +1,15 @@
+"""
+VR demo for the IKEA furniture assembly environment.
+The user can use HTC Vive VR controllers to control a robot.
+"""
+
 import sys
 import time
-import openvr
 import argparse
 
 from env import make_env
 from env.models import furniture_names, background_names, agent_names
 from util import str2bool
-from util.triad_openvr import triad_openvr
 
 
 # available agents

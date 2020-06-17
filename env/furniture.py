@@ -143,12 +143,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         )
         if self._record_vid:
             if self._record_demo:
-                self.vid_rec = VideoRecorder(prefix=self.file_prefix, demo_dir=config.demo_dir)
+                self.vid_rec = VideoRecorder(
+                    prefix=self.file_prefix, demo_dir=config.demo_dir
+                )
             else:
                 self.vid_rec = VideoRecorder(prefix=self.file_prefix)
 
         if config.render and platform == "win32":
             from mujoco_py import GlfwContext
+
             GlfwContext(offscreen=True)  # Create a window to init GLFW.print(1)
 
     @property
@@ -1729,14 +1732,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         # task includes arena, robot, and objects of interest
         from env.models.tasks import FloorTask
+
         self.mujoco_model = FloorTask(
             self.mujoco_arena,
             self.mujoco_robot,
             self.mujoco_objects,
             self.mujoco_equality,
             self._config,
-            rng = self._rng,
-            hide_noviz = True
+            rng=self._rng,
+            hide_noviz=True,
         )
 
     def key_callback(self, window, key, scancode, action, mods):
@@ -1896,8 +1900,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             all_qpos = demo["qpos"]
             if config.debug:
                 for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
-                    #print('obs', i, obs)
-                    print('action', i, action)
+                    # print('obs', i, obs)
+                    print("action", i, action)
         try:
             for qpos in all_qpos:
                 self.set_env_qpos(qpos)
@@ -1930,10 +1934,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.vr = triad_openvr.triad_openvr()
         self.vr.print_discovered_objects()
 
+        assert config.render, "Set --render True to see the viewer"
+
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
-        ob = self.reset(config.furniture_id, config.background)
+        self.reset(config.furniture_id, config.background)
 
+        if self._record_vid:
+            self.vid_rec.capture_frame(self.render("rgb_array")[0])
         if config.render:
             self.render()
 
@@ -2018,6 +2026,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                     break
 
             if reset:
+                if self._record_demo:
+                    self._demo.save(self.file_prefix)
                 continue
 
             # action space is 7 dim per controller (3 xyz, 3 euler, 1 sel)
@@ -2036,11 +2046,25 @@ class FurnitureEnv(metaclass=EnvMeta):
                 action = action[:8]
                 action[6] = flag[0]
             elif self._agent_type == "Baxter":
+                d_p1[:3] *= 100
+                d_p2[:3] *= 100
+                d_p1[3] = 0
+                d_p2[3] = 0
                 action = np.hstack([d_p1[:6], d_p2[:6], [flag[0], flag[1], action[7]]])
+                print("*** R: " + str(d_p1[:6]) + "  L: " + str(d_p2[:6]))
 
+            print("Take action: " + str(action[:6]))
             ob, reward, done, info = self.step(action)
             if config.debug:
                 print("\rAction: " + str(action[:6]), end="")
+            if self._record_vid:
+                self.vid_rec.capture_frame(self.render("rgb_array")[0])
+            if done:
+                if self._record_demo:
+                    self._demo.save(self.file_prefix)
+                self.reset(config.furniture_id, config.background)
+                if self._record_vid:
+                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
             t += 1
 
     def run_manual(self, config):
@@ -2212,7 +2236,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self._demo.save(self.file_prefix)
                     self.reset(config.furniture_id, config.background)
                     if self._record_vid:
-                        # print('capture_frame3')
                         self.vid_rec.capture_frame(self.render("rgb_array")[0])
                     else:
                         self.render()
@@ -2263,7 +2286,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             print("current_scale", 1 + self._manual_resize)
             self.reset(config.furniture_id, config.background)
             self._action_on = False
-
 
     def run_img(self, config):
         """
