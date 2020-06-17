@@ -23,6 +23,7 @@ mpi4py==3.0.3
 mujoco-py==2.0.2.5
 numpy==1.17.4
 opencv-python==4.1.1.26
+openvr==1.12.501
 pexpect==4.7.0
 pickleshare==0.7.5
 Pillow==6.2.2
