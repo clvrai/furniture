@@ -73,7 +73,7 @@ class GAILAgent(BaseAgent):
 
     def _log_creation(self):
         if self._config.is_chef:
-            logger.info("Creating a BC agent")
+            logger.info("Creating a GAIL agent")
             logger.info("The actor has %d parameters", count_parameters(self._actor))
 
     def store_episode(self, rollouts):

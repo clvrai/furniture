@@ -116,22 +116,12 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             done = True
             success_rew = 1
             logger.warning("Success")
+            self._success = True
 
         rew = success_rew
         info["success"] = success_rew
         info["table_up"] = up
         return rew, done, info
-
-    def run_demo(self, config):
-        """
-        Since we save all qpos, just play back qpos
-        """
-        with open(self._load_demo, "rb") as f:
-            demo = pickle.load(f)
-            self.reset()
-            for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
-                self.step(action)
-                self.render("rgb_array")
 
 
 def main():

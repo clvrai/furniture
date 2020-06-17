@@ -28,6 +28,7 @@ def create_parser(env=None):
             "FurnitureSawyerToyTableEnv",
             "FurnitureSaywerPlaceEnv",
             "FurnitureSawyerPickEnv",
+            "FurnitureBaxterToyTableEnv",
         ],
         help="Environment name",
     )
@@ -147,9 +148,9 @@ def create_parser(env=None):
 
     # evaluation
     parser.add_argument("--ckpt_num", type=int, default=None)
-    parser.add_argument("--num_eval", 
-        type=int, 
-        default=1, 
+    parser.add_argument("--num_eval",
+        type=int,
+        default=1,
         help="number of trajectories to collect during eval"
     )
     parser.add_argument(
@@ -181,7 +182,7 @@ def create_parser(env=None):
         "--sched_lambda", type=float, default=None, help="learning rate scheduler factor"
     )
     parser.add_argument("--demo_path", type=str, default=None, help="path to demos")
-    parser.add_argument("--gail_entropy_loss_coeff", type=float, default=1e-3)
+    parser.add_argument("--gail_entropy_loss_coeff", type=float, default=0.0)
     parser.add_argument(
         "--eval_on_train_set",
         type=str2bool,

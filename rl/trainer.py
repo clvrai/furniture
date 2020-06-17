@@ -152,10 +152,14 @@ class Trainer(object):
                     self._config.log_dir, "replay_%08d.pkl" % ckpt_num
                 )
                 logger.warn("Load replay_buffer %s", replay_path)
-                with gzip.open(replay_path, "rb") as f:
-                    replay_buffers = pickle.load(f)
-                    self._agent.load_replay_buffer(replay_buffers["replay"])
-            if 'bc' in self._config.init_ckpt_path and 'gail' in self._config.algo:
+                if os.path.exists(replay_path):
+                    with gzip.open(replay_path, "rb") as f:
+                        replay_buffers = pickle.load(f)
+                        self._agent.load_replay_buffer(replay_buffers["replay"])
+                else:
+                    logger.warn("Replay buffer not exists at %s", replay_path)
+
+            if self._config.init_ckpt_path is not None and 'bc' in self._config.init_ckpt_path:
                 return 0, 0
             else:
                 return ckpt["step"], ckpt["update_iter"]
@@ -216,6 +220,7 @@ class Trainer(object):
             pbar = tqdm(
                 initial=update_iter, total=config.max_epoch, desc=config.run_name
             )
+            ep_info = defaultdict(list)
 
         # decide how many episodes or how long rollout to collect
         if self._config.algo == "gail":
@@ -233,6 +238,7 @@ class Trainer(object):
                 step_per_batch = mpi_sum(len(rollout["ac"]))
             else:
                 step_per_batch = mpi_sum(1)
+                info = {}
 
             # train an agent
             logger.info("Update networks %d", update_iter)
@@ -250,6 +256,11 @@ class Trainer(object):
             # log training and episode information or evaluate
             if self._is_chef:
                 pbar.update(1)
+                for k, v in info.items():
+                    if isinstance(v, list):
+                        ep_info[k].extend(v)
+                    else:
+                        ep_info[k].append(v)
 
                 if update_iter % config.log_interval == 0:
                     train_info.update(
@@ -261,7 +272,8 @@ class Trainer(object):
                     )
                     st_time = time()
                     st_step = step
-                    self._log_train(step, train_info, {})
+                    self._log_train(step, train_info, ep_info)
+                    ep_info = defaultdict(list)
 
                 if update_iter % config.evaluate_interval == 1:
                     logger.info("Evaluate at %d", update_iter)
@@ -298,6 +310,13 @@ class Trainer(object):
 
         st_time = time()
         st_step = step
+
+        while step < config.batch_size:
+            rollout, info = next(runner)
+            self._agent.store_episode(rollout)
+            step_per_batch = mpi_sum(len(rollout["ac"]))
+            step += step_per_batch
+
         while step < config.max_global_step:
             # collect rollouts
             rollout, info = next(runner)
@@ -320,13 +339,13 @@ class Trainer(object):
             # log training and episode information or evaluate
             if self._is_chef:
                 pbar.update(step_per_batch)
+                for k, v in info.items():
+                    if isinstance(v, list):
+                        ep_info[k].extend(v)
+                    else:
+                        ep_info[k].append(v)
 
                 if update_iter % config.log_interval == 0:
-                    for k, v in info.items():
-                        if isinstance(v, list):
-                            ep_info[k].extend(v)
-                        else:
-                            ep_info[k].append(v)
                     train_info.update(
                         {
                             "sec": (time() - st_time) / config.log_interval,
@@ -369,11 +388,12 @@ class Trainer(object):
         )
         pick_acc = 0
         peg_acc = 0
-        for i in range(self._config.num_eval):
+        n = self._config.num_eval if self._config.is_train else 1
+        for i in range(n):
             rollout, info, frames = self._runner.run_episode(
                 is_train=False, record_vid=record_vid, record_demo=record_demo, train_step=step
             )
-            if info["pick_acc"] is not None:
+            if info["pick_acc"] is not None and "success_rew" in info:
                 pick_acc += info["pick_acc"]
                 peg_acc += 1 if info["success_rew"] > 0 else 0
             if record_vid:

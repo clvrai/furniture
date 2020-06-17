@@ -41,5 +41,7 @@ class Discriminator(nn.Module):
         ac = to_tensor(ac, self._config.device)
         ret = self.forward(ob, ac)
 
-        reward = -torch.log(1 - torch.sigmoid(ret) + 1e-8)
+        eps = 1e-20
+        s = torch.sigmoid(ret)
+        reward = (s + eps).log() - (1 - s + eps).log()
         return reward

@@ -96,6 +96,16 @@ class SACAgent(BaseAgent):
         }
 
     def load_state_dict(self, ckpt):
+        if "log_alpha" not in ckpt:
+            missing = self._actor.load_state_dict(ckpt["actor_state_dict"], strict=False)
+            for missing_key in missing.missing_keys:
+                if 'stds' not in missing_key:
+                    logger.warn("Missing key", missing_key)
+            if len(missing.unexpected_keys) > 0:
+                logger.warn("Unexpected keys", missing.unexpected_keys)
+            self._network_cuda(self._config.device)
+            return
+
         self._log_alpha.data = torch.tensor(
             ckpt["log_alpha"], requires_grad=True, device=self._config.device
         )

@@ -1906,7 +1906,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             for qpos in all_qpos:
                 self.set_env_qpos(qpos)
                 self.sim.forward()
-                self._update_unity()
+                if self._unity:
+                    self._update_unity()
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
         finally:

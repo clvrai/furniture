@@ -12,6 +12,7 @@ from env.furniture_panda import FurniturePandaEnv
 from env.furniture_baxter_block import FurnitureBaxterBlockEnv
 from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
 from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
+from env.furniture_baxter_toytable import FurnitureBaxterToyTableEnv
 
 # OpenAI gym interface
 from gym.envs.registration import register

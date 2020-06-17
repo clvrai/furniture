@@ -5,6 +5,8 @@ import glob
 import torch
 from torch.utils.data import Dataset
 
+from util.logger import logger
+
 
 class ILDataset(Dataset):
     """ Dataset class for Imitation Learning. """
@@ -43,6 +45,8 @@ class ILDataset(Dataset):
                         self._rews.append(rew)
 
                 assert len(demo["obs"]) == len(demo["actions"]) + 1
+
+        logger.warn("Load %d demonstrations with %d states", len(demo_files), len(self._obs))
 
     def _get_demo_files(self, demo_file_path):
         demos = []
