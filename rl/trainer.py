@@ -688,13 +688,6 @@ class ResetTrainer(Trainer):
                         reward += intr_reward
                     info["reward"] = reward
                     info.update(reset_rew_info)
-                    for k in [
-                        "dist_to_goal",
-                        "control_rew",
-                        "peg_to_goal_rew",
-                        "success_rew",
-                    ]:
-                        del info[k]
 
                     reset_success = env.reset_done()
                     info["episode_success"] = int(reset_success)
