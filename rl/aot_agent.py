@@ -150,12 +150,22 @@ class AoTAgent(BaseAgent):
         t = self._aot(transitions[:, :, 0])
         t1 = self._aot(transitions[:, :, 1])
         diff = t - t1  # (N, 1) or (E,N,1) if Ensemble
-        aot_loss = diff.mean()  # We can average losses even if E since indep.
-        aot_regularizer = diff.pow(2).mean() * self._reg_coeff  # same here
-        loss = aot_loss + aot_regularizer
-        info["aot_loss"] = aot_loss.cpu().item()
-        info["aot_regularizer"] = aot_regularizer.cpu().item()
-        info["aot_total_loss"] = loss.cpu().item()
+        if self._ensemble:
+            aot_loss = diff.mean(dim=1)
+            aot_regularizer = diff.pow(2).mean(dim=1) * self._reg_coeff
+            loss = (aot_loss + aot_regularizer).sum()
+
+            info["aot_loss"] = aot_loss.sum().cpu().item()
+            info["aot_regularizer"] = aot_regularizer.sum().cpu().item()
+            info["aot_total_loss"] = loss.sum().cpu().item()
+        else:
+            aot_loss = diff.mean()  # We can average losses even if E since indep.
+            aot_regularizer = diff.pow(2).mean() * self._reg_coeff  # same here
+            loss = aot_loss + aot_regularizer
+
+            info["aot_loss"] = aot_loss.cpu().item()
+            info["aot_regularizer"] = aot_regularizer.cpu().item()
+            info["aot_total_loss"] = loss.cpu().item()
 
         self._aot_optim.zero_grad()
         loss.backward()

@@ -983,8 +983,8 @@ class ResetTrainer(Trainer):
                 f_aot, f_info = fout
                 r_aot, r_info = rout
                 # calculate sizes for each trajectory
-                f_var = f_info["var"].numpy().flatten()  # (N, 1)
-                r_var = r_info["var"].numpy().flatten()  # (N, 1)
+                f_var = f_info["var"].cpu().numpy().flatten()  # (N, 1)
+                r_var = r_info["var"].cpu().numpy().flatten()  # (N, 1)
                 # rescale the variances to min_s and max_s
                 min_s = 2
                 max_s = 80
