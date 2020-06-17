@@ -39,7 +39,6 @@ def add_argument(parser):
     # aot config
     parser.add_argument("--status_quo_baseline", type=str2bool, default=False)
     parser.add_argument("--use_aot", type=str2bool, default=False)
-    parser.add_argument("--aot_ensemble", type=int, default=4)
     parser.add_argument("--aot_num_episodes", type=int, default=10)
     parser.add_argument("--aot_num_timepairs", type=int, default=50)
     parser.add_argument("--aot_num_batches", type=int, default=1000)
@@ -50,8 +49,9 @@ def add_argument(parser):
     parser.add_argument("--aot_rew_coeff", type=float, default=0.1)
     parser.add_argument("--aot_succ_rew", type=float, default=20)
 
-
-
+    parser.add_argument("--aot_ensemble", type=int, default=None)
+    parser.add_argument("--ensemble_sampler", type=str, default="min", choices=["min", "mean", "max", "median", "meanvar", "softmin", "softmax"])
+    parser.add_argument("--var_coeff", type=float, default=1)
 
     # reward config
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)

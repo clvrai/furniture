@@ -72,3 +72,19 @@ class MLP(nn.Module):
             out = self.activation_fn(fc(out))
         out = self.fcs[-1](out)
         return out
+
+
+class Ensemble(nn.Module):  # Thanks Andrew
+    def __init__(self, create_net_fn, num_ensembles):
+        super().__init__()
+        self.nets = nn.ModuleList([create_net_fn() for _ in range(num_ensembles)])
+
+    def forward(self, *argv):
+        outs = []
+        for net in self.nets:
+            net_out = net(*argv)
+            outs.append(net_out)
+
+        if isinstance(outs[0], torch.Tensor):
+            return torch.stack(outs)
+        return outs

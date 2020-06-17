@@ -2,11 +2,12 @@ from copy import deepcopy
 
 import numpy as np
 import torch
+from torch.nn.functional import softmax, softmin
 from torch.optim import Adam
 
 from rl.base_agent import BaseAgent
 from rl.dataset import ReplayBuffer
-from rl.policies.utils import MLP
+from rl.policies.utils import MLP, Ensemble
 from util.logger import logger
 from util.mpi import mpi_average
 from util.pytorch import (compute_gradient_norm, compute_weight_norm,
@@ -28,8 +29,13 @@ class AoTAgent(BaseAgent):
         self._dataset = dataset
         self._device = config.device
         input_dim = goal_space[0]
-        # TODO: replace with ensemble
-        self._aot = MLP(config, input_dim, 1, [config.aot_hid_size] * 2)
+
+        def create_mlp():
+            return MLP(config, input_dim, 1, [config.aot_hid_size] * 2)
+        if config.aot_ensemble is not None:
+            self._aot = Ensemble(create_mlp, config.aot_ensemble)
+        else:
+            self._aot = create_mlp()
         self._network_cuda(self._device)
         self._aot_optim = Adam(
             self._aot.parameters(),
@@ -39,6 +45,10 @@ class AoTAgent(BaseAgent):
         self._reg_coeff = config.aot_reg_coeff
         self._preprocess_ob_func = preprocess_ob_func
         self._aot_rew_coeff = config.aot_rew_coeff
+        self._ensemble = config.aot_ensemble is not None
+        self._ensemble_sampler = config.ensemble_sampler
+        self._var_coeff = config.var_coeff
+
         self._log_creation()
 
     def _log_creation(self):
@@ -46,10 +56,59 @@ class AoTAgent(BaseAgent):
             logger.info("Creating an AoT agent")
             logger.info("The AoT has %d parameters", count_parameters(self._aot))
 
-    def act(self, ob, is_train=True):
+    def act(self, ob, is_train=True, return_info=False):
+        """
+        return_info: returns supplemental info about ensemble
+        Ob should either be a single ob dict or a list of ob dicts and respecitively
+        will get converted to a (E, ob_space) or (E, N, ob_space) tensor.
+        Out will be (E, 1) or (E, N, 1)
+        Sampler will return 1 sample for (E,1) or N sample for (E,N,1)
+        For each ob in N obs, return one idx between [0, E)
+        """
         self._aot.train(is_train)
+        single_ob = isinstance(ob, dict)
         ob = to_tensor(self._preprocess(ob), self._device)
-        return self._aot(ob)
+        out = self._aot(ob)
+        if not self._ensemble:
+            return out
+        info = {}
+        N = out.shape[1]
+        # choose sampling strategy for ensemble. Output is (E, 1) or (E,N,1)
+        if self._ensemble_sampler == "min":
+            sample = out.min(dim=0).values
+        elif self._ensemble_sampler == "max":
+            sample = out.max(dim=0).values
+        elif self._ensemble_sampler == "mean":
+            sample = out.mean(dim=0).detach()
+        elif self._ensemble_sampler == "median":
+            sample = out.median(dim=0).values
+        elif self._ensemble_sampler in ["softmin", "softmax"]:
+            soft = softmin if self._ensemble_sampler == "softmin" else softmax
+            probs = soft(out, dim=0).squeeze()
+            if single_ob:
+                min_idx = torch.multinomial(probs, 1).flatten()
+                sample = out[min_idx].squeeze(dim=-1)
+            else:
+                sample = []
+                for i in range(N):
+                    p = probs[:, i].flatten()
+                    min_idx = torch.multinomial(p, 1).flatten()
+                    sample.append(out[min_idx, i].squeeze(dim=-1))
+                sample = torch.stack(sample)
+        elif self._ensemble_sampler == "meanvar":
+            mean = out.mean(dim=0)
+            var = out.var(dim=0)
+            sample = mean - self._var_coeff * var
+        else:
+            raise NotImplementedError(self._ensemble_sampler)
+
+        sample = sample.detach()
+        if return_info:
+            mean = out.mean(dim=0).detach()
+            var = out.var(dim=0).detach()
+            info.update({"out": out, "mean": mean, "var": var})
+            return sample, info
+        return sample
 
     @torch.no_grad()
     def rew(self, ob, ob_next):
@@ -87,13 +146,12 @@ class AoTAgent(BaseAgent):
         """
         self._aot.train()
         info = {}
-
         transitions = to_tensor(transitions, self._config.device)
         t = self._aot(transitions[:, :, 0])
         t1 = self._aot(transitions[:, :, 1])
-        diff = t - t1  # (N, 1)
-        aot_loss = diff.mean()
-        aot_regularizer = diff.pow(2).mean() * self._reg_coeff
+        diff = t - t1  # (N, 1) or (E,N,1) if Ensemble
+        aot_loss = diff.mean()  # We can average losses even if E since indep.
+        aot_regularizer = diff.pow(2).mean() * self._reg_coeff  # same here
         loss = aot_loss + aot_regularizer
         info["aot_loss"] = aot_loss.cpu().item()
         info["aot_regularizer"] = aot_regularizer.cpu().item()
@@ -160,6 +218,8 @@ def test_get_time_pairs():
     parser = create_parser("PegInsertionEnv")
     config, _ = parser.parse_known_args()
     config.device = torch.device("cpu")
+    config.is_chef = True
+
     env = PegInsertionEnv(config)
     sampler = RandomSampler()
     rb = ReplayBuffer(["ob", "ac"], 100, sampler.sample_func)
@@ -194,6 +254,7 @@ def test_aot_train():
     config.aot_num_batches = 10
     config.aot_hid_size = 10
     config.device = torch.device("cpu")
+    config.is_chef = True
 
     env = PegInsertionEnv(config)
     sampler = RandomSampler()
@@ -227,6 +288,7 @@ def test_act():
     config.aot_num_batches = 10
     config.aot_hid_size = 10
     config.device = torch.device("cpu")
+    config.is_chef = True
 
     env = PegInsertionEnv(config)
     sampler = RandomSampler()
@@ -247,8 +309,88 @@ def test_act():
     print("AoT act works")
 
 
-if __name__ == "__main__":
+def test_ensemble_train():
+    # test agent training
+    from config import create_parser
+    from env import PegInsertionEnv
+    from rl.dataset import RandomSampler
+    from rl.rollouts import Rollout
+    import torch
 
-    test_get_time_pairs()
-    test_aot_train()
-    test_act()
+    parser = create_parser("PegInsertionEnv")
+    config, _ = parser.parse_known_args()
+    config.aot_num_episodes = 2
+    config.aot_num_timepairs = 2
+    config.aot_num_batches = 10
+    config.aot_hid_size = 10
+    config.device = torch.device("cpu")
+    config.is_chef = True
+
+    config.aot_ensemble = 2
+
+    env = PegInsertionEnv(config)
+    sampler = RandomSampler()
+    rb = ReplayBuffer(["ob", "ac"], 100, sampler.sample_func)
+    aot = AoTAgent(config, env.goal_space, rb, env.get_goal)
+
+    # generate rollouts of differing episode lengths
+    for i in range(1, 10):
+        r = Rollout()
+        for j in range(i + 1):
+            ob = {k: np.ones(v) * j for k, v in env.observation_space.items()}
+            r.add({"ob": ob, "ac": 0})
+        r.add({"ob": ob, "done": True})
+        rb.store_episode(r.get())
+
+    _ = aot.train()
+    print("AoT ensemble train works")
+
+
+def test_ensemble_act():
+    # test agent training
+    from config import create_parser
+    from env import PegInsertionEnv
+    from rl.dataset import RandomSampler
+    import torch
+
+    parser = create_parser("PegInsertionEnv")
+    config, _ = parser.parse_known_args()
+    config.aot_num_episodes = 2
+    config.aot_num_timepairs = 2
+    config.aot_num_batches = 10
+    config.aot_hid_size = 10
+    config.device = torch.device("cpu")
+    config.is_chef = True
+
+    config.aot_ensemble = 2
+
+    env = PegInsertionEnv(config)
+    sampler = RandomSampler()
+    rb = ReplayBuffer(["ob", "ac"], 100, sampler.sample_func)
+    aot = AoTAgent(config, env.goal_space, rb, env.get_goal)
+
+    choices = ["min", "mean", "max", "median", "meanvar", "softmin"]
+    # test 1 ob
+    ob = {k: np.ones(v) * 5 for k, v in env.observation_space.items()}
+    output = aot.act(ob)
+    for s in choices:
+        aot._ensemble_sampler = s
+        output = aot.act(ob)
+        assert list(output.shape) == [1], f"{s}:{output.shape}"
+    # test batched ob
+    batch_ob = [
+        {k: np.ones(v) * 5 for k, v in env.observation_space.items()} for i in range(5)
+    ]
+    for s in choices:
+        aot._ensemble_sampler = s
+        output = aot.act(batch_ob)
+        assert list(output.shape) == [5, 1], f"{s}:{output.shape}"
+    print("AoT ensemble act works")
+
+
+if __name__ == "__main__":
+    # test_get_time_pairs()
+    # test_aot_train()
+    # test_act()
+    # test_ensemble_train()
+    test_ensemble_act()

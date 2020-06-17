@@ -953,12 +953,16 @@ class ResetTrainer(Trainer):
         Sample 5 forward policy trajectories
         Sample 5 reset policy trajectories
         Get AoT outputs for each trajectory
-        Plot onto 2D space using PCA or TSNE. Color each point by value of AoT
+        Plot onto 2D space using PCA or TSNE.
+        Color each point by value of AoT. Scale size of each point by variance.
         """
         pca = PCA(2)
         X = []
         aots = []
         trajectories = []
+        ensemble = self._config.aot_ensemble is not None
+        if ensemble:
+            trajectories_sizes = []
         # Get 2 forward and reset trajectories
         for i in range(2):
             f, f_info, r, r_info = self._evaluate(record=False, log=False)
@@ -966,12 +970,33 @@ class ResetTrainer(Trainer):
             # plot the centroid of peg instead of top position
             def centroid(obs):
                 return obs[:3] + 0.5 * (obs[3:] - obs[:3])
+
             fob = [centroid(self._env.get_goal(x)) for x in f["ob"]]
             rob = [centroid(self._env.get_goal(x)) for x in r["ob"]]
             X.extend(fob)
             X.extend(rob)
-            f_aot = self._aot_agent.act(f["ob"], is_train=False)
-            r_aot = self._aot_agent.act(r["ob"], is_train=False)
+            fout = self._aot_agent.act(f["ob"], is_train=False, return_info=ensemble)
+            rout = self._aot_agent.act(r["ob"], is_train=False, return_info=ensemble)
+            f_aot = fout
+            r_aot = rout
+            if ensemble:
+                f_aot, f_info = fout
+                r_aot, r_info = rout
+                # calculate sizes for each trajectory
+                f_var = f_info["var"].numpy().flatten()  # (N, 1)
+                r_var = r_info["var"].numpy().flatten()  # (N, 1)
+                # rescale the variances to min_s and max_s
+                min_s = 2
+                max_s = 80
+                f_min_var, r_min_var = np.min(f_var), np.min(r_var)
+                f_max_var, r_max_var = np.max(f_var), np.max(r_var)
+                f_var = min_s + (f_var - f_min_var) * (max_s - min_s) / (
+                    f_max_var - f_min_var
+                )
+                r_var = min_s + (r_var - r_min_var) * (max_s - min_s) / (
+                    r_max_var - r_min_var
+                )
+                trajectories_sizes.extend([f_var, r_var])
             f_aot = f_aot.cpu().detach().numpy().flatten()
             r_aot = r_aot.cpu().detach().numpy().flatten()
             aot_min = min(f_aot.min(), r_aot.min())
@@ -996,12 +1021,13 @@ class ResetTrainer(Trainer):
         for j, traj in enumerate(trajectories):
             traj = pca.transform(traj)
             aot = aots[j]
+            s = trajectories_sizes[j] if ensemble else 2
             # draw dots with arrows for traj
             ax.scatter(
                 traj[:, 0],
                 traj[:, 1],
                 marker=".",
-                s=2,
+                s=s,
                 c=aot,
                 cmap=cmap,
                 norm=norm,
@@ -1009,8 +1035,9 @@ class ResetTrainer(Trainer):
             )
             # annotate start and end points of trajectory
             dir = "f" if j % 2 == 0 else "r"
-            ax.annotate(f"s_{dir}", traj[0, :], fontsize="xx-small")
-            ax.annotate(f"e_{dir}", traj[-1, :], fontsize="xx-small")
+            if dir == "f":
+                ax.annotate(f"s_f", traj[0, :], fontsize="xx-small", color="b")
+            ax.annotate(f"e_{dir}", traj[-1, :], fontsize="xx-small", color="b")
         f.colorbar(
             cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation="vertical"
         )
