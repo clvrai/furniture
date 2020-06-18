@@ -757,7 +757,7 @@ class ResetTrainer(Trainer):
         for i in range(cfg.num_eval):
             rec = record and i == 0
             rollout, ep_info, r_rollout, r_ep_info = self._evaluate_rollout(record=rec)
-            eval_rollouts.append(rollout, ep_info, r_rollout, r_ep_info)
+            eval_rollouts.append([rollout, ep_info, r_rollout, r_ep_info])
             gather_ep_history(ep_info_history, ep_info)
             gather_ep_history(r_ep_info_history, r_ep_info)
 
