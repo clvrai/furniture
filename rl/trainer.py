@@ -739,6 +739,10 @@ class ResetTrainer(Trainer):
         """
         Runs cfg.num_eval rollouts of reset rl.
         """
+        if not (
+            self._is_chef and self._update_iter % self._config.evaluate_interval == 0
+        ):
+            return
         cfg = self._config
         ep_info_history = defaultdict(list)
         r_ep_info_history = defaultdict(list)
@@ -752,17 +756,17 @@ class ResetTrainer(Trainer):
         eval_rollouts = []
         for i in range(cfg.num_eval):
             rec = record and i == 0
-            r = rollout, ep_info, r_rollout, r_ep_info = self._evaluate_rollout(record=rec)
-            eval_rollouts.append(r)
+            rollout, ep_info, r_rollout, r_ep_info = self._evaluate_rollout(record=rec)
+            eval_rollouts.append(rollout, ep_info, r_rollout, r_ep_info)
             gather_ep_history(ep_info_history, ep_info)
             gather_ep_history(r_ep_info_history, r_ep_info)
 
         # summarize ep infos
         ep_info = self._reduce_info(ep_info_history, "mean")
-        r_ep_info = self._reduce_info(r_ep_info_history, "mean")
         self._log_test(self._step, ep_info, "forward")
+        r_ep_info = self._reduce_info(r_ep_info_history, "mean")
         self._log_test(self._step, r_ep_info, "reset")
-        if cfg.use_aot:
+        if not cfg.status_quo_baseline and cfg.use_aot:
             self._visualize_aot(eval_rollouts[:2])
 
     def _evaluate_rollout(self, record=False) -> Tuple[dict, dict, dict, dict]:
@@ -776,10 +780,6 @@ class ResetTrainer(Trainer):
         Returns:
             rollout, rollout info, reset rollout, reset rollout info
         """
-        if not (
-            self._is_chef and self._update_iter % self._config.evaluate_interval == 0
-        ):
-            return
         cfg = self._config
         # 1. Run forward policy
         ep_info = defaultdict(list)
@@ -823,7 +823,7 @@ class ResetTrainer(Trainer):
             ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
 
         if cfg.status_quo_baseline:
-            return
+            return rollout, ep_info, {}, {}
 
         # 3. Run and train reset policy
         r_rollout = Rollout()
