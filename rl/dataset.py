@@ -36,10 +36,10 @@ class ReplayBuffer:
                     self._buffer[k][self._idx].append(rollout[k][1:])
                 else:
                     self._buffer[k][self._idx].append(rollout[k])
-
-        assert (
-            len(self._buffer["ob"][self._idx]) == len(self._buffer["ac"][self._idx]) + 1
-        )
+        if "ac" in self._buffer:
+            assert (
+                len(self._buffer["ob"][self._idx]) == len(self._buffer["ac"][self._idx]) + 1
+            )
         if rollout["done"][-1]:
             self._idx = (self._idx + 1) % self._size
             self._current_size += 1

@@ -48,6 +48,7 @@ def add_argument(parser):
     parser.add_argument("--aot_hid_size", type=int, default=256)
     parser.add_argument("--aot_rew_coeff", type=float, default=0.1)
     parser.add_argument("--aot_succ_rew", type=float, default=20)
+    parser.add_argument("--aot_success_buffer", type=str2bool, default=False)
 
     parser.add_argument("--aot_ensemble", type=int, default=None)
     parser.add_argument("--ensemble_sampler", type=str, default="min", choices=["min", "mean", "max", "median", "meanvar", "softmin", "softmax"])

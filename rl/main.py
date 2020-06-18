@@ -11,7 +11,7 @@ from mpi4py import MPI
 from six.moves import shlex_quote
 
 from config import argparser
-from rl.trainer import ResetTrainer, Trainer
+from rl.trainer import ResetTrainer
 from util.logger import logger
 from util.mpi import mpi_sync
 

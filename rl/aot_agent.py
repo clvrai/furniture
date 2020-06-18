@@ -6,7 +6,7 @@ from torch.nn.functional import softmax, softmin
 from torch.optim import Adam
 
 from rl.base_agent import BaseAgent
-from rl.dataset import ReplayBuffer
+from rl.dataset import RandomSampler, ReplayBuffer
 from rl.policies.utils import MLP, Ensemble
 from util.logger import logger
 from util.mpi import mpi_average
@@ -48,6 +48,14 @@ class AoTAgent(BaseAgent):
         self._ensemble = config.aot_ensemble is not None
         self._ensemble_sampler = config.ensemble_sampler
         self._var_coeff = config.var_coeff
+
+        self._aot_success_buffer = config.aot_success_buffer
+        if self._aot_success_buffer:
+            sampler = RandomSampler()
+            buffer_keys = ["ob"]
+            self._success_buffer = ReplayBuffer(
+                buffer_keys, config.buffer_size, sampler.sample_func
+            )
 
         self._log_creation()
 
@@ -131,6 +139,10 @@ class AoTAgent(BaseAgent):
         num_timepairs = self._config.aot_num_timepairs
         for i in range(self._config.aot_num_batches):
             transitions = self._get_time_pairs(self._dataset, num_eps, num_timepairs)
+            if self._aot_success_buffer:
+                succ_transitions = self._get_time_pairs(self._success_buffer, num_eps, num_timepairs)
+                if succ_transitions is not None:
+                    transitions = np.concatenate([transitions, succ_transitions])
             train_info = self._update_network(transitions)
         train_info.update(
             {
@@ -159,8 +171,8 @@ class AoTAgent(BaseAgent):
             info["aot_regularizer"] = aot_regularizer.sum().cpu().item()
             info["aot_total_loss"] = loss.sum().cpu().item()
         else:
-            aot_loss = diff.mean()  # We can average losses even if E since indep.
-            aot_regularizer = diff.pow(2).mean() * self._reg_coeff  # same here
+            aot_loss = diff.mean()
+            aot_regularizer = diff.pow(2).mean() * self._reg_coeff
             loss = aot_loss + aot_regularizer
 
             info["aot_loss"] = aot_loss.cpu().item()
@@ -178,6 +190,8 @@ class AoTAgent(BaseAgent):
         """Returns a list of (s, s') pairs from buffer"""
         data = buffer._buffer["ob"]
         num_episodes = len(data)
+        if num_episodes == 0:
+            return None
         sampled_eps_idx = np.random.randint(0, num_episodes, num_eps)
         episodes = [data[i] for i in sampled_eps_idx]
         t, t1 = [], []
@@ -216,6 +230,21 @@ class AoTAgent(BaseAgent):
     def _network_cuda(self, device):
         self._aot.to(device)
 
+    def store_episode(self, rollouts, success=False):
+        """
+        Given a successful reset episode, we will reverse it and add
+        it to the success buffer for AoT training.
+        """
+        if self._aot_success_buffer and success:
+            rollouts["ob"] = rollouts["ob"][::-1]
+            self._success_buffer.store_episode(rollouts)
+
+    def replay_buffer(self):
+        return self._success_buffer.state_dict()
+
+    def load_replay_buffer(self, state_dict):
+        self._success_buffer.load_state_dict(state_dict)
+
 
 def test_get_time_pairs():
     # test agent training
@@ -247,6 +276,52 @@ def test_get_time_pairs():
     results = aot._get_time_pairs(rb, 5, 2)
     assert len(results) == 10, f"results is size {len(results)}"
     print("Get Time Pairs works")
+
+
+def test_success_buffer():
+    # test agent training
+    from config import create_parser
+    from env import PegInsertionEnv
+    from rl.dataset import RandomSampler
+    from rl.rollouts import Rollout
+    import torch
+
+    parser = create_parser("PegInsertionEnv")
+    config, _ = parser.parse_known_args()
+    config.device = torch.device("cpu")
+    config.aot_num_episodes = 2
+    config.aot_num_timepairs = 2
+    config.aot_num_batches = 10
+    config.aot_hid_size = 10
+    config.is_chef = True
+    config.aot_success_buffer = True
+
+    env = PegInsertionEnv(config)
+    sampler = RandomSampler()
+    rb = ReplayBuffer(["ob", "ac"], 100, sampler.sample_func)
+    aot = AoTAgent(config, env.goal_space, rb, env.get_goal)
+
+    # test sampling empty buffer
+    succ = aot._get_time_pairs(aot._success_buffer, 5, 2)
+    assert succ is None, f"Sampling empty succ buffer"
+
+    # generate rollouts of differing episode lengths
+    for i in range(1, 6):
+        r = Rollout()
+        for j in range(i + 1):
+            ob = {k: np.ones(v) * j for k, v in env.observation_space.items()}
+            r.add({"ob": ob, "ac": 0})
+        r.add({"ob": ob, "done": True})
+        rollout = r.get()
+        rb.store_episode(rollout)
+        aot.store_episode(rollout, success=True)
+
+    results = aot._get_time_pairs(aot._success_buffer, 5, 2)
+    assert len(results) == 10, f"results is size {len(results)}"
+
+    # test train function
+    _ = aot.train()
+    print("Success buffer works")
 
 
 def test_aot_train():
@@ -402,5 +477,6 @@ if __name__ == "__main__":
     # test_get_time_pairs()
     # test_aot_train()
     # test_act()
+    test_success_buffer()
     # test_ensemble_train()
-    test_ensemble_act()
+    # test_ensemble_act()

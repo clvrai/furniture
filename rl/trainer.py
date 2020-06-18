@@ -24,6 +24,7 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm, trange
 
 from env import make_env
+from rl.aot_agent import AoTAgent
 from rl.policies import get_actor_critic_by_name
 from rl.rollouts import Rollout, RolloutRunner
 from util.logger import logger
@@ -545,10 +546,9 @@ class ResetTrainer(Trainer):
             config, ob_space, ac_space, actor, critic
         )
 
-        self._aot_agent = None
+        self._aot_agent: AoTAgent = None
         rew = None
         if config.use_aot:
-            from rl.aot_agent import AoTAgent
 
             self._aot_agent = AoTAgent(
                 config, goal_space, self._agent._buffer, self._env.get_goal
@@ -706,9 +706,11 @@ class ResetTrainer(Trainer):
                 # compute average/sum of information
                 r_ep_info = self._reduce_info(r_ep_info)
                 r_ep_info.update({"len": ep_len, "rew": ep_rew})
-                # train forward agent
+                # train reset agent
                 r_rollout = r_rollout.get()
                 self._reset_agent.store_episode(r_rollout)
+                if cfg.use_aot and cfg.aot_success_buffer:
+                    self._aot_agent.store_episode(r_rollout, success=reset_success)
                 r_train_info = self._reset_agent.train()
                 self._update_normalizer(r_rollout, self._reset_agent)
                 step_per_batch = mpi_sum(len(r_rollout["ac"]))
@@ -880,6 +882,10 @@ class ResetTrainer(Trainer):
                     replay_buffers = pickle.load(f)
                     self._agent.load_replay_buffer(replay_buffers["replay"])
                     self._reset_agent.load_replay_buffer(replay_buffers["reset_replay"])
+                    if self._aot_agent and self._config.aot_success_buffer:
+                        self._aot_agent.load_replay_buffer(
+                            replay_buffers["aot_success"]
+                        )
             return ckpt["step"], ckpt["update_iter"]
         else:
             logger.warn("Randomly initialize models")
@@ -914,6 +920,8 @@ class ResetTrainer(Trainer):
                     "replay": self._agent.replay_buffer(),
                     "reset_replay": self._reset_agent.replay_buffer(),
                 }
+                if self._aot_agent and self._config.aot_success_buffer:
+                    replay_buffers["aot_success"] = self._aot_agent.replay_buffer()
                 pickle.dump(replay_buffers, f)
 
     def _log_test(self, step, ep_info, agent):

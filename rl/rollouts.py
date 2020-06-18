@@ -73,7 +73,6 @@ class RolloutRunner(object):
             raise ValueError("Both every_steps and every_episodes cannot be None")
 
         config = self._config
-        device = config.device
         env = self._env if is_train else self._env_eval
         pi = self._pi
         gail = config.algo == "gail"
@@ -134,7 +133,7 @@ class RolloutRunner(object):
                 {
                     k: v
                     for k, v in reward_info_dict.items()
-                    if not "qpos" in k and np.isscalar(v)
+                    if "qpos" not in k and np.isscalar(v)
                 },
             )
 
@@ -158,7 +157,6 @@ class RolloutRunner(object):
             record_demo: record demo of rollout if True
         """
         config = self._config
-        device = config.device
         env = self._env if is_train else self._env_eval
         pi = self._pi
         gail = config.algo == "gail"
@@ -230,7 +228,6 @@ class RolloutRunner(object):
 
     def _store_frame(self, env, info={}):
         """ Renders a frame and stores in @self._record_frames. """
-        color = (200, 200, 200)
 
         # render video frame
         frame = env.render("rgb_array")[0] * 255.0
