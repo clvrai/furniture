@@ -575,7 +575,6 @@ class ResetTrainer(Trainer):
 
             # assert entity != 'clvr', "Please change 'entity' with your wandb id" \
             #    "or disable wandb by setting os.environ['WANDB_MODE'] = 'dryrun'"
-
             wandb.init(
                 resume=config.run_name,
                 project=project,
@@ -736,7 +735,37 @@ class ResetTrainer(Trainer):
             self._evaluate(record=True)
             self._save_ckpt(self._step, self._update_iter)
 
-    def _evaluate(self, record=False, log=True) -> Tuple[dict, dict, dict, dict]:
+    def _evaluate(self, record=False) -> Tuple[dict, dict, dict, dict]:
+        """
+        Runs cfg.num_eval rollouts of reset rl.
+        """
+        cfg = self._config
+        ep_info_history = defaultdict(list)
+        r_ep_info_history = defaultdict(list)
+
+        def gather_ep_history(history, ep):
+            for key, value in ep.items():
+                if isinstance(value, wandb.Video):
+                    history[key] = value
+                else:
+                    history[key].append(value)
+        eval_rollouts = []
+        for i in range(cfg.num_eval):
+            rec = record and i == 0
+            r = rollout, ep_info, r_rollout, r_ep_info = self._evaluate_rollout(record=rec)
+            eval_rollouts.append(r)
+            gather_ep_history(ep_info_history, ep_info)
+            gather_ep_history(r_ep_info_history, r_ep_info)
+
+        # summarize ep infos
+        ep_info = self._reduce_info(ep_info_history, "mean")
+        r_ep_info = self._reduce_info(r_ep_info_history, "mean")
+        self._log_test(self._step, ep_info, "forward")
+        self._log_test(self._step, r_ep_info, "reset")
+        if cfg.use_aot:
+            self._visualize_aot(eval_rollouts[:2])
+
+    def _evaluate_rollout(self, record=False) -> Tuple[dict, dict, dict, dict]:
         """
         Runs one rollout if in eval mode (@idx is not None) with seed as @idx.
         Runs num_record_samples rollouts if in train mode (@idx is None).
@@ -792,8 +821,6 @@ class ResetTrainer(Trainer):
             fname = f"forward_step_{self._step:011d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, forward_frames)
             ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        if log:
-            self._log_test(self._step, ep_info, "forward")
 
         if cfg.status_quo_baseline:
             return
@@ -848,11 +875,6 @@ class ResetTrainer(Trainer):
             fname = f"reset_step_{self._step:011d}_r_{ep_rew:.3f}_{ep_success}.mp4"
             video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
-        if log:
-            self._log_test(self._step, r_ep_info, "reset")
-            if cfg.use_aot:
-                self._visualize_aot()
-
         return rollout, ep_info, r_rollout, r_ep_info
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
@@ -955,14 +977,14 @@ class ResetTrainer(Trainer):
         for k, v in ep_info.items():
             wandb.log({f"{agent}_train_ep/{k}": v}, step=step)
 
-    def _visualize_aot(self):
+    def _visualize_aot(self, rollouts: list):
         """
         Visualize AoT and Reset Policy
-        Sample 5 forward policy trajectories
-        Sample 5 reset policy trajectories
         Get AoT outputs for each trajectory
         Plot onto 2D space using PCA or TSNE.
         Color each point by value of AoT. Scale size of each point by variance.
+        Args:
+             rollouts: [forward, forward_info, reset, reset_info]
         """
         pca = PCA(2)
         X = []
@@ -971,9 +993,8 @@ class ResetTrainer(Trainer):
         ensemble = self._config.aot_ensemble is not None
         if ensemble:
             trajectories_sizes = []
-        # Get 2 forward and reset trajectories
-        for i in range(2):
-            f, f_info, r, r_info = self._evaluate(record=False, log=False)
+        for i in range(len(rollouts)):
+            f, f_info, r, r_info = rollouts[i]
 
             # plot the centroid of peg instead of top position
             def centroid(obs):
@@ -1059,12 +1080,14 @@ class ResetTrainer(Trainer):
         if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
             agent.update_normalizer(rollout["ob"])
 
-    def _reduce_info(self, ep_info):
+    def _reduce_info(self, ep_info, reduction="sum"):
         for key, value in ep_info.items():
-            if isinstance(value[0], (int, float, bool, np.float32)):
-                if "_mean" in key:
+            if isinstance(value, wandb.Video):
+                continue
+            elif isinstance(value[0], (int, float, bool, np.float32)):
+                if "_mean" in key or reduction == "mean":
                     ep_info[key] = np.mean(value)
-                else:
+                elif reduction == "sum":
                     ep_info[key] = np.sum(value)
         return ep_info
 
@@ -1079,10 +1102,12 @@ def test_aot_visualization():
     config.device = torch.device("cpu")
     config.is_train = False
     config.wandb = False
+    config.plot_dir = ""
 
     trainer = ResetTrainer(config)
     trainer._update_iter = 0
-    trainer._visualize_aot()
+    trainer._step = 0
+    trainer._evaluate(False)
 
 
 if __name__ == "__main__":
