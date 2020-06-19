@@ -16,6 +16,7 @@
     <weld active="false" body1="9_part9" body2="8_part8" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="9_part9" body2="7_part7" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="9_part9" body2="5_part5" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="8_part8" body2="9_part9" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="8_part8" body2="6_part6" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="8_part8" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="7_part7" body2="6_part6" solimp="1 1 0.5" solref="0.01 0.3" />
@@ -59,6 +60,7 @@
       <geom density="50" name="noviz_collision_9_part9_0" pos="0 -0.00036 -3E-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.2286 0.10759 0.00632" solref="0.001 1" type="box" />
       <site name="top-leftwall,0,conn_site1" pos="-0.2228 0 -0.0037" quat="1 0 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.008" />
       <site name="top-back,0,conn_site1" pos="0 0.10669 -0.00315" quat="1 0 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.008" />
+      <site name="top-rightwall,0,180,conn_site1" pos="0.2219 0 -0.00715" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
     </body>
     <body name="8_part8" pos="0.00635000055 -0.09524999645 0.2539999977" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part8" name="8_part8_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -75,6 +77,8 @@
       <site name="8_part8_corner_site1" pos="-0.0063500001 -0.10795 -0.17780000305" quat="1 0 0 0" rgba="0 0 1 0" size="0.008" />
       <geom density="50" name="noviz_collision_8_part8_0" pos="-1E-05 1E-05 0.00126" quat="1 0 0 0" rgba="1 0 0 1" size="0.00634 0.10796 0.17906" solref="0.001 1" type="box" />
       <site name="rightwall-shelf,0,conn_site1" pos="-0.00637 -0.00079 0.00135" quat="0.7071067 0 0.7071068 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.008" />
+      <site name="rightwall-top,0,180,conn_site1" pos="-0.00035 0 0.177" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
+      <site name="rightwall-floor,0,180,conn_site1" pos="0.00065 0 -0.1778" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
     </body>
     <body name="7_part7" pos="-0.4381499995 -0.09524999645 0.2539999977" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part7" name="7_part7_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -146,6 +150,7 @@
       <site name="floor-leg,0,90,180,270,conn_site2" pos="0.2184 0.09475 -0.00506" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="floor-leg,0,90,180,270,conn_site1" pos="-0.2122 0.09596 -0.00506" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="floor-leftwall,0,conn_site1" pos="-0.2203 0 0.00635" quat="1 0 0 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.008" />
+      <site name="floor-rightwall,0,180,conn_site1" pos="0.2229 0 0.00635" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
     </body>
     <body name="3_part3" pos="-0.43179999695 -0.1904999879 0.0" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part3" name="3_part3_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
