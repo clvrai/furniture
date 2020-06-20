@@ -54,7 +54,7 @@ class AoTAgent(BaseAgent):
             sampler = RandomSampler()
             buffer_keys = ["ob"]
             self._success_buffer = ReplayBuffer(
-                buffer_keys, config.buffer_size, sampler.sample_func
+                buffer_keys, config.aot_success_buffer_size, sampler.sample_func
             )
 
         self._log_creation()
@@ -137,10 +137,14 @@ class AoTAgent(BaseAgent):
         train_info = {}
         num_eps = self._config.aot_num_episodes
         num_timepairs = self._config.aot_num_timepairs
+        num_succ_eps = self._config.aot_num_succ_episodes
+        num_succ_timepairs = self._config.aot_num_succ_timepairs
         for i in range(self._config.aot_num_batches):
             transitions = self._get_time_pairs(self._dataset, num_eps, num_timepairs)
             if self._aot_success_buffer:
-                succ_transitions = self._get_time_pairs(self._success_buffer, num_eps, num_timepairs)
+                succ_transitions = self._get_time_pairs(
+                    self._success_buffer, num_succ_eps, num_succ_timepairs
+                )
                 if succ_transitions is not None:
                     transitions = np.concatenate([transitions, succ_transitions])
             train_info = self._update_network(transitions)
@@ -219,7 +223,7 @@ class AoTAgent(BaseAgent):
     def state_dict(self):
         return {
             "aot_state_dict": self._aot.state_dict(),
-            "aot_optim_state_dict": self._aot_optim.state_dict()
+            "aot_optim_state_dict": self._aot_optim.state_dict(),
         }
 
     def load_state_dict(self, ckpt):
@@ -236,6 +240,7 @@ class AoTAgent(BaseAgent):
         it to the success buffer for AoT training.
         """
         if self._aot_success_buffer and success:
+            rollouts = deepcopy(rollouts)
             rollouts["ob"] = rollouts["ob"][::-1]
             self._success_buffer.store_episode(rollouts)
 

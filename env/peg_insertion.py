@@ -134,7 +134,6 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         info["episode_success"] = int(self._success)
         if self._success or self._episode_length == self._max_episode_steps:
             done = True
-            info["episode_reward"] = self._episode_reward
 
         info["reward"] = reward
         if self._record_demo:

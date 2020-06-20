@@ -35,6 +35,8 @@ def add_argument(parser):
     # reset config
     parser.add_argument("--max_failed_reset", type=int, default=1)
     parser.add_argument("--max_reset_episode_steps", type=int, default=99)
+    parser.add_argument("--reset_kl_penalty", type=str2bool, default=False)
+    parser.add_argument("--kl_penalty_coeff", type=float, default=10)
 
     # aot config
     parser.add_argument("--status_quo_baseline", type=str2bool, default=False)
@@ -49,6 +51,9 @@ def add_argument(parser):
     parser.add_argument("--aot_rew_coeff", type=float, default=0.1)
     parser.add_argument("--aot_succ_rew", type=float, default=20)
     parser.add_argument("--aot_success_buffer", type=str2bool, default=False)
+    parser.add_argument("--aot_success_buffer_size", type=int, default=1e6)
+    parser.add_argument("--aot_num_succ_episodes", type=int, default=10)
+    parser.add_argument("--aot_num_succ_timepairs", type=int, default=50)
 
     parser.add_argument("--aot_ensemble", type=int, default=None)
     parser.add_argument("--ensemble_sampler", type=str, default="min", choices=["min", "mean", "max", "median", "meanvar", "softmin", "softmax"])

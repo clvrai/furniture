@@ -72,6 +72,27 @@ class Actor(nn.Module):
         else:
             return actions, activations
 
+    def act_dist(self, ob, is_train=True):
+        """
+        Get distribution over action space
+        """
+        ob = to_tensor(ob, self._config.device)
+        self._ob = ob
+        means, stds = self.forward(ob)
+
+        dists = OrderedDict()
+        for k in self._ac_space.keys():
+            if self._ac_space.is_continuous(k):
+                if self._gaussian:
+                    dists[k] = FixedNormal(means[k], stds[k])
+                else:
+                    dists[k] = Identity(means[k])
+            else:
+                dists[k] = FixedCategorical(logits=means[k])
+
+        mixed_dist = MixedDistribution(dists)
+        return mixed_dist
+
     def act_log(self, ob, activations=None):
         self._ob = ob.copy()
         means, stds = self.forward(ob)

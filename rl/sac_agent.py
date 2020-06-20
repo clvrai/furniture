@@ -5,6 +5,7 @@
 import numpy as np
 import torch
 import torch.optim as optim
+from torch.distributions.kl import kl_divergence
 
 from rl.base_agent import BaseAgent
 from rl.dataset import LearnedRewardReplayBuffer, RandomSampler, ReplayBuffer
@@ -54,6 +55,7 @@ class SACAgent(BaseAgent):
         self._buffer = ReplayBuffer(
             buffer_keys, config.buffer_size, sampler.sample_func
         )
+        self._reset_agent = reset
         if config.use_aot and reset:
             assert rew is not None
             buffer_keys.remove("rew")  # replace rew with env_rew
@@ -155,6 +157,9 @@ class SACAgent(BaseAgent):
     def act_log(self, ob):
         return self._actor.act_log(ob)
 
+    def set_forward_actor(self, actor):
+        self._forward_actor = actor
+
     def _update_network(self, transitions):
         info = {}
 
@@ -167,6 +172,7 @@ class SACAgent(BaseAgent):
 
         def _to_tensor(x):
             return to_tensor(x, self._config.device)
+
         o = _to_tensor(o)
         o_next = _to_tensor(o_next)
         ac = _to_tensor(transitions["ac"])
@@ -192,6 +198,16 @@ class SACAgent(BaseAgent):
         info["entropy_loss"] = entropy_loss.cpu().item()
         info["actor_loss"] = actor_loss.cpu().item()
         actor_loss += entropy_loss
+        if self._config.reset_kl_penalty and self._reset_agent:
+            reset_distributions = self._actor.act_dist(o)
+            with torch.no_grad():
+                forward_distributions = self._forward_actor.act_dist(o, is_train=False)
+            f = forward_distributions.distributions["default"]
+            r = reset_distributions.distributions["default"]
+            kl_loss = self._config.kl_penalty_coeff * kl_divergence(f, r).mean()
+            info["kl_loss"] = kl_loss.cpu().item()
+            # bigger the kl_d, the better
+            actor_loss -= kl_loss
 
         # calculate the target Q value function
         with torch.no_grad():
