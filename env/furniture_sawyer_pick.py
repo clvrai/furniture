@@ -156,13 +156,13 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 0.47938163,
             ],
         }
-        pos_init = []
-        quat_init = []
+        pos_init = {}
+        quat_init = {}
 
         for body in self._object_names:
             qpos = self._init_qpos[body]
-            pos_init.append(qpos[:3])
-            quat_init.append(qpos[3:])
+            pos_init[body] = (qpos[:3])
+            quat_init[body] = (qpos[3:])
         if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
             if (
                 "l_gripper" in self._init_qpos
@@ -188,9 +188,9 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 self.sim.model.geom_conaffinity[geom_id] = conaffinity
 
         # set furniture positions
-        for i, body in enumerate(self._object_names):
-            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
-            self._set_qpos(body, pos_init[i], quat_init[i])
+        for body in self._object_names:
+            logger.debug(f"{body} {pos_init[body]} {quat_init[body]}")
+            self._set_qpos(body, pos_init[body], quat_init[body])
 
         self.sim.forward()
 
@@ -234,8 +234,8 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
             xquat((float * 4) * n_obj): quaternion of the objects
         """
-        pos_init = [0.04521311, 0.04596679, 0.11724173]
-        quat_init = [0.51919501, 0.52560512, 0.47367611, 0.47938163]
+        pos_init = {'1_block_l': [0.04521311, 0.04596679, 0.11724173]}
+        quat_init = {'1_block_l': [0.51919501, 0.52560512, 0.47367611, 0.47938163]}
 
         return pos_init, quat_init
 

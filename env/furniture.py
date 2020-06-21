@@ -1247,10 +1247,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             xquat((float * 4) * n_obj): quaternion of the objects
         """
         pos_init, _ = self.mujoco_model.place_objects()
-        quat_init = []
+        quat_init = {}
         for i, body in enumerate(self._object_names):
             rotate = self._rng.randint(0, 10, size=3)
-            quat_init.append(list(T.euler_to_quat(rotate)))
+            quat_init[body] = list(T.euler_to_quat(rotate))
         return pos_init, quat_init
 
     def set_env_qpos(self, given_qpos, set_furn=True):
@@ -1299,28 +1299,18 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._config.furniture_name == "Random":
             furniture_id = self._rng.randint(len(furniture_xmls))
         if self._furniture_id is None or (
-            self._furniture_id != furniture_id and furniture_id is not None
-        ):
+            self._furniture_id != furniture_id and furniture_id is not None) or (
+            self._manual_resize is not None):
             # construct mujoco xml for furniture_id
             if furniture_id is None:
                 self._furniture_id = self._config.furniture_id
             else:
                 self._furniture_id = furniture_id
             self._reset_internal()
-        elif self._config.furn_size_randomness != 0 or self._manual_resize is not None:
-            # reload mujoco and unity with resized xml
-
-            self._load_model_object()
-            self._load_model()
-            if self._unity:
-                self._unity.change_model(
-                    self.mujoco_model.get_xml(),
-                    self._camera_ids[0],
-                    self._screen_width,
-                    self._screen_height,
-                )
-            self.mjpy_model = self.mujoco_model.get_model(mode="mujoco_py")
-            self.sim = mujoco_py.MjSim(self.mjpy_model)
+        if self._config.furn_size_randomness != 0:
+            rand = self._init_random(1, "resize")[0]
+            resize_factor = 1 + rand
+            self.mujoco_model.resize_objects(resize_factor)
 
         # reset simulation data and clear buffers
         self.sim.reset()
@@ -1418,11 +1408,11 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # set furniture positions
         for i, body in enumerate(self._object_names):
-            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
+            logger.debug(f"{body} {pos_init[body]} {quat_init[body]}")
             if self._config.assembled:
                 self._object_group[i] = 0
             else:
-                self._set_qpos(body, pos_init[i], quat_init[i])
+                self._set_qpos(body, pos_init[body], quat_init[body])
 
         if self._load_demo or self._eval_on_train_set:
             self.sim.forward()
@@ -1715,6 +1705,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
         objects = MujocoXMLObject(path, debug=self._debug, resize=resize_factor)
+        objects.hide_visualization()
         part_names = objects.get_children_names()
 
         # furniture pieces
@@ -1740,7 +1731,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.mujoco_equality,
             self._config,
             rng=self._rng,
-            hide_noviz=True,
         )
 
     def key_callback(self, window, key, scancode, action, mods):
@@ -2214,7 +2204,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         if depth is not None:
                             depth = np.concatenate(depth)
 
-                    imageio.imwrite("camera_ob.png", (img * 255).astype(np.uint8))
+                    imageio.imwrite(config.furniture_name + ".png", (img * 255).astype(np.uint8))
                     if self._segmentation_ob:
                         seg = self.render("segmentation")
                         if len(seg.shape) == 4:
@@ -2269,7 +2259,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.render()
                 self._action_on = False
                 continue
-
             # move
             if self.action == "smaller":
                 self._manual_resize -= 0.1
@@ -2283,6 +2272,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                 path = xml_path_completion(furniture_xmls[self._furniture_id])
                 next(iter(self.mujoco_objects.values())).save_model(path)
                 return
+            self.render("rgb_array")
+            action = np.zeros((15,))
+            ob, reward, done, info = self.step(action)
             self.render("rgb_array")
             print("current_scale", 1 + self._manual_resize)
             self.reset(config.furniture_id, config.background)

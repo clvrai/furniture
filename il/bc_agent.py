@@ -106,7 +106,7 @@ class BCAgent(BaseAgent):
 
     def evaluate(self):
         if self._val_loader:
-            eval_info = {}
+            val_info = {}
             for transitions in self._val_loader:
                 _val_info = self._update_network(transitions, train=False)
                 val_info.update(_val_info)
@@ -115,7 +115,7 @@ class BCAgent(BaseAgent):
                 self._scheduler.step()
             return val_info
         logger.warning("No validation set available, make sure '--val_split' is set")
-        return None
+        return val_info
 
     def _update_network(self, transitions, train=True):
         info = {}
@@ -141,12 +141,15 @@ class BCAgent(BaseAgent):
 
         diff = (ac - pred_ac)
         actor_loss = diff.pow(2).mean()
-        info["actor_loss"] = actor_loss.cpu().item()
-        info["pred_ac"] = pred_ac.cpu().detach()
-        info["GT_ac"] = ac.cpu()
-        diff = torch.sum(torch.abs(diff), axis=0).cpu()
-        for i in range(diff.shape[0]):
-            info['action'+ str(i) + '_L1loss'] = diff[i].mean().item()
+        if train:
+            info["actor_loss"] = actor_loss.cpu().item()
+            info["pred_ac"] = pred_ac.cpu().detach()
+            info["GT_ac"] = ac.cpu()
+            diff = torch.sum(torch.abs(diff), axis=0).cpu()
+            # for i in range(diff.shape[0]):
+            #     info['action'+ str(i) + '_L1loss'] = diff[i].mean().item()
+        else:
+            info["actor_val_loss"] = actor_loss.cpu().item()
 
         if train:
             # update the actor

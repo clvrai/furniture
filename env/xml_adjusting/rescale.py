@@ -27,32 +27,30 @@ def argsparser():
 
 
 def rescale(tree, root, mult, outpath="out.xml", translate=[], rotate=[], write=False):
-    if mult != 1:
-        for mesh in root.find("asset"):
-            if mesh.tag == "mesh":
-                mesh_scale = mesh.attrib["scale"].split(" ")
-                mesh_scale = [str(float(i) * mult) for i in mesh_scale]
-                upt_mesh_scale = " ".join(mesh_scale)
-                mesh.set("scale", upt_mesh_scale)
+    for mesh in root.find("asset"):
+        if mesh.tag == "mesh" and 'name' in mesh.attrib and 'part' in mesh.attrib['name']:
+            mesh_scale = mesh.attrib["scale"].split(" ")
+            mesh_scale = [str(float(i) * mult) for i in mesh_scale]
+            upt_mesh_scale = " ".join(mesh_scale)
+            mesh.set("scale", upt_mesh_scale)
 
     for body in root.find("worldbody"):
-        body_pos = body.attrib["pos"].split(" ")
-        body_quat = body.attrib["quat"].split(" ")
-        if mult != 1:
+        if 'name' in body.attrib and '_part' in body.attrib['name']:
+            body_pos = body.attrib["pos"].split(" ")
+            body_quat = body.attrib["quat"].split(" ")
             body_pos = [str(float(i) * mult) for i in body_pos]
-        if len(translate) > 0:
-            body_pos = [str(float(i) + j) for i, j in zip(body_pos, translate)]
-        if len(rotate) > 0:
-            w, x, y, z = [float(i) for i in body_quat]
-            rotate_quat = Quaternion(rotate) * Quaternion(w, x, y, z)
-            body_quat = [str(i) for i in rotate_quat.elements]
-            body_quat_s = " ".join(body_quat)
-            body.set("quat", body_quat_s)
+            if len(translate) > 0:
+                body_pos = [str(float(i) + j) for i, j in zip(body_pos, translate)]
+            if len(rotate) > 0:
+                w, x, y, z = [float(i) for i in body_quat]
+                rotate_quat = Quaternion(rotate) * Quaternion(w, x, y, z)
+                body_quat = [str(i) for i in rotate_quat.elements]
+                body_quat_s = " ".join(body_quat)
+                body.set("quat", body_quat_s)
 
-        upt_body_pos = " ".join(body_pos)
-        body.set("pos", upt_body_pos)
+            upt_body_pos = " ".join(body_pos)
+            body.set("pos", upt_body_pos)
 
-        if mult != 1:
             for child in body.getiterator():
                 if child.tag == "site":
                     site_pos = child.attrib["pos"].split(" ")
@@ -99,6 +97,7 @@ def main(config):
         outpath=config.outpath,
         translate=config.translate,
         rotate=config.rotate,
+        write=config.write
     )
 
 

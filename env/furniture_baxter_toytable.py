@@ -71,19 +71,21 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
             xquat((float * 4) * n_obj): quaternion of the objects
         """
-        pos_init = [
-            [-0.1968, -0.0288, 0.03878],
-            [0.2, 0.16578, 0.02379],
-        ]
-        noise = self._init_random(3 * len(pos_init), "furniture")
-        for i in range(len(pos_init)):
-            for j in range(3):
-                pos_init[i][j] += noise[3 * i + j]
+        pos_init = {
+            '4_part4':[-0.1968, -0.0288, 0.03878],
+            '2_part2':[0.2, 0.16578, 0.02379]
+            }
 
-        quat_init = [
-            [0.099711762, 0.00028753, 0.00037843, 0.07586979],
-            [-0.6725, 0.6417, -0.2970, -0.2186],
-        ]
+        noise = self._init_random(3 * len(pos_init), "furniture")
+        for i, name in enumerate(pos_init):
+            for j in range(3):
+                pos_init[name][j] += noise[3 * i + j]
+
+        quat_init = {
+            '4_part4': [0.099711762, 0.00028753, 0.00037843, 0.07586979],
+            '2_part2': [-0.6725, 0.6417, -0.2970, -0.2186]
+            }
+
         return pos_init, quat_init
 
     def _ctrl_reward(self, action):

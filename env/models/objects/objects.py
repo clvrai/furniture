@@ -202,3 +202,15 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
                 template["name"] = name
             visual.append(ET.Element("site", attrib=template))
         return visual
+
+
+    def hide_visualization(self):
+        for body in self.root.find('worldbody'):
+            if 'name' in body.attrib and '_part' in body.attrib['name']:
+                for child in body.getiterator():
+                    if child.tag == 'site' and 'name' in child.attrib:
+                        if 'conn_site' not in child.attrib['name']:
+                            child.attrib['rgba'] = '0 0 0 0'
+                    elif child.tag == 'geom' and 'name' in child.attrib:
+                        if 'noviz' in child.attrib['name']:
+                            child.attrib['rgba'] = '0 0 0 0'

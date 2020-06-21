@@ -6,8 +6,7 @@ from collections import OrderedDict, defaultdict
 import numpy as np
 import torch
 import torch.distributed as dist
-import torchvision.utils as vutils
-import torchvision.transforms.functional as TF
+import math
 import PIL.Image
 from mpi4py import MPI
 
@@ -48,9 +47,49 @@ def get_recent_ckpt_path(base_dir):
         raise Exception("Multiple most recent ckpts %s" % paths)
 
 
-def image_grid(image, n=4):
-    return vutils.make_grid(image[:n], nrow=n).cpu().detach().numpy()
+def save_grid(tensor, nrow: int=8, padding: int=2, pad_value: int=0):
 
+
+
+    tensor = torch.from_numpy(tensor)
+    if tensor.dim() == 2:  # single image H x W
+        tensor = tensor.unsqueeze(0)
+    if tensor.dim() == 3:  # single image
+        if tensor.size(0) == 1:  # if single-channel, convert to 3-channel
+            tensor = torch.cat((tensor, tensor, tensor), 0)
+        tensor = tensor.unsqueeze(0)
+    if tensor.dim() == 4 and tensor.size(1) == 1:  # single-channel images
+        tensor = torch.cat((tensor, tensor, tensor), 1)
+
+    if tensor.size(0) == 1:
+        return tensor.squeeze(0)
+
+    # make the mini-batch of images into a grid
+    nmaps = tensor.size(0)
+    xmaps = min(nrow, nmaps)
+    ymaps = int(math.ceil(float(nmaps) / xmaps))
+    height, width = int(tensor.size(2) + padding), int(tensor.size(3) + padding)
+    num_channels = tensor.size(1)
+    grid = tensor.new_full((num_channels, height * ymaps + padding, width * xmaps + padding), pad_value)
+    k = 0
+    for y in range(ymaps):
+        for x in range(xmaps):
+            if k >= nmaps:
+                break
+            grid.narrow(1, y * height + padding, height - padding)\
+                .narrow(2, x * width + padding, width - padding)\
+                .copy_(tensor[k])
+            k = k + 1
+
+    img = (grid.numpy() * 255).astype('uint8')
+    img = np.transpose(img, (1,2,0))
+    PIL.Image.fromarray(img).save('grid.jpg')
+
+
+def numpy_to_img(arr, name):
+    img = (arr * 255).astype('uint8')
+    img = np.transpose(img, (1,2,0))
+    PIL.Image.fromarray(img).save(name + '.jpg')
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -194,6 +233,31 @@ def _get_flat_grads(network):
     return flat_grads, grads_shape
 
 
+def PIL_to_tensor(pic):
+    # Convert a ``PIL Image`` to tensor.
+    if not(_is_pil_image(pic)):
+        raise TypeError('pic should be PIL Image or ndarray. Got {}'.format(type(pic)))
+
+    # handle PIL Image
+    if pic.mode == 'I':
+        img = torch.from_numpy(np.array(pic, np.int32, copy=False))
+    elif pic.mode == 'I;16':
+        img = torch.from_numpy(np.array(pic, np.int16, copy=False))
+    elif pic.mode == 'F':
+        img = torch.from_numpy(np.array(pic, np.float32, copy=False))
+    elif pic.mode == '1':
+        img = 255 * torch.from_numpy(np.array(pic, np.uint8, copy=False))
+    else:
+        img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
+
+    img = img.view(pic.size[1], pic.size[0], len(pic.getbands()))
+    # put it from HWC to CHW format
+    img = img.permute((2, 0, 1)).contiguous()
+    if isinstance(img, torch.ByteTensor):
+        return img.float().div(255)
+    else:
+        return img
+
 def fig2tensor(draw_func):
     def decorate(*args, **kwargs):
         tmp = io.BytesIO()
@@ -201,7 +265,7 @@ def fig2tensor(draw_func):
         fig.savefig(tmp, dpi=88)
         tmp.seek(0)
         fig.clf()
-        return TF.to_tensor(PIL.Image.open(tmp))
+        return PIL_to_tensor(PIL.Image.open(tmp))
 
     return decorate
 

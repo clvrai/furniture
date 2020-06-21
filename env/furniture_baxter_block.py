@@ -126,8 +126,12 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
             xquat((float * 4) * n_obj): quaternion of the objects
         """
-        pos_init = [[-0.3, -0.2, 0.05], [0.1, -0.2, 0.05]]
-        quat_init = [[1, 0, 0, 0], [1, 0, 0, 0]]
+        pos_init = {'1_block_l' : [-0.3, -0.2, 0.05],
+                    '2_block_r' : [0.1, -0.2, 0.05]
+                   }
+        quat_init = {'1_block_l' : [1, 0, 0, 0],
+                     '2_block_r' : [1, 0, 0, 0]
+                    }
         return pos_init, quat_init
 
     def _compute_reward(self, a):

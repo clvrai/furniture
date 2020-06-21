@@ -150,13 +150,13 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
                 0.47938163,
             ],
         }
-        pos_init = []
-        quat_init = []
+        pos_init = {}
+        quat_init = {}
 
         for body in self._object_names:
             qpos = self._init_qpos[body]
-            pos_init.append(qpos[:3])
-            quat_init.append(qpos[3:])
+            pos_init[body] = qpos[:3]
+            quat_init[body] = qpos[3:]
         if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
             if (
                 "l_gripper" in self._init_qpos
@@ -182,9 +182,9 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
                 self.sim.model.geom_conaffinity[geom_id] = conaffinity
 
         # set furniture positions
-        for i, body in enumerate(self._object_names):
-            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
-            self._set_qpos(body, pos_init[i], quat_init[i])
+        for body in self._object_names:
+            logger.debug(f"{body} {pos_init[body]} {quat_init[body]}")
+            self._set_qpos(body, pos_init[body], quat_init[body])
 
         self.sim.forward()
 
@@ -224,11 +224,11 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         The first case has the table top on the left and legs on the right.
 
         Returns:
-            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-            xquat((float * 4) * n_obj): quaternion of the objects
+            xpos: x,y,z position of the objects in world frame
+            xquat: quaternion of the objects
         """
-        pos_init = [0.04521311, 0.04596679, 0.11724173]
-        quat_init = [0.51919501, 0.52560512, 0.47367611, 0.47938163]
+        pos_init = {'1_block_l':[0.04521311, 0.04596679, 0.11724173]}
+        quat_init = {'1_block_l':[0.51919501, 0.52560512, 0.47367611, 0.47938163]}
 
         return pos_init, quat_init
 
@@ -262,15 +262,12 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         2. Move gripper in z direction above block to avoid collision
         2. Move to original starting point
         """
-        cfg = self._config
         for i in tqdm(range(num_demos)):
-            ob = self.reset(cfg.furniture_id, cfg.background)
-            if cfg.render:
+            ob = self.reset(self._config.furniture_id, self._config.background)
+            if self._config.render:
                 self.render()
-            vr = None
-            if cfg.record:
-                vr = VideoRecorder()
-                vr.capture_frame(self.render("rgb_array")[0])
+            if self._config.record_vid:
+                self._config.vid_rec.capture_frame(self.render("rgb_array")[0])
             done = False
             original_hand_pos = self._get_pos("grip_site")
             # set the ground target to a zone under the hand position
@@ -303,20 +300,20 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
                     if np.linalg.norm(d) > 0.005:
                         action[:3] = d
                     else:
-                        # save block pose for demonstration
-                        self._demo._metadata = {
-                            "block_pos": self._get_pos("1_block_l"),
-                            "block_quat": self._get_quat("1_block_l"),
-                        }
+                    #     # save block pose for demonstration
+                    #     self._demo._metadata = {
+                    #         "block_pos": self._get_pos("1_block_l"),
+                    #         "block_quat": self._get_quat("1_block_l"),
+                    #     }
                         self._phase = 4
                 ob, reward, done, info = self.step(action)
                 self.render()
-                if cfg.record:
-                    vr.capture_frame(self.render("rgb_array")[0])
+                if self._config.record_vid:
+                    self._config.vid_rec.capture_frame(self.render("rgb_array")[0])
 
-            self.save_demo()
-            if cfg.record:
-                vr.close(f"place_{i}.mp4")
+            self._demo.save(self.file_prefix)
+            if self._config.record_vid:
+                self._config.vid_rec.close(f"place_{i}.mp4")
 
 
 def main():
@@ -324,11 +321,11 @@ def main():
 
     parser = create_parser(env="FurnitureSawyerPlaceEnv")
     config, unparsed = parser.parse_known_args()
-
+    config.record_demo = True
     # generate placing demonstrations
     env = FurnitureSawyerPlaceEnv(config)
-    env.generate_demos(1000)
-
+    #env.generate_demos(10)
+    env.run_demo(config)
 
 if __name__ == "__main__":
     main()

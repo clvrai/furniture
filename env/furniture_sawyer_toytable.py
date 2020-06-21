@@ -165,22 +165,22 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         The first case has the table top on the left and legs on the right.
 
         Returns:
-            xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
-            xquat((float * 4) * n_obj): quaternion of the objects
+            xpos: x,y,z position of the objects in world frame
+            xquat: quaternion of the objects
         """
-        pos_init = [
-            [-0.2968, -0.1288, 0.03878],
-            [0.1, 0.06578, 0.02379],
-        ]
+        pos_init = {
+            '4_part4':[-0.2968, -0.1288, 0.03878],
+            '2_part2':[0.2, 0.16578, 0.02379]
+            }
         noise = self._init_random(3 * len(pos_init), "furniture")
-        for i in range(len(pos_init)):
+        for i, name in enumerate(pos_init):
             for j in range(3):
-                pos_init[i][j] += noise[3 * i + j]
+                pos_init[name][j] += noise[3 * i + j]
 
-        quat_init = [
-            [-0.00000011, -0.99874362, -0.05011164, 0.00000002],
-            [-0.6725, 0.6417, -0.2970, -0.2186],
-        ]
+        quat_init = {
+            '4_part4': [-0.00000011, -0.99874362, -0.05011164, 0.00000002],
+            '2_part2': [-0.6725, 0.6417, -0.2970, -0.2186]
+            }
         return pos_init, quat_init
 
     def _ctrl_reward(self, action):
