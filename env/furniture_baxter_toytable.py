@@ -140,7 +140,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         if rot_dist_up < 0:
             lift_rew = (r_table_pos[2] - l_table_pos[2])
         else:
-            lift_rew = 2.0 * (0.5 - (r_table_pos[2] - l_table_pos[2]))
+            lift_rew = 2.0 * (0.5 - max(r_table_pos[2] - l_table_pos[2], 0))
 
         done = False
         success_rew = 0
