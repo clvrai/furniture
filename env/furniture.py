@@ -26,8 +26,8 @@ from env.models.grippers import gripper_factory
 from env.models.objects import MujocoXMLObject
 from env.unity_interface import UnityInterface
 from util.demo_recorder import DemoRecorder
-from util.logger import logger
 from util.video_recorder import VideoRecorder
+from util.logger import logger
 
 try:
     import mujoco_py
@@ -53,7 +53,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._env_config = {
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
-            "ctrl_reward": 1e-3,
+            "ctrl_penalty": 1e-3,
             "furn_placement_randomness": config.furn_placement_randomness,
             "agent_placement_randomness": config.agent_placement_randomness,
             "furn_size_randomness": config.furn_size_randomness,
@@ -397,7 +397,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         if a is None or self._agent_type == "Cursor":
             return 0
-        ctrl_reward = -self._env_config["ctrl_reward"] * np.square(a).sum()
+        ctrl_reward = -self._env_config["ctrl_penalty"] * np.square(a).sum()
         return ctrl_reward
 
     def _set_camera_position(self, cam_id, cam_pos):
