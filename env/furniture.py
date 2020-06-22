@@ -98,8 +98,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._background = None
         self._pos_init = None
         self._quat_init = None
-        self._record_vid = config.record_vid
-        self._record_demo = config.record_demo
 
         self._manual_resize = None
         self._action_on = False
@@ -111,9 +109,23 @@ class FurnitureEnv(metaclass=EnvMeta):
                 demo = pickle.load(f)
                 self._init_qpos = demo["qpos"][0]
 
+        self.file_prefix = (
+            self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
+        )
+
         self._record_demo = config.record_demo
         if self._record_demo:
             self._demo = DemoRecorder(config.demo_dir)
+
+        self._record_vid = config.record_vid
+        self.vid_rec = None
+        if self._record_vid:
+            if self._record_demo:
+                self.vid_rec = VideoRecorder(
+                    prefix=self.file_prefix, demo_dir=config.demo_dir
+                )
+            else:
+                self.vid_rec = VideoRecorder(prefix=self.file_prefix)
 
         self._num_connect_steps = 0
         self._gravity_compensation = 0
@@ -136,18 +148,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             )
             # set to the best quality
             self._unity.set_quality(config.quality)
-
-        self.vid_rec = None
-        self.file_prefix = (
-            self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
-        )
-        if self._record_vid:
-            if self._record_demo:
-                self.vid_rec = VideoRecorder(
-                    prefix=self.file_prefix, demo_dir=config.demo_dir
-                )
-            else:
-                self.vid_rec = VideoRecorder(prefix=self.file_prefix)
 
         if config.render and platform == "win32":
             from mujoco_py import GlfwContext
