@@ -27,25 +27,15 @@ class FurnitureGym(gym.Env):
         # create an environment
         self.env = make_env(name, config)
 
-        # covert observation space
-        obs_space = self.env.observation_space
-        obs_size = sum([np.prod(v) for v in obs_space.values()])
-        low = -1 * np.ones(obs_size)
-        high = np.ones(obs_size)
-        self.observation_space = gym.spaces.Box(low=low, high=high)
-
-        # covert action space
-        dof = self.env.dof
-        low = -1 * np.ones(dof)
-        high = np.ones(dof)
-        self.action_space = gym.spaces.Box(low=low, high=high)
+        self.observation_space = self.env.observation_space
+        self.action_space = self.env.action_space
 
     def reset(self):
         """
         Resets the environment.
         """
         obs = self.env.reset()
-        return self._flatten_obs(obs)
+        return obs
 
     def step(self, action):
         """
@@ -53,7 +43,7 @@ class FurnitureGym(gym.Env):
         Returns observation (dict), reward (float), done (bool), and info (dict)
         """
         obs, reward, done, info = self.env.step(action)
-        return self._flatten_obs(obs), reward, done, info
+        return obs, reward, done, info
 
     def render(self, mode="human"):
         """
@@ -69,16 +59,6 @@ class FurnitureGym(gym.Env):
         Cleans up the environment
         """
         self.env.close()
-
-    def _flatten_obs(self, obs):
-        """
-        Flattens observation dictionary @obs to 1-dim observation vector.
-        """
-        ob_list = []
-        for k, v in obs.items():
-            ob_list.append(v.ravel())
-
-        return np.concatenate(ob_list)
 
 
 def main():

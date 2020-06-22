@@ -78,3 +78,16 @@ register(
         "port": 1050,
     },
 )
+
+
+# add baxter flipping environment to Gym
+register(
+    id="furniture-baxter-flip-v0",
+    entry_point="env.furniture_gym:FurnitureGym",
+    kwargs={
+        "name": "FurnitureBaxterToyTableEnv",
+        "furniture_id": 1,
+        "background": "Interior",
+        "port": 1050,
+    },
+)
