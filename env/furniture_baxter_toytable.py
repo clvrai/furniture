@@ -28,16 +28,22 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         # parts.
         self._num_connect_steps = 0
         self._discretize_grip = config.discretize_grip
-        self.gripped_count = 0
 
     def _step(self, a):
         """
         Takes a simulation step with @a and computes reward.
         """
+
+        # mask actions
+        a = a.copy()
+        a[3:6] = 0
+        a[9:12] = 0
+        a[12:14] = -1
+
         # discretize gripper action
         if self._discretize_grip:
-            a = a.copy()
             a[-2] = -1 if a[-2] < 0 else 1
+            a[-3] = -1 if a[-3] < 0 else 1
 
         ob, _, done, _ = super(FurnitureBaxterEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
@@ -61,6 +67,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         id2 = self.sim.model.eq_obj2id[0]
         self._target_body1 = self.sim.model.body_id2name(id1)
         self._target_body2 = self.sim.model.body_id2name(id2)
+        self._target_table_pos = [0.2, -0.1, 0.15]
 
     def _place_objects(self):
         """
@@ -72,8 +79,8 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             xquat((float * 4) * n_obj): quaternion of the objects
         """
         pos_init = {
-            '4_part4':[-0.1968, -0.0288, 0.03878],
-            '2_part2':[0.2, 0.16578, 0.02379]
+            '4_part4': [-0.1968, -0.0288, 0.03878],
+            '2_part2': [0.2, 0.16578, 0.02379]
             }
 
         noise = self._init_random(3 * len(pos_init), "furniture")
@@ -108,21 +115,55 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
 
         info = {}
 
+        ctrl_rew = self._ctrl_reward(action)
+
         top_site_name = "top-leg,,conn_site4"
         up = self._get_up_vector(top_site_name)
         rot_dist_up = T.cos_dist(up, [0, 0, 1])
 
+        table_pos = self._get_pos("4_part4")
+        table_dist = T.l2_dist(table_pos, self._target_table_pos)
+        table_rot_rew = 0.1 * (rot_dist_up - 1)
+
+        # r_hand_pos = self.sim.data.site_xpos[self.right_eef_site_id]
+        # l_hand_pos = self.sim.data.site_xpos[self.left_eef_site_id]
+        r_hand_pos = self._site_xpos_xquat("grip_site")[:3]
+        l_hand_pos = self._site_xpos_xquat("l_g_grip_site")[:3]
+        r_table_pos = self._site_xpos_xquat("4_part4_right_site")[:3]
+        l_table_pos = self._site_xpos_xquat("4_part4_left_site")[:3]
+        r_gh_dist = T.l2_dist(r_hand_pos, r_table_pos)
+        l_gh_dist = T.l2_dist(l_hand_pos, l_table_pos)
+        r_gh_rew = -1.0 * (r_gh_dist if rot_dist_up < 0 else 0)
+        l_gh_rew = -1.0 * (l_gh_dist if rot_dist_up < 0 else 0)
+
+        # maximum height = 0.46
+        if rot_dist_up < 0:
+            lift_rew = (r_table_pos[2] - l_table_pos[2])
+        else:
+            lift_rew = 2.0 * (0.5 - (r_table_pos[2] - l_table_pos[2]))
+
         done = False
         success_rew = 0
-        if rot_dist_up > 0.98:
+        if rot_dist_up > 0.98 and table_dist < 0.2:
             done = True
-            success_rew = 1
+            success_rew = 100
             logger.warning("Success")
             self._success = True
 
-        rew = success_rew
+        rew = success_rew + ctrl_rew + table_rot_rew + r_gh_rew + l_gh_rew + lift_rew
         info["success"] = success_rew
         info["table_up"] = up
+        info["table_rot_rew"] = table_rot_rew
+        info["ctrl_rew"] = ctrl_rew
+        info["lift_rew"] = lift_rew
+        info["r_gh_dist"] = r_gh_dist
+        info["l_gh_dist"] = l_gh_dist
+        info["r_hand_pos"] = r_hand_pos
+        info["l_hand_pos"] = l_hand_pos
+        info["r_table_pos"] = r_table_pos
+        info["l_table_pos"] = l_table_pos
+        info["table_pos"] = table_pos
+        info["table_dist"] = table_dist
         return rew, done, info
 
 
