@@ -180,7 +180,7 @@ class SACAgent(BaseAgent):
             obs[k] = N * [v]
         obs = to_tensor(obs, self._config.device)
         actions, activations = self.act(obs, is_train)
-        n_obs = self.normalize(obs)
+        n_obs = to_tensor(self.normalize(obs), self._config.device)
         reset_values = torch.min(
             self._reset_critic1(n_obs, actions), self._reset_critic2(n_obs, actions)
         )
