@@ -73,6 +73,8 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         xml_filename = os.path.join(envs_folder, "models/assets/peg_insertion.xml")
         self._initialize_mujoco(xml_filename, 5)
         self._reset_episodic_vars()
+        # self._dist_sum = 0
+        # self._dist_count = 0
 
     def _initialize_mujoco(self, model_path, frame_skip):
         """Taken from mujoco_env.py __init__ from mujoco_py package"""

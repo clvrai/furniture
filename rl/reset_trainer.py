@@ -81,6 +81,10 @@ class ResetTrainer(Trainer):
 
         if config.reset_kl_penalty:
             self._reset_agent.set_forward_actor(self._agent._actor)
+        if config.safe_forward:
+            self._agent.set_reset_critic(
+                self._reset_agent._critic1_target, self._reset_agent._critic2_target
+            )
 
     def _setup_log(self):
         # setup log
@@ -143,6 +147,9 @@ class ResetTrainer(Trainer):
             env.begin_forward()
             while not done:  # env return done if time limit is reached or task done
                 ac, ac_before_activation = self._agent.act(ob, is_train=True)
+                if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
+                    ac, ac_before_activation = self._agent.safe_act(ob, is_train=True)
+                    ep_info["safe_act"].append(1)
                 rollout.add(
                     {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
                 )
@@ -273,6 +280,7 @@ class ResetTrainer(Trainer):
                     history[key] = value
                 else:
                     history[key].append(value)
+
         eval_rollouts = []
         for i in range(cfg.num_eval):
             rec = record and i == 0
@@ -318,6 +326,9 @@ class ResetTrainer(Trainer):
         env.begin_forward()
         while not done:  # env return done if time limit is reached or task done
             ac, ac_before_activation = self._agent.act(ob, is_train=False)
+            if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
+                ac, ac_before_activation = self._agent.safe_act(ob, is_train=False)
+                ep_info["safe_act"].append(1)
             rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )

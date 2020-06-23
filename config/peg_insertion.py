@@ -59,6 +59,11 @@ def add_argument(parser):
     parser.add_argument("--ensemble_sampler", type=str, default="min", choices=["min", "mean", "max", "median", "meanvar", "softmin", "softmax"])
     parser.add_argument("--var_coeff", type=float, default=1)
 
+    # safety config
+    parser.add_argument("--safe_forward", type=str2bool, default=False)
+    parser.add_argument("--safety_threshold", type=int, default=float("-inf"))
+    parser.add_argument("--num_safety_actions", type=int, default=10)
+
     # reward config
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
     parser.add_argument("--success_rew", type=float, default=1)

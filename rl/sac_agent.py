@@ -2,6 +2,8 @@
 # https://github.com/vitchyr/rlkit/blob/master/rlkit/torch/sac/sac.py
 
 
+from copy import deepcopy
+
 import numpy as np
 import torch
 import torch.optim as optim
@@ -154,8 +156,51 @@ class SACAgent(BaseAgent):
         )
         return train_info
 
+    @torch.no_grad()
+    def is_safe_action(self, ob, ac):
+        # TODO: handle batch and single action modes
+        ob = to_tensor(self.normalize(ob), self._config.device)
+        ac = to_tensor(ac, self._config.device)
+        values = torch.min(self._reset_critic1(ob, ac), self._reset_critic2(ob, ac))
+        safe = values > self._config.safety_threshold
+        return safe.item()
+
+    @torch.no_grad()
+    def safe_act(self, ob, is_train=True):
+        """
+        Act safely w.r.t a safety threshold
+        """
+        ob = self.normalize(ob)
+        obs = deepcopy(ob)
+        # sample other actions from the forward policy
+        N = self._config.num_safety_actions
+        threshold = self._config.safety_threshold
+        # duplicate the observaons
+        for k, v in obs.items():
+            obs[k] = N * [v]
+        obs = to_tensor(obs, self._config.device)
+        actions, activations = self.act(obs, is_train)
+        reset_values = torch.min(
+            self._reset_critic1(obs, actions), self._reset_critic2(obs, actions)
+        )
+        over_threshold = torch.flatten(reset_values > threshold)
+        # choose uniformly an acceptable action
+        safe_actions = actions["default"][over_threshold]
+        safe_activations = activations[over_threshold]
+        if len(safe_actions) > 0:
+            choice = np.random.randint(len(safe_actions))
+            out = safe_actions[choice], safe_activations[choice]
+        else:
+            choice = np.random.randint(len(actions))
+            out = actions[choice], activations[choice]
+        return out
+
     def act_log(self, ob):
         return self._actor.act_log(ob)
+
+    def set_reset_critic(self, critic1, critic2):
+        self._reset_critic1 = critic1
+        self._reset_critic2 = critic2
 
     def set_forward_actor(self, actor):
         self._forward_actor = actor
@@ -201,10 +246,12 @@ class SACAgent(BaseAgent):
         if self._config.reset_kl_penalty and self._reset_agent:
             reset_distributions = self._actor.act_dist(o)
             with torch.no_grad():
-                forward_distributions = self._forward_actor.act_dist(o, is_train=False)
+                forward_distributions = self._forward_actor.act_dist(o)
             f = forward_distributions.distributions["default"]
             r = reset_distributions.distributions["default"]
-            kl_loss = self._config.kl_penalty_coeff * kl_divergence(f, r).mean()
+            kl_loss = self._config.kl_penalty_coeff * kl_divergence(f, r).mean().clamp_(
+                0, 1000
+            )
             info["kl_loss"] = kl_loss.cpu().item()
             # bigger the kl_d, the better
             actor_loss -= kl_loss

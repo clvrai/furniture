@@ -72,7 +72,7 @@ class Actor(nn.Module):
         else:
             return actions, activations
 
-    def act_dist(self, ob, is_train=True):
+    def act_dist(self, ob):
         """
         Get distribution over action space
         """
