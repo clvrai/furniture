@@ -177,24 +177,26 @@ class SACAgent(BaseAgent):
         threshold = self._config.safety_threshold
         # duplicate the observaons
         for k, v in obs.items():
-            obs[k] = N * [v]
-        obs = to_tensor(obs, self._config.device)
+            obs[k] = np.array(N * [v])
         actions, activations = self.act(obs, is_train)
         n_obs = to_tensor(self.normalize(obs), self._config.device)
+        actions = to_tensor(actions, self._config.device)
         reset_values = torch.min(
             self._reset_critic1(n_obs, actions), self._reset_critic2(n_obs, actions)
         )
-        over_threshold = torch.flatten(reset_values > threshold)
+        over_threshold = torch.flatten(reset_values > threshold).cpu()
         # choose uniformly an acceptable action
-        safe_actions = actions["default"][over_threshold]
-        safe_activations = activations[over_threshold]
+        safe_actions = actions["default"][over_threshold].cpu()
+        safe_activations = activations["default"][over_threshold]
         if len(safe_actions) > 0:
             choice = np.random.randint(len(safe_actions))
-            out = safe_actions[choice], safe_activations[choice]
+            ac = { "default": safe_actions[choice].numpy() }
+            act = {"default": safe_activations[choice]}
         else:
             choice = np.random.randint(len(actions))
-            out = actions[choice], activations[choice]
-        return out
+            ac = { "default": actions["default"].cpu()[choice].numpy() }
+            act = {"default": activations["default"][choice]}
+        return ac, act
 
     def act_log(self, ob):
         return self._actor.act_log(ob)
