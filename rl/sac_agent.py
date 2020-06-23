@@ -170,7 +170,7 @@ class SACAgent(BaseAgent):
         """
         Act safely w.r.t a safety threshold
         """
-        ob = self.normalize(ob)
+        # ob = self.normalize(ob)
         obs = deepcopy(ob)
         # sample other actions from the forward policy
         N = self._config.num_safety_actions
@@ -180,8 +180,9 @@ class SACAgent(BaseAgent):
             obs[k] = N * [v]
         obs = to_tensor(obs, self._config.device)
         actions, activations = self.act(obs, is_train)
+        n_obs = self.normalize(obs)
         reset_values = torch.min(
-            self._reset_critic1(obs, actions), self._reset_critic2(obs, actions)
+            self._reset_critic1(n_obs, actions), self._reset_critic2(n_obs, actions)
         )
         over_threshold = torch.flatten(reset_values > threshold)
         # choose uniformly an acceptable action
