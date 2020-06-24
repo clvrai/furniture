@@ -313,7 +313,7 @@ class ResetTrainer(Trainer):
         ep_info = defaultdict(list)
         rollout = Rollout()
         done = False
-        ep_len = ep_rew = 0
+        ep_len = ep_rew = safe_act = 0
         env = self._env_eval
 
         forward_frames = []
@@ -328,13 +328,13 @@ class ResetTrainer(Trainer):
             ac, ac_before_activation = self._agent.act(ob, is_train=False)
             if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
                 ac, ac_before_activation = self._agent.safe_act(ob, is_train=False)
-                ep_info["safe_act"].append(1)
+                safe_act += 1
             rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
             ob, reward, done, info = env.step(ac)
             done = done or ep_len >= cfg.max_episode_steps
-            rollout.add({"done": done, "rew": reward})
+            rollout.add({"done": done, "rew": reward, "safe_act": safe_act})
             ep_len += 1
             ep_rew += reward
             for key, value in info.items():
