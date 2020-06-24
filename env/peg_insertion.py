@@ -20,6 +20,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
     def __init__(self, config):
         self._config = config
+        self._debug = config.debug
         self._algo = config.algo
         self._seed = config.seed
         self._sparse = config.sparse_rew
@@ -37,7 +38,6 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._wrist_noise = config.wrist_noise
         self._body_noise = config.body_noise
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
-        # self._dist_count = self._dist_sum = 0
 
         # load demonstrations if learning from demonstrations
         if self._lfd:
@@ -73,8 +73,9 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         xml_filename = os.path.join(envs_folder, "models/assets/peg_insertion.xml")
         self._initialize_mujoco(xml_filename, 5)
         self._reset_episodic_vars()
-        # self._dist_sum = 0
-        # self._dist_count = 0
+        if self._debug:
+            self._dist_sum = 0
+            self._dist_count = 0
 
     def _initialize_mujoco(self, model_path, frame_skip):
         """Taken from mujoco_env.py __init__ from mujoco_py package"""
@@ -291,15 +292,16 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                 )
             qvel = np.zeros(7)
         self.set_state(qpos, qvel)
-        # peg_pos = np.hstack(
-        #     [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
-        # )
-        # dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
-        # self._dist_sum += dist_to_start
-        # self._dist_count += 1
-        # print(
-        #     f"avg dist: {self._dist_sum/self._dist_count}, dist to start: {dist_to_start}"
-        # )
+        if self._debug:
+            peg_pos = np.hstack(
+                [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
+            )
+            dist_to_start = np.linalg.norm(self._start_pos - peg_pos)
+            self._dist_sum += dist_to_start
+            self._dist_count += 1
+            print(
+                f"avg dist: {self._dist_sum/self._dist_count}, dist to start: {dist_to_start}"
+            )
         return self._get_obs()
 
     def _remove_reward(self, s, a) -> Tuple[float, dict]:
