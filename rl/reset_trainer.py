@@ -143,13 +143,13 @@ class ResetTrainer(Trainer):
             rollout = Rollout()
             ep_info = defaultdict(list)
             done = False
-            ep_len = ep_rew = 0
+            ep_len = ep_rew = safe_act = 0
             env.begin_forward()
             while not done:  # env return done if time limit is reached or task done
                 ac, ac_before_activation = self._agent.act(ob, is_train=True)
                 if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
                     ac, ac_before_activation = self._agent.safe_act(ob, is_train=True)
-                    ep_info["safe_act"].append(1)
+                    safe_act += 1
                 rollout.add(
                     {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
                 )
@@ -164,7 +164,7 @@ class ResetTrainer(Trainer):
             rollout.add({"ob": ob})
             # compute average/sum of information
             ep_info = self._reduce_info(ep_info)
-            ep_info.update({"len": ep_len, "rew": ep_rew})
+            ep_info.update({"len": ep_len, "rew": ep_rew, "safe_act": safe_act})
             # train forward agent
             rollout = rollout.get()
             self._agent.store_episode(rollout)

@@ -190,11 +190,11 @@ class SACAgent(BaseAgent):
         safe_activations = activations["default"][over_threshold]
         if len(safe_actions) > 0:
             choice = np.random.randint(len(safe_actions))
-            ac = { "default": safe_actions[choice].numpy() }
+            ac = {"default": safe_actions[choice].numpy()}
             act = {"default": safe_activations[choice]}
         else:
             choice = np.random.randint(len(actions))
-            ac = { "default": actions["default"].cpu()[choice].numpy() }
+            ac = {"default": actions["default"].cpu()[choice].numpy()}
             act = {"default": activations["default"][choice]}
         return ac, act
 

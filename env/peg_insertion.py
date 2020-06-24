@@ -213,6 +213,11 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
         self._prev_insert_dist = dist_to_goal
 
+        # set qvel to 0
+        if self._config.zero_qvel:
+            qvel = np.zeros_like(self.sim.data.qvel.flat)
+            self.set_state(self.sim.data.qpos, qvel)
+
     def _reset_episodic_vars(self):
         """
         Resets episodic variables
