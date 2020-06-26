@@ -11,6 +11,8 @@ def _mpi_average(x):
 
 # Average across the cpu's data
 def mpi_average(x):
+    if MPI.COMM_WORLD.Get_size() == 1:
+        return x
     if isinstance(x, dict):
         keys = sorted(x.keys())
         return {k: _mpi_average(np.array(x[k])) for k in keys}
@@ -26,6 +28,8 @@ def _mpi_sum(x):
 
 # Sum over the cpu's data
 def mpi_sum(x):
+    if MPI.COMM_WORLD.Get_size() == 1:
+        return x
     if isinstance(x, dict):
         keys = sorted(x.keys())
         return {k: _mpi_sum(np.array(x[k])) for k in keys}
@@ -36,4 +40,3 @@ def mpi_sum(x):
 # Syncronize all processes.
 def mpi_sync():
     mpi_sum(0)
-
