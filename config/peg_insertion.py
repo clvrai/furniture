@@ -26,10 +26,10 @@ def add_argument(parser):
         "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
     )
     parser.add_argument(
-        "--wrist_noise", type=float, default=0.4, help="Adds U(-r,r) to the wrist starting qpos"
+        "--wrist_noise", type=float, default=0.1, help="Adds U(-r,r) to the wrist starting qpos"
     )
     parser.add_argument(
-        "--body_noise", type=float, default=0.03, help="Adds U(-r,r) to the body starting qpos"
+        "--body_noise", type=float, default=0.1, help="Adds U(-r,r) to the body starting qpos"
     )
 
     # reward config
@@ -37,7 +37,7 @@ def add_argument(parser):
     parser.add_argument("--success_rew", type=float, default=1)
     parser.add_argument("--control_penalty_coeff", type=float, default=0.001)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.05)
-    parser.add_argument("--start_pos_threshold", type=float, default=0.1)
+    parser.add_argument("--start_pos_threshold", type=float, default=0.08)
     parser.add_argument("--goal_quat_threshold", type=float, default=0.1)
     parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
 
