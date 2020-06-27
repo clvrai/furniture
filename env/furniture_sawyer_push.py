@@ -384,8 +384,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         info["success_rew"] = success_reward
         info["control_rew"] = control_reward
         info["block_to_start_rew"] = obj_to_start_reward
-        info["object_success"] = obj_succ
-        info["robot_success"] = robot_succ
+        info["object_success"] = int(obj_succ)
+        info["robot_success"] = int(robot_succ)
 
         return reset_reward, info
 
