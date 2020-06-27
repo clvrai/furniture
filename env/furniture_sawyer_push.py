@@ -28,11 +28,12 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._success_rew = config.success_rew
         self._ctrl_penalty_coeff = config.ctrl_penalty_coeff
         self._obj_to_point_coeff = config.obj_to_point_coeff
-        self._rand_start_range = config.rand_start_range
+        self._rand_robot_start_range = config.rand_robot_start_range
         self._rand_block_range = config.rand_block_range
         self._rand_block_rotation_range = config.rand_block_rotation_range
+        self._robot_start_pos_threshold = config.robot_start_pos_threshold
+        self._start_pos_threshold = config.start_pos_threshold
         self._goal_pos_threshold = config.goal_pos_threshold
-        self._goal_quat_threshold = config.goal_quat_threshold
         self._sparse_forward_rew = config.sparse_forward_rew
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
 
@@ -47,6 +48,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         """
         # always close gripper and don't connect
         a = a.copy()
+        if self._control_type == "ik":
+            a = np.concatenate([a, np.zeros(3)])  # add empty rotation
         a = np.concatenate([a, [-1, 0]])
         ob, _, _, _ = super(FurnitureSawyerEnv, self)._step(a)
         rew_fn = self._push_reward if self._task == "forward" else self._reset_reward
@@ -158,15 +161,16 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         logger.debug("*** furniture initialization ***")
 
         # add random noise to block position and rotation
-        self._start_pose = np.array([0.01044, -0.0028, 0.025, 0.5, 0.5, 0.5, 0.5])
+        self._start_pose = np.array([0.01044, -0.028, 0.025, 0.5, 0.5, 0.5, 0.5])
         # set goal position to 10 cm away from block
-        self._goal_pose = self._start_pose
+        self._goal_pose = self._start_pose.copy()
         self._goal_pose[:3] += [0, -0.15, 0]
 
         block_pose = self._start_pose.copy()
         r = self._rand_block_range
         pos_offset = np.zeros(3)
-        pos_offset[1] = self._rng.uniform(-r, 0)  # up and down
+        pos_offset[0] = self._rng.uniform(-r, r)  # left and right
+        # pos_offset[1] = self._rng.uniform(-r, 0)  # up and down
         block_pose[:3] += pos_offset
         r = self._rand_block_rotation_range
         block_rot = [90, 90, 0]
@@ -249,11 +253,16 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
                 self._unity.set_background(background)
 
         # take some random step away from starting state
+        self._robot_start_pose = self._get_cursor_pos().copy()
         action = np.zeros((8,))
-        r = self._rand_start_range
-        action[:3] = self._rng.uniform(-r, r, size=3)
+        r = self._rand_robot_start_range
+        # add left and right noise
+        action[0] = self._rng.uniform(-r, r)
         action[6] = 1  # keep gripper closed
         self._step_continuous(action)
+        # eef_pos = self._get_cursor_pos()
+        # dist = np.linalg.norm(self._robot_start_pose - eef_pos)
+        # print(dist)
 
     def begin_forward(self):
         """
@@ -281,27 +290,27 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
 
     def reset_success(self):
         ob = self._get_obs()
-        return self._is_inside(ob, self._start_pose)
+        r = self._robot_success(ob, self._robot_start_pose, self._robot_start_pos_threshold)
+        o = self._object_success(ob, self._start_pose, self._start_pos_threshold)
+        return r and o
 
-    def _is_inside(self, ob, goal) -> bool:
+    def _robot_success(self, ob, goal, threshold) -> bool:
+        eef_pos = ob["robot_ob"][:2]
+        start_pos = goal[:2]
+        return np.linalg.norm(eef_pos - start_pos) < threshold
+
+    def _object_success(self, ob, goal, threshold) -> bool:
         """
-        Checks if block pose and robot eef pose are close
+        Checks if block pose is close
         to the goal poses
         Ob is format from get_goal
         Goal is format from demo['goal']
         """
-        if isinstance(ob, dict):
-            ob = self.get_goal(ob)
-
-        if self._goal_type == "state_obj":
-            object_pos = ob[:2]
-            goal_object_pos = goal[:2]
-            assert len(object_pos.shape) == 1
-
-            pos_success = (
-                np.linalg.norm(object_pos - goal_object_pos) < self._goal_pos_threshold
-            )
-            return pos_success
+        obj = ob["object_ob"]
+        object_pos = obj[:2]
+        goal_object_pos = goal[:2]
+        obj_pos_success = np.linalg.norm(object_pos - goal_object_pos) < threshold
+        return obj_pos_success
 
     def _ctrl_reward(self, action):
         if self._config.control_type == "ik":
@@ -322,7 +331,9 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         dist_diff = self._prev_push_dist - dist_to_goal
         obj_to_goal_reward = dist_diff * self._obj_to_point_coeff
 
-        self._success = self._is_inside(ob, self._goal_pose)
+        self._success = self._object_success(
+            ob, self._goal_pose, self._goal_pos_threshold
+        )
         control_reward = self._ctrl_reward(action)
         success_reward = 0
         if self._success:
@@ -352,7 +363,11 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._prev_reset_dist = dist_to_start
         obj_to_start_reward = dist_diff * self._obj_to_point_coeff
 
-        self._success = self._is_inside(ob, self._start_pose)
+        obj_succ = self._object_success(ob, self._start_pose, self._start_pos_threshold)
+        robot_succ = self._robot_success(
+            ob, self._robot_start_pose, self._robot_start_pos_threshold
+        )
+        self._success = obj_succ and robot_succ
         control_reward = self._ctrl_reward(action)
         success_reward = 0
         if self._success:
@@ -369,6 +384,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         info["success_rew"] = success_reward
         info["control_rew"] = control_reward
         info["block_to_start_rew"] = obj_to_start_reward
+        info["object_success"] = obj_succ
+        info["robot_success"] = robot_succ
 
         return reset_reward, info
 
@@ -420,12 +437,12 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
                 )
             # IK observation only sees eef
             elif self._control_type == "ik":
-                gripper_qpos = [
-                    self.sim.data.qpos[x] for x in self._ref_gripper_joint_pos_indexes
-                ]
-                robot_states["gripper_dis"] = np.array(
-                    [abs(gripper_qpos[0] - gripper_qpos[1])]
-                )
+                # gripper_qpos = [
+                #     self.sim.data.qpos[x] for x in self._ref_gripper_joint_pos_indexes
+                # ]
+                # robot_states["gripper_dis"] = np.array(
+                #     [abs(gripper_qpos[0] - gripper_qpos[1])]
+                # )
                 robot_states["eef_pos"] = np.array(
                     self.sim.data.site_xpos[self.eef_site_id]
                 )
@@ -435,9 +452,9 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
                 robot_states["eef_velr"] = self.sim.data.site_xvelr[
                     self.eef_site_id
                 ]  # 3-dim
-                robot_states["eef_quat"] = T.convert_quat(
-                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
-                )
+                # robot_states["eef_quat"] = T.convert_quat(
+                #     self.sim.data.get_body_xquat("right_hand"), to="xyzw"
+                # )
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
@@ -457,7 +474,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
                 # ob_space["robot_ob"] = [
                 #     3 + 4 + 3 + 3 + 1
                 # ]  # pos, quat, vel, rot_vel, gripper
-                ob_space["robot_ob"] = [14]
+                ob_space["robot_ob"] = [9]
         ob_space["object_ob"] = [6]
         return ob_space
 
@@ -477,7 +494,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         if self._control_type == "impedance":
             dof = 7  # 7 joints
         elif self._control_type == "ik":
-            dof = 3 + 3  # move, rotate
+            dof = 3  # move
         return dof
 
     def _load_model(self):
@@ -526,9 +543,9 @@ def main():
 
     # generate placing demonstrations
     env = FurnitureSawyerPushEnv(config)
+    env.reset()
     while True:
-        env.reset()
-        action = np.zeros(6)
+        action = np.zeros(3)
         env.step(action)
         env.render()
         time.sleep(0.2)

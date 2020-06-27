@@ -21,9 +21,9 @@ def add_argument(parser):
         help="make grip dimension discrete action",
     )
     parser.add_argument(
-        "--rand_start_range",
+        "--rand_robot_start_range",
         type=float,
-        default=0.0,
+        default=3,
         help="add U(-r,r) to each dim of starting state",
     )
 
@@ -42,11 +42,20 @@ def add_argument(parser):
     )
 
     parser.add_argument(
+        "--robot_start_pos_threshold",
+        type=float,
+        default=0.02,
+        help="start threshold for robot",
+    )
+
+    parser.add_argument(
         "--goal_pos_threshold",
         type=float,
-        default=0.03,
+        default=0.02,
         help="goal threshold for the object",
     )
+
+    parser.add_argument("--start_pos_threshold", type=float, default=0.02)
 
     parser.add_argument(
         "--goal_quat_threshold",
