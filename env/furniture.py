@@ -1632,7 +1632,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Loads the arena XML
         """
         floor_full_size = (1.0, 1.0)
-        floor_friction = (2.0, 0.005, 0.0001)
+        floor_friction = (1, 0.005, 0.0001)
         from env.models.arenas import FloorArena
 
         self.mujoco_arena = FloorArena(

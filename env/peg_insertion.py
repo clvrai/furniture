@@ -104,7 +104,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
         return self._remove_reward(next_ob, a)
 
-    def reset_done(self):
+    def reset_success(self):
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
         )
@@ -192,6 +192,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         Switch to reset mode. Init reset reward
         """
+        self._task = "remove"
         self._success = False
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
@@ -205,6 +206,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         Switch to forward mode. Init forward reward
         """
+        self._task = "insert"
         self._success = False
         peg_pos = np.hstack(
             [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]
@@ -241,6 +243,44 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         dist_to_goal = np.linalg.norm(self._goal_pos - peg_pos)
         self._prev_insert_dist = dist_to_goal
 
+    def _reset_insert(self):
+        # Reset peg above hole:
+        wn = self._wrist_noise
+        bn = self._body_noise
+        wristnoise = self.np_random.uniform(-wn, wn, size=3)
+        bodynoise = self.np_random.uniform(-bn, bn, size=4)
+        qpos = np.array(
+            [
+                0.44542705,
+                0.64189252,
+                -0.39544481,
+                -2.32144865,
+                -0.17935136,
+                -0.60320289,
+                1.57110214,
+            ]
+        )
+        qpos[:4] = qpos[:4] + bodynoise
+        qpos[4:] = qpos[4:] + wristnoise
+        qvel = np.zeros(7)
+        self.set_state(qpos, qvel)
+
+    def _reset_remove(self):
+        # Reset peg in hole
+        qpos = np.array(
+            [
+                0.52601062,
+                0.57254126,
+                -2.0747581,
+                -1.55342248,
+                0.15375072,
+                -0.5747922,
+                0.70163815,
+            ]
+        )
+        qvel = np.zeros(7)
+        self.set_state(qpos, qvel)
+
     def reset_model(self, seed=None) -> dict:
         """
         Resets the mujoco model. If lfd, use seed parameter to
@@ -257,41 +297,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             else:
                 raise NotImplementedError
         else:
-            if self._task == "insert":
-                # Reset peg above hole:
-                wn = self._wrist_noise
-                bn = self._body_noise
-                wristnoise = self.np_random.uniform(-wn, wn, size=3)
-                bodynoise = self.np_random.uniform(-bn, bn, size=4)
-                qpos = np.array(
-                    [
-                        0.44542705,
-                        0.64189252,
-                        -0.39544481,
-                        -2.32144865,
-                        -0.17935136,
-                        -0.60320289,
-                        1.57110214,
-                    ]
-                )
-                qpos[:4] = qpos[:4] + bodynoise
-                qpos[4:] = qpos[4:] + wristnoise
-
-            else:
-                # Reset peg in hole
-                qpos = np.array(
-                    [
-                        0.52601062,
-                        0.57254126,
-                        -2.0747581,
-                        -1.55342248,
-                        0.15375072,
-                        -0.5747922,
-                        0.70163815,
-                    ]
-                )
-            qvel = np.zeros(7)
-        self.set_state(qpos, qvel)
+            self._reset_insert()
         if self._debug:
             peg_pos = np.hstack(
                 [self.get_body_com("leg_bottom"), self.get_body_com("leg_top")]

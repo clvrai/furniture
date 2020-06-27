@@ -205,8 +205,8 @@ class ResetTrainer(Trainer):
                             "ac_before_activation": ac_before_activation,
                         }
                     )
-                    ob, _, _, info = env.step(ac)
-                    env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+                    ob, env_reward, reset_done, info = env.step(ac)
+                    # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
                     reward = env_reward
                     if cfg.use_aot:
                         intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
@@ -214,9 +214,7 @@ class ResetTrainer(Trainer):
                         info["env_reward"] = env_reward
                         reward += intr_reward
                     info["reward"] = reward
-                    info.update(reset_rew_info)
-
-                    reset_success = env.reset_done()
+                    reset_success = env.reset_success()
                     info["episode_success"] = int(reset_success)
                     reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
                     # don't add rew to rollout because it gets computed online
@@ -371,8 +369,8 @@ class ResetTrainer(Trainer):
             r_rollout.add(
                 {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
             )
-            ob, _, _, info = env.step(ac)
-            env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+            ob, env_reward, reset_done, info = env.step(ac)
+            # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
             reward = env_reward
             if cfg.use_aot:
                 intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
@@ -380,8 +378,7 @@ class ResetTrainer(Trainer):
                 info["env_reward"] = env_reward
                 reward += intr_reward
             info["reward"] = reward
-            info.update(reset_rew_info)
-            reset_success = env.reset_done()
+            reset_success = env.reset_success()
             info["episode_success"] = int(reset_success)
             reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
             # don't add rew to rollout because it gets computed online

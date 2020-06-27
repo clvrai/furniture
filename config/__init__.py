@@ -68,13 +68,21 @@ def create_parser(env="") -> argparse.ArgumentParser:
             import config.furniture_sawyer_pick as f
 
             f.add_argument(parser)
+        elif "FurnitureSawyerPushEnv" in [env, args.env]:
+            import config.furniture_sawyer_push as f
+            import config.aot as a
+
+            a.add_argument(parser)
+            f.add_argument(parser)
         elif "FurnitureCursorToytableAssembleEnv" in [env, args.env]:
             import config.furniture_cursor_toytable_assemble as f
 
             f.add_argument(parser)
     elif "PegInsertionEnv" in [env, args.env]:
         import config.peg_insertion as f
+        import config.aot as a
 
+        a.add_argument(parser)
         f.add_argument(parser)
 
     # training algorithm

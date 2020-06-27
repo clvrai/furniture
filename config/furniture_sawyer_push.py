@@ -2,54 +2,58 @@ from util import str2bool, str2list
 
 
 def add_argument(parser):
+    # rewards
     parser.add_argument(
-        "--max_episode_steps",
-        type=int,
-        default=99,
-        help="max number of steps for an episode",
+        "--success_rew", type=float, default=1, help="rew for successful connect"
     )
     parser.add_argument(
-        "--task", type=str, default="insert", choices=["insert", "remove"]
+        "--ctrl_penalty_coeff", type=float, default=0.001, help="penalty for moving"
     )
-    parser.add_argument("--sparse_rew", type=str2bool, default=False)
     parser.add_argument(
-        "--robot_ob",
+        "--obj_to_point_coeff", type=float, default=1, help="rew for pushing block"
+    )
+    parser.add_argument(
+        "--discretize_grip",
         type=str2bool,
-        default=True,
-        help="includes agent state in observation",
+        default=False,
+        help="make grip dimension discrete action",
     )
     parser.add_argument(
-        "--lfd", type=str2bool, default=False, help="use demonstrations to learn task",
+        "--rand_start_range",
+        type=float,
+        default=0.0,
+        help="add U(-r,r) to each dim of starting state",
     )
 
     parser.add_argument(
-        "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
-    )
-    parser.add_argument(
-        "--wrist_noise", type=float, default=0.4, help="Adds U(-r,r) to the wrist starting qpos"
-    )
-    parser.add_argument(
-        "--body_noise", type=float, default=0.03, help="Adds U(-r,r) to the body starting qpos"
+        "--rand_block_range",
+        type=float,
+        default=0.02,
+        help="add U(-r,r) to x,y of block position",
     )
 
-    # reward config
-    parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
-    parser.add_argument("--success_rew", type=float, default=1)
-    parser.add_argument("--control_penalty_coeff", type=float, default=0.001)
-    parser.add_argument("--goal_pos_threshold", type=float, default=0.05)
-    parser.add_argument("--start_pos_threshold", type=float, default=0.1)
-    parser.add_argument("--goal_quat_threshold", type=float, default=0.1)
-    parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
-
-    # demo loading
     parser.add_argument(
-        "--demo_dir", type=str, default="demos", help="path to demo folder"
-    )
-    parser.add_argument(
-        "--record_demo", type=str2bool, default=False, help="enable demo recording"
+        "--rand_block_rotation_range",
+        type=float,
+        default=20,
+        help="add degrees to block rotation",
     )
 
-    # SILO argparse
+    parser.add_argument(
+        "--goal_pos_threshold",
+        type=float,
+        default=0.03,
+        help="goal threshold for the object",
+    )
+
+    parser.add_argument(
+        "--goal_quat_threshold",
+        type=float,
+        default=0.01,
+        help="goal threshold for the robot eef (end effector)",
+    )
+
+    # SILO arguments
     train_arg = parser.add_argument_group("Train")
     env_arg = parser.add_argument_group("Environment")
     push_arg = parser.add_argument_group("RobotPush")
@@ -67,7 +71,7 @@ def add_argument(parser):
     train_arg.add_argument("--lr_decay_step", type=int, default=1000000)
     train_arg.add_argument("--lr_decay_rate", type=float, default=1.00)
     train_arg.add_argument("--max_grad_norm", type=float, default=100)
-    train_arg.add_argument("--max_global_step", type=int, default=1e7)
+    train_arg.add_argument("--max_global_step", type=int, default=1000000)
     train_arg.add_argument("--is_train", type=str2bool, default=True)
     train_arg.add_argument("--activation", type=str, default="relu")
     train_arg.add_argument("--mini_batch_size", type=int, default=64)
@@ -197,11 +201,11 @@ def add_argument(parser):
         "--wandb_api_key", type=str, default="612ffd4fad3a25888b3995b752de10aca45efe4e"
     )
     train_arg.add_argument("--log_interval", type=int, default=1)
-    train_arg.add_argument("--evaluate_interval", type=int, default=100)
-    train_arg.add_argument("--ckpt_interval", type=int, default=100)
+    train_arg.add_argument("--evaluate_interval", type=int, default=20)
+    train_arg.add_argument("--ckpt_interval", type=int, default=60)
     train_arg.add_argument("--prefix", type=str, default="test")
     train_arg.add_argument("--log_dir", type=str, default="logs")
-    train_arg.add_argument("--data_dir", type=str, default="remove_demos")
+    train_arg.add_argument("--data_dir", type=str, default="data")
     train_arg.add_argument("--load_path", type=str, default="")
     train_arg.add_argument("--ckpt_num", type=int, default=None)
     train_arg.add_argument("--num_eval", type=int, default=10)
@@ -212,7 +216,10 @@ def add_argument(parser):
 
     # additional inputs
     env_arg.add_argument(
-        "--env", type=str, default="PegInsertionEnv", choices=["PegInsertionEnv"],
+        "--env",
+        type=str,
+        default="FurnitureSawyerPickEnv",
+        choices=["FurnitureSawyerPickEnv"],
     )
     env_arg.add_argument(
         "--train_mode",

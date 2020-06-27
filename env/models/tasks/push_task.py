@@ -2,7 +2,7 @@ from env.mjcf_utils import new_joint
 from env.models.tasks import Task, UniformRandomSampler
 
 
-class FloorTask(Task):
+class PushTask(Task):
     """
     Creates MJCF model of a floor task.
 
@@ -53,7 +53,8 @@ class FloorTask(Task):
         for obj_name, obj_mjcf in mujoco_objects.items():
             self.merge_asset(obj_mjcf)
             # Load object
-            obj = obj_mjcf.get_collision(name=obj_name, site=True)
+            friction = (1, 0.005, 0.0001)
+            obj = obj_mjcf.get_collision(name=obj_name, site=True, friction=friction)
             obj.append(new_joint(name=obj_name, type="free", damping="0.0001"))
             self.objects.append(obj)
             self.worldbody.append(obj)

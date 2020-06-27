@@ -1,9 +1,8 @@
 import copy
 import xml.etree.ElementTree as ET
-import numpy as np
 
+from env.mjcf_utils import array_to_string, string_to_array
 from env.models.base import MujocoXML
-from env.mjcf_utils import string_to_array, array_to_string
 
 
 class MujocoObject:
@@ -158,7 +157,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         return float(horizontal_radius_site.get("size"))
 
     def get_collision(self, name=None, site=False, friction=(1, 10, .5)):
-        #collision = copy.deepcopy(self.worldbody.find("./body/body[@name='collision']"))
+        # collision = copy.deepcopy(self.worldbody.find("./body/body[@name='collision']"))
         self.name = name
         collision = copy.deepcopy(self.worldbody.find("./body[@name='%s']" % name))
         collision.attrib.pop("name")
@@ -169,7 +168,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
                 gname = geoms[i].get("name")
                 if not (gname.startswith('noviz') or gname.startswith('collision')):
                     geoms[i].set("name", "{}-{}".format(name, i))
-                geoms[i].set("friction",array_to_string(friction))
+                geoms[i].set("friction", array_to_string(friction))
         if site:
             # add a site as well
             template = self.get_site_attrib_template()

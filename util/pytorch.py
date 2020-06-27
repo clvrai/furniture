@@ -1,6 +1,7 @@
+import collections
 import io
 import os
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from glob import glob
 
 import numpy as np
@@ -186,7 +187,7 @@ def _get_flat_grads(network):
     for key_name, value in network.named_parameters():
         try:
             grads_shape[key_name] = value.grad.data.cpu().numpy().shape
-        except:
+        except Exception:
             print("Cannot get grad of tensor {}".format(key_name))
             import pdb
 
