@@ -50,7 +50,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         a = a.copy()
         if self._control_type == "ik":
             a = np.concatenate([a, np.zeros(3)])  # add empty rotation
-        a = np.concatenate([a, [-1, 0]])
+        a = np.concatenate([a, [1, 0]])
         ob, _, _, _ = super(FurnitureSawyerEnv, self)._step(a)
         rew_fn = self._push_reward if self._task == "forward" else self._reset_reward
         reward, info = rew_fn(ob, a)
