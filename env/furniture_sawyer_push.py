@@ -49,7 +49,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         # always close gripper and don't connect
         a = a.copy()
         if self._control_type == "ik":
-            a = np.concatenate([a, np.zeros(3)])  # add empty rotation
+            a = np.concatenate([a, np.zeros(4)])  # add empty dz, rotation
         a = np.concatenate([a, [1, 0]])
         ob, _, _, _ = super(FurnitureSawyerEnv, self)._step(a)
         rew_fn = self._push_reward if self._task == "forward" else self._reset_reward
@@ -162,9 +162,9 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
 
         # add random noise to block position and rotation
         self._start_pose = np.array([0.01044, -0.028, 0.025, 0.5, 0.5, 0.5, 0.5])
-        # set goal position to 10 cm away from block
+        # set goal position to 12 cm away from block
         self._goal_pose = self._start_pose.copy()
-        self._goal_pose[:3] += [0, -0.15, 0]
+        self._goal_pose[:3] += [0, -0.12, 0]
 
         block_pose = self._start_pose.copy()
         r = self._rand_block_range
@@ -494,7 +494,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         if self._control_type == "impedance":
             dof = 7  # 7 joints
         elif self._control_type == "ik":
-            dof = 3  # move
+            dof = 2  # move <x,y>
         return dof
 
     def _load_model(self):
