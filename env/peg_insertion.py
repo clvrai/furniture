@@ -293,7 +293,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                 rob = demo["obs"][0]["robot_ob"]
                 qpos = rob[:7]
                 qvel = np.zeros(7)
-
+                self.set_state(qpos, qvel)
             else:
                 raise NotImplementedError
         else:

@@ -6,6 +6,8 @@ def add_argument(parser):
     parser.add_argument(
         "--success_rew", type=float, default=1, help="rew for successful connect"
     )
+    parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
+    parser.add_argument("--sparse_forward_rew", type=str2bool, default=False)
     parser.add_argument(
         "--ctrl_penalty_coeff", type=float, default=0.001, help="penalty for moving"
     )
@@ -35,7 +37,7 @@ def add_argument(parser):
     parser.add_argument(
         "--rand_block_rotation_range",
         type=float,
-        default=20,
+        default=360,
         help="add degrees to block rotation",
     )
 
@@ -218,8 +220,8 @@ def add_argument(parser):
     env_arg.add_argument(
         "--env",
         type=str,
-        default="FurnitureSawyerPickEnv",
-        choices=["FurnitureSawyerPickEnv"],
+        default="FurnitureSawyerPushEnv",
+        choices=["FurnitureSawyerPushEnv"],
     )
     env_arg.add_argument(
         "--train_mode",

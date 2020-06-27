@@ -33,6 +33,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._rand_block_rotation_range = config.rand_block_rotation_range
         self._goal_pos_threshold = config.goal_pos_threshold
         self._goal_quat_threshold = config.goal_quat_threshold
+        self._sparse_forward_rew = config.sparse_forward_rew
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
 
         self._gravity_compensation = 1
@@ -60,13 +61,21 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
     def reset(
         self, is_train=True, record=False, furniture_id=None, background=None,
     ):
-        self._success = False
         # clear previous demos
         if self._record_demo:
             self._demo.reset()
 
         # reset robot and objects
         self._reset(furniture_id, background)
+
+        self._task = "forward"
+        self._success = False
+        obj_pos = self._get_pos("1_block_l")[:2]
+        dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
+        self._prev_reset_dist = dist_to_start
+        dist_to_goal = np.linalg.norm(self._goal_pose[:2] - obj_pos)
+        self._prev_push_dist = dist_to_goal
+
         # reset mujoco viewer
         if self._render_mode == "human" and not self._unity:
             self._viewer = self._get_viewer()
@@ -254,9 +263,9 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._success = False
         obj_pos = self._get_pos("1_block_l")[:2]
         dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
-        self._prev_remove_dist = dist_to_start
+        self._prev_reset_dist = dist_to_start
         dist_to_goal = np.linalg.norm(self._goal_pose[:2] - obj_pos)
-        self._prev_insert_dist = dist_to_goal
+        self._prev_push_dist = dist_to_goal
 
     def begin_reset(self):
         """
@@ -266,15 +275,13 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._success = False
         obj_pos = self._get_pos("1_block_l")[:2]
         dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
-        self._prev_remove_dist = dist_to_start
+        self._prev_reset_dist = dist_to_start
         dist_to_goal = np.linalg.norm(self._goal_pose[:2] - obj_pos)
-        self._prev_insert_dist = dist_to_goal
+        self._prev_push_dist = dist_to_goal
 
-    def forward_success(self, ob, goal):
-        return self._is_inside(ob, goal)
-
-    def reset_success(self, ob, goal):
-        return self._is_inside(ob, goal)
+    def reset_success(self):
+        ob = self._get_obs()
+        return self._is_inside(ob, self._start_pose)
 
     def _is_inside(self, ob, goal) -> bool:
         """
@@ -287,8 +294,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
             ob = self.get_goal(ob)
 
         if self._goal_type == "state_obj":
-            object_pos = ob[:3]
-            goal_object_pos = goal[:3]
+            object_pos = ob[:2]
+            goal_object_pos = goal[:2]
             assert len(object_pos.shape) == 1
 
             pos_success = (
@@ -309,19 +316,19 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         Ob is observation dictionary
         """
         info = {}
-        obj_pos = ob["1_block_l"][:2]  # xy pos
+        obj_pos = ob["object_ob"][:2]  # xy pos
         # obj_quat = ob["1_block_l"][2:]
         dist_to_goal = np.linalg.norm(self._goal_pose[:2] - obj_pos)
         dist_diff = self._prev_push_dist - dist_to_goal
         obj_to_goal_reward = dist_diff * self._obj_to_point_coeff
 
-        self._success = self.forward_success(ob, self._goal_pose)
-        control_reward = self._ctrl_rew(action)
+        self._success = self._is_inside(ob, self._goal_pose)
+        control_reward = self._ctrl_reward(action)
         success_reward = 0
         if self._success:
             success_reward = self._success_rew
 
-        if self._sparse:
+        if self._sparse_forward_rew:
             push_reward = control_reward + success_reward
         else:
             push_reward = obj_to_goal_reward + control_reward + success_reward
@@ -338,20 +345,22 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         Ob is observation dictionary
         """
         info = {}
-        obj_pos = ob["1_block_l"][:2]  # xy pos
+        obj_pos = ob["object_ob"][:2]  # xy pos
         # obj_quat = ob["1_block_l"][2:]
         dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
         dist_diff = self._prev_reset_dist - dist_to_start
         self._prev_reset_dist = dist_to_start
         obj_to_start_reward = dist_diff * self._obj_to_point_coeff
 
-        self._success = self.reset_success(ob, self._start_pose)
-        control_reward = self._ctrl_rew(action)
+        self._success = self._is_inside(ob, self._start_pose)
+        control_reward = self._ctrl_reward(action)
         success_reward = 0
         if self._success:
-            success_reward = self._success_rew
+            success_reward = self._config.success_rew
+            if self._config.use_aot:
+                success_reward = self._config.aot_succ_rew
 
-        if self._sparse:
+        if self._sparse_remove_rew:
             reset_reward = control_reward + success_reward
         else:
             reset_reward = obj_to_start_reward + control_reward + success_reward
