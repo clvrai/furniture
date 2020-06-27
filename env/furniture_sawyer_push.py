@@ -28,6 +28,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._success_rew = config.success_rew
         self._ctrl_penalty_coeff = config.ctrl_penalty_coeff
         self._obj_to_point_coeff = config.obj_to_point_coeff
+        self._reset_obj_to_point_coeff = config.reset_obj_to_point_coeff
         self._rand_robot_start_range = config.rand_robot_start_range
         self._rand_block_range = config.rand_block_range
         self._rand_block_rotation_range = config.rand_block_rotation_range
@@ -361,7 +362,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
         dist_diff = self._prev_reset_dist - dist_to_start
         self._prev_reset_dist = dist_to_start
-        obj_to_start_reward = dist_diff * self._obj_to_point_coeff
+        obj_to_start_reward = dist_diff * self._reset_obj_to_point_coeff
 
         obj_succ = self._object_success(ob, self._start_pose, self._start_pos_threshold)
         robot_succ = self._robot_success(
@@ -371,7 +372,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         control_reward = self._ctrl_reward(action)
         success_reward = 0
         if self._success:
-            success_reward = self._config.success_rew
+            success_reward = self._success_rew
             if self._config.use_aot:
                 success_reward = self._config.aot_succ_rew
 

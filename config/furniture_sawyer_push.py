@@ -3,66 +3,19 @@ from util import str2bool, str2list
 
 def add_argument(parser):
     # rewards
-    parser.add_argument(
-        "--success_rew", type=float, default=1, help="rew for successful connect"
-    )
+    parser.add_argument("--success_rew", type=float, default=10)
     parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
     parser.add_argument("--sparse_forward_rew", type=str2bool, default=False)
-    parser.add_argument(
-        "--ctrl_penalty_coeff", type=float, default=0.001, help="penalty for moving"
-    )
-    parser.add_argument(
-        "--obj_to_point_coeff", type=float, default=1, help="rew for pushing block"
-    )
-    parser.add_argument(
-        "--discretize_grip",
-        type=str2bool,
-        default=False,
-        help="make grip dimension discrete action",
-    )
-    parser.add_argument(
-        "--rand_robot_start_range",
-        type=float,
-        default=3,
-        help="add U(-r,r) to each dim of starting state",
-    )
-
-    parser.add_argument(
-        "--rand_block_range",
-        type=float,
-        default=0.02,
-        help="add U(-r,r) to x,y of block position",
-    )
-
-    parser.add_argument(
-        "--rand_block_rotation_range",
-        type=float,
-        default=360,
-        help="add degrees to block rotation",
-    )
-
-    parser.add_argument(
-        "--robot_start_pos_threshold",
-        type=float,
-        default=0.02,
-        help="start threshold for robot",
-    )
-
-    parser.add_argument(
-        "--goal_pos_threshold",
-        type=float,
-        default=0.02,
-        help="goal threshold for the object",
-    )
-
+    parser.add_argument("--ctrl_penalty_coeff", type=float, default=0.001)
+    parser.add_argument("--obj_to_point_coeff", type=float, default=10)
+    parser.add_argument("--reset_obj_to_point_coeff", type=float, default=100)
+    parser.add_argument("--rand_robot_start_range", type=float, default=3)
+    parser.add_argument("--rand_block_range", type=float, default=0.02)
+    parser.add_argument("--rand_block_rotation_range", type=float, default=360)
+    parser.add_argument("--robot_start_pos_threshold", type=float, default=0.02)
+    parser.add_argument("--goal_pos_threshold", type=float, default=0.02)
     parser.add_argument("--start_pos_threshold", type=float, default=0.02)
-
-    parser.add_argument(
-        "--goal_quat_threshold",
-        type=float,
-        default=0.01,
-        help="goal threshold for the robot eef (end effector)",
-    )
+    parser.add_argument("--goal_quat_threshold", type=float, default=0.01)
 
     # SILO arguments
     train_arg = parser.add_argument_group("Train")
