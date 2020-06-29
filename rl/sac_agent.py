@@ -28,6 +28,9 @@ class SACAgent(BaseAgent):
         self._ob_space = ob_space
         self._ac_space = ac_space
 
+        self._reward_scale = self._config.reward_scale
+        if reset and self._config.reset_reward_scale:
+            self._reward_scale = self._config.reset_reward_scale
         self._target_entropy = -ac_space.size
         self._log_alpha = torch.zeros(1, requires_grad=True, device=config.device)
         self._alpha_optim = optim.Adam([self._log_alpha], lr=config.lr_actor)
