@@ -163,9 +163,9 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
 
         # add random noise to block position and rotation
         self._start_pose = np.array([0.01044, -0.028, 0.025, 0.5, 0.5, 0.5, 0.5])
-        # set goal position to 12 cm away from block
+        # set goal position to 1 cm away from block
         self._goal_pose = self._start_pose.copy()
-        self._goal_pose[:3] += [0, -0.12, 0]
+        self._goal_pose[:3] += [0, -0.1, 0]
 
         block_pose = self._start_pose.copy()
         r = self._rand_block_range
