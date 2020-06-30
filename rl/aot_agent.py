@@ -18,20 +18,25 @@ from util.pytorch import (compute_gradient_norm, compute_weight_norm,
 class AoTAgent(BaseAgent):
     """
     creates an AoT classifier.
-    preprocess_ob_func: gets the reversible portion of the observation. For example, we may want to ignore the agent dimensions if we are focused on the object.
+    get_reverse: gets the reversible portion of the observation. For example, we may want to ignore the agent dimensions if we are focused on the object.
     """
 
     def __init__(
-        self, config, goal_space, dataset: ReplayBuffer, preprocess_ob_func=lambda x: x
+        self,
+        config,
+        reversible_space,
+        dataset: ReplayBuffer,
+        get_reverse=lambda x: x,
     ):
         self._config = deepcopy(config)
         self._config.ob_norm = False
         self._dataset = dataset
         self._device = config.device
-        input_dim = goal_space[0]
+        input_dim = reversible_space[0]
 
         def create_mlp():
             return MLP(config, input_dim, 1, [config.aot_hid_size] * 2)
+
         if config.aot_ensemble is not None:
             self._aot = Ensemble(create_mlp, config.aot_ensemble)
         else:
@@ -43,7 +48,7 @@ class AoTAgent(BaseAgent):
             weight_decay=config.aot_weight_decay,
         )
         self._reg_coeff = config.aot_reg_coeff
-        self._preprocess_ob_func = preprocess_ob_func
+        self._get_reverse = get_reverse
         self._aot_rew_coeff = config.aot_rew_coeff
         self._ensemble = config.aot_ensemble is not None
         self._ensemble_sampler = config.ensemble_sampler
@@ -214,9 +219,9 @@ class AoTAgent(BaseAgent):
 
     def _preprocess(self, ob):
         if isinstance(ob, dict):
-            return self._preprocess_ob_func(ob)
+            return self._get_reverse(ob)
         elif isinstance(ob, list):
-            return np.stack([self._preprocess_ob_func(o) for o in ob])
+            return np.stack([self._get_reverse(o) for o in ob])
         else:
             raise NotImplementedError(type(ob))
 

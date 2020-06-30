@@ -29,6 +29,7 @@ def add_argument(parser):
     parser.add_argument("--aot_ensemble", type=int, default=None)
     parser.add_argument("--ensemble_sampler", type=str, default="min", choices=["min", "mean", "max", "median", "meanvar", "softmin", "softmax"])
     parser.add_argument("--var_coeff", type=float, default=1)
+    parser.add_argument("--reversible_state_type", type=str, default="obj_pose", choices=["obj_pose", "obj_position"])
 
     # safety config
     parser.add_argument("--safe_forward", type=str2bool, default=False)

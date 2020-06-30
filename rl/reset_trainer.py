@@ -57,8 +57,8 @@ class ResetTrainer(Trainer):
     def _build_agents(self):
         config = self._config
         ob_space = self._env.observation_space
-        goal_space = self._env.goal_space
         ac_space = self._env.action_space
+        rev_space = self._env.reversible_space
 
         f_actor, f_critic = get_actor_critic_by_name(config.policy, config.algo)
         self._agent: SACAgent = get_agent_by_name(config.algo)(
@@ -70,7 +70,7 @@ class ResetTrainer(Trainer):
         if config.use_aot:
 
             self._aot_agent = AoTAgent(
-                config, goal_space, self._agent._buffer, self._env.get_goal
+                config, rev_space, self._agent._buffer, self._env.get_reverse
             )
             rew = self._aot_agent.rew
 

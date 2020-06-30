@@ -37,6 +37,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._goal_pos_threshold = config.goal_pos_threshold
         self._sparse_forward_rew = config.sparse_forward_rew
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
+        self._reversible_state_type = config.reversible_state_type
 
         self._gravity_compensation = 1
         self._goal_type = config.goal_type
@@ -485,6 +486,23 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
             return [6]  # block pose
         elif self._goal_type == "state_obj_robot":
             return [13]  # block pose, eef pose
+
+    @property
+    def reversible_space(self):
+        if self._reversible_state_type == "obj_position":
+            return [2]  # block pose
+        elif self._reversible_state_type == "obj_pose":
+            return [6]  # block pose, eef pose
+
+    def get_reverse(self, ob):
+        """
+        Gets reversible portion of observation
+        """
+        if self._reversible_state_type == "obj_position":
+            # get block qpose
+            return ob["object_ob"][:2]
+        elif self._reversible_state_type == "obj_pose":
+            return ob["object_ob"]
 
     @property
     def dof(self):
