@@ -54,7 +54,6 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
         # info["ac"] = a
-
         return ob, reward, done, info
 
     def _reset(self, furniture_id=None, background=None):
@@ -260,43 +259,45 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
         """
         1. Move to xy location and release block
         2. Move gripper in z direction above block to avoid collision
-        2. Move to original starting point
+        3. Move to original starting point
         """
         for i in tqdm(range(num_demos)):
             ob = self.reset(self._config.furniture_id, self._config.background)
             if self._config.render:
                 self.render()
             if self._config.record_vid:
-                self._config.vid_rec.capture_frame(self.render("rgb_array")[0])
+                self.vid_rec.capture_frame(self.render("rgb_array")[0])
             done = False
-            original_hand_pos = self._get_pos("grip_site")
+            original_griptip_pos = self._get_pos("griptip_site")
             # set the ground target to a zone under the hand position
             r = self._env_config["rand_block_range"]
-            ground_pos = original_hand_pos.copy()
+            ground_pos = original_griptip_pos.copy()
             ground_pos[:2] += self._rng.uniform(-r, r, size=2)
             ground_pos[2] = 0.005
-            above_block_pos = None
+            block_pos = None
             while not done:
+                #print('phase', self._phase)
+                griptip_pos = self._get_pos("griptip_site")
                 action = np.zeros((8,))
-                hand_pos = self._get_pos("grip_site")
                 if self._phase == 1:
                     action[6] = 1  # always grip
-                    d = ground_pos - hand_pos
+                    d = ground_pos - griptip_pos
+                    print(np.linalg.norm(d))
                     if np.linalg.norm(d) > 0.005:
                         action[:3] = d
                     else:
                         self._phase = 2
-                        above_block_pos = self._get_pos("1_block_l") + [0, 0, 0.03]
+                        gripbase_pos = self._get_pos("gripbase_site")
+
                 elif self._phase == 2:
                     action[6] = -1  # release block
-                    d = above_block_pos - hand_pos
+                    d = gripbase_pos - griptip_pos
                     if np.linalg.norm(d) > 0.005:
                         action[:3] = d
                     else:
                         self._phase = 3
                 elif self._phase == 3:
-                    action[6] = -1  # release block
-                    d = original_hand_pos - hand_pos
+                    d = original_griptip_pos - griptip_pos
                     if np.linalg.norm(d) > 0.005:
                         action[:3] = d
                     else:
@@ -307,13 +308,15 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
                     #     }
                         self._phase = 4
                 ob, reward, done, info = self.step(action)
+                if done:
+                    print('done', done, self._phase)
                 self.render()
                 if self._config.record_vid:
-                    self._config.vid_rec.capture_frame(self.render("rgb_array")[0])
+                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
 
-            self._demo.save(self.file_prefix)
+            #self._demo.save(self.file_prefix)
             if self._config.record_vid:
-                self._config.vid_rec.close(f"place_{i}.mp4")
+                self.vid_rec.close(f"place_{i}.mp4")
 
 
 def main():
@@ -324,8 +327,8 @@ def main():
     config.record_demo = True
     # generate placing demonstrations
     env = FurnitureSawyerPlaceEnv(config)
-    #env.generate_demos(10)
-    env.run_demo(config)
+    env.generate_demos(10)
+    #env.run_demo(config)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,12 @@
 <mujoco model="toy_table">
+  <custom>
+    
+    <numeric name="4_part4_initpos" data="-0.2968 -0.1288 0.03878 -0.00000011 -0.99874362 -0.05011164 0.00000002"/> 
+    <numeric name="2_part2_initpos" data="0.2 0.16578 0.02379 -0.6725 0.6417 -0.2970 -0.2186" />
+    <!--upright peg -->
+<!--<numeric data="-0.2968 -0.1288 0.03878 -0.00000011 -0.99874362 -0.05011164 0.00000002" name="4_part4_initpos"/> 
+    <numeric data="0.2 0.16578 0.02379 -0.6725 0.6417 -0.2970 -0.2186" name="2_part2_initpos"/>  -->
+  </custom>
   <asset>
     <!-- <mesh file="toy_table/0.stl" name="part0" scale="0.042 0.042 0.042" /> -->
     <mesh file="toy_table/4.stl" name="part4" scale="0.042 0.042 0.042" />

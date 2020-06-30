@@ -1,4 +1,14 @@
 <mujoco model="table_bjorkudden_0206">
+  <custom>
+    <numeric name="0_part0_initpos" data="-0.01569377 0.09722992 0.00891954 0.70710654 0.00058712 -0.70710654 0.00058701"/>
+    <numeric name="7_part7_initpos" data="0.1460044 -0.1544473 0.02191547 0.00000007 0.01513185 0.99988551 -0.00000006"/>
+    <numeric name="6_part6_initpos" data="-0.002853 0.19231603 0.01252425 0.70710509 -0.00157685 0.70710496 -0.00157685"/>
+    <numeric name="5_part5_initpos" data="0.01843836 0.28101699 0.00894539 0.51063406 -0.51063415 -0.48913472 0.48913479"/>
+    <numeric name="4_part4_initpos" data="-0.20262203 -0.10038188 0.01703871 0.99999738 0.00000001 0.00000005 -0.00228994"/>
+    <numeric name="3_part3_initpos" data="-0.10844066 -0.10941653 0.00679743 0.50940771 0.5094078 -0.49041176 -0.49041185"/>
+    <numeric name="2_part2_initpos" data="-0.00343732 0.37075684 0.01252427 -0.00169184 -0.70710476 -0.00169195 0.70710476"/>
+    <numeric name="1_part1_initpos" data="-0.28059066 -0.12035503 0.01703871 0.99829131 0.00000001 0.00000006 -0.05843336"/>
+  </custom>
   <asset>
     <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/0.stl" name="part0" scale="0.000768 0.000768 0.000768" />
     <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/7.stl" name="part7" scale="0.000768 0.000768 0.000768" />
@@ -171,4 +181,4 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="-2.31168e-06 0.0 -0.00035077632" quat="1 0 0 0" rgba="0 0 0 0" size="0.006825223680000001 0.11988057600000003 0.01671802368" solref="0.001 1" type="box" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+</mujoco>

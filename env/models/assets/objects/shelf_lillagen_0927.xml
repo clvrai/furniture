@@ -1,4 +1,12 @@
 <mujoco model="shelf_lillagen_0927">
+  <custom>
+    <numeric name="0_part0_initpos" data="0.1403208 0.26543034 0.00758991 0.9999372 -0. 0.00000009 0.0112074"/>
+    <numeric name="5_part5_initpos" data="0.06442431 0.04594525 0.00746535 0.50260148 -0.50260158 0.49738481 -0.49738492"/>
+    <numeric name="4_part4_initpos" data="0.03838193 -0.21002025 0.00758909 0.70667515 -0.02470288 -0.70667515 -0.02470276"/>
+    <numeric name="3_part3_initpos" data="-0.36877979 0.23599788 0.00758991 -0.9959942 -0.00000008 -0. -0.08941784"/>
+    <numeric name="2_part2_initpos" data="-0.12363635 0.26795161 0.00758991 -0.99850249 0.00000006 0.00000006 -0.05470624"/>
+    <numeric name="1_part1_initpos" data="0.40177694 0.26527586 0.00769337 1. 0.00000009 0.00000001 0.0000257"/>
+  </custom>
   <asset>
     <mesh file="shelf_lillagen_0927/0.stl" name="part0" scale="0.0006 0.0006 0.0006" />
     <mesh file="shelf_lillagen_0927/5.stl" name="part5" scale="0.0006 0.0006 0.0006" />

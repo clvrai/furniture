@@ -8,14 +8,14 @@
   </equality>
   <worldbody>
     <body name="1_block_l" pos="-0.101 0.0 0.05" quat="1 0 0 0">
-      <geom density="100" material="light-wood" name="box_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.1 0.02 0.05" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="block_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.1 0.02 0.05" solref="0.001 1" type="box" />
       <site name="left-right,0,180,conn_site1" pos="0.101 0. 0." quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="1_block_l_bottom_site" pos="0.0 0.0 -0.05" rgba="0 0 1 0.3" size="0.0015" />
       <site name="1_block_l_top_site" pos="0.0 0.0 0.05" rgba="0 0 1 0.3" size="0.0015" />
       <site name="1_block_l_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.1" />
     </body>
     <body name="2_block_r" pos="0.101 0.0 0.05" quat="1 0 0 0">
-      <geom density="100" material="light-wood" name="box_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.1 0.02 0.05" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="block_r_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.1 0.02 0.05" solref="0.001 1" type="box" />
       <site name="right-left,0,180,conn_site1" pos="-0.101 0. 0." quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="2_block_r_bottom_site" pos="0.0 0.0 -0.05" rgba="0 0 1 0.3" size="0.0015" />
       <site name="2_block_r_top_site" pos="0.0 0.0 0.05" rgba="0 0 1 0.3" size="0.0015" />

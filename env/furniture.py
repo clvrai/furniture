@@ -54,9 +54,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
             "ctrl_reward": 1e-3,
-            "furn_placement_randomness": config.furn_placement_randomness,
-            "agent_placement_randomness": config.agent_placement_randomness,
-            "furn_size_randomness": config.furn_size_randomness,
+            "furn_xyz_rand": config.furn_xyz_rand,
+            "agent_xyz_rand": config.agent_xyz_rand,
+            "furn_size_rand": config.furn_size_rand,
             "unstable_penalty": 100,
             "boundary": 1.5,  # XYZ cube boundary
             "pos_dist": 0.1,
@@ -242,11 +242,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         Returns initial random distribution.
         """
         if name == "furniture":
-            r = self._env_config["furn_placement_randomness"]
+            r = self._env_config["furn_xyz_rand"]
         elif name == "agent":
-            r = self._env_config["agent_placement_randomness"]
+            r = self._env_config["agent_xyz_rand"]
         elif name == "resize":
-            r = self._env_config["furn_size_randomness"]
+            r = self._env_config["furn_size_rand"]
         else:
             r = 0
 
@@ -1246,11 +1246,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
             xquat((float * 4) * n_obj): quaternion of the objects
         """
-        pos_init, _ = self.mujoco_model.place_objects()
-        quat_init = {}
-        for i, body in enumerate(self._object_names):
-            rotate = self._rng.randint(0, 10, size=3)
-            quat_init[body] = list(T.euler_to_quat(rotate))
+        pos_init, quat_init = self.mujoco_model.place_objects()
         return pos_init, quat_init
 
     def set_env_qpos(self, given_qpos, set_furn=True):
@@ -1307,11 +1303,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             else:
                 self._furniture_id = furniture_id
             self._reset_internal()
-        if self._config.furn_size_randomness != 0:
+        if self._config.furn_size_rand != 0:
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
             self.mujoco_model.resize_objects(resize_factor)
-
         # reset simulation data and clear buffers
         self.sim.reset()
 
@@ -1701,7 +1696,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         resize_factor = None
         if self._manual_resize is not None:
             resize_factor = 1 + self._manual_resize
-        elif self._config.furn_size_randomness != 0:
+        elif self._config.furn_size_rand != 0:
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
         objects = MujocoXMLObject(path, debug=self._debug, resize=resize_factor)
@@ -1719,18 +1714,22 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _load_model(self):
         """
+        loads initial furniture qpos from xml, if any then
         Loads the Task, which is composed of arena, robot, objects, equality
         """
         # task includes arena, robot, and objects of interest
         from env.models.tasks import FloorTask
 
+        init_qpos = next(iter(self.mujoco_objects.values())).get_init_pos(list(self.mujoco_objects.keys()))
         self.mujoco_model = FloorTask(
             self.mujoco_arena,
             self.mujoco_robot,
             self.mujoco_objects,
             self.mujoco_equality,
-            self._config,
-            rng=self._rng,
+            self._config.furn_xyz_rand,
+            self._config.furn_rot_rand,
+            self._rng,
+            init_qpos
         )
 
     def key_callback(self, window, key, scancode, action, mods):
@@ -1775,8 +1774,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = "switch1"
         elif key == glfw.KEY_2:
             action = "switch2"
-        elif key == glfw.KEY_R:
-            action = "record"
         elif key == glfw.KEY_T:
             action = "screenshot"
         elif key == glfw.KEY_Y:
@@ -1832,8 +1829,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = "switch1"
         elif key == "Alpha2":
             action = "switch2"
-        elif key == "R":
-            action = "record"
         elif key == "T":
             action = "screenshot"
         elif key == "Y":
@@ -1890,7 +1885,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             all_qpos = demo["qpos"]
             if config.debug:
                 for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
-                    # print('obs', i, obs)
                     print("action", i, action)
         try:
             for qpos in all_qpos:
@@ -2092,7 +2086,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                     continue
 
                 action = np.zeros((8,))
-
                 if self.action == "reset":
                     self.reset()
                     if self._config.record_vid:
@@ -2148,12 +2141,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self.action == "r_r":
                     action[3] = 1
 
-                if self.action == "record":
-                    pass
-                    # no longer needed to save, each frame is appeneded by default if self._record_vid==True
-                    #     if self._record_vid:
-                    #     self.vid_rec.save_video('video.mp4')
-
                 if self._agent_type == "Cursor":
                     if cursor_idx:
                         action = np.hstack(
@@ -2189,6 +2176,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 ob, reward, done, info = self.step(action)
                 logger.info(f"Action: {action}")
+
 
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])

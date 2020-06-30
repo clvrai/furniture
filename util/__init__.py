@@ -1,3 +1,17 @@
+from pyquaternion import Quaternion
+
+class Qpos:
+    def __init__(self, x: float, y: float, z: float, quat: Quaternion):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.quat = quat
+
+    def __str__(self):
+        return '(' + str(self.x) + ' ' + str(self.y) + ' ' + str(self.z) + \
+                '), (' + str(self.quat) + ')'
+
+
 def str2bool(v):
     return v.lower() == "true"
 
