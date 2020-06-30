@@ -38,6 +38,7 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._wrist_noise = config.wrist_noise
         self._body_noise = config.body_noise
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
+        self._reversible_state_type = config.reversible_state_type
 
         # load demonstrations if learning from demonstrations
         if self._lfd:
@@ -502,6 +503,19 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             return [6]  # peg pos
         elif self._goal_type == "state_obj_robot":
             return [20]  # peg pose and robot qpos and robot qvel
+
+    @property
+    def reversible_space(self):
+        if self._reversible_state_type == "obj_position":
+            return [6]  # peg positions
+
+    def get_reverse(self, ob):
+        """
+        Gets reversible portion of observation
+        """
+        if self._reversible_state_type == "obj_position":
+            # get block qpose
+            return ob["object_ob"]
 
 
 if __name__ == "__main__":

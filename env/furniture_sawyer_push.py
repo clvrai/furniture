@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 import numpy as np
 
-import env.transform_utils as T
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from env.transform_utils import euler_to_quat
