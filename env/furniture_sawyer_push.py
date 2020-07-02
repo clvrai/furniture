@@ -773,6 +773,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         pbar = tqdm(initial=0, total=num_demos, desc="generating resets")
         while success < num_demos:
             s = int(self._generate_reset_demo())
+            success += s
             pbar.update(s)
 
     def _generate_reset_demo(self) -> bool:
