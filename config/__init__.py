@@ -32,6 +32,7 @@ def create_parser(env="") -> argparse.ArgumentParser:
             "FurnitureSaywerPlaceEnv",
             "FurnitureSawyerPickEnv",
             "FurnitureSawyerPushEnv",
+            "FurnitureSawyerResetPushEnv",
             "PegInsertionEnv",
         ],
         help="Environment name",
