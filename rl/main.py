@@ -12,6 +12,7 @@ from six.moves import shlex_quote
 
 from config import argparser
 from rl.reset_trainer import ResetTrainer
+from rl.trainer import Trainer
 from util.logger import logger
 from util.mpi import mpi_sync
 
@@ -64,7 +65,10 @@ def run(config):
         config.device = torch.device("cpu")
 
     # build a trainer
-    trainer = ResetTrainer(config)
+    if config.algo == "bc":
+        trainer = Trainer(config)
+    else:
+        trainer = ResetTrainer(config)
     if config.is_train:
         trainer.train()
         logger.info("Finish training")
