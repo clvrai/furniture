@@ -1,24 +1,28 @@
 """ Define base environment class FurnitureEnv. """
 
+from collections import OrderedDict
 import logging
 import os
 import pickle
 import time
-from collections import OrderedDict
 
 import numpy as np
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
 
-import env.transform_utils as T
 from env.action_spec import ActionSpec
 from env.base import EnvMeta
 from env.image_utils import color_segmentation
 from env.mjcf_utils import xml_path_completion
-from env.models import (background_names, furniture_name2id, furniture_names,
-                        furniture_xmls)
+from env.models import (
+    background_names,
+    furniture_name2id,
+    furniture_names,
+    furniture_xmls,
+)
 from env.models.grippers import gripper_factory
 from env.models.objects import MujocoXMLObject
+import env.transform_utils as T
 from env.unity_interface import UnityInterface
 from util.demo_recorder import DemoRecorder
 from util.logger import logger
@@ -459,8 +463,6 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         elif mode == "human" and not self._unity:
             self._get_viewer().render()
-
-        return None
 
     def _destroy_viewer(self):
         """

@@ -1,3 +1,4 @@
+import time
 from collections import OrderedDict
 
 import numpy as np
@@ -37,6 +38,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._sparse_forward_rew = config.sparse_forward_rew
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
         self._reversible_state_type = config.reversible_state_type
+        self._push_distance = config.push_distance
 
         self._gravity_compensation = 1
         self._goal_type = config.goal_type
@@ -165,7 +167,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._start_pose = np.array([0.01044, -0.028, 0.025, 0.5, 0.5, 0.5, 0.5])
         # set goal position to 1 cm away from block
         self._goal_pose = self._start_pose.copy()
-        self._goal_pose[:3] += [0, -0.1, 0]
+        self._goal_pose[:3] += [0, -self._push_distance, 0]
 
         block_pose = self._start_pose.copy()
         r = self._rand_block_range
@@ -291,8 +293,11 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
 
     def reset_success(self):
         ob = self._get_obs()
-        r = self._robot_success(ob, self._robot_start_pose, self._robot_start_pos_threshold)
+        r = self._robot_success(
+            ob, self._robot_start_pose, self._robot_start_pos_threshold
+        )
         o = self._object_success(ob, self._start_pose, self._start_pos_threshold)
+        print(f"robot succ: {r}, object succ: {o}")
         return r and o
 
     def _robot_success(self, ob, goal, threshold) -> bool:
@@ -310,6 +315,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         obj = ob["object_ob"]
         object_pos = obj[:2]
         goal_object_pos = goal[:2]
+        # print(f"object dist: {np.linalg.norm(object_pos - goal_object_pos)}")
         obj_pos_success = np.linalg.norm(object_pos - goal_object_pos) < threshold
         return obj_pos_success
 
@@ -551,10 +557,308 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._subtask_part1 = 0
         self._subtask_part2 = -1
 
+    def demo_reset(
+        self, is_train=True, record=False, furniture_id=None, background=None,
+    ):
+        # clear previous demos
+        if self._record_demo:
+            self._demo.reset()
+
+        # reset robot and objects
+        self._demo_reset()
+
+        self._task = "forward"
+        self._success = False
+        obj_pos = self._get_pos("1_block_l")[:2]
+        dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
+        self._prev_reset_dist = dist_to_start
+        dist_to_goal = np.linalg.norm(self._goal_pose[:2] - obj_pos)
+        self._prev_push_dist = dist_to_goal
+
+        # reset mujoco viewer
+        if self._render_mode == "human" and not self._unity:
+            self._viewer = self._get_viewer()
+        self._after_reset()
+
+        ob = self._get_obs()
+        if self._record_demo:
+            self._demo.add(ob=ob)
+        return ob
+
+    def _demo_reset(self):
+        furniture_id = background = None
+        if self._config.furniture_name == "Random":
+            furniture_id = self._rng.randint(len(furniture_xmls))
+        if self._furniture_id is None or (
+            self._furniture_id != furniture_id and furniture_id is not None
+        ):
+            # construct mujoco xml for furniture_id
+            if furniture_id is None:
+                self._furniture_id = self._config.furniture_id
+            else:
+                self._furniture_id = furniture_id
+            self._reset_internal()
+
+        # reset simulation data and clear buffers
+        self.sim.reset()
+
+        # store robot's contype, conaffinity (search MuJoCo XML API for details)
+        # disable robot collision
+        robot_col = {}
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
+            ):
+                robot_col[geom_name] = (
+                    self.sim.model.geom_contype[geom_id],
+                    self.sim.model.geom_conaffinity[geom_id],
+                )
+                self.sim.model.geom_contype[geom_id] = 0
+                self.sim.model.geom_conaffinity[geom_id] = 0
+
+        # initialize collision for non-mesh geoms
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name in self._object_names and "collision" in geom_name:
+                self.sim.model.geom_contype[geom_id] = 1
+                self.sim.model.geom_conaffinity[geom_id] = 1
+
+        # initialize group
+        self._object_group = list(range(len(self._object_names)))
+
+        # initialize member variables
+        self._connect_step = 0
+        self._connected_sites = set()
+        self._connected_body1 = None
+        self._connected_body1_pos = None
+        self._connected_body1_quat = None
+        self._num_connected = 0
+        if self._agent_type == "Cursor":
+            self._cursor_selected = [None, None]
+
+        self._do_simulation(None)
+        # stablize furniture pieces
+        for _ in range(100):
+            for obj_name in self._object_names:
+                self._stop_object(obj_name, gravity=0)
+            self.sim.forward()
+            self.sim.step()
+
+        logger.debug("*** furniture initialization ***")
+
+        # add random noise to block position and rotation
+        self._start_pose = np.array([0.01044, -0.028, 0.025, 0.5, 0.5, 0.5, 0.5])
+        # set goal position to 1 cm away from block
+        self._goal_pose = self._start_pose.copy()
+        self._goal_pose[:3] += [0, -self._push_distance, 0]
+
+        block_pose = [-5, 5, 0.03, 1, 0, 0, 0]
+        # initialize the robot and block to initial demonstraiton state
+        self._init_qpos = {
+            "qpos": [
+                -0.41392622,
+                -0.31336937,
+                0.2903396,
+                1.45706689,
+                -0.60448083,
+                0.52339887,
+                2.07347478,
+            ],
+            "l_gripper": [-0.01965996, 0.01963994],
+            "1_block_l": block_pose,
+        }
+
+        pos_init = []
+        quat_init = []
+
+        for body in self._object_names:
+            qpos = self._init_qpos[body]
+            pos_init.append(qpos[:3])
+            quat_init.append(qpos[3:])
+        if (
+            "l_gripper" in self._init_qpos
+            and "r_gripper" not in self._init_qpos
+            and "qpos" in self._init_qpos
+        ):
+            self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos["qpos"]
+            self.sim.data.qpos[self._ref_gripper_joint_pos_indexes] = self._init_qpos[
+                "l_gripper"
+            ]
+
+        # enable robot collision
+        for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
+            body_name = self.sim.model.body_names[body_id]
+            geom_name = self.sim.model.geom_id2name(geom_id)
+            if body_name not in self._object_names and self.mujoco_robot.is_robot_part(
+                geom_name
+            ):
+                contype, conaffinity = robot_col[geom_name]
+                self.sim.model.geom_contype[geom_id] = contype
+                self.sim.model.geom_conaffinity[geom_id] = conaffinity
+
+        # set furniture positions
+        for i, body in enumerate(self._object_names):
+            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
+            self._set_qpos(body, pos_init[i], quat_init[i])
+
+        self.sim.forward()
+
+        # store qpos of furniture and robot
+        if self._record_demo:
+            self._store_qpos()
+
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+            self._initial_right_hand_quat = self._right_hand_quat
+            if self._control_type == "ik":
+                # set up ik controller
+                self._controller.sync_state()
+
+        # set next subtask
+        self._get_next_subtask()
+
+        # set object positions in unity
+        if self._unity:
+            if background is None and self._background is None:
+                background = self._config.background
+            if self._config.background == "Random":
+                background = self._rng.choice(background_names)
+            if background and background != self._background:
+                self._background = background
+                self._unity.set_background(background)
+
+        self._robot_start_pose = self._get_cursor_pos().copy()
+        """
+        Robot and block should initialize to a position that is randomly sampled in a rectangle
+        with length push_distance and width rand_block_range.
+        """
+        block_pose = self._goal_pose.copy()
+        target_pos = self._goal_pose.copy()[:3]
+        target_pos[1] += np.random.uniform(-self._push_distance, 0)
+        eef_pos = self._get_cursor_pos().copy()
+        offset = target_pos - eef_pos
+        while np.linalg.norm(offset) > 0.01:
+            action = np.zeros((8,))
+            action[:3] = offset / self._move_speed
+            # print(offset)
+            action[6] = 1  # keep gripper closed
+            self._step_continuous(action)
+            eef_pos = self._get_cursor_pos()
+            offset = target_pos - eef_pos
+
+        # Move block in front of the robot
+        block_pose[:3] = eef_pos
+        block_pose[1] -= 0.06
+        self._set_qpos("1_block_l", block_pose[:3], block_pose[3:])
+        self.sim.forward()
+
+    def generate_reset_demo(self):
+        """
+        if d < move_speed, take d step towards d
+        if d > move_speed, take move_speed step towards d
+
+        3. Move gripper left of block [0] -= 0.03
+        4. Move gripper in towards block [1] -= 0.05
+        5. Move gripper to right of block [0] += 0.03
+        6. Pull block back
+        """
+        from util.video_recorder import VideoRecorder
+
+        phase = 1
+        self.demo_reset()
+        vr = None
+        if self._config.record:
+            video_prefix = "push_reset_"
+            vr = VideoRecorder(video_prefix=video_prefix)
+            vr.capture_frame(self.render("rgb_array")[0])
+        else:
+            self.render()
+        box_pos = self._get_pos("1_block_l")[:2]
+        while True:
+            eef_pos = self._get_cursor_pos().copy()[:2]
+            action = np.zeros((2,))
+            if phase == 1:  # go to side of block
+                box_side_pos = box_pos + [0.06, 0]
+                d = box_side_pos - eef_pos
+                if abs(d[0]) < 0.01:
+                    phase += 1
+                elif abs(d[0]) < self._move_speed:
+                    action[0] = abs(d[0]) / self._move_speed
+                else:
+                    action[0] = 1
+            elif phase == 2:  # go to bottom of block
+                box_bottom_pos = box_pos + [0, -0.055]
+                d = box_bottom_pos - eef_pos
+                if abs(d[1]) < 0.01:
+                    phase += 1
+                elif abs(d[1]) < self._move_speed:
+                    action[1] = d[1] / self._move_speed
+                else:
+                    action[1] = -1
+            elif phase == 3:  # go to center of box again
+                d = box_pos - eef_pos
+                if abs(d[0]) < 0.01:
+                    phase += 1
+                elif abs(d[0]) < self._move_speed:
+                    action[0] = d[0] / self._move_speed
+                else:
+                    action[0] = -1
+            elif phase == 4:  # pull the block back
+                orig_block_pos = self._start_pose.copy()[:2]
+                box_pos = self._get_pos("1_block_l")[:2]
+                d = orig_block_pos - box_pos
+                if abs(d[1]) < 0.015:
+                    phase += 1
+                elif abs(d[1]) < self._move_speed:
+                    action[1] = abs(d[0]) / self._move_speed
+                else:
+                    action[1] = 1
+            elif phase == 5:  # move arm to left
+                box_side_pos = box_pos + [0.06, 0]
+                d = box_side_pos - eef_pos
+                if abs(d[0]) < 0.01:
+                    phase += 1
+                elif abs(d[0]) < self._move_speed:
+                    action[0] = d[0] / self._move_speed
+                else:
+                    action[0] = 1
+            elif phase == 6:  # go to behind block
+                box_bottom_pos = box_pos + [0, 0.055]
+                d = box_bottom_pos - eef_pos
+                if abs(d[1]) < 0.01:
+                    phase += 1
+                elif abs(d[1]) < self._move_speed:
+                    action[1] = d[1] / self._move_speed
+                else:
+                    action[1] = 1
+            elif phase == 7:  # go to original robot gripper pos
+                robot_pos = self._robot_start_pose[:2]
+                d = robot_pos - eef_pos
+                if np.linalg.norm(d) < 0.02:
+                    break
+                else:
+                    for i in range(2):
+                        if abs(d[i]) < self._move_speed:
+                            action[i] = d[i] / self._move_speed
+                        else:
+                            action[i] = d[i] / abs(d[i])
+
+            ob, rew, done, info = self.step(action)
+            if self._config.record:
+                vr.capture_frame(self.render("rgb_array")[0])
+            else:
+                self.render()
+
+        if self.reset_success():
+            print("successfully reset")
+            if self._config.record:
+                vr.close()
+
 
 def main():
     from config import create_parser
-    import time
 
     parser = create_parser(env="FurnitureSawyerPushEnv")
     config, unparsed = parser.parse_known_args()
@@ -569,7 +873,7 @@ def main():
         time.sleep(0.2)
 
 
-def get_demo():
+def inspect_demo():
     import pickle
 
     with open("demos/Sawyer_placeblock_123_0000.pkl", "rb") as f:
@@ -577,5 +881,22 @@ def get_demo():
         print(demo["qpos"][-1])
 
 
+def reset_demo():
+    """
+    3. Move gripper left of block [0] -= 0.03
+    4. Move gripper in towards block [1] -= 0.05
+    5. Move gripper to right of block [0] += 0.03
+    6. Pull block back
+    """
+    from config import create_parser
+
+    parser = create_parser(env="FurnitureSawyerPushEnv")
+    config, unparsed = parser.parse_known_args()
+
+    # generate placing demonstrations
+    env = FurnitureSawyerPushEnv(config)
+    env.generate_reset_demo()
+
+
 if __name__ == "__main__":
-    main()
+    reset_demo()

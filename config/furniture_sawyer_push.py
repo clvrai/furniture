@@ -16,6 +16,7 @@ def add_argument(parser):
     parser.add_argument("--goal_pos_threshold", type=float, default=0.02)
     parser.add_argument("--start_pos_threshold", type=float, default=0.02)
     parser.add_argument("--goal_quat_threshold", type=float, default=0.01)
+    parser.add_argument("--push_distance", type=float, default=0.1)
 
     # SILO arguments
     train_arg = parser.add_argument_group("Train")
