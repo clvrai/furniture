@@ -572,7 +572,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         # reset robot and objects
         self._reset()
 
-        self._task = "forward"
+        self._task = "reset"
         self._success = False
         obj_pos = self._get_pos("1_block_l")[:2]
         dist_to_start = np.linalg.norm(self._start_pose[:2] - obj_pos)
