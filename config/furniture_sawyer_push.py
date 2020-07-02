@@ -184,7 +184,7 @@ def add_argument(parser):
         "--env",
         type=str,
         default="FurnitureSawyerPushEnv",
-        choices=["FurnitureSawyerPushEnv"],
+        choices=["FurnitureSawyerPushEnv", "FurnitureSawyerResetPushEnv"],
     )
     env_arg.add_argument(
         "--train_mode",
