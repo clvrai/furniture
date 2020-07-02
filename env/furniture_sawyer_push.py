@@ -563,7 +563,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
     Reset version of sawyer pushing environment. Implements pulling reset
     """
     def reset(
-        self, is_train=True, record=False, furniture_id=None, background=None,
+        self, is_train=True, record=False, furniture_id=None, background=None, **kwargs
     ):
         # clear previous demos
         if self._record_demo:
