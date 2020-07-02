@@ -796,7 +796,8 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
             video_prefix = "push_reset_"
             vr = VideoRecorder(video_prefix=video_prefix)
             vr.capture_frame(self.render("rgb_array")[0])
-        else:
+
+        if self._config.render:
             self.render()
         step = 0
         while step < self._config.max_reset_episode_steps:
@@ -877,7 +878,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
             ob, rew, done, info = self.step(action)
             if self._config.record:
                 vr.capture_frame(self.render("rgb_array")[0])
-            else:
+            if self._config.render:
                 self.render()
 
         demo_success = self.reset_success()
