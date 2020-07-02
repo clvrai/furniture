@@ -11,7 +11,7 @@ def add_argument(parser):
     parser.add_argument("--reset_obj_to_point_coeff", type=float, default=100)
     parser.add_argument("--rand_robot_start_range", type=float, default=3)
     parser.add_argument("--rand_block_range", type=float, default=0.02)
-    parser.add_argument("--rand_block_rotation_range", type=float, default=360)
+    parser.add_argument("--rand_block_rotation_range", type=float, default=0)
     parser.add_argument("--robot_start_pos_threshold", type=float, default=0.02)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.02)
     parser.add_argument("--start_pos_threshold", type=float, default=0.02)

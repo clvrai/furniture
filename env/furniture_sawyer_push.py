@@ -804,6 +804,10 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
             box_pos = self._get_pos("1_block_l")[:2]
             eef_pos = self._get_cursor_pos().copy()[:2]
             action = np.zeros((2,))
+            if self.reset_success():
+                ob, rew, done, info = self.step(action)
+                break
+
             if phase == 1:  # go to side of block
                 box_side_pos = box_pos + [0.08, 0]
                 d = box_side_pos - eef_pos
