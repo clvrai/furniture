@@ -3,12 +3,9 @@ Demonstration demo for the IKEA furniture assembly environment.
 This script will take the user through the 1) playback of existing
 demonstrations and 2) recording and playback of their own demos.
 """
-
-import argparse
-
 from env import make_env
-from env.models import furniture_names, background_names, furniture_name2id
-from util import str2bool, parse_demo_file_name
+from env.models import background_names, furniture_name2id, furniture_names
+from util import parse_demo_file_name, str2bool
 
 # available agents
 agent_names = ['Baxter', 'Sawyer', 'Cursor']
@@ -25,12 +22,8 @@ def argsparser():
     """
     Returns argument parser for furniture assembly environment.
     """
-    parser = argparse.ArgumentParser("Demo for IKEA Furniture Assembly Environment")
-    parser.add_argument('--seed', type=int, default=123)
-    parser.add_argument('--debug', type=str2bool, default=False)
-
-    import config.furniture as furniture_config
-    furniture_config.add_argument(parser)
+    from config import create_parser
+    parser = create_parser("FurnitureCursorEnv")
 
     parser.set_defaults(render=True)
     parser.set_defaults(load_demo='demos/Cursor_swivel_chair_0700_0000.pkl')
@@ -113,4 +106,3 @@ def main(args):
 if __name__ == '__main__':
     args = argsparser()
     main(args)
-

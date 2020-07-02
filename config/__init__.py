@@ -69,7 +69,10 @@ def create_parser(env="") -> argparse.ArgumentParser:
             import config.furniture_sawyer_pick as f
 
             f.add_argument(parser)
-        elif "FurnitureSawyerPushEnv" in [env, args.env]:
+        elif "FurnitureSawyerPushEnv" in [
+            env,
+            args.env,
+        ] or "FurnitureSawyerResetPushEnv" in [env, args.env]:
             import config.furniture_sawyer_push as f
             import config.aot as a
 
@@ -155,8 +158,9 @@ def create_parser(env="") -> argparse.ArgumentParser:
 
     # sac
     parser.add_argument("--reward_scale", type=float, default=1.0, help="reward scale")
-    parser.add_argument("--reset_reward_scale", type=float, default=None, help="reward scale")
-
+    parser.add_argument(
+        "--reset_reward_scale", type=float, default=None, help="reward scale"
+    )
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)

@@ -16,7 +16,8 @@ from env.furniture_cursor_toytable_assemble import \
     FurnitureCursorToyTableAssembleEnv
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.furniture_sawyer_pick import FurnitureSawyerPickEnv
-from env.furniture_sawyer_push import FurnitureSawyerPushEnv
+from env.furniture_sawyer_push import (FurnitureSawyerPushEnv,
+                                       FurnitureSawyerResetPushEnv)
 from env.peg_insertion import PegInsertionEnv
 
 # add cursor environment to Gym
