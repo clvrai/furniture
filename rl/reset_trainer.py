@@ -413,7 +413,7 @@ class ResetTrainer(Trainer):
         """
         logger.warn("Load reset checkpoint %s", ckpt_path)
         ckpt = torch.load(ckpt_path)
-        self._reset_agent.load_policy(ckpt["reset_agent"])
+        self._reset_agent.load_policy(ckpt["agent"])
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
         """
