@@ -535,11 +535,16 @@ class ResetTrainer(Trainer):
             f, f_info, r, r_info = rollouts[i]
 
             # plot the centroid of peg instead of top position
-            def centroid(obs):
-                return obs[:3] + 0.5 * (obs[3:] - obs[:3])
+            def visualize_ob(ob):
+                if self._config.env == "PegInsertion":
+                    obs = self._env.get_reverse(ob)
+                    return obs[:3] + 0.5 * (obs[3:] - obs[:3])
+                elif self._config.env == "FurnitureSawyerPushEnv":
+                    obs = self._env.get_reverse(ob)
+                    return obs
 
-            fob = [centroid(self._env.get_goal(x)) for x in f["ob"]]
-            rob = [centroid(self._env.get_goal(x)) for x in r["ob"]]
+            fob = [visualize_ob(x) for x in f["ob"]]
+            rob = [visualize_ob(x) for x in r["ob"]]
             X.extend(fob)
             X.extend(rob)
             fout = self._aot_agent.act(f["ob"], is_train=False, return_info=ensemble)
