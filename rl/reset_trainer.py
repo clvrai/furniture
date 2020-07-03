@@ -127,6 +127,8 @@ class ResetTrainer(Trainer):
         self._step, self._update_iter = self._load_ckpt()
         if cfg.init_ckpt_path:
             self._load_ckpt(ckpt_path=cfg.init_ckpt_path)
+        if cfg.reset_init_ckpt_path:
+            self._load_reset_policy(cfg.reset_init_ckpt_path)
         # sync the networks across the cpus
         self._agent.sync_networks()
         self._reset_agent.sync_networks()
@@ -404,6 +406,14 @@ class ResetTrainer(Trainer):
             video_path = self._save_video(fname, reset_frames)
             r_ep_info["video"] = wandb.Video(video_path, fps=15, format="mp4")
         return rollout, ep_info, r_rollout, r_ep_info
+
+    def _load_reset_policy(self, ckpt_path):
+        """
+        Used to only load the reset policy
+        """
+        logger.warn("Load reset checkpoint %s", ckpt_path)
+        ckpt = torch.load(ckpt_path)
+        self._reset_agent.load_policy(ckpt["reset_agent"])
 
     def _load_ckpt(self, ckpt_path=None, ckpt_num=None):
         """

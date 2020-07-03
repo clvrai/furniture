@@ -124,6 +124,10 @@ class SACAgent(BaseAgent):
         optimizer_cuda(self._critic1_optim, self._config.device)
         optimizer_cuda(self._critic2_optim, self._config.device)
 
+    def load_poicy(self, ckpt):
+        self._actor.load_state_dict(ckpt["actor_state_dict"])
+        self._network_cuda()
+
     def _network_cuda(self, device):
         self._actor.to(device)
         self._critic1.to(device)

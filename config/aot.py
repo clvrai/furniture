@@ -3,6 +3,7 @@ from util import str2bool
 
 def add_argument(parser):
     # reset config
+    parser.add_argument("--reset_init_ckpt_path", type=str, default=None)
     parser.add_argument("--max_failed_reset", type=int, default=1)
     parser.add_argument("--max_reset_episode_steps", type=int, default=99)
     parser.add_argument("--reset_kl_penalty", type=str2bool, default=False)
