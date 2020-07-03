@@ -8,7 +8,7 @@ def add_argument(parser):
     parser.add_argument("--sparse_forward_rew", type=str2bool, default=False)
     parser.add_argument("--ctrl_penalty_coeff", type=float, default=0.001)
     parser.add_argument("--obj_to_point_coeff", type=float, default=10)
-    parser.add_argument("--reset_obj_to_point_coeff", type=float, default=100)
+    parser.add_argument("--reset_obj_to_point_coeff", type=float, default=10)
     parser.add_argument("--rand_robot_start_range", type=float, default=3)
     parser.add_argument("--rand_block_range", type=float, default=0.02)
     parser.add_argument("--rand_block_rotation_range", type=float, default=0)
