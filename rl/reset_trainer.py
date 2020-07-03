@@ -194,7 +194,7 @@ class ResetTrainer(Trainer):
                 # 3. Run and train reset policy
                 r_rollout = Rollout()
                 r_ep_info = defaultdict(list)
-                init_reset_done = reset_done = reset_success = env.reset_done()
+                init_reset_done = reset_done = reset_success = env.reset_success()
                 r_ep_info["init_reset_done"] = [int(init_reset_done)]
                 ep_len = ep_rew = 0
                 env.begin_reset()
@@ -361,7 +361,7 @@ class ResetTrainer(Trainer):
         # 3. Run and train reset policy
         r_rollout = Rollout()
         r_ep_info = defaultdict(list)
-        init_reset_done = reset_done = reset_success = env.reset_done()
+        init_reset_done = reset_done = reset_success = env.reset_success()
         r_ep_info["init_reset_done"] = [int(init_reset_done)]
         ep_len = ep_rew = 0
         if record:
