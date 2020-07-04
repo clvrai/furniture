@@ -11,6 +11,8 @@
   </equality>
   <worldbody>
     <body name="1_block_l" pos="0.0 0.0 0.05" quat="1 0 0 0">
+      <site name="ltgt_site" pos="0 0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="rtgt_site" pos="0 -0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
 
       <geom density="100" material="light-wood" name="box_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.025 0.025 0.025" solref="0.001 1" type="box" />
       <site name="1_block_l_bottom_site" pos="0.0 0.0 -0.05" rgba="0 0 1 0.3" size="0.0015" />

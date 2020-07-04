@@ -28,6 +28,7 @@ def create_parser(env=None):
             "FurnitureSawyerToyTableEnv",
             "FurnitureSaywerPlaceEnv",
             "FurnitureSawyerPickEnv",
+            "FurnitureSawyerGenEnv",
             "FurnitureBaxterToyTableEnv",
         ],
         help="Environment name",

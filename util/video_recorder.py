@@ -101,22 +101,20 @@ class VideoRecorder(object):
             self._frames = []
 
         elif self._record_mode == "file":
-
             if self.encoder is not None:
                 self.encoder.close()
                 self.encoder = None
-                print("closed vr, video at", self.outfile)
             else:
                 # No frames captured. Set metadata, and remove the empty output file.
                 os.remove(self.outfile)
 
+        print("closed vr, video at", self.outfile)
 
 class ImageEncoder(object):
     def __init__(self, outfile, frame_shape, frames_per_sec, output_frames_per_sec):
         self.proc = None
         self.outfile = outfile
         # Frame shape should be lines-first, so w and h are swapped
-        print("frame_shape", frame_shape)
         h, w, pixfmt = frame_shape
         if pixfmt != 3 and pixfmt != 4:
             raise Exception(
