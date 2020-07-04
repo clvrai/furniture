@@ -359,7 +359,7 @@ def main():
     for rank in range(num_workers):
         p = Process(target=generate_demos, args=(rank, config), daemon=True)
         workers.append(p)
-    
+
     for w in workers:
         w.start()
 

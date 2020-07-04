@@ -1,12 +1,14 @@
 import time
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from env.transform_utils import euler_to_quat
+from util import sign
 from util.logger import logger
+from util.video_recorder import VideoRecorder
 
 # from math import pi, sin
 
@@ -26,6 +28,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         super().__init__(config)
 
         self._success_rew = config.success_rew
+        self._reset_success_rew = config.reset_success_rew
         self._ctrl_penalty_coeff = config.ctrl_penalty_coeff
         self._obj_to_point_coeff = config.obj_to_point_coeff
         self._reset_obj_to_point_coeff = config.reset_obj_to_point_coeff
@@ -36,7 +39,7 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._start_pos_threshold = config.start_pos_threshold
         self._goal_pos_threshold = config.goal_pos_threshold
         self._sparse_forward_rew = config.sparse_forward_rew
-        self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
+        self._sparse_reset_rew = config.use_aot or config.sparse_reset_rew
         self._reversible_state_type = config.reversible_state_type
         self._push_distance = config.push_distance
 
@@ -378,11 +381,11 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         control_reward = self._ctrl_reward(action)
         success_reward = 0
         if self._success:
-            success_reward = self._success_rew
+            success_reward = self._reset_success_rew
             if self._config.use_aot:
                 success_reward = self._config.aot_succ_rew
 
-        if self._sparse_remove_rew:
+        if self._sparse_reset_rew:
             reset_reward = control_reward + success_reward
         else:
             reset_reward = obj_to_start_reward + control_reward + success_reward
@@ -591,6 +594,11 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         return ob
 
     def _reset(self):
+        """
+        Robot and block should initialize to a position that is randomly sampled in a rectangle
+        with length push_distance and width rand_block_range.
+        We add noise to the area behind the block where the eef can be.
+        """
         furniture_id = background = None
         if self._config.furniture_name == "Random":
             furniture_id = self._rng.randint(len(furniture_xmls))
@@ -651,9 +659,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 self._stop_object(obj_name, gravity=0)
             self.sim.forward()
             self.sim.step()
-
-        logger.debug("*** furniture initialization ***")
-
+        # Randomize the block position initialization
         # add random noise to block position and rotation
         self._start_pose = np.array([0.01044, -0.028, 0.025, 0.5, 0.5, 0.5, 0.5])
         # set goal position to 1 cm away from block
@@ -663,10 +669,10 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         pos_offset = np.zeros(3)
         pos_offset[0] = self._rng.uniform(-r, r)  # left and right
         # push distance randomization
-        push_dist = np.random.uniform(-self._push_distance, 0)
+        push_dist = self._rng.uniform(-self._push_distance, 0)
         pos_offset[1] = push_dist
         self._goal_pose[:3] += pos_offset
-
+        # initialize the block far away so it doesn't touch the robot
         block_pose = [-5, 5, 0.03, 1, 0, 0, 0]
         # initialize the robot and block to initial demonstraiton state
         self._init_qpos = {
@@ -683,13 +689,6 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
             "1_block_l": block_pose,
         }
 
-        pos_init = []
-        quat_init = []
-
-        for body in self._object_names:
-            qpos = self._init_qpos[body]
-            pos_init.append(qpos[:3])
-            quat_init.append(qpos[3:])
         if (
             "l_gripper" in self._init_qpos
             and "r_gripper" not in self._init_qpos
@@ -712,21 +711,16 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 self.sim.model.geom_conaffinity[geom_id] = conaffinity
 
         # set furniture positions
-        for i, body in enumerate(self._object_names):
-            logger.debug(f"{body} {pos_init[i]} {quat_init[i]}")
-            self._set_qpos(body, pos_init[i], quat_init[i])
-
+        self._set_qpos("1_block_l", block_pose[:3], block_pose[3:])
         self.sim.forward()
 
         # store qpos of furniture and robot
         if self._record_demo:
             self._store_qpos()
 
-        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
-            self._initial_right_hand_quat = self._right_hand_quat
-            if self._control_type == "ik":
-                # set up ik controller
-                self._controller.sync_state()
+        self._initial_right_hand_quat = self._right_hand_quat
+        if self._control_type == "ik":
+            self._controller.sync_state()
 
         # set next subtask
         self._get_next_subtask()
@@ -742,13 +736,10 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 self._unity.set_background(background)
 
         self._robot_start_pose = self._get_cursor_pos().copy()
-        """
-        Robot and block should initialize to a position that is randomly sampled in a rectangle
-        with length push_distance and width rand_block_range.
-        """
-        block_pose = self._goal_pose.copy()
+        # Initialize the eef somewhere behind the block position
         target_pos = self._goal_pose.copy()[:3]
-        target_pos[1] += np.random.uniform(-self._push_distance, 0)
+        target_pos[1] += self._rng.uniform(0.03, 0.05)
+        target_pos[0] += self._rng.uniform(-0.015, 0.015)
         eef_pos = self._get_cursor_pos().copy()
         offset = target_pos - eef_pos
         while np.linalg.norm(offset) > 0.01:
@@ -760,21 +751,23 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
             eef_pos = self._get_cursor_pos()
             offset = target_pos - eef_pos
 
-        # Move block in front of the robot
-        block_pose[:3] = eef_pos
-        block_pose[1] -= 0.06
-        self._set_qpos("1_block_l", block_pose[:3], block_pose[3:])
+        self._set_qpos("1_block_l", self._goal_pose[:3], self._goal_pose[3:])
         self.sim.forward()
 
     def generate_reset_demos(self, num_demos):
         from tqdm import tqdm
 
         success = 0
-        pbar = tqdm(initial=0, total=num_demos, desc="generating resets")
+        desc = f"Worker {self._config.rank}"
+        pbar = tqdm(initial=0, total=num_demos, desc=desc)
+        num_tries = 0
         while success < num_demos:
             s = int(self._generate_reset_demo())
             success += s
             pbar.update(s)
+            num_tries += 1
+            if not s:
+                logger.info(f"{self._config.rank} success rate: {success / num_tries}")
 
     def _generate_reset_demo(self) -> bool:
         """
@@ -788,7 +781,6 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
 
         returns if demo was successful or not
         """
-        from util.video_recorder import VideoRecorder
 
         phase = 1
         self.reset()
@@ -801,6 +793,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         if self._config.render:
             self.render()
         step = 0
+        history = defaultdict(list)
         while step < self._config.max_reset_episode_steps:
             step += 1
             box_pos = self._get_pos("1_block_l")[:2]
@@ -811,14 +804,19 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 break
 
             if phase == 1:  # go to side of block
-                box_side_pos = box_pos + [0.08, 0]
+                # first decide which side to go to
+                dx = box_pos[0] - eef_pos[0]
+                side = [0.08, 0]
+                if dx > 0:
+                    side[0] *= -1
+                box_side_pos = box_pos + side
                 d = box_side_pos - eef_pos
                 if abs(d[0]) < 0.01:
                     phase += 1
                 elif abs(d[0]) < self._move_speed:
-                    action[0] = abs(d[0]) / self._move_speed
+                    action[0] = d[0] / self._move_speed
                 else:
-                    action[0] = 1
+                    action[0] = sign(d[0])
             elif phase == 2:  # go to bottom of block
                 box_bottom_pos = box_pos + [0, -0.06]
                 d = box_bottom_pos - eef_pos
@@ -835,26 +833,32 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 elif abs(d[0]) < self._move_speed:
                     action[0] = d[0] / self._move_speed
                 else:
-                    action[0] = -1
+                    action[0] = sign(d[0])
             elif phase == 4:  # pull the block back
                 orig_block_pos = self._start_pose.copy()[:2]
                 box_pos = self._get_pos("1_block_l")[:2]
                 d = orig_block_pos - box_pos
+                # if gripper is not close to the block, take dist(eef, block)
+                # then add the amount we want to push the block by
                 if abs(d[1]) < 0.015:
                     phase += 1
                 elif abs(d[1]) < self._move_speed:
-                    action[1] = abs(d[0]) / self._move_speed
+                    action[1] = d[1] / self._move_speed
                 else:
                     action[1] = 1
-            elif phase == 5:  # move arm to left
-                box_side_pos = box_pos + [0.06, 0]
+            elif phase == 5:  # move arm to side
+                dx = box_pos[0] - eef_pos[0]
+                side = [0.08, 0]
+                if dx > 0:
+                    side[0] *= -1
+                box_side_pos = box_pos + side
                 d = box_side_pos - eef_pos
                 if abs(d[0]) < 0.01:
                     phase += 1
                 elif abs(d[0]) < self._move_speed:
                     action[0] = d[0] / self._move_speed
                 else:
-                    action[0] = 1
+                    action[0] = sign(d[0])
             elif phase == 6:  # go to behind block
                 box_bottom_pos = box_pos + [0, 0.055]
                 d = box_bottom_pos - eef_pos
@@ -874,40 +878,55 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                         if abs(d[i]) < self._move_speed:
                             action[i] = d[i] / self._move_speed
                         else:
-                            action[i] = d[i] / abs(d[i])
+                            action[i] = sign(d[i])
 
             ob, rew, done, info = self.step(action)
+            for k, v in info.items():
+                history[k].append(v)
             if self._config.record:
                 vr.capture_frame(self.render("rgb_array")[0])
             if self._config.render:
                 self.render()
 
         demo_success = self.reset_success()
+        logger.debug("*" * 80)
         if demo_success:
-            print(f"successfully reset in {step} steps")
+            logger.debug(f"successfully reset in {step} steps")
             if self._config.record:
                 vr.close()
             if self._config.record_demo:
                 self.save_demo()
-
         else:
-            print(f"demo failed at {phase}")
+            logger.debug(f"demo failed at {phase}")
+            # distance between box and starting point
+            ob = self._get_obs()
+            goal = self._start_pose
+            obj = ob["object_ob"]
+            object_pos = obj[:2]
+            goal_object_pos = goal[:2]
+            logger.debug(f"displacement: {object_pos - goal_object_pos}")
+            logger.debug(f"final dist:{np.linalg.norm(object_pos - goal_object_pos)}")
+
+        for k, v in history.items():
+            if (not demo_success and "succ" in k) or "rew" in k:
+                logger.debug(k, np.sum(v))
         return demo_success
 
 
-
-def main():
+def check_reset():
     from config import create_parser
 
     parser = create_parser(env="FurnitureSawyerPushEnv")
     config, unparsed = parser.parse_known_args()
 
     # generate placing demonstrations
-    env = FurnitureSawyerPushEnv(config)
-    env.reset()
+    env = FurnitureSawyerResetPushEnv(config)
+
     while True:
-        action = np.zeros(3)
-        env.step(action)
+        # action = np.zeros(3)
+        # env.step(action)
+        # env.render()
+        env.reset()
         env.render()
         time.sleep(0.2)
 
@@ -921,12 +940,6 @@ def inspect_demo():
 
 
 def reset_demo():
-    """
-    3. Move gripper left of block [0] -= 0.03
-    4. Move gripper in towards block [1] -= 0.05
-    5. Move gripper to right of block [0] += 0.03
-    6. Pull block back
-    """
     from config import create_parser
 
     parser = create_parser(env="FurnitureSawyerPushEnv")
@@ -937,5 +950,33 @@ def reset_demo():
     env.generate_reset_demos(100)
 
 
+def mp_generate_demos():
+    from multiprocessing import Process
+    from config import create_parser
+
+    parser = create_parser(env="FurnitureSawyerPushEnv")
+    parser.add_argument("--num_workers", type=int, required=True)
+    config, unparsed = parser.parse_known_args()
+
+    def generate_demos(rank, config):
+        config.rank = rank
+        config.seed = config.seed + rank
+        # generate placing demonstrations
+        env = FurnitureSawyerResetPushEnv(config)
+        env.generate_reset_demos(config.num_demos)
+
+    workers = []
+    for rank in range(config.num_workers):
+        p = Process(target=generate_demos, args=(rank, config), daemon=True)
+        workers.append(p)
+
+    for w in workers:
+        w.start()
+
+    for w in workers:
+        w.join()
+
+
 if __name__ == "__main__":
-    reset_demo()
+    mp_generate_demos()
+    # check_reset()

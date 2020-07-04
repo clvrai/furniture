@@ -4,9 +4,10 @@ from util import str2bool, str2list
 def add_argument(parser):
     # rewards
     parser.add_argument("--success_rew", type=float, default=10)
-    parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
+    parser.add_argument("--reset_success_rew", type=float, default=1)
+    parser.add_argument("--sparse_reset_rew", type=str2bool, default=False)
     parser.add_argument("--sparse_forward_rew", type=str2bool, default=False)
-    parser.add_argument("--ctrl_penalty_coeff", type=float, default=0.001)
+    parser.add_argument("--ctrl_penalty_coeff", type=float, default=1e-5)
     parser.add_argument("--obj_to_point_coeff", type=float, default=10)
     parser.add_argument("--reset_obj_to_point_coeff", type=float, default=10)
     parser.add_argument("--rand_robot_start_range", type=float, default=3)
@@ -17,6 +18,9 @@ def add_argument(parser):
     parser.add_argument("--start_pos_threshold", type=float, default=0.02)
     parser.add_argument("--goal_quat_threshold", type=float, default=0.01)
     parser.add_argument("--push_distance", type=float, default=0.1)
+
+    # demo generation
+    parser.add_argument("--num_demos", type=int, default=100)
 
     # SILO arguments
     train_arg = parser.add_argument_group("Train")
