@@ -4,6 +4,8 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
+from util import logger
+
 
 class ReplayBuffer:
     def __init__(self, keys, buffer_size, sample_func):
@@ -79,6 +81,7 @@ class ReplayBuffer:
                 rollout["done"] = np.zeros(len(data["actions"]))
                 rollout["done"][-1] = 1
                 self.store_episode(rollout)
+        logger.info(f"Loaded {len(demos)} demos into buffer.")
 
 
 class LearnedRewardReplayBuffer(ReplayBuffer):
@@ -125,7 +128,7 @@ class LearnedRewardReplayBuffer(ReplayBuffer):
 
         return new_transitions
 
-def load_demonstrations(self, demo_folder):
+    def load_demonstrations(self, demo_folder):
         """
         Loads demo files and adds them into the buffer
         """
@@ -144,6 +147,7 @@ def load_demonstrations(self, demo_folder):
                 rollout["done"] = np.zeros(len(data["actions"]))
                 rollout["done"][-1] = 1
                 self.store_episode(rollout)
+        logger.info(f"Loaded {len(demos)} demos into buffer.")
 
 
 class RandomSampler:
