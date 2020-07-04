@@ -10,9 +10,14 @@ from rl.dataset import RandomSampler, ReplayBuffer
 from rl.policies.utils import MLP, Ensemble
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (compute_gradient_norm, compute_weight_norm,
-                          count_parameters, sync_grads, sync_networks,
-                          to_tensor)
+from util.pytorch import (
+    compute_gradient_norm,
+    compute_weight_norm,
+    count_parameters,
+    sync_grads,
+    sync_networks,
+    to_tensor,
+)
 
 
 class AoTAgent(BaseAgent):
@@ -22,11 +27,7 @@ class AoTAgent(BaseAgent):
     """
 
     def __init__(
-        self,
-        config,
-        reversible_space,
-        dataset: ReplayBuffer,
-        get_reverse=lambda x: x,
+        self, config, reversible_space, dataset: ReplayBuffer, get_reverse=lambda x: x,
     ):
         self._config = deepcopy(config)
         self._config.ob_norm = False

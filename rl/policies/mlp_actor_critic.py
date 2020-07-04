@@ -84,7 +84,7 @@ class NoisyMlpActor(Actor):
     def act(self, ob, is_train=True, return_log_prob=False):
         ob = to_tensor(ob, self._config.device)
         self._ob = ob
-        means, _= self.forward(ob)
+        means, _ = self.forward(ob)
 
         actions = OrderedDict()
         for k in self._ac_space.keys():

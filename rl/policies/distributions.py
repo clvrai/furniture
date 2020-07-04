@@ -13,11 +13,13 @@ old_sample = FixedCategorical.sample
 FixedCategorical.sample = lambda self: old_sample(self).unsqueeze(-1)
 
 log_prob_cat = FixedCategorical.log_prob
-#FixedCategorical.log_probs = lambda self, actions: log_prob_cat(self, actions.squeeze(-1)).view(actions.size(0), -1).sum(-1).unsqueeze(-1)
-FixedCategorical.log_probs = lambda self, actions: log_prob_cat(self, actions.squeeze(-1)).unsqueeze(-1)
+# FixedCategorical.log_probs = lambda self, actions: log_prob_cat(self, actions.squeeze(-1)).view(actions.size(0), -1).sum(-1).unsqueeze(-1)
+FixedCategorical.log_probs = lambda self, actions: log_prob_cat(
+    self, actions.squeeze(-1)
+).unsqueeze(-1)
 
 categorical_entropy = FixedCategorical.entropy
-FixedCategorical.entropy = lambda self: categorical_entropy(self) * 10.0 # scaling
+FixedCategorical.entropy = lambda self: categorical_entropy(self) * 10.0  # scaling
 
 FixedCategorical.mode = lambda self: self.probs.argmax(dim=-1, keepdim=True)
 
@@ -26,10 +28,16 @@ FixedCategorical.mode = lambda self: self.probs.argmax(dim=-1, keepdim=True)
 FixedNormal = torch.distributions.Normal
 
 normal_init = FixedNormal.__init__
-FixedNormal.__init__ = lambda self, mean, std: normal_init(self, mean.double(), std.double())
+FixedNormal.__init__ = lambda self, mean, std: normal_init(
+    self, mean.double(), std.double()
+)
 
 log_prob_normal = FixedNormal.log_prob
-FixedNormal.log_probs = lambda self, actions: log_prob_normal(self, actions.double()).sum(-1, keepdim=True).float()
+FixedNormal.log_probs = (
+    lambda self, actions: log_prob_normal(self, actions.double())
+    .sum(-1, keepdim=True)
+    .float()
+)
 
 normal_entropy = FixedNormal.entropy
 FixedNormal.entropy = lambda self: normal_entropy(self).sum(-1).float()
@@ -104,9 +112,7 @@ class MixedDistribution(nn.Module):
         self.distributions = distributions
 
     def mode(self):
-        return OrderedDict(
-            [(k, dist.mode()) for k, dist in self.distributions.items()]
-        )
+        return OrderedDict([(k, dist.mode()) for k, dist in self.distributions.items()])
 
     def sample(self):
         return OrderedDict(
@@ -126,4 +132,3 @@ class MixedDistribution(nn.Module):
 
     def entropy(self):
         return sum([dist.entropy() for dist in self.distributions.values()])
-

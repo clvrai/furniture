@@ -13,9 +13,15 @@ from rl.base_agent import BaseAgent
 from rl.dataset import LearnedRewardReplayBuffer, RandomSampler, ReplayBuffer
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (compute_gradient_norm, compute_weight_norm,
-                          count_parameters, optimizer_cuda, sync_grads,
-                          sync_networks, to_tensor)
+from util.pytorch import (
+    compute_gradient_norm,
+    compute_weight_norm,
+    count_parameters,
+    optimizer_cuda,
+    sync_grads,
+    sync_networks,
+    to_tensor,
+)
 
 
 class SACAgent(BaseAgent):
@@ -59,9 +65,7 @@ class SACAgent(BaseAgent):
 
         sampler = RandomSampler()
         buffer_keys = ["ob", "ac", "done", "rew"]
-        self._buffer = ReplayBuffer(
-            buffer_keys, config.buffer_size, sampler.sample_func
-        )
+        self._buffer = ReplayBuffer(config, buffer_keys, sampler.sample_func)
         self._reset = reset
         if reset:
             if config.use_aot:
@@ -69,7 +73,7 @@ class SACAgent(BaseAgent):
                 buffer_keys.remove("rew")  # replace rew with env_rew
                 buffer_keys.append("env_rew")
                 self._buffer = LearnedRewardReplayBuffer(
-                    buffer_keys, config.buffer_size, sampler.sample_func, rew
+                    config, buffer_keys, sampler.sample_func, rew
                 )
 
             if self._load_buffer_demos:

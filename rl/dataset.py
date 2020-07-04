@@ -3,17 +3,19 @@ import pickle
 from collections import OrderedDict, defaultdict
 
 import numpy as np
+from tqdm import tqdm
 
 from util.logger import logger
 
 
 class ReplayBuffer:
-    def __init__(self, keys, buffer_size, sample_func):
+    def __init__(self, config, keys, sample_func):
         """
         Stores by key, value is list of episodes.
         To get Episode 100's ob, do buffer['ob'][100]
         """
-        self._size = buffer_size
+        self._config = config
+        self._size = config.buffer_size
         self._sample_func = sample_func
 
         # create the buffer to store info
@@ -42,7 +44,8 @@ class ReplayBuffer:
                     self._buffer[k][self._idx].append(rollout[k])
         if "ac" in self._buffer:
             assert (
-                len(self._buffer["ob"][self._idx]) == len(self._buffer["ac"][self._idx]) + 1
+                len(self._buffer["ob"][self._idx])
+                == len(self._buffer["ac"][self._idx]) + 1
             )
         if rollout["done"][-1]:
             self._idx = (self._idx + 1) % self._size
@@ -71,7 +74,9 @@ class ReplayBuffer:
             for d in os.scandir(demo_folder)
             if d.is_file() and d.path.endswith("pkl")
         ]
-        for path in demos:
+        d = "Loading demos"
+        loader = tqdm(demos, desc=d) if self._config.is_chef else demos
+        for path in loader:
             with open(path, "rb") as f:
                 data = pickle.load(f)
                 rollout = {}
@@ -81,12 +86,11 @@ class ReplayBuffer:
                 rollout["done"] = np.zeros(len(data["actions"]))
                 rollout["done"][-1] = 1
                 self.store_episode(rollout)
-        logger.info(f"Loaded {len(demos)} demos into buffer.")
 
 
 class LearnedRewardReplayBuffer(ReplayBuffer):
-    def __init__(self, keys, buffer_size, sample_func, rew):
-        super().__init__(keys, buffer_size, sample_func)
+    def __init__(self, config, keys, sample_func, rew):
+        super().__init__(config, keys, sample_func)
         self._rew = rew
 
     def sample(self, batch_size_in_transitions):
