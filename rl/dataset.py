@@ -4,7 +4,7 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from util import logger
+from util.logger import logger
 
 
 class ReplayBuffer:
