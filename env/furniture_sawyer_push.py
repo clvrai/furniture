@@ -565,6 +565,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
     """
     Reset version of sawyer pushing environment. Implements pulling reset
     """
+
     def reset(
         self, is_train=True, record=False, furniture_id=None, background=None, **kwargs
     ):
@@ -757,19 +758,23 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
     def generate_reset_demos(self, num_demos):
         from tqdm import tqdm
 
-        success = 0
+        success = num_tries = num_premature = 0
         desc = f"Worker {self._config.rank}"
         pbar = tqdm(initial=0, total=num_demos, desc=desc)
         num_tries = 0
         while success < num_demos:
-            s = int(self._generate_reset_demo())
-            success += s
-            pbar.update(s)
+            s, info = self._generate_reset_demo()
+            success += int(s)
+            pbar.update(int(s))
             num_tries += 1
+            num_premature += info["premature"][0]
             if not s:
-                logger.info(f"{self._config.rank} success rate: {success / num_tries}")
+                desc = f"{self._config.rank} success rate: {success / num_tries}"
+                if success > 0 and num_premature > 0:
+                    desc += f", premature: {num_premature/success}"
+                logger.info(desc)
 
-    def _generate_reset_demo(self) -> bool:
+    def _generate_reset_demo(self):
         """
         if d < move_speed, take d step towards d
         if d > move_speed, take move_speed step towards d
@@ -779,11 +784,20 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         5. Move gripper to right of block [0] += 0.03
         6. Pull block back
 
-        returns if demo was successful or not
+        returns if demo was successful or not, and info
         """
-
+        history = defaultdict(list)
+        history["premature"] = [0]
         phase = 1
         self.reset()
+        if self.reset_success():
+            history["premature"] = [1]
+            ob, rew, done, info = self.step(np.zeros((2,)))
+            demo_success = self.reset_success()
+            if demo_success and self._config.record_demo:
+                self.save_demo()
+            return demo_success, history
+
         vr = None
         if self._config.record:
             video_prefix = "push_reset_"
@@ -793,15 +807,11 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         if self._config.render:
             self.render()
         step = 0
-        history = defaultdict(list)
         while step < self._config.max_reset_episode_steps:
             step += 1
             box_pos = self._get_pos("1_block_l")[:2]
             eef_pos = self._get_cursor_pos().copy()[:2]
             action = np.zeros((2,))
-            if self.reset_success():
-                ob, rew, done, info = self.step(action)
-                break
 
             if phase == 1:  # go to side of block
                 # first decide which side to go to
@@ -910,7 +920,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         for k, v in history.items():
             if (not demo_success and "succ" in k) or "rew" in k:
                 logger.debug(k, np.sum(v))
-        return demo_success
+        return demo_success, history
 
 
 def check_reset():
