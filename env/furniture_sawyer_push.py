@@ -47,6 +47,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._goal_type = config.goal_type
         self._subtask_part1 = 0  # get block ob
         self._task = "forward"  # ["forward", "reverse"]
+        self._state_min = [-0.15, -0.3]
+        self._state_max = [0.15, 0.05]
 
     def _step(self, a):
         """
@@ -54,6 +56,17 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         """
         # always close gripper and don't connect
         a = a.copy()
+        # print("*" * 80)
+        eef_pos = self._get_cursor_pos()[:2].copy()
+        # print(f"eef pos: {eef_pos}")
+        # print(f"a before clip: {a}")
+        dpos = a * self._move_speed
+        next_pos = eef_pos + dpos
+        next_pos = np.clip(next_pos, self._state_min, self._state_max)
+        dpos_clip = next_pos - eef_pos
+        a_clip = dpos_clip / self._move_speed
+        # print(f"a after clip: {a_clip}")
+        a = a_clip
         if self._control_type == "ik":
             a = np.concatenate([a, np.zeros(4)])  # add empty dz, rotation
         a = np.concatenate([a, [1, 0]])
@@ -104,8 +117,6 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
             furniture_id: ID of the furniture model to reset.
             background: name of the background scene to reset.
         """
-        if self._config.furniture_name == "Random":
-            furniture_id = self._rng.randint(len(furniture_xmls))
         if self._furniture_id is None or (
             self._furniture_id != furniture_id and furniture_id is not None
         ):
@@ -258,8 +269,11 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
                 self._background = background
                 self._unity.set_background(background)
 
-        # take some random step away from starting state
         self._robot_start_pose = self._get_cursor_pos().copy()
+        # update state min and max centered on eef
+        self._state_min += self._robot_start_pose[:2]
+        self._state_max += self._robot_start_pose[:2]
+        # take some random step away from starting state
         action = np.zeros((8,))
         r = self._rand_robot_start_range
         # add left and right noise
@@ -923,6 +937,25 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         return demo_success, history
 
 
+def check_state_space():
+    from config import create_parser
+
+    parser = create_parser(env="FurnitureSawyerPushEnv")
+    config, unparsed = parser.parse_known_args()
+
+    # generate placing demonstrations
+    env = FurnitureSawyerPushEnv(config)
+    env.reset()
+    while True:
+        action = np.zeros(2)
+        action[1] = -1
+        env.step(action)
+        env.render()
+        # env.reset()
+        # env.render()
+        # time.sleep(0.2)
+
+
 def check_reset():
     from config import create_parser
 
@@ -931,7 +964,7 @@ def check_reset():
 
     # generate placing demonstrations
     env = FurnitureSawyerResetPushEnv(config)
-
+    env.reset()
     while True:
         # action = np.zeros(3)
         # env.step(action)
@@ -988,5 +1021,6 @@ def mp_generate_demos():
 
 
 if __name__ == "__main__":
-    mp_generate_demos()
+    # mp_generate_demos()
     # check_reset()
+    check_state_space()
