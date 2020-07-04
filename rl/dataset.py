@@ -1,4 +1,6 @@
-from collections import defaultdict
+import os
+import pickle
+from collections import OrderedDict, defaultdict
 
 import numpy as np
 
@@ -58,6 +60,26 @@ class ReplayBuffer:
         self._buffer = state_dict
         self._current_size = len(self._buffer["ac"])
 
+    def load_demonstrations(self, demo_folder):
+        """
+        Loads demo files and adds them into the buffer
+        """
+        demos = [
+            d.path
+            for d in os.scandir(demo_folder)
+            if d.is_file() and d.path.endswith("pkl")
+        ]
+        for path in demos:
+            with open(path, "rb") as f:
+                data = pickle.load(f)
+                rollout = {}
+                rollout["ob"] = data["obs"]
+                rollout["ac"] = [OrderedDict(default=ac) for ac in data["actions"]]
+                rollout["rew"] = data["rewards"]
+                rollout["done"] = np.zeros(len(data["actions"]))
+                rollout["done"][-1] = 1
+                self.store_episode(rollout)
+
 
 class LearnedRewardReplayBuffer(ReplayBuffer):
     def __init__(self, keys, buffer_size, sample_func, rew):
@@ -102,6 +124,26 @@ class LearnedRewardReplayBuffer(ReplayBuffer):
                 new_transitions[k] = np.stack(v)
 
         return new_transitions
+
+def load_demonstrations(self, demo_folder):
+        """
+        Loads demo files and adds them into the buffer
+        """
+        demos = [
+            d.path
+            for d in os.scandir(demo_folder)
+            if d.is_file() and d.path.endswith("pkl")
+        ]
+        for path in demos:
+            with open(path, "rb") as f:
+                data = pickle.load(f)
+                rollout = {}
+                rollout["ob"] = data["obs"]
+                rollout["ac"] = [OrderedDict(default=ac) for ac in data["actions"]]
+                rollout["env_rew"] = data["rewards"]
+                rollout["done"] = np.zeros(len(data["actions"]))
+                rollout["done"][-1] = 1
+                self.store_episode(rollout)
 
 
 class RandomSampler:

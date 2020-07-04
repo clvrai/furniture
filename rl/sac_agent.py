@@ -27,6 +27,8 @@ class SACAgent(BaseAgent):
 
         self._ob_space = ob_space
         self._ac_space = ac_space
+        self._load_buffer_demos = self._config.load_buffer_demos
+        self._demo_dir = self._config.demo_dir
 
         self._reward_scale = self._config.reward_scale
         if reset and self._config.reset_reward_scale:
@@ -60,15 +62,18 @@ class SACAgent(BaseAgent):
         self._buffer = ReplayBuffer(
             buffer_keys, config.buffer_size, sampler.sample_func
         )
-        self._reset_agent = reset
-        if config.use_aot and reset:
-            assert rew is not None
-            buffer_keys.remove("rew")  # replace rew with env_rew
-            buffer_keys.append("env_rew")
-            self._buffer = LearnedRewardReplayBuffer(
-                buffer_keys, config.buffer_size, sampler.sample_func, rew
-            )
+        self._reset = reset
+        if reset:
+            if config.use_aot:
+                assert rew is not None
+                buffer_keys.remove("rew")  # replace rew with env_rew
+                buffer_keys.append("env_rew")
+                self._buffer = LearnedRewardReplayBuffer(
+                    buffer_keys, config.buffer_size, sampler.sample_func, rew
+                )
 
+            if self._load_buffer_demos:
+                self._buffer.load_demonstrations(self._demo_dir)
         self._log_creation()
 
     def _log_creation(self):
@@ -253,7 +258,7 @@ class SACAgent(BaseAgent):
         info["entropy_loss"] = entropy_loss.cpu().item()
         info["actor_loss"] = actor_loss.cpu().item()
         actor_loss += entropy_loss
-        if self._config.reset_kl_penalty and self._reset_agent:
+        if self._config.reset_kl_penalty and self._reset:
             reset_distributions = self._actor.act_dist(o)
             with torch.no_grad():
                 forward_distributions = self._forward_actor.act_dist(o)

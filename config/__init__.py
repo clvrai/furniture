@@ -140,6 +140,7 @@ def create_parser(env="") -> argparse.ArgumentParser:
     parser.add_argument(
         "--polyak", type=float, default=0.995, help="the average coefficient"
     )
+    parser.add_argument("--load_buffer_demos", type=str2bool, default=False)
 
     # training
     parser.add_argument("--is_train", type=str2bool, default=True)
