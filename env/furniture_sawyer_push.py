@@ -751,7 +751,9 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 self._unity.set_background(background)
 
         self._robot_start_pose = self._get_cursor_pos().copy()
-        # Initialize the eef somewhere behind the block position
+        # update state min and max centered on eef
+        self._state_min = self._state_min_offset + self._robot_start_pose[:2]
+        self._state_max = self._state_max_offset + self._robot_start_pose[:2]        # Initialize the eef somewhere behind the block position
         target_pos = self._goal_pose.copy()[:3]
         target_pos[1] += self._rng.uniform(0.03, 0.05)
         target_pos[0] += self._rng.uniform(-0.015, 0.015)
