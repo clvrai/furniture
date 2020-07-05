@@ -129,6 +129,7 @@ class SACAgent(BaseAgent):
 
     def load_policy(self, ckpt):
         self._actor.load_state_dict(ckpt["actor_state_dict"])
+        self._ob_norm.load_state_dict(ckpt["ob_norm_state_dict"])
         self._network_cuda(self._config.device)
 
     def _network_cuda(self, device):

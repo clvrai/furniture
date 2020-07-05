@@ -414,7 +414,7 @@ class ResetTrainer(Trainer):
 
     def _load_reset_policy(self, ckpt_path):
         """
-        Used to only load the reset policy
+        Used to only load the reset policy and ob norm
         """
         logger.warn("Load reset checkpoint %s", ckpt_path)
         ckpt = torch.load(ckpt_path)
