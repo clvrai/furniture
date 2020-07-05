@@ -755,7 +755,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         self._state_min = self._state_min_offset + self._robot_start_pose[:2]
         self._state_max = self._state_max_offset + self._robot_start_pose[:2]        # Initialize the eef somewhere behind the block position
         target_pos = self._goal_pose.copy()[:3]
-        target_pos[1] += self._rng.uniform(0.03, 0.05)
+        target_pos[1] += self._rng.uniform(0.025, 0.035)
         target_pos[0] += self._rng.uniform(-0.015, 0.015)
         eef_pos = self._get_cursor_pos().copy()
         offset = target_pos - eef_pos
@@ -804,7 +804,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         """
         history = defaultdict(list)
         history["premature"] = [0]
-        phase = 1
+        phase = 0
         self.reset()
         if self.reset_success():
             history["premature"] = [1]
@@ -828,7 +828,15 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
             box_pos = self._get_pos("1_block_l")[:2]
             eef_pos = self._get_cursor_pos().copy()[:2]
             action = np.zeros((2,))
-
+            if phase == 0:  # back up 3 cm behind block first
+                box_top_pos = box_pos + [0, 0.025 + 0.03]
+                d = box_top_pos - eef_pos
+                if abs(d[1]) < 0.01:
+                    phase += 1
+                elif abs(d[1]) < self._move_speed:
+                    action[1] = d[1] / self._move_speed
+                else:
+                    action[1] = sign(d[1])
             if phase == 1:  # go to side of block
                 # first decide which side to go to
                 dx = box_pos[0] - eef_pos[0]
@@ -844,7 +852,7 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
                 else:
                     action[0] = sign(d[0])
             elif phase == 2:  # go to bottom of block
-                box_bottom_pos = box_pos + [0, -0.06]
+                box_bottom_pos = box_pos + [0, -(0.025 + 0.025)]
                 d = box_bottom_pos - eef_pos
                 if abs(d[1]) < 0.01:
                     phase += 1
@@ -959,7 +967,7 @@ def check_state_space():
         # time.sleep(0.2)
 
 
-def check_reset():
+def check_reset_initialization():
     from config import create_parser
 
     parser = create_parser(env="FurnitureSawyerPushEnv")
@@ -969,12 +977,12 @@ def check_reset():
     env = FurnitureSawyerResetPushEnv(config)
     env.reset()
     while True:
-        # action = np.zeros(3)
-        # env.step(action)
-        # env.render()
-        env.reset()
+        action = np.zeros(2)
+        env.step(action)
         env.render()
-        time.sleep(0.2)
+        # env.reset()
+        # env.render()
+        # time.sleep(0.2)
 
 
 def inspect_demo():
@@ -992,6 +1000,8 @@ def reset_demo():
     config, unparsed = parser.parse_known_args()
 
     # generate placing demonstrations
+    config.rank = 0
+    config.is_chef = True
     env = FurnitureSawyerResetPushEnv(config)
     env.generate_reset_demos(100)
 
@@ -1024,6 +1034,7 @@ def mp_generate_demos():
 
 
 if __name__ == "__main__":
-    # mp_generate_demos()
-    # check_reset()
-    check_state_space()
+    mp_generate_demos()
+    # check_reset_initialization()
+    # reset_demo()
+    # check_state_space()
