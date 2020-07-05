@@ -47,8 +47,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
         self._goal_type = config.goal_type
         self._subtask_part1 = 0  # get block ob
         self._task = "forward"  # ["forward", "reverse"]
-        self._state_min = [-0.15, -0.3]
-        self._state_max = [0.15, 0.05]
+        self._state_min_offset = [-0.15, -0.3]
+        self._state_max_offset = [0.15, 0.05]
 
     def _step(self, a):
         """
@@ -271,8 +271,8 @@ class FurnitureSawyerPushEnv(FurnitureSawyerEnv):
 
         self._robot_start_pose = self._get_cursor_pos().copy()
         # update state min and max centered on eef
-        self._state_min += self._robot_start_pose[:2]
-        self._state_max += self._robot_start_pose[:2]
+        self._state_min = self._state_min_offset + self._robot_start_pose[:2]
+        self._state_max = self._state_max_offset + self._robot_start_pose[:2]
         # take some random step away from starting state
         action = np.zeros((8,))
         r = self._rand_robot_start_range
@@ -948,7 +948,8 @@ def check_state_space():
     env.reset()
     while True:
         action = np.zeros(2)
-        action[1] = -1
+        action[1] = 1
+        action[0] = 1
         env.step(action)
         env.render()
         # env.reset()
