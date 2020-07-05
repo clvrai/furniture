@@ -10,12 +10,13 @@ class ILDataset(Dataset):
 
     def __init__(
         self,
-        path: str,
-        load_mode: str = "demos",
-        train: bool = True,
+        path,
+        load_mode="demos",
+        train=True,
         transform=None,
         target_transform=None,
-        download: bool = False,
+        download=False,
+        num_demos=float("inf"),
     ):
         """
         load_mode = ['buffer', 'demos']
@@ -27,11 +28,11 @@ class ILDataset(Dataset):
         self._acs = []
         self._rews = []
         if load_mode == "demos":
-            self._load_demo_files(path)
+            self._load_demo_files(path, num_demos)
         elif load_mode == "buffer":
             self._load_replay_buffer(path)
 
-    def _load_demo_files(self, demo_folder, num_demos=float("inf")):
+    def _load_demo_files(self, demo_folder, num_demos):
         demos = []
         i = 0
         for d in os.scandir(demo_folder):

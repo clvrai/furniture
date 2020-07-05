@@ -1,4 +1,3 @@
-import os
 from collections import OrderedDict
 
 import numpy as np
@@ -27,7 +26,7 @@ class BCAgent(BaseAgent):
         self._network_cuda(config.device)
         self._actor_optim = optim.Adam(self._actor.parameters(), lr=config.lr_bc)
 
-        self._dataset = ILDataset(os.path.join(config.data_dir, "train"))
+        self._dataset = ILDataset(config.demo_dir, num_demos=config.num_demos)
         self._data_loader = torch.utils.data.DataLoader(
             self._dataset, batch_size=self._config.batch_size, shuffle=True
         )
