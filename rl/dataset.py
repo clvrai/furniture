@@ -65,15 +65,18 @@ class ReplayBuffer:
         self._buffer = state_dict
         self._current_size = len(self._buffer["ac"])
 
-    def load_demonstrations(self, demo_folder):
+    def load_demonstrations(self, demo_folder, num_demos):
         """
         Loads demo files and adds them into the buffer
         """
-        demos = [
-            d.path
-            for d in os.scandir(demo_folder)
-            if d.is_file() and d.path.endswith("pkl")
-        ]
+        demos = []
+        i = 0
+        for d in os.scandir(demo_folder):
+            if d.is_file() and d.path.endswith("pkl"):
+                demos.append(d.path)
+                i += 1
+            if i > num_demos:
+                break
         d = "Loading demos"
         loader = tqdm(demos, desc=d) if self._config.is_chef else demos
         for path in loader:

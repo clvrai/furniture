@@ -13,15 +13,9 @@ from rl.base_agent import BaseAgent
 from rl.dataset import LearnedRewardReplayBuffer, RandomSampler, ReplayBuffer
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (
-    compute_gradient_norm,
-    compute_weight_norm,
-    count_parameters,
-    optimizer_cuda,
-    sync_grads,
-    sync_networks,
-    to_tensor,
-)
+from util.pytorch import (compute_gradient_norm, compute_weight_norm,
+                          count_parameters, optimizer_cuda, sync_grads,
+                          sync_networks, to_tensor)
 
 
 class SACAgent(BaseAgent):
@@ -77,7 +71,7 @@ class SACAgent(BaseAgent):
                 )
 
             if self._load_buffer_demos:
-                self._buffer.load_demonstrations(self._demo_dir)
+                self._buffer.load_demonstrations(self._demo_dir, self._config.num_demos)
         self._log_creation()
 
     def _log_creation(self):

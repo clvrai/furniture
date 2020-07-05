@@ -19,7 +19,7 @@ def add_argument(parser):
     parser.add_argument("--goal_quat_threshold", type=float, default=0.01)
     parser.add_argument("--push_distance", type=float, default=0.1)
 
-    # demo generation
+    # demo generation or buffer loading
     parser.add_argument("--num_demos", type=int, default=100)
 
     # SILO arguments
