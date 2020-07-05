@@ -1,4 +1,3 @@
-import glob
 import gzip
 import os
 import pickle
@@ -32,13 +31,15 @@ class ILDataset(Dataset):
         elif load_mode == "buffer":
             self._load_replay_buffer(path)
 
-    def _load_demo_files(self, file_path: str) -> None:
+    def _load_demo_files(self, demo_folder, num_demos=float("inf")):
         demos = []
-        demos = [
-            d.path
-            for d in os.scandir(file_path)
-            if d.is_file() and d.path.endswith("pkl")
-        ]
+        i = 0
+        for d in os.scandir(demo_folder):
+            if d.is_file() and d.path.endswith("pkl"):
+                demos.append(d.path)
+                i += 1
+            if i > num_demos:
+                break
         # now load the picked numpy arrays
         for file_path in demos:
             with open(file_path, "rb") as f:
