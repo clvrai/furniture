@@ -258,8 +258,8 @@ class ResetTrainer(Trainer):
                     r_ep_info.update({"total_reset": total_reset})
                     self._log_train(self._step, r_train_info, r_ep_info, "reset")
 
-            self._update_iter += 1
             self._evaluate(record=True)
+            self._update_iter += 1
             self._save_ckpt(self._step, self._update_iter)
 
     @torch.no_grad()
