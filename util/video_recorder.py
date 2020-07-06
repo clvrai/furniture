@@ -27,19 +27,23 @@ class VideoRecorder(object):
         self._video_dir = video_dir
         self._record_mode = record_mode
         os.makedirs(video_dir, exist_ok=True)
-        if demo_dir:
+        self._demo_dir = demo_dir
+        self.set_outfile(prefix)
+        self.frames_per_sec = frames_per_sec
+        self.output_frames_per_sec = output_frames_per_sec
+        self.encoder = None
+        self._frames = []
+
+    def set_outfile(self, prefix):
+        if self._demo_dir:
             # make video filename same as corresponding demo filename
-            count = min(9999, self._get_demo_count(prefix, demo_dir))
+            count = min(9999, self._get_demo_count(prefix, self._demo_dir))
         else:
             # make seperate video only filename
             prefix = prefix + "vidonly"
             count = min(9999, self._get_vid_count(prefix))
         video_name = prefix + "{:04d}.mp4".format(count)
         self.outfile = os.path.join(self._video_dir, video_name)
-        self.frames_per_sec = frames_per_sec
-        self.output_frames_per_sec = output_frames_per_sec
-        self.encoder = None
-        self._frames = []
 
     def _get_demo_count(self, prefix, demo_dir):
         return len(glob.glob(os.path.join(demo_dir, prefix) + "*"))
@@ -79,7 +83,7 @@ class VideoRecorder(object):
             pass
             # logger.warn todo
 
-    def close(self, name=None):
+    def close(self, name=None, success=True):
         """
         Closes the video file, and optionally renames it.
         Make sure to manually close, or else you'll leak the encoder process
@@ -88,17 +92,18 @@ class VideoRecorder(object):
             self.outfile = os.path.join(self._video_dir, name)
 
         if self._record_mode == "RAM":
-            fps = self.output_frames_per_sec
+            if success:
+                fps = self.output_frames_per_sec
 
-            def f(t):
-                frame_length = len(self._frames)
-                new_fps = 1.0 / (1.0 / fps + 1.0 / frame_length)
-                idx = min(int(t * new_fps), frame_length - 1)
-                return self._frames[idx]
+                def f(t):
+                    frame_length = len(self._frames)
+                    new_fps = 1.0 / (1.0 / fps + 1.0 / frame_length)
+                    idx = min(int(t * new_fps), frame_length - 1)
+                    return self._frames[idx]
 
-            video = mpy.VideoClip(f, duration=len(self._frames) / fps + 2)
-            video.write_videofile(self.outfile, fps, verbose=False)
-            self._frames = []
+                video = mpy.VideoClip(f, duration=len(self._frames) / fps + 2)
+                video.write_videofile(self.outfile, fps, verbose=False)
+                self._frames = []
 
         elif self._record_mode == "file":
             if self.encoder is not None:
@@ -107,8 +112,9 @@ class VideoRecorder(object):
             else:
                 # No frames captured. Set metadata, and remove the empty output file.
                 os.remove(self.outfile)
-
-        print("closed vr, video at", self.outfile)
+    
+        if success:
+            print("closed vr, video at", self.outfile)
 
 class ImageEncoder(object):
     def __init__(self, outfile, frame_shape, frames_per_sec, output_frames_per_sec):

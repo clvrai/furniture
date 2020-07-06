@@ -641,6 +641,21 @@ def l2_dist(a, b):
     return np.linalg.norm(a - b)
 
 
+def angle_between2D(cur, tgt):
+    """ Returns the relative angle in radians between 2D vectors 'cur' and 'tgt'::
+
+            >>> angle_between2D((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between2D((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between2D((1, 0, 0), (-1, -1, 0))
+            3.9269908169872414
+    """
+    cur_u = unit_vector(cur)
+    tgt_u = unit_vector(tgt)
+    return math.atan2(cur_u[0], cur_u[1]) - math.atan2(tgt_u[0], tgt_u[1])
+
+
 def angle_between(v1, v2):
     """ Returns the angle in radians between vectors 'v1' and 'v2'::
 

@@ -1303,6 +1303,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             else:
                 self._furniture_id = furniture_id
             self._reset_internal()
+            self.file_prefix = (
+                self._agent_type + "_" + furniture_names[self._furniture_id] + "_"
+            )
+            if self.vid_rec:
+                self.vid_rec.set_outfile(self.file_prefix)
+
         if self._config.furn_size_rand != 0:
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
@@ -1373,13 +1379,13 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
-        if self._load_demo or self._eval_on_train_set:  # todo
-            pos_init = []
-            quat_init = []
+        if self._load_demo or self._eval_on_train_set:
+            pos_init = {}
+            quat_init = {}
             for body in self._object_names:
                 qpos = self._init_qpos[body]
-                pos_init.append(qpos[:3])
-                quat_init.append(qpos[3:])
+                pos_init[body] = qpos[:3]
+                quat_init[body] = qpos[3:]
             self.set_env_qpos(self._init_qpos)
             # enable robot collision
             for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
@@ -1879,7 +1885,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.reset(config.furniture_id, config.background)
         if self._record_vid:
             self.vid_rec.capture_frame(self.render("rgb_array")[0])
-
+        else:
+            self.render("rgb_array")[0]
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
             all_qpos = demo["qpos"]
@@ -1894,6 +1901,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self._update_unity()
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                else:
+                    self.render("rgb_array")[0]
+
         finally:
             if self._record_vid:
                 self.vid_rec.close()
