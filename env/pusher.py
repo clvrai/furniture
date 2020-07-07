@@ -74,7 +74,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
         # scale to -2 and 2
-        assert np.min(a) >= -1 and np.max(a) <= 1
+        # assert np.min(a) >= -1 and np.max(a) <= 1
         a = a * 2
         self.do_simulation(a, self.frame_skip)
         done = False
