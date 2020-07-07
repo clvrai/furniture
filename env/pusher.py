@@ -107,7 +107,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         return obs
 
     def render(self, mode="human"):
-        img = super().render(mode)
+        img = super().render(mode, camera_id=0)
         if mode != "rgb_array":
             return img
         img = np.expand_dims(img, axis=0)
@@ -274,8 +274,7 @@ if __name__ == "__main__":
     ob = env.reset()
     # import ipdb; ipdb.set_trace()
     for _ in range(10000):
-        # action = env.action_space.sample()
-        # env.step(action)
+        action = env.action_space.sample()
+        ob, rew, done, info = env.step(action)
         env.render()
-        env.reset()
         time.sleep(0.01)
