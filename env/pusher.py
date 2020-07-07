@@ -26,6 +26,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._reversible_state_type = config.reversible_state_type
         self._goal_pos_threshold = config.goal_pos_threshold
         self._start_pos_threshold = config.start_pos_threshold
+        self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
 
         # Note: self._goal is the same for the forward and reset tasks. Only
         # the reward function changes.
@@ -79,13 +80,12 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.do_simulation(a, self.frame_skip)
         done = False
         obs = self._get_obs()
-        info = {}
-
-        (forward_shaped_reward, reset_shaped_reward) = self._get_rewards(obs, a)
         # normalize rewards by max episode length
         if self._task == "forward":
+            forward_shaped_reward, info = self._forward_reward(obs, a)
             r = forward_shaped_reward
         elif self._task == "reset":
+            reset_shaped_reward, info = self._reset_reward(obs, a)
             r = reset_shaped_reward
         if self._record_demo:
             self._demo.add(ob=obs, action=a, reward=r)
@@ -192,40 +192,76 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         assert 0 <= loss <= 1
         return reward
 
-    def _get_rewards(self, s, a):
+    def _forward_reward(self, s, a):
         del s
+        info = {}
         if not hasattr(self, "_goal"):
             print("Warning: goal or start has not been set")
             return (0, 0)
         obj_to_arm = self.get_body_com("object") - self.get_body_com("tips_arm")
         obj_to_goal = self.get_body_com("object") - self._goal
-        obj_to_start = self.get_body_com("object") - self._start
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
-        obj_to_start_dist = np.linalg.norm(obj_to_start)
         control_dist = np.linalg.norm(a)
 
         forward_reward = self._reward_fn(obj_to_goal_dist)
-        reset_reward = self._reward_fn(obj_to_start_dist)
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
         # The control_dist is between 0 and sqrt(2^2 + 2^2 + 2^2) = 3.464
         control_reward = self._reward_fn(control_dist, bound=3.464)
-
         forward_reward_vec = [forward_reward, obj_to_arm_reward, control_reward]
-        reset_reward_vec = [reset_reward, obj_to_arm_reward, control_reward]
 
         reward_coefs = (0.5, 0.375, 0.125)
         forward_shaped_reward = sum(
             [coef * r for (coef, r) in zip(reward_coefs, forward_reward_vec)]
         )
-        reset_shaped_reward = sum(
-            [coef * r for (coef, r) in zip(reward_coefs, reset_reward_vec)]
-        )
-
         assert 0 <= forward_shaped_reward <= 1
-        assert 0 <= reset_shaped_reward <= 1
+        info["forward_reward"] = forward_reward * 0.5
+        info["obj_to_arm_reward"] = obj_to_arm_reward * 0.375
+        info["control_penalty"] = control_reward * 0.125
+        info["obj_to_arm_dist"] = obj_to_arm_dist
+        info["obj_to_goal_dist"] = obj_to_goal_dist
+        return forward_shaped_reward, info
 
-        return (forward_shaped_reward, reset_shaped_reward)
+    def _reset_reward(self, s, a):
+        del s
+        info = {}
+        if not hasattr(self, "_goal"):
+            print("Warning: goal or start has not been set")
+            return (0, 0)
+        obj_to_arm = self.get_body_com("object") - self.get_body_com("tips_arm")
+        obj_to_start = self.get_body_com("object") - self._start
+        obj_to_arm_dist = np.linalg.norm(obj_to_arm)
+        obj_to_start_dist = np.linalg.norm(obj_to_start)
+        control_dist = np.linalg.norm(a)
+
+        reset_reward = self._reward_fn(obj_to_start_dist)
+        obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
+        # The control_dist is between 0 and sqrt(2^2 + 2^2 + 2^2) = 3.464
+        control_reward = self._reward_fn(control_dist, bound=3.464)
+        reset_reward_vec = [reset_reward, obj_to_arm_reward, control_reward]
+        reward_coefs = (0.5, 0.375, 0.125)
+
+        if self._sparse_remove_rew:
+            success_reward = 0
+            if self._success:
+                success_reward = self._config.success_rew
+                if self._config.use_aot:
+                    success_reward = self._config.aot_succ_rew
+
+            reset_shaped_reward = success_reward + 0.125 * control_reward
+            info["success_reward"] = success_reward
+        else:
+            reset_shaped_reward = sum(
+                [coef * r for (coef, r) in zip(reward_coefs, reset_reward_vec)]
+            )
+            assert 0 <= reset_shaped_reward <= 1
+
+        info["reset_reward"] = reset_reward * 0.5
+        info["obj_to_arm_reward"] = obj_to_arm_reward * 0.375
+        info["control_penalty"] = control_reward * 0.125
+        info["obj_to_arm_dist"] = obj_to_arm_dist
+        info["obj_to_start_dist"] = obj_to_start_dist
+        return reset_shaped_reward, info
 
     @property
     def dof(self) -> int:
