@@ -185,12 +185,15 @@ def add_argument(parser):
         default=False,
         help="includes object segmentation for camera",
     )
-    parser.add_argument(
-        "--screen_width", type=int, default=500, help="width of camera image"
-    )
-    parser.add_argument(
-        "--screen_height", type=int, default=500, help="height of camera image"
-    )
+    try:
+        parser.add_argument(
+            "--screen_width", type=int, default=500, help="width of camera image"
+        )
+        parser.add_argument(
+            "--screen_height", type=int, default=500, help="height of camera image"
+        )
+    except:
+        pass
     parser.add_argument(
         "--camera_ids", type=str2intlist, default=[0], help="MuJoCo camera id list"
     )
