@@ -33,7 +33,6 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
-
         # mask actions
         a = a.copy()
         a[3:6] = 0
@@ -114,7 +113,6 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         The next stage gives reward for bringing the leg connection site close to the table
         connection site.
         """
-
         info = {}
 
         ctrl_rew = self._ctrl_reward(action)
@@ -142,7 +140,9 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         if rot_dist_up < 0:
             lift_rew = (r_table_pos[2] - l_table_pos[2])
         else:
-            lift_rew = 2.0 * (0.5 - max(r_table_pos[2] - l_table_pos[2], 0))
+            lift_rew = 0
+            if table_dist < 0.4:
+                lift_rew = 2.0 * (0.5 - max(r_table_pos[2] - l_table_pos[2], 0))
 
         done = False
         success_rew = 0
@@ -160,6 +160,8 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         info["lift_rew"] = lift_rew
         info["r_gh_dist"] = r_gh_dist
         info["l_gh_dist"] = l_gh_dist
+        info["r_gh_rew"] = r_gh_rew
+        info["l_gh_rew"] = l_gh_rew
         info["r_hand_pos"] = r_hand_pos
         info["l_hand_pos"] = l_hand_pos
         info["r_table_pos"] = r_table_pos
