@@ -683,8 +683,8 @@ class FurnitureSawyerResetPushEnv(FurnitureSawyerPushEnv):
         r = self._rand_block_range
         pos_offset = np.zeros(3)
         pos_offset[0] = self._rng.uniform(-r, r)  # left and right
-        # push distance randomization
-        push_dist = self._rng.uniform(-self._push_distance, 0)
+        # make sure to put block out of start distribution
+        push_dist = self._rng.uniform(-self._push_distance, -0.02)
         pos_offset[1] = push_dist
         self._goal_pose[:3] += pos_offset
         # initialize the block far away so it doesn't touch the robot
