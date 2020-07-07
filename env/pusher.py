@@ -80,19 +80,24 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         info = {}
 
         (forward_shaped_reward, reset_shaped_reward) = self._get_rewards(obs, a)
+        # normalize rewards by max episode length
         if self._task == "forward":
             r = forward_shaped_reward
         elif self._task == "reset":
             r = reset_shaped_reward
         if self._record_demo:
             self._demo.add(ob=obs, action=a, reward=r)
+        info["reward"] = r
+        info["episode_success"] = int(self._success)
+        if self._success:
+            done = True
         return obs, r, done, info
 
     def _get_obs(self):
         obs = {
             "robot_ob": np.concatenate(
                 [
-                    self.data.qpos.flat[:5],
+                    self.data.qpos.flat[:3],
                     self.data.qvel.flat[:3],
                     self.get_body_com("tips_arm")[:2],
                 ]
@@ -102,7 +107,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         return obs
 
     def render(self, mode="human"):
-        img = super().render(mode, camera_id=0)
+        img = super().render(mode)
         if mode != "rgb_array":
             return img
         img = np.expand_dims(img, axis=0)
@@ -154,16 +159,16 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def reset_model(self):
         qpos = self.init_qpos
         qpos[:] = 0
-        qpos[-4:-2] += self.np_random.uniform(-0.05, 0.05, 2)
+        qpos[-2:] += self.np_random.uniform(-0.05, 0.05, 2)
         qvel = self.init_qvel + self.np_random.uniform(
             low=-0.005, high=0.005, size=self.model.nv
         )
         qvel[-4:] = 0
 
         # For the reset task, flip the initial positions of the goal and puck
-        if self._task == "reset":
-            qpos[-3] -= 0.7
-            qpos[-1] += 0.7
+        # if self._task == "reset":
+        #     qpos[-3] -= 0.7
+        #     qpos[-1] += 0.7
 
         self.set_state(qpos, qvel)
         return self._get_obs()
@@ -233,7 +238,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         Object ob: top and bottom pos of peg
         Robot ob: 10d of qpos, qvel, and robot
         """
-        ob_space = {"robot_ob": [10], "object_ob": [3]}
+        ob_space = {"robot_ob": [8], "object_ob": [3]}
 
         return ob_space
 
@@ -267,9 +272,10 @@ if __name__ == "__main__":
     config, unparsed = parser.parse_known_args()
     env = PusherEnv(config)
     ob = env.reset()
+    # import ipdb; ipdb.set_trace()
     for _ in range(10000):
-        action = env.action_space.sample()
-        env.step(action)
+        # action = env.action_space.sample()
+        # env.step(action)
         env.render()
-        # env.reset_success()
+        env.reset()
         time.sleep(0.01)
