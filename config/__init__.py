@@ -34,13 +34,14 @@ def create_parser(env="") -> argparse.ArgumentParser:
             "FurnitureSawyerPushEnv",
             "FurnitureSawyerResetPushEnv",
             "PegInsertionEnv",
+            "PusherEnv",
         ],
         help="Environment name",
     )
     parser.add_argument("--env_args", type=str, default=None)
 
     args, unparsed = parser.parse_known_args()
-    if "Furniture" in env or "Furniture" in args.env:
+    if "Furniture" in env or (args.env is not None and "Furniture" in args.env):
         # furniture
         import config.furniture as furniture_config
 
@@ -85,6 +86,12 @@ def create_parser(env="") -> argparse.ArgumentParser:
             f.add_argument(parser)
     elif "PegInsertionEnv" in [env, args.env]:
         import config.peg_insertion as f
+        import config.aot as a
+
+        a.add_argument(parser)
+        f.add_argument(parser)
+    elif "PusherEnv" in [env, args.env]:
+        import config.pusher as f
         import config.aot as a
 
         a.add_argument(parser)

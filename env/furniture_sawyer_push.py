@@ -1,4 +1,3 @@
-import time
 from collections import OrderedDict, defaultdict
 
 import numpy as np

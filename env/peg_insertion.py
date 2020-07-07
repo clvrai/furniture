@@ -21,7 +21,6 @@ class PegInsertionEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def __init__(self, config):
         self._config = config
         self._debug = config.debug
-        self._algo = config.algo
         self._seed = config.seed
         self._sparse = config.sparse_rew
         self._task = config.task

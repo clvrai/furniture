@@ -19,6 +19,7 @@ from env.furniture_sawyer_pick import FurnitureSawyerPickEnv
 from env.furniture_sawyer_push import (FurnitureSawyerPushEnv,
                                        FurnitureSawyerResetPushEnv)
 from env.peg_insertion import PegInsertionEnv
+from env.pusher import PusherEnv
 
 # add cursor environment to Gym
 register(
