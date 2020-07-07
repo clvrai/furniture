@@ -53,7 +53,16 @@ def add_argument(parser):
         "--control_type",
         type=str,
         default="ik",
-        choices=["ik", "impedance", "torque"],
+        choices=[
+            "ik",
+            "impedance",
+            "torque",
+            "position",
+            "position_orientation",
+            "joint_velocity",
+            "joint_impedance",
+            "joint_torque",
+        ],
         help="control type of agent",
     )
     parser.add_argument(

@@ -184,26 +184,26 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
             body1_name = self.sim.model.body_id2name(body1)
             body2_name = self.sim.model.body_id2name(body2)
 
-            for i in range(2):
+            for i, arm in enumerate(self._arms):
                 if (
-                    c.geom1 in self.l_finger_geom_ids[i]
+                    c.geom1 in self.l_finger_geom_ids[arm]
                     and body2_name == self._target_body[i]
                 ):
                     touch_left_finger[i] = True
                 if (
                     body1_name == self._target_body[i]
-                    and c.geom2 in self.l_finger_geom_ids[i]
+                    and c.geom2 in self.l_finger_geom_ids[arm]
                 ):
                     touch_left_finger[i] = True
 
                 if (
-                    c.geom1 in self.r_finger_geom_ids[i]
+                    c.geom1 in self.r_finger_geom_ids[arm]
                     and body2_name == self._target_body[i]
                 ):
                     touch_right_finger[i] = True
                 if (
                     body1_name == self._target_body[i]
-                    and c.geom2 in self.r_finger_geom_ids[i]
+                    and c.geom2 in self.r_finger_geom_ids[arm]
                 ):
                     touch_right_finger[i] = True
 

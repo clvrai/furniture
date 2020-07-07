@@ -169,11 +169,11 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
                 and "r_gripper" not in self._init_qpos
                 and "qpos" in self._init_qpos
             ):
-                self.sim.data.qpos[self._ref_joint_pos_indexes] = self._init_qpos[
+                self.sim.data.qpos[self._ref_joint_pos_indexes["right"]] = self._init_qpos[
                     "qpos"
                 ]
                 self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes
+                    self._ref_gripper_joint_pos_indexes["right"]
                 ] = self._init_qpos["l_gripper"]
 
         # enable robot collision

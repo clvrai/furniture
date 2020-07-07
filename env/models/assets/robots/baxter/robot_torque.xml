@@ -62,7 +62,7 @@
                 </body>
                 <body name="head" pos="0.06 0 0.686">
                     <inertial pos="0 0 0" quat="0.339345 0.850736 -0.347392 0.201027" mass="0.547767" diaginertia="0.00474065 0.00461087 0.00199949" />
-                    <joint limited="true" damping="0" armature=".01" name="head_pan" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" />
+                    <!-- <joint limited="true" damping="0" armature=".01" name="head_pan" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.5708 1.5708" /> -->
                     <geom name="head_h0_visual" margin="0.001" class="viz" rgba="0.2 0.2 0.2 1" mesh="H0" />
                     <body name="screen" pos="0.1227 0 0" quat="0.453099 0.542864 0.542864 0.453099">
                         <inertial pos="0 0 0" quat="0.995785 0.0113501 -0.000390852 0.0910132" mass="0.440171" diaginertia="0.0040484 0.00275826 0.00150834" />
@@ -175,21 +175,21 @@
     </worldbody>
     <actuator>
 
-        <motor joint="right_s0" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="right_s1" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="right_e0" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="right_e1" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="right_w0" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="right_w1" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="right_w2" ctrlrange="-5.0 5.0" ctrllimited="true" />
+        <motor name="torq_right_j0" joint="right_s0" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_right_j1" joint="right_s1" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_right_j2" joint="right_e0" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_right_j3" joint="right_e1" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_right_j4" joint="right_w0" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_right_j5" joint="right_w1" ctrlrange="-12.0 12.0" ctrllimited="true" />
+        <motor name="torq_right_j6" joint="right_w2" ctrlrange="-12.0 12.0" ctrllimited="true" />
 
-        <motor joint="left_s0" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="left_s1" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="left_e0" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="left_e1" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="left_w0" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="left_w1" ctrlrange="-5.0 5.0" ctrllimited="true" />
-        <motor joint="left_w2" ctrlrange="-5.0 5.0" ctrllimited="true" />
+        <motor name="torq_left_j0" joint="left_s0" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_left_j1" joint="left_s1" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_left_j2" joint="left_e0" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_left_j3" joint="left_e1" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_left_j4" joint="left_w0" ctrlrange="-80.0 80.0" ctrllimited="true" />
+        <motor name="torq_left_j5" joint="left_w1" ctrlrange="-12.0 12.0" ctrllimited="true" />
+        <motor name="torq_left_j6" joint="left_w2" ctrlrange="-12.0 12.0" ctrllimited="true" />
 
     </actuator>
 </mujoco>

@@ -96,10 +96,12 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         return pos_init, quat_init
 
     def _ctrl_reward(self, action):
-        if self._config.control_type == "ik":
+        if self._config.control_type in ["ik", "position_orientation"]:
+            a = np.linalg.norm(action[:12])
+        elif self._config.control_type in ["position"]:
             a = np.linalg.norm(action[:6])
         elif self._config.control_type == "impedance":
-            a = np.linalg.norm(action[:7])
+            a = np.linalg.norm(action[:14])
 
         ctrl_penalty = -self._env_config["ctrl_penalty"] * a
         return ctrl_penalty
