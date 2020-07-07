@@ -36,8 +36,8 @@ def add_argument(parser):
     parser.add_argument("--peg_to_point_rew_coeff", type=float, default=5)
     parser.add_argument("--success_rew", type=float, default=1)
     parser.add_argument("--control_penalty_coeff", type=float, default=0.001)
-    parser.add_argument("--goal_pos_threshold", type=float, default=0.001)
-    parser.add_argument("--start_pos_threshold", type=float, default=0.001)
+    parser.add_argument("--goal_pos_threshold", type=float, default=0.02)
+    parser.add_argument("--start_pos_threshold", type=float, default=0.02)
     parser.add_argument("--goal_quat_threshold", type=float, default=0.1)
     parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
 
