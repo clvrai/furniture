@@ -20,7 +20,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def __init__(self, config):
         self._config = config
         self._task = config.task
-        self._name = "Push" + self._task.capitalize()
+        self.name = "Push" + self._task.capitalize()
         self._robot_ob = config.robot_ob
         self._record_demo = config.record_demo
         self._reversible_state_type = config.reversible_state_type
@@ -29,6 +29,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._sparse_remove_rew = config.use_aot or config.sparse_remove_rew
         self._obj_to_point_coeff = config.obj_to_point_coeff
         self._use_diff_rew = config.use_diff_rew
+        self._max_episode_steps = config.max_episode_steps
 
         # Note: self._goal is the same for the forward and reset tasks. Only
         # the reward function changes.
@@ -82,7 +83,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self.do_simulation(a, self.frame_skip)
         done = False
         obs = self._get_obs()
-        # normalize rewards by max episode length
+        self._episode_length += 1
         if self._task == "forward":
             if self._use_diff_rew:
                 r, info = self._forward_diff_reward(obs, a)
@@ -97,6 +98,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             self._demo.add(ob=obs, action=a, reward=r)
         info["reward"] = r
         info["episode_success"] = int(self._success)
+        self._episode_reward += r
+        if self._config.algo in ["ppo", "ddpg"]:
+            done = self._episode_length == self._max_episode_steps
         if self._success:
             done = True
         return obs, r, done, info
@@ -133,18 +137,14 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         Switch to reset mode. Init reset reward
         """
         self._task = "reset"
-        self._success = False
-        self._prev_push_dist = np.linalg.norm(self.get_body_com("object") - self._goal)
-        self._prev_pull_dist = np.linalg.norm(self.get_body_com("object") - self._start)
+        self._reset_episodic_vars()
 
     def begin_forward(self):
         """
         Switch to forward mode. Init forward reward
         """
         self._task = "forward"
-        self._success = False
-        self._prev_push_dist = np.linalg.norm(self.get_body_com("object") - self._goal)
-        self._prev_pull_dist = np.linalg.norm(self.get_body_com("object") - self._start)
+        self._reset_episodic_vars()
 
     def _reset_episodic_vars(self):
         """
@@ -153,6 +153,8 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._success = False
         self._prev_push_dist = np.linalg.norm(self.get_body_com("object") - self._goal)
         self._prev_pull_dist = np.linalg.norm(self.get_body_com("object") - self._start)
+        self._episode_length = 0
+        self._episode_reward = 0
         if self._record_demo:
             self._demo.reset()
 
@@ -221,6 +223,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         dist_diff = self._prev_push_dist - obj_to_goal_dist
         obj_to_goal_rew = dist_diff * self._obj_to_point_coeff
+        self._success = obj_to_goal_dist < self._goal_pos_threshold
 
         control_dist = np.linalg.norm(a)
         control_reward = self._reward_fn(control_dist, bound=3.464) * 0.01
@@ -244,6 +247,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         dist_diff = self._prev_pull_dist - obj_to_start_dist
         obj_to_start_rew = dist_diff * self._obj_to_point_coeff
+        self._success = obj_to_start_dist < self._start_pos_threshold
 
         control_dist = np.linalg.norm(a)
         control_reward = self._reward_fn(control_dist, bound=3.464) * 0.01
@@ -266,6 +270,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         control_dist = np.linalg.norm(a)
+        self._success = obj_to_goal_dist < self._goal_pos_threshold
 
         forward_reward = self._reward_fn(obj_to_goal_dist)
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
@@ -296,6 +301,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         control_dist = np.linalg.norm(a)
+        self._success = obj_to_start_dist < self._start_pos_threshold
 
         reset_reward = self._reward_fn(obj_to_start_dist)
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)

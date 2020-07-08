@@ -37,7 +37,7 @@ class Trainer(object):
         """
         self._config = config
         self._is_chef = config.is_chef
-        self._is_rl = config.algo in ["ppo", "sac"]
+        self._is_rl = config.algo in ["ppo", "sac", "ddpg"]
 
         # create environment
         self._env_eval = (
@@ -271,7 +271,7 @@ class Trainer(object):
         # decide how many episodes or how long rollout to collect
         if self._config.algo == "ppo":
             runner = self._runner.run(every_steps=self._config.rollout_length)
-        elif self._config.algo == "sac":
+        elif self._config.algo in ["ddpg", "sac"]:
             runner = self._runner.run(every_steps=1)
 
         st_time = time()

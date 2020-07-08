@@ -5,20 +5,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from rl.dataset import ReplayBuffer, RandomSampler
 from rl.base_agent import BaseAgent
+from rl.dataset import RandomSampler, ReplayBuffer
 from util.logger import logger
 from util.mpi import mpi_average
-from util.pytorch import (
-    optimizer_cuda,
-    count_parameters,
-    compute_gradient_norm,
-    compute_weight_norm,
-    sync_networks,
-    sync_grads,
-    obs2tensor,
-    to_tensor,
-)
+from util.pytorch import (compute_gradient_norm, compute_weight_norm,
+                          count_parameters, obs2tensor, optimizer_cuda,
+                          sync_grads, sync_networks, to_tensor)
 
 
 class PPOAgent(BaseAgent):
@@ -37,11 +30,8 @@ class PPOAgent(BaseAgent):
         self._critic_optim = optim.Adam(self._critic.parameters(), lr=config.lr_critic)
 
         sampler = RandomSampler()
-        self._buffer = ReplayBuffer(
-            ["ob", "ac", "done", "rew", "ret", "adv", "ac_before_activation"],
-            config.buffer_size,
-            sampler.sample_func,
-        )
+        buffer_keys = ["ob", "ac", "done", "rew", "ret", "adv", "ac_before_activation"]
+        self._buffer = ReplayBuffer(config, buffer_keys, sampler.sample_func,)
 
         if config.is_chef:
             logger.info("Creating a PPO agent")

@@ -68,6 +68,8 @@ def run(config):
     # build a trainer
     if config.algo == "bc":
         trainer = Trainer(config)
+    elif config.algo in ["ppo", "ddpg"]:
+        trainer = Trainer(config)
     else:
         trainer = ResetTrainer(config)
     if config.is_train:
