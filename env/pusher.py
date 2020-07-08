@@ -171,8 +171,13 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         return ob
 
     def reset_model(self):
+        # qpos is 3 robot joints, 2 object joints
         qpos = self.init_qpos
         qpos[:] = 0
+        qpos[:3] = [-0.5, 1.2, 0]  # shoulder, elbox, wrist
+        qpos[:3] += np.random.uniform(-0.05, 0.05)
+
+        # object noise
         qpos[-2:] += self.np_random.uniform(-0.05, 0.05, 2)
         qvel = self.init_qvel + self.np_random.uniform(
             low=-0.005, high=0.005, size=self.model.nv
@@ -371,7 +376,8 @@ if __name__ == "__main__":
     ob = env.reset()
     # import ipdb; ipdb.set_trace()
     for _ in range(10000):
-        action = env.action_space.sample()
-        ob, rew, done, info = env.step(action)
+        # action = env.action_space.sample()
+        # ob, rew, done, info = env.step(action)
         env.render()
-        time.sleep(0.01)
+        env.reset()
+        # time.sleep(1)
