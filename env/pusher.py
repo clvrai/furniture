@@ -180,7 +180,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         qpos[:3] += np.random.uniform(-0.05, 0.05)
 
         # object noise
-        qpos[-2:] += self.np_random.uniform(-0.015, 0.015, 2)
+        # qpos[-2:] += [0, -0.4]
+        r = self._start_pos_threshold
+        qpos[-2:] += self.np_random.uniform(-r, r, 2)
         qvel = self.init_qvel + self.np_random.uniform(
             low=-0.005, high=0.005, size=self.model.nv
         )
