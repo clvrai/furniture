@@ -49,7 +49,7 @@
         </body>
 
       <!-- If you change the position, change the offset in pusher.py/reset_model() -->
-      <body name="object" pos="0.35 -0.35 -0.275" >
+      <body name="object" pos="0.3 -0.15 -0.275" >
         <geom rgba="1 1 1 0" type="sphere" size="0.05 0.05 0.05" density="0.00001" conaffinity="0"/>
         <geom rgba="1 1 1 1" type="cylinder" size="0.05 0.05 0.05" density="0.00001" contype="1" conaffinity="0"/>
         <joint name="obj_slidey" type="slide" pos="0 0 0" axis="0 1 0" range="-10.3213 10.3" damping="0.5"/>

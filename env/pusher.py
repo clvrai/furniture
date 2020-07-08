@@ -174,11 +174,11 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         # qpos is 3 robot joints, 2 object joints
         qpos = self.init_qpos
         qpos[:] = 0
-        qpos[:3] = [-0.5, 1.2, 0]  # shoulder, elbox, wrist
+        qpos[:3] = [0.3, 1.2, 0]  # shoulder, elbox, wrist
         qpos[:3] += np.random.uniform(-0.05, 0.05)
 
         # object noise
-        qpos[-2:] += self.np_random.uniform(-0.05, 0.05, 2)
+        qpos[-2:] += self.np_random.uniform(-0.025, 0.025, 2)
         qvel = self.init_qvel + self.np_random.uniform(
             low=-0.005, high=0.005, size=self.model.nv
         )
