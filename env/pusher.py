@@ -269,9 +269,6 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def _forward_reward(self, s, a):
         del s
         info = {}
-        if not hasattr(self, "_goal"):
-            print("Warning: goal or start has not been set")
-            return (0, 0)
         obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
         obj_to_goal = self.get_body_com("object")[:2] - self._goal
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
@@ -285,14 +282,16 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         control_reward = self._reward_fn(control_dist, bound=3.464)
         forward_reward_vec = [forward_reward, obj_to_arm_reward, control_reward]
 
-        reward_coefs = (0.5, 0.375, 0.125)
+        reward_coefs = (0.5, 0.25, 0.05)
         forward_shaped_reward = sum(
             [coef * r for (coef, r) in zip(reward_coefs, forward_reward_vec)]
         )
         assert 0 <= forward_shaped_reward <= 1
+        if self._success:
+            forward_shaped_reward += self._config.success_rew
         info["forward_reward"] = forward_reward * 0.5
-        info["obj_to_arm_reward"] = obj_to_arm_reward * 0.375
-        info["control_penalty"] = control_reward * 0.125
+        info["obj_to_arm_reward"] = obj_to_arm_reward * 0.25
+        info["control_penalty"] = control_reward * 0.05
         info["obj_to_arm_dist"] = obj_to_arm_dist
         info["obj_to_goal_dist"] = obj_to_goal_dist
         return forward_shaped_reward, info

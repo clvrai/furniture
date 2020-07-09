@@ -30,7 +30,7 @@ def add_argument(parser):
 
     # reward config
     parser.add_argument("--use_diff_rew", type=str2bool, default=False)
-    parser.add_argument("--success_rew", type=float, default=1)
+    parser.add_argument("--success_rew", type=float, default=100)
     parser.add_argument("--control_penalty_coeff", type=float, default=0.001)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.03)
     parser.add_argument("--start_pos_threshold", type=float, default=0.03)
