@@ -30,12 +30,13 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._obj_to_point_coeff = config.obj_to_point_coeff
         self._use_diff_rew = config.use_diff_rew
         self._max_episode_steps = config.max_episode_steps
+        self._frame_skip = config.frame_skip
 
         # Note: self._goal is the same for the forward and reset tasks. Only
         # the reward function changes.
         envs_folder = os.path.dirname(os.path.abspath(__file__))
         xml_filename = os.path.join(envs_folder, "models/assets/pusher.xml")
-        self._initialize_mujoco(xml_filename, 5)
+        self._initialize_mujoco(xml_filename, self._frame_skip)
         (self._goal, self._start) = self._get_goal_start()
 
     def _initialize_mujoco(self, model_path, frame_skip):

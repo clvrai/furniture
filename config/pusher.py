@@ -32,6 +32,8 @@ def add_argument(parser):
         "--body_noise", type=float, default=0.1, help="Adds U(-r,r) to the body starting qpos"
     )
 
+    parser.add_argument("--frame_skip", type=float, default=5)
+
     # reward config
     parser.add_argument("--use_diff_rew", type=str2bool, default=False)
     parser.add_argument("--success_rew", type=float, default=1)
