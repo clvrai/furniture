@@ -152,8 +152,12 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         Resets episodic variables
         """
         self._success = False
-        self._prev_push_dist = np.linalg.norm(self.get_body_com("object")[:2] - self._goal)
-        self._prev_pull_dist = np.linalg.norm(self.get_body_com("object")[:2] - self._start)
+        self._prev_push_dist = np.linalg.norm(
+            self.get_body_com("object")[:2] - self._goal
+        )
+        self._prev_pull_dist = np.linalg.norm(
+            self.get_body_com("object")[:2] - self._start
+        )
         self._episode_length = 0
         self._episode_reward = 0
         if self._record_demo:

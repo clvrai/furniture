@@ -22,15 +22,9 @@ def add_argument(parser):
         "--lfd", type=str2bool, default=False, help="use demonstrations to learn task",
     )
 
-    parser.add_argument(
-        "--action_noise", type=float, default=None, help="Adds U(-r,r) to the action"
-    )
-    parser.add_argument(
-        "--wrist_noise", type=float, default=0.1, help="Adds U(-r,r) to the wrist starting qpos"
-    )
-    parser.add_argument(
-        "--body_noise", type=float, default=0.1, help="Adds U(-r,r) to the body starting qpos"
-    )
+    parser.add_argument("--action_noise", type=float, default=None)
+    parser.add_argument("--wrist_noise", type=float, default=0.1)
+    parser.add_argument("--body_noise", type=float, default=0.1)
 
     parser.add_argument("--frame_skip", type=float, default=5)
 
