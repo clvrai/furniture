@@ -26,7 +26,7 @@ def add_argument(parser):
     parser.add_argument("--wrist_noise", type=float, default=0.1)
     parser.add_argument("--body_noise", type=float, default=0.1)
 
-    parser.add_argument("--frame_skip", type=float, default=5)
+    parser.add_argument("--frame_skip", type=int, default=5)
 
     # reward config
     parser.add_argument("--use_diff_rew", type=str2bool, default=False)
