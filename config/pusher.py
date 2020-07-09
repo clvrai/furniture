@@ -31,6 +31,7 @@ def add_argument(parser):
     # reward config
     parser.add_argument("--use_diff_rew", type=str2bool, default=False)
     parser.add_argument("--success_rew", type=float, default=100)
+    parser.add_argument("--reset_success_rew", type=float, default=100)
     parser.add_argument("--control_penalty_coeff", type=float, default=0.001)
     parser.add_argument("--goal_pos_threshold", type=float, default=0.03)
     parser.add_argument("--start_pos_threshold", type=float, default=0.03)
@@ -38,6 +39,10 @@ def add_argument(parser):
     parser.add_argument("--sparse_remove_rew", type=str2bool, default=False)
     parser.add_argument("--obj_to_point_coeff", type=float, default=10)
     parser.add_argument("--reset_obj_to_point_coeff", type=float, default=10)
+
+    parser.add_argument("--lnt_obj_to_goal_coeff", type=float, default=0.5)
+    parser.add_argument("--lnt_obj_to_arm_rew_coeff", type=float, default=0.25)
+    parser.add_argument("--lnt_control_rew_coeff", type=float, default=0.05)
 
     # demo loading
     parser.add_argument(

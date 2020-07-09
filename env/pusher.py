@@ -31,6 +31,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         self._use_diff_rew = config.use_diff_rew
         self._max_episode_steps = config.max_episode_steps
         self._frame_skip = config.frame_skip
+        self._lnt_obj_to_goal_coeff = config.lnt_obj_to_goal_coeff
+        self._lnt_obj_to_arm_rew_coeff = config.lnt_obj_to_arm_rew_coeff
+        self._lnt_control_rew_coeff = config.lnt_control_rew_coeff
 
         # Note: self._goal is the same for the forward and reset tasks. Only
         # the reward function changes.
@@ -280,18 +283,17 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
         # The control_dist is between 0 and sqrt(2^2 + 2^2 + 2^2) = 3.464
         control_reward = self._reward_fn(control_dist, bound=3.464)
-        forward_reward_vec = [forward_reward, obj_to_arm_reward, control_reward]
 
-        reward_coefs = (0.5, 0.25, 0.05)
-        forward_shaped_reward = sum(
-            [coef * r for (coef, r) in zip(reward_coefs, forward_reward_vec)]
-        )
+        forward_reward *= self._lnt_obj_to_goal_coeff
+        obj_to_arm_reward *= self._lnt_obj_to_arm_rew_coeff
+        control_reward *= self._lnt_control_rew_coeff
+        forward_shaped_reward = forward_reward + obj_to_arm_reward + control_reward
         assert 0 <= forward_shaped_reward <= 1
         if self._success:
             forward_shaped_reward += self._config.success_rew
-        info["forward_reward"] = forward_reward * 0.5
-        info["obj_to_arm_reward"] = obj_to_arm_reward * 0.25
-        info["control_penalty"] = control_reward * 0.05
+        info["forward_reward"] = forward_reward
+        info["obj_to_arm_reward"] = obj_to_arm_reward
+        info["control_penalty"] = control_reward
         info["obj_to_arm_dist"] = obj_to_arm_dist
         info["obj_to_goal_dist"] = obj_to_goal_dist
         return forward_shaped_reward, info
@@ -313,8 +315,6 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
         # The control_dist is between 0 and sqrt(2^2 + 2^2 + 2^2) = 3.464
         control_reward = self._reward_fn(control_dist, bound=3.464)
-        reset_reward_vec = [reset_reward, obj_to_arm_reward, control_reward]
-        reward_coefs = (0.5, 0.375, 0.125)
 
         if self._sparse_remove_rew:
             success_reward = 0
@@ -326,14 +326,17 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             reset_shaped_reward = success_reward + 0.125 * control_reward
             info["success_reward"] = success_reward
         else:
-            reset_shaped_reward = sum(
-                [coef * r for (coef, r) in zip(reward_coefs, reset_reward_vec)]
-            )
+            reset_reward *= self._lnt_obj_to_goal_coeff
+            obj_to_arm_reward *= self._lnt_obj_to_arm_rew_coeff
+            control_reward *= self._lnt_control_rew_coeff
+            reset_shaped_reward = reset_reward + obj_to_arm_reward + control_reward
             assert 0 <= reset_shaped_reward <= 1
+            if self._success:
+                reset_shaped_reward += self._config.reset_success_rew
 
-        info["reset_reward"] = reset_reward * 0.5
-        info["obj_to_arm_reward"] = obj_to_arm_reward * 0.375
-        info["control_penalty"] = control_reward * 0.125
+        info["reset_reward"] = reset_reward
+        info["obj_to_arm_reward"] = obj_to_arm_reward
+        info["control_penalty"] = control_reward
         info["obj_to_arm_dist"] = obj_to_arm_dist
         info["obj_to_start_dist"] = obj_to_start_dist
         return reset_shaped_reward, info
