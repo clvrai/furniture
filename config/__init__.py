@@ -170,6 +170,8 @@ def create_parser(env="") -> argparse.ArgumentParser:
     parser.add_argument(
         "--reset_reward_scale", type=float, default=None, help="reward scale"
     )
+    parser.add_argument("--target_entropy", type=float, default=None)
+
 
     # ppo
     parser.add_argument("--clip_param", type=float, default=0.2)
