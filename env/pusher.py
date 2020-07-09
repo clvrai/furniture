@@ -71,8 +71,8 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         qpos[:] = 0
         qvel[:] = 0
         self.set_state(qpos, qvel)
-        goal = self.get_body_com("goal").copy()
-        start = self.get_body_com("object").copy()
+        goal = self.get_body_com("goal").copy()[:2]
+        start = self.get_body_com("object").copy()[:2]
         return (goal, start)
 
     def step(self, a) -> Tuple[dict, float, bool, dict]:
@@ -115,7 +115,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
                     self.get_body_com("tips_arm")[:2],
                 ]
             ),
-            "object_ob": self.get_body_com("object").copy(),
+            "object_ob": self.get_body_com("object").copy()[:2],
         }
         return obs
 
@@ -152,8 +152,8 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         Resets episodic variables
         """
         self._success = False
-        self._prev_push_dist = np.linalg.norm(self.get_body_com("object") - self._goal)
-        self._prev_pull_dist = np.linalg.norm(self.get_body_com("object") - self._start)
+        self._prev_push_dist = np.linalg.norm(self.get_body_com("object")[:2] - self._goal)
+        self._prev_pull_dist = np.linalg.norm(self.get_body_com("object")[:2] - self._start)
         self._episode_length = 0
         self._episode_reward = 0
         if self._record_demo:
@@ -182,12 +182,12 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
         # object noise
         # qpos[-2:] += [0, -0.4]
-        r = self._start_pos_threshold
+        r = 0.021
         qpos[-2:] += self.np_random.uniform(-r, r, 2)
         qvel = self.init_qvel + self.np_random.uniform(
             low=-0.005, high=0.005, size=self.model.nv
         )
-        qvel[-4:] = 0
+        qvel[-2:] = 0
 
         # For the reset task, flip the initial positions of the goal and puck
         # if self._task == "reset":
@@ -205,8 +205,8 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             loss = delta * (x - 0.5 * delta)
         return loss
 
-    def _reward_fn(self, x, bound=0.7):
-        # Using bound = 0.7 because that's the initial puck-goal distance.
+    def _reward_fn(self, x, bound=0.42):
+        # Using bound = 0.4 because that's the initial puck-goal distance.
         x = np.clip(x, 0, bound)
         loss = self._huber(x, bound)
         loss /= self._huber(bound, bound)
@@ -220,9 +220,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         rew = 0
         info = {}
-        obj_to_arm = self.get_body_com("object") - self.get_body_com("tips_arm")
+        obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
-        obj_to_goal = self.get_body_com("object") - self._goal
+        obj_to_goal = self.get_body_com("object")[:2] - self._goal
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         dist_diff = self._prev_push_dist - obj_to_goal_dist
         obj_to_goal_rew = dist_diff * self._obj_to_point_coeff
@@ -244,9 +244,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         rew = 0
         info = {}
-        obj_to_arm = self.get_body_com("object") - self.get_body_com("tips_arm")
+        obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
-        obj_to_start = self.get_body_com("object") - self._start
+        obj_to_start = self.get_body_com("object")[:2] - self._start
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         dist_diff = self._prev_pull_dist - obj_to_start_dist
         obj_to_start_rew = dist_diff * self._obj_to_point_coeff
@@ -268,8 +268,8 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if not hasattr(self, "_goal"):
             print("Warning: goal or start has not been set")
             return (0, 0)
-        obj_to_arm = self.get_body_com("object") - self.get_body_com("tips_arm")
-        obj_to_goal = self.get_body_com("object") - self._goal
+        obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
+        obj_to_goal = self.get_body_com("object")[:2] - self._goal
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         control_dist = np.linalg.norm(a)
@@ -299,8 +299,8 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if not hasattr(self, "_goal"):
             print("Warning: goal or start has not been set")
             return (0, 0)
-        obj_to_arm = self.get_body_com("object") - self.get_body_com("tips_arm")
-        obj_to_start = self.get_body_com("object") - self._start
+        obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
+        obj_to_start = self.get_body_com("object")[:2] - self._start
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         control_dist = np.linalg.norm(a)
@@ -348,7 +348,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         Object ob: top and bottom pos of peg
         Robot ob: 10d of qpos, qvel, and robot
         """
-        ob_space = {"robot_ob": [8], "object_ob": [3]}
+        ob_space = {"robot_ob": [8], "object_ob": [2]}
 
         return ob_space
 
@@ -363,7 +363,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     @property
     def reversible_space(self):
         if self._reversible_state_type == "obj_position":
-            return [6]  # peg positions
+            return [2]  # peg positions
 
     def get_reverse(self, ob):
         """
@@ -385,8 +385,10 @@ if __name__ == "__main__":
     ob = env.reset()
     # import ipdb; ipdb.set_trace()
     for _ in range(10000):
+        action = np.zeros(env.dof)
         # action = env.action_space.sample()
-        # ob, rew, done, info = env.step(action)
+        ob, rew, done, info = env.step(action)
+        # print(env.get_body_com("object"))
         env.render()
         env.reset()
         # time.sleep(1)
