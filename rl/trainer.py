@@ -269,9 +269,9 @@ class Trainer(object):
             ep_info = defaultdict(list)
 
         # decide how many episodes or how long rollout to collect
-        if self._config.algo == "ppo":
+        if self._config.algo in ["ddpg", "ppo"]:
             runner = self._runner.run(every_steps=self._config.rollout_length)
-        elif self._config.algo in ["ddpg", "sac"]:
+        elif self._config.algo in ["sac"]:
             runner = self._runner.run(every_steps=1)
 
         st_time = time()
