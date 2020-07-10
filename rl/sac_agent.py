@@ -167,11 +167,6 @@ class SACAgent(BaseAgent):
         for _ in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions)
-            if self._share_buffer and len(self._other_buffer) > 0:
-                o_transitions = self._other_buffer.sample(self._config.batch_size)
-                o_transitions["rew"] = o_transitions["other_agent_rew"]
-                self._update_network(o_transitions)
-
             self._soft_update_target_network(
                 self._critic1_target, self._critic1, self._config.polyak
             )
