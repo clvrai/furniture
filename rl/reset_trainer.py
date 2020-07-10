@@ -138,6 +138,12 @@ class ResetTrainer(Trainer):
                     safe_act += 1
                     reset_steps += len(r_rollout["ac"])
                     reset_rollouts.append(r_rollout)
+                    if not reset_success:
+                        self._reset_fail += 1
+                        if self._reset_fail % cfg.max_failed_reset == 0:
+                            self._reset_fail = 0
+                            self._total_reset += 1
+                            ob = env.reset(is_train=True)
 
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
@@ -214,7 +220,7 @@ class ResetTrainer(Trainer):
         Repeat
         """
         cfg = self._config
-        total_reset = reset_fail = 0
+        self._total_reset = self._reset_fail = 0
         env = self._env
 
         # load checkpoint
@@ -248,7 +254,7 @@ class ResetTrainer(Trainer):
                     train_info.update({"update_iter": self._update_iter})
                     self._log_train(self._step, train_info, ep_info, "forward")
             if cfg.status_quo_baseline:
-                total_reset += 1
+                self._total_reset += 1
                 init_ob = env.reset(is_train=True)
                 r_train_info = {}
                 r_ep_info = {}
@@ -274,17 +280,17 @@ class ResetTrainer(Trainer):
                 init_ob = r_rollout["ob"][-1]
                 # 4. Hard Reset if necessary
                 if not reset_success:
-                    reset_fail += 1
-                    if reset_fail % cfg.max_failed_reset == 0:
-                        reset_fail = 0
-                        total_reset += 1
+                    self._reset_fail += 1
+                    if self._reset_fail % cfg.max_failed_reset == 0:
+                        self._reset_fail = 0
+                        self._total_reset += 1
                         init_ob = env.reset(is_train=True)
 
             if self._is_chef:
                 if not cfg.status_quo_baseline:
                     self._pbar.update(step_per_batch)
                 if self._update_iter % cfg.log_interval == 0:
-                    r_ep_info.update({"total_reset": total_reset})
+                    r_ep_info.update({"total_reset": self._total_reset})
                     self._log_train(self._step, r_train_info, r_ep_info, "reset")
 
             self._evaluate(record=True)
