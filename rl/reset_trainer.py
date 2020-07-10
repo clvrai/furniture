@@ -55,33 +55,33 @@ class ResetTrainer(Trainer):
         self._env = make_env(config.env, config)
 
     def _build_agents(self):
-        config = self._config
+        cfg = self._config
         ob_space = self._env.observation_space
         ac_space = self._env.action_space
         rev_space = self._env.reversible_space
 
-        f_actor, f_critic = get_actor_critic_by_name(config.policy, config.algo)
-        self._agent: SACAgent = get_agent_by_name(config.algo)(
-            config, ob_space, ac_space, f_actor, f_critic
+        f_actor, f_critic = get_actor_critic_by_name(cfg.policy, cfg.algo)
+        self._agent: SACAgent = get_agent_by_name(cfg.algo)(
+            cfg, ob_space, ac_space, f_actor, f_critic
         )
 
         self._aot_agent: AoTAgent = None
         rew = None
-        if config.use_aot:
+        if cfg.use_aot:
             self._aot_agent = AoTAgent(
-                config, rev_space, self._agent._buffer, self._env.get_reverse
+                cfg, rev_space, self._agent._buffer, self._env.get_reverse
             )
             rew = self._aot_agent.rew
 
-        actor, critic = get_actor_critic_by_name(config.policy, config.algo)
-        self._reset_agent: SACAgent = get_agent_by_name(config.algo)(
-            config, ob_space, ac_space, actor, critic, True, rew
+        actor, critic = get_actor_critic_by_name(cfg.policy, cfg.algo)
+        self._reset_agent: SACAgent = get_agent_by_name(cfg.algo)(
+            cfg, ob_space, ac_space, actor, critic, True, rew
         )
-        if config.share_buffer:
+        if cfg.share_buffer:
             self._reset_agent.share_buffer(self._agent)
-        if config.reset_kl_penalty:
+        if cfg.reset_kl_penalty:
             self._reset_agent.set_forward_actor(self._agent._actor)
-        if config.safe_forward:
+        if cfg.safe_forward or cfg.safe_abort:
             self._agent.set_reset_critic(
                 self._reset_agent._critic1_target, self._reset_agent._critic2_target
             )
@@ -122,9 +122,20 @@ class ResetTrainer(Trainer):
         env.begin_forward()
         while not done:  # env return done if time limit is reached or task done
             ac, _ = self._agent.act(ob, is_train=True)
-            if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
+            if cfg.safe_forward and not self._agent.is_safe_action(ob, ac):
                 ac, _ = self._agent.safe_act(ob, is_train=True)
                 safe_act += 1
+            elif cfg.safe_abort and not self._agent.is_safe_action(ob, ac):
+                r_rollout, r_ep_info = self._reset_rollout(ob)
+                reset_success = r_ep_info["episode_success"]
+                self._reset_agent.store_episode(r_rollout)
+                if cfg.use_aot and cfg.aot_success_buffer:
+                    self._aot_agent.store_episode(r_rollout, success=reset_success)
+                self._update_normalizer(r_rollout, self._reset_agent)
+                env.begin_forward()
+                ob = r_rollout["ob"][-1]
+                safe_act += 1
+
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
                 reset_rew = env.reset_reward(ob, ac)
@@ -219,8 +230,8 @@ class ResetTrainer(Trainer):
             # 1. Run and train forward policy
             rollout, ep_info = self._forward_rollout(init_ob)
             self._agent.store_episode(rollout)
-            train_info = self._agent.train()
             self._update_normalizer(rollout, self._agent)
+            train_info = self._agent.train()
             step_per_batch = mpi_sum(len(rollout["ac"]))
             self._step += step_per_batch
             if self._is_chef:
@@ -247,8 +258,8 @@ class ResetTrainer(Trainer):
                 self._reset_agent.store_episode(r_rollout)
                 if cfg.use_aot and cfg.aot_success_buffer:
                     self._aot_agent.store_episode(r_rollout, success=reset_success)
-                r_train_info = self._reset_agent.train()
                 self._update_normalizer(r_rollout, self._reset_agent)
+                r_train_info = self._reset_agent.train()
                 step_per_batch = mpi_sum(len(r_rollout["ac"]))
                 self._step += step_per_batch
 
@@ -277,11 +288,9 @@ class ResetTrainer(Trainer):
         """
         Runs cfg.num_eval rollouts of reset rl.
         """
-        if not (
-            self._is_chef and self._update_iter % self._config.evaluate_interval == 0
-        ):
-            return
         cfg = self._config
+        if not (self._is_chef and self._update_iter % cfg.evaluate_interval == 0):
+            return
         ep_info_history = defaultdict(list)
         r_ep_info_history = defaultdict(list)
 

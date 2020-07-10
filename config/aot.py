@@ -38,5 +38,6 @@ def add_argument(parser):
 
     # safety config
     parser.add_argument("--safe_forward", type=str2bool, default=False)
+    parser.add_argument("--safe_abort", type=str2bool, default=False)
     parser.add_argument("--safety_threshold", type=int, default=float("-inf"))
     parser.add_argument("--num_safety_actions", type=int, default=10)
