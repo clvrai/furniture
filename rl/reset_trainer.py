@@ -244,7 +244,7 @@ class ResetTrainer(Trainer):
                 # 3. Run reset agent
                 r_init_ob = rollout["ob"][-1]
                 r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
-                reset_success = np.max(r_ep_info["episode_success"])
+                reset_success = r_ep_info["episode_success"]
                 self._reset_agent.store_episode(r_rollout)
                 if cfg.use_aot and cfg.aot_success_buffer:
                     self._aot_agent.store_episode(r_rollout, success=reset_success)
