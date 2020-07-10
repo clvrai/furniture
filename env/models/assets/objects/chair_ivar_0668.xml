@@ -1,10 +1,10 @@
 <mujoco model="chair_ivar_0668">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_ivar_0668/0.stl" name="part0" scale="0.000576 0.000576 0.000576" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_ivar_0668/4.stl" name="part4" scale="0.000576 0.000576 0.000576" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_ivar_0668/3.stl" name="part3" scale="0.000576 0.000576 0.000576" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_ivar_0668/2.stl" name="part2" scale="0.000576 0.000576 0.000576" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_ivar_0668/1.stl" name="part1" scale="0.000576 0.000576 0.000576" />
+    <mesh file="chair_ivar_0668/0.stl" name="part0" scale="0.000576 0.000576 0.000576" />
+    <mesh file="chair_ivar_0668/4.stl" name="part4" scale="0.000576 0.000576 0.000576" />
+    <mesh file="chair_ivar_0668/3.stl" name="part3" scale="0.000576 0.000576 0.000576" />
+    <mesh file="chair_ivar_0668/2.stl" name="part2" scale="0.000576 0.000576 0.000576" />
+    <mesh file="chair_ivar_0668/1.stl" name="part1" scale="0.000576 0.000576 0.000576" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />

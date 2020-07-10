@@ -357,7 +357,7 @@ def mat2quat(rmat, precise=False):
     return q[[1, 2, 3, 0]]
 
 
-def euler2mat(euler): #assume xyz
+def euler2mat(euler):  # assume xyz
     euler = np.asarray(euler, dtype=np.float64)
     assert euler.shape[-1] == 3, "Invalid shaped euler {}".format(euler)
 
@@ -613,6 +613,7 @@ def quaternion_to_euler(x, y, z, w):
     Z = math.degrees(math.atan2(t3, t4))
     return X, Y, Z
 
+
 def euler_to_quat(rotation, quat=None):
     """ Returns a quaternion of a euler rotation """
     q1 = Quaternion(axis=[1, 0, 0], degrees=rotation[0])
@@ -692,6 +693,7 @@ def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
 
 def cos_dist(a, b):
     """ Returns cos distance between vectors @a and @b """

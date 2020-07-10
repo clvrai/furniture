@@ -1,14 +1,14 @@
 <mujoco model="bookcase_besta_0165">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/0.stl" name="part0" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/8.stl" name="part8" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/7.stl" name="part7" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/6.stl" name="part6" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/5.stl" name="part5" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/4.stl" name="part4" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/3.stl" name="part3" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/2.stl" name="part2" scale="0.00042 0.00042 0.00042" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_besta_0165/1.stl" name="part1" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/0.stl" name="part0" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/8.stl" name="part8" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/7.stl" name="part7" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/6.stl" name="part6" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/5.stl" name="part5" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/4.stl" name="part4" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/3.stl" name="part3" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/2.stl" name="part2" scale="0.00042 0.00042 0.00042" />
+    <mesh file="bookcase_besta_0165/1.stl" name="part1" scale="0.00042 0.00042 0.00042" />
   </asset>
   <equality>
     <weld active="false" body1="7_part7" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />

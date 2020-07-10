@@ -423,7 +423,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         if a is None or self._agent_type == "Cursor":
             return 0
-        ctrl_reward = -self._env_config["ctrl_penalty"] * np.square(a).sum()
+        ctrl_reward = -self._env_config["ctrl_reward"] * np.square(a).sum()
         return ctrl_reward
 
     def _set_camera_position(self, cam_id, cam_pos):
@@ -2048,7 +2048,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         if controller not in self.vr.devices:
             print("Lost track of ", controller)
             return None, None
-        pose = c.get_pose_euler()
+        # pose = c.get_pose_euler()
+        pose = c.get_pose_quaternion()
+        # match rotation in sim and vr controller
+        pose[3:] = T.euler_to_quat([0, 0, -90], pose[3:])
         state = c.get_controller_inputs()
         if pose is None or state is None:
             print("Lost track of pose ", controller)
@@ -2076,117 +2079,111 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.render()
 
         # set initial pose of controller as origin
-        origin_1, _ = self.get_vr_input("controller_1")
-        origin_2 = None
-        if self._agent_type == "Baxter":
-            origin_2, _ = self.get_vr_input("controller_2")
+        origin_vr_pos = {}
+        origin_vr_quat = {}
+        origin_sim_pos = {}
+        origin_sim_quat = {}
+        flag = {}
 
-        cursor_idx = 0
-        flag = [-1, -1]
+        def init_origin():
+            for i, arm in enumerate(self._arms):
+                origin_pose, _ = self.get_vr_input("controller_%d" % (i + 1))
+                origin_vr_pos[arm] = origin_pose[:3]
+                origin_vr_quat[arm] = origin_pose[3:]
+                origin_sim_pos[arm] = self.sim.data.get_body_xpos("%s_hand" % arm).copy()
+                origin_sim_quat[arm] = self.sim.data.get_body_xquat("%s_hand" % arm).copy()
+                flag[arm] = -1
+
+        def rel_pos(a, b):
+            return a - b
+
+        def rel_quat(a, b):
+            return list(Quaternion(a).inverse * Quaternion(b))
+
+        def get_action(pose, arm):
+            rel_vr_pos = rel_pos(origin_vr_pos[arm], pose[:3])
+            rel_vr_pos *= 10
+            # swap y, z axes
+            rel_vr_pos[1], rel_vr_pos[2] = -rel_vr_pos[2], rel_vr_pos[1]
+            rel_vr_quat = rel_quat(origin_vr_quat[arm], pose[3:])
+
+            sim_pos = self.sim.data.get_body_xpos("%s_hand" % arm)
+            sim_quat = self.sim.data.get_body_xquat("%s_hand" % arm)
+            rel_sim_pos = rel_pos(origin_sim_pos[arm], sim_pos)
+            rel_sim_quat = rel_quat(origin_sim_quat[arm], sim_quat)
+
+            action_pos = rel_pos(rel_sim_pos, rel_vr_pos)
+            action_rot = rel_quat(rel_sim_quat, rel_vr_quat)
+            action_rot = T.quaternion_to_euler(action_rot[1],
+                                               action_rot[2],
+                                               action_rot[3],
+                                               action_rot[0])
+            action_rot = np.array(action_rot)
+            # swap rotation axes
+            action_rot[1] = -action_rot[1]
+            action_rot[0], action_rot[2] = -action_rot[2], action_rot[0]
+            return action_pos, action_rot
+
         t = 0
+        init_origin()
         while True:
-            # get pose of the vr
-            p1, s1 = self.get_vr_input("controller_1")
-            if self._agent_type == "Baxter":
-                p2, s2 = self.get_vr_input("controller_2")
-
-            # check if controller is connected
-            if p1 is None or s1 is None:
-                time.sleep(0.1)
-                continue
-            if self._agent_type == "Baxter" and p2 is None or s2 is None:
-                time.sleep(0.1)
-                continue
-
-            d_p1 = p1 - origin_1
-            # clamp rotation
-            r1 = d_p1[-3:]
-            r1[np.abs(r1) < 0.0] = 0
-            d_p1[-3:] = r1
-            # remap xyz translation
-            d_p1[1], d_p1[2] = d_p1[2], d_p1[1]
-            d_p1[1] = -d_p1[1]
-            # remap xyz rotation
-            # wrist rotation is 3
-            d_p1[3] = d_p1[4]
-            if config.wrist_only:
-                d_p1[[4, 5]] = 0
-            origin_1 = p1
-
-            if self._agent_type == "Baxter":
-                d_p2 = p2 - origin_2
-                # clamp rotation
-                r2 = d_p2[-3:]
-                r2[np.abs(r2) < 0.0] = 0
-                d_p2[-3:] = r2
-                # remap xyz translation
-                d_p2[1], d_p2[2] = d_p2[2], d_p2[1]
-                d_p2[1] = -d_p2[1]
-                # remap xyz rotation
-                d_p2[3] = d_p2[4]
-                if config.wrist_only:
-                    d_p2[[4, 5]] = 0
-                origin_2 = p2
+            pose = {}
+            state = {}
+            action_pos = {}
+            action_rot = {}
+            for i, arm in enumerate(self._arms):
+                # get pose of the vr
+                pose[arm], state[arm] = self.get_vr_input("controller_%d" % (i + 1))
+                # check if controller is connected
+                if pose[arm] is None or state[arm] is None:
+                    time.sleep(0.1)
+                    continue
+                action_pos[arm], action_rot[arm] = get_action(pose[arm], arm)
 
             if config.render:
                 self.render()
 
-            action = np.zeros((8,))
-            # action_2 = np.zeros((8,))
-
-            states = [s1, s2] if self._agent_type == "Baxter" else [s1]
             reset = False
-            for cursor_idx, s in enumerate(states):
+            connect = 0
+            for arm in self._arms:
+                s = state[arm]
                 # select
                 if s["trigger"] > 0.01:
-                    flag[cursor_idx] = 1
+                    flag[arm] = 1
                 else:
-                    flag[cursor_idx] = -1
+                    flag[arm] = -1
 
                 # connect
                 if s["trackpad_pressed"] != 0:
-                    action[7] = 1
+                    connect = 1
 
                 # reset
                 if s["grip_button"] != 0:
-                    t = 0
-                    flag = [-1, -1]
-                    self.reset(config.furniture_id, config.background)
                     reset = True
                     break
 
             if reset:
+                t = 0
                 if self._record_demo:
                     self._demo.save(self.file_prefix)
+                self.reset(config.furniture_id, config.background)
+                init_origin()
                 continue
 
-            # action space is 7 dim per controller (3 xyz, 3 euler, 1 sel)
-            # and then one more dim for connect
-            if self._agent_type == "Cursor":
-                action = np.hstack(
-                    [
-                        d_p1[:6],
-                        [flag[0]],
-                        np.zeros_like(action[:6]),
-                        [flag[1], action[7]],
-                    ]
-                )
-            elif self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-                action[:6] = d_p1[:6]
-                action = action[:8]
-                action[6] = flag[0]
-            elif self._agent_type == "Baxter":
-                d_p1[:3] *= 100
-                d_p2[:3] *= 100
-                d_p1[3] = 0
-                d_p2[3] = 0
-                action = np.hstack([d_p1[:6], d_p2[:6], [flag[0], flag[1], action[7]]])
-                print("*** R: " + str(d_p1[:6]) + "  L: " + str(d_p2[:6]))
+            action_items = []
+            for arm in self._arms:
+                action_items.append(action_pos[arm])
+                action_items.append(action_rot[arm] / self._rotate_speed)
+            for arm in self._arms:
+                action_items.append([flag[arm]])
+            action_items.append([connect])
 
-            print("Take action: " + str(action[:6]))
+            action = np.hstack(action_items)
+            action = np.clip(action, -1.0, 1.0)
+
+            print("Take action: " + str(action))
             ob, reward, done, info = self.step(action)
-            if config.debug:
-                print("\rAction: " + str(action[:6]), end="")
+
             if self._record_vid:
                 self.vid_rec.capture_frame(self.render("rgb_array")[0])
             if done:
@@ -2195,6 +2192,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.reset(config.furniture_id, config.background)
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                t = 0
+                init_origin()
             t += 1
 
     def run_manual(self, config):

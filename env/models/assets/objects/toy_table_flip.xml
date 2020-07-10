@@ -1,0 +1,92 @@
+<mujoco model="toy_table">
+  <custom>
+   <numeric name="4_part4_initpos" data="-0.12413871 0.06540608 0.03878736 0.0000001 0.99997892 0.00649339 0"/>
+    <numeric name="2_part2_initpos" data="0.4 0.16578 0.02379 -0.6725 0.6417 -0.2970 -0.2186"/>
+  </custom>
+  <asset>
+    <mesh file="toy_table/4.stl" name="part4" scale="0.042 0.042 0.042" />
+    <mesh file="toy_table/2.stl" name="part2" scale="0.042 0.042 0.042" />
+  </asset>
+  <equality>
+    <weld active="false" body1="2_part2" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
+  </equality>
+  <worldbody>
+    <body name="4_part4" pos="-0.19870370474214546 0.19870368374196531 0.13643401251069334" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part4" name="4_part4_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="4_part4_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_top_site" pos="0.0 0.0 0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_bottom_site" pos="0.0 0.0 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_right_site" pos="0 0.23137183701242006 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_left_site" pos="0 -0.23137183701242006 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site8" pos="-0.23137183701242006 0.23137185801260024 0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site7" pos="0.23137183701242006 0.23137185801260024 0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site6" pos="0.23137183701242006 -0.23137185801260024 0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site5" pos="-0.23137183701242006 -0.23137185801260024 0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site4" pos="-0.23137183701242006 0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site3" pos="0.23137183701242006 0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site2" pos="0.23137183701242006 -0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="4_part4_corner_site1" pos="-0.23137183701242006 -0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="top-leg,,conn_site4" pos="0.19807369933712918 0.19807369933712918 0.003301228322285486" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01679342264788419" />
+      <site name="top-leg,,conn_site3" pos="0.19807369933712918 -0.19903970762482084 0.003301228322285486" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <site name="top-leg,,conn_site2" pos="-0.19945971122816508 -0.1982837011388013 0.003301228322285486" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <site name="top-leg,,conn_site1" pos="-0.19903970762482084 0.19903970762482084 0.003301228322285486" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <geom density="50" name="noviz_collision_4_part4_0" pos="-0.19797810549999997 0.1706402705 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_1" pos="-0.19797810549999997 0.2267679085 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_2" pos="-0.21828297049999998 0.17858072049999998 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_3" pos="-0.17056086599999998 0.1987721505 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_4" pos="-0.226847313 0.1987721505 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_5" pos="-0.17858072049999998 0.21828297049999998 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_6" pos="-0.218294314 0.21892955 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_7" pos="-0.17801354549999998 0.1786941555 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_8" pos="0.1993846995 0.1706402705 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_9" pos="0.1993846995 0.2267679085 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_10" pos="0.179113865 0.17858072049999998 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_11" pos="0.226801939 0.1987721505 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_12" pos="0.17049280499999997 0.1987721505 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_13" pos="0.2187820845 0.21828297049999998 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_14" pos="0.179068491 0.21892955 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_15" pos="0.21938328999999998 0.1786941555 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_16" pos="0.1993846995 -0.226756565 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_17" pos="0.1993846995 -0.17060624 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+
+      <geom density="50" name="noviz_collision_4_part4_18" pos="0.2268359695 -0.1987040895 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_19" pos="0.17049280499999997 -0.1987040895 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_20" pos="0.21923582449999998 -0.21787460449999999 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_21" pos="0.218566558 -0.178750873 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_22" pos="0.17876221650000002 -0.2185325275 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_23" pos="0.179181926 -0.178478629 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_24" pos="-0.21840774899999998 -0.178728186 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_25" pos="-0.19797810549999997 -0.1707310185 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_26" pos="-0.19797810549999997 -0.2268359695 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_27" pos="-0.1706402705 -0.1992712645 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_28" pos="-0.2268132825 -0.1992712645 -0.016" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_29" pos="-0.1787395295 -0.2183964055 -0.016" quat="0.9238796 0 0 0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_30" pos="-0.218294314 -0.218906863 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_31" pos="-0.1786034075 -0.1792159565 -0.016" quat="0.9238796 0 0 -0.3826834" rgba="1 0 0 1" size="0.0113435 0.0001701525 0.0485" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_32" pos="0.0 0.0 0.035981582" quat="1 0 0 0" rgba="1 0 0 1" size="0.2313733695 0.23013733695 0.002835875" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_33" pos="0.0015540595 -0.2297852795 0.011" quat="1 0 0 0" rgba="1 0 0 1" size="0.23 0.0001701525 0.026" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_34" pos="0.0015540595 0.229751249 0.011" quat="1 0 0 0" rgba="1 0 0 1" size="0.23 0.0001701525 0.026" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_35" pos="0.2298987145 -0.0021212345 0.011" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.23 0.0001701525 0.026" solref="0.001 1" type="box" />
+      <geom density="50" name="noviz_collision_4_part4_36" pos="-0.2298533405 -0.0021212345 0.011" quat="0.7071067 0 0 -0.7071068" rgba="1 0 0 1" size="0.23 0.0001701525 0.026" solref="0.001 1" type="box" />
+    </body>
+    <body name="2_part2" pos="0.0 0.39740740948429093 -0.0" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" mesh="part2" name="2_part2_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="2_part2_ltgt_site" pos="0.02 0 -0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="2_part2_rtgt_site" pos="-0.02 0 -0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="2_part2_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_top_site" pos="0.0 0.0 0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_bottom_site" pos="0.0 0.0 -0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site8" pos="-0.02663028646967926 0.02663028646967926 0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site7" pos="0.02663028646967926 0.02663028646967926 0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site6" pos="0.02663028646967926 -0.02663028646967926 0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site5" pos="-0.02663028646967926 -0.02663028646967926 0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site4" pos="-0.02663028646967926 0.02663028646967926 -0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site3" pos="0.02663028646967926 0.02663028646967926 -0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site2" pos="0.02663028646967926 -0.02663028646967926 -0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="2_part2_corner_site1" pos="-0.02663028646967926 -0.02663028646967926 -0.16785563708678283" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
+      <site name="leg-top,,conn_site4" pos="-0.0006300054050163141 -0.0006300054050163141 0.16473519883261845" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <geom density="20" name="noviz_collision_2_part2_0" pos="0.0 0.0 0.0771358" quat="1 0 0 0" rgba="1 0 0 1" size="0.02382135 0.090748" solref="0.001 1" type="cylinder" />
+      <geom density="20" name="noviz_collision_2_part2_1" pos="0.0 0.0 -0.0771358" quat="1 0 0 0" rgba="1 0 0 1" size="0.02382135 0.093" solref="0.001 1" type="cylinder" />
+    </body>
+  </worldbody>
+</mujoco>

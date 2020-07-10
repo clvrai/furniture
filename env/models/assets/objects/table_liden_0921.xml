@@ -1,17 +1,17 @@
 <mujoco model="table_liden_0921">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/9.stl" name="part9" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/8.stl" name="part8" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/7.stl" name="part7" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/6.stl" name="part6" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/5.stl" name="part5" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/4.stl" name="part4" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/3.stl" name="part3" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/2.stl" name="part2" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/11.stl" name="part11" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/10.stl" name="part10" scale="0.0005 0.0005 0.0005" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0921/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/9.stl" name="part9" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/8.stl" name="part8" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/7.stl" name="part7" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/6.stl" name="part6" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/5.stl" name="part5" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/4.stl" name="part4" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/3.stl" name="part3" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/2.stl" name="part2" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/11.stl" name="part11" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/10.stl" name="part10" scale="0.0005 0.0005 0.0005" />
+    <mesh file="table_liden_0921/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />

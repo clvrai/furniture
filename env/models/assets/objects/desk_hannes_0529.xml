@@ -1,14 +1,14 @@
 <mujoco model="desk_hannes_0529">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/0.stl" name="part0" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/8.stl" name="part8" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/7.stl" name="part7" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/6.stl" name="part6" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/5.stl" name="part5" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/4.stl" name="part4" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/3.stl" name="part3" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/2.stl" name="part2" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/desk_hannes_0529/1.stl" name="part1" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/0.stl" name="part0" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/8.stl" name="part8" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/7.stl" name="part7" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/6.stl" name="part6" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/5.stl" name="part5" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/4.stl" name="part4" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/3.stl" name="part3" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/2.stl" name="part2" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
+    <mesh file="desk_hannes_0529/1.stl" name="part1" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="7_part7" solimp="1 1 0.5" solref="0.01 0.3" />

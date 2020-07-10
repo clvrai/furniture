@@ -11,14 +11,14 @@
 
   </custom>
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/0.stl" name="part0" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/7.stl" name="part7" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/6.stl" name="part6" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/5.stl" name="part5" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/4.stl" name="part4" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/3.stl" name="part3" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/2.stl" name="part2" scale="0.000768 0.000768 0.000768" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_bjorkudden_0206/1.stl" name="part1" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/0.stl" name="part0" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/7.stl" name="part7" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/6.stl" name="part6" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/5.stl" name="part5" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/4.stl" name="part4" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/3.stl" name="part3" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/2.stl" name="part2" scale="0.000768 0.000768 0.000768" />
+    <mesh file="table_bjorkudden_0206/1.stl" name="part1" scale="0.000768 0.000768 0.000768" />
   </asset>
   <equality>
     <weld active="false" body1="4_part4" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />

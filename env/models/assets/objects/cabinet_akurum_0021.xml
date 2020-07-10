@@ -1,12 +1,12 @@
 <mujoco model="cabinet_akurum_0021">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/0.stl" name="part0" scale="0.00074 0.00074 0.00074" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/6.stl" name="part6" scale="0.00074 0.00074 0.00074" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/5.stl" name="part5" scale="0.00074 0.00074 0.00074" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/4.stl" name="part4" scale="0.00074 0.00074 0.00074" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/3.stl" name="part3" scale="0.00074 0.00074 0.00074" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/2.stl" name="part2" scale="0.00074 0.00074 0.00074" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/cabinet_akurum_0021/1.stl" name="part1" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/0.stl" name="part0" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/6.stl" name="part6" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/5.stl" name="part5" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/4.stl" name="part4" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/3.stl" name="part3" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/2.stl" name="part2" scale="0.00074 0.00074 0.00074" />
+    <mesh file="cabinet_akurum_0021/1.stl" name="part1" scale="0.00074 0.00074 0.00074" />
   </asset>
   <equality>
     <weld active="false" body1="3_part3" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />

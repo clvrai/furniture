@@ -1,13 +1,13 @@
 <mujoco model="table_liden_0919">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/0.stl" name="part0" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/7.stl" name="part7" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/6.stl" name="part6" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/5.stl" name="part5" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/4.stl" name="part4" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/3.stl" name="part3" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/2.stl" name="part2" scale="0.000371112 0.000371112 0.000371112" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0919/1.stl" name="part1" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/0.stl" name="part0" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/7.stl" name="part7" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/6.stl" name="part6" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/5.stl" name="part5" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/4.stl" name="part4" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/3.stl" name="part3" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/2.stl" name="part2" scale="0.000371112 0.000371112 0.000371112" />
+    <mesh file="table_liden_0919/1.stl" name="part1" scale="0.000371112 0.000371112 0.000371112" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="6_part6" solimp="1 1 0.5" solref="0.01 0.3" />

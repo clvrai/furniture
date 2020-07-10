@@ -1,9 +1,9 @@
 <mujoco model="table_billsta_round_0189">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_billsta_round_0189/0.stl" name="part0" scale="0.0006 0.0006 0.0006" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_billsta_round_0189/4.stl" name="part3" scale="0.0006 0.0006 0.0006" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_billsta_round_0189/2.stl" name="part2" scale="0.0006 0.0006 0.0006" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_billsta_round_0189/1.stl" name="part1" scale="0.0006 0.0006 0.0006" />
+    <mesh file="table_billsta_round_0189/0.stl" name="part0" scale="0.0006 0.0006 0.0006" />
+    <mesh file="table_billsta_round_0189/4.stl" name="part3" scale="0.0006 0.0006 0.0006" />
+    <mesh file="table_billsta_round_0189/2.stl" name="part2" scale="0.0006 0.0006 0.0006" />
+    <mesh file="table_billsta_round_0189/1.stl" name="part1" scale="0.0006 0.0006 0.0006" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />

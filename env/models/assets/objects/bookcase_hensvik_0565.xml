@@ -1,15 +1,15 @@
 <mujoco model="bookcase_hensvik_0565">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/0.stl" name="part0" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/9.stl" name="part9" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/8.stl" name="part8" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/7.stl" name="part7" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/6.stl" name="part6" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/5.stl" name="part5" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/4.stl" name="part4" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/3.stl" name="part3" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/2.stl" name="part2" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bookcase_hensvik_0565/1.stl" name="part1" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/0.stl" name="part0" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/9.stl" name="part9" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/8.stl" name="part8" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/7.stl" name="part7" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/6.stl" name="part6" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/5.stl" name="part5" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/4.stl" name="part4" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/3.stl" name="part3" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/2.stl" name="part2" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bookcase_hensvik_0565/1.stl" name="part1" scale="0.00038 0.00038 0.00038" />
   </asset>
   <equality>
     <weld active="false" body1="6_part6" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />

@@ -250,11 +250,13 @@ def main():
     from config import create_parser
 
     parser = create_parser(env="FurnitureSawyerEnv")
+    parser.set_defaults(max_episode_steps=2000)
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerEnv(config)
-    env.run_manual(config)
+    env.run_vr(config)
+    # env.run_manual(config)
 
 
 if __name__ == "__main__":

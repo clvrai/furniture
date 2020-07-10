@@ -1,20 +1,20 @@
 <mujoco model="bed_dalselv_0270">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/0.stl" name="part0" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/9.stl" name="part9" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/8.stl" name="part8" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/7.stl" name="part7" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/6.stl" name="part6" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/5.stl" name="part5" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/4.stl" name="part4" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/3.stl" name="part3" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/2.stl" name="part2" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/14.stl" name="part14" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/13.stl" name="part13" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/12.stl" name="part12" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/11.stl" name="part11" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/10.stl" name="part10" scale="0.00038 0.00038 0.00038" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bed_dalselv_0270/1.stl" name="part1" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/0.stl" name="part0" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/9.stl" name="part9" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/8.stl" name="part8" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/7.stl" name="part7" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/6.stl" name="part6" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/5.stl" name="part5" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/4.stl" name="part4" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/3.stl" name="part3" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/2.stl" name="part2" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/14.stl" name="part14" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/13.stl" name="part13" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/12.stl" name="part12" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/11.stl" name="part11" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/10.stl" name="part10" scale="0.00038 0.00038 0.00038" />
+    <mesh file="bed_dalselv_0270/1.stl" name="part1" scale="0.00038 0.00038 0.00038" />
   </asset>
   <equality>
     <weld active="false" body1="2_part10" body2="11_part6" solimp="1 1 0.5" solref="0.01 0.3" />

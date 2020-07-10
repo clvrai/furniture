@@ -19,7 +19,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         Args:
             config: configurations for the environment.
         """
-        config.furniture_id = furniture_name2id["toy_table"]
+        config.furniture_id = furniture_name2id["toy_table_flip"]
 
         super().__init__(config)
         config.discretize_grip = True
@@ -102,8 +102,8 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         elif self._config.control_type == "impedance":
             a = np.linalg.norm(action[:14])
 
-        ctrl_penalty = -self._env_config["ctrl_penalty"] * a
-        return ctrl_penalty
+        ctrl_reward = -self._env_config["ctrl_reward"] * a
+        return ctrl_reward
 
     def _compute_reward(self, action):
         """

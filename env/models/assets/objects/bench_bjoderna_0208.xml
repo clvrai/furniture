@@ -1,16 +1,16 @@
 <mujoco model="bench_bjoderna_0208">
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/0.stl" name="part0" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/9.stl" name="part9" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/8.stl" name="part8" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/7.stl" name="part7" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/6.stl" name="part6" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/5.stl" name="part5" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/4.stl" name="part4" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/3.stl" name="part3" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/2.stl" name="part2" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/10.stl" name="part10" scale="0.000608 0.000608 0.000608" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/bench_bjoderna_0208/1.stl" name="part1" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/0.stl" name="part0" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/9.stl" name="part9" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/8.stl" name="part8" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/7.stl" name="part7" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/6.stl" name="part6" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/5.stl" name="part5" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/4.stl" name="part4" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/3.stl" name="part3" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/2.stl" name="part2" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/10.stl" name="part10" scale="0.000608 0.000608 0.000608" />
+    <mesh file="bench_bjoderna_0208/1.stl" name="part1" scale="0.000608 0.000608 0.000608" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="10_part10" solimp="1 1 0.5" solref="0.01 0.3" />
