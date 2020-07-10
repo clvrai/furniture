@@ -79,7 +79,6 @@ class ResetTrainer(Trainer):
         )
         if config.share_buffer:
             self._reset_agent.share_buffer(self._agent)
-            self._agent.share_buffer(self._reset_agent)
         if config.reset_kl_penalty:
             self._reset_agent.set_forward_actor(self._agent._actor)
         if config.safe_forward:

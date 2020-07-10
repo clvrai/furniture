@@ -153,7 +153,7 @@ class SACAgent(BaseAgent):
         sync_networks(self._critic2)
 
     def train(self):
-        if self._share_buffer and len(self._other_buffer) > 0:
+        if self._reset and self._share_buffer and len(self._other_buffer) > 0:
             for _ in range(self._config.share_num_batches):
                 o_transitions = self._other_buffer.sample(self._config.batch_size)
                 o_transitions["rew"] = o_transitions["other_agent_rew"]
