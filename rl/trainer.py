@@ -216,7 +216,7 @@ class Trainer(object):
             logger.info("Update networks done")
 
             if self._config.algo != "bc" and step < config.max_ob_norm_step:
-                self._update_normalizer(rollout)
+                self._update_recompute_normalizer(rollout)
 
             step += step_per_batch
             update_iter += 1
@@ -290,7 +290,7 @@ class Trainer(object):
             logger.info("Update networks done")
 
             if step < config.max_ob_norm_step:
-                self._update_normalizer(rollout)
+                self._update_recompute_normalizer(rollout)
 
             step += step_per_batch
             update_iter += 1
@@ -327,10 +327,10 @@ class Trainer(object):
 
         logger.info("Reached %s steps. worker %d stopped.", step, config.rank)
 
-    def _update_normalizer(self, rollout):
+    def _update_recompute_normalizer(self, rollout):
         """ Updates normalizer with @rollout. """
         if self._config.ob_norm:
-            self._agent.update_normalizer(rollout["ob"])
+            self._agent.update_recompute_normalizer(rollout["ob"])
 
     def _bc_evaluate(self, step, mode="sample", num_eval=10):
         """

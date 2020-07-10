@@ -26,10 +26,14 @@ class BaseAgent(object):
     def update_normalizer(self, obs):
         if self._config.ob_norm:
             self._ob_norm.update(obs)
+
+    def recompute_normalizer(self):
+        if self._config.ob_norm:
             self._ob_norm.recompute_stats()
 
-    def sync_normalizer(self):
+    def update_recompute_normalizer(self, obs):
         if self._config.ob_norm:
+            self._ob_norm.update(obs)
             self._ob_norm.recompute_stats()
 
     def store_episode(self, rollouts):

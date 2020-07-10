@@ -118,7 +118,8 @@ class ResetTrainer(Trainer):
         rollout = Rollout()
         ep_info = defaultdict(list)
         done = False
-        ep_len = ep_rew = safe_act = 0
+        ep_len = ep_rew = safe_act = reset_steps = 0
+        reset_rollouts = []
         env.begin_forward()
         while not done:  # env return done if time limit is reached or task done
             ac, _ = self._agent.act(ob, is_train=True)
@@ -132,15 +133,11 @@ class ResetTrainer(Trainer):
                     self._reset_agent.store_episode(r_rollout)
                     if cfg.use_aot and cfg.aot_success_buffer:
                         self._aot_agent.store_episode(r_rollout, success=reset_success)
-                    self._update_normalizer(r_rollout, self._reset_agent)
                     env.begin_forward()
                     ob = r_rollout["ob"][-1]
                     safe_act += 1
-                    step_per_batch = mpi_sum(len(r_rollout["ac"]))
-                else:
-                    self._reset_agent.sync_normalizer()
-                    step_per_batch = mpi_sum(0)
-                self._step += step_per_batch
+                    reset_steps += len(r_rollout["ac"])
+                    reset_rollouts.append(r_rollout)
 
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
@@ -158,6 +155,11 @@ class ResetTrainer(Trainer):
         # compute average/sum of information
         ep_info = self._reduce_info(ep_info)
         ep_info.update({"len": ep_len, "rew": ep_rew, "safe_act": safe_act})
+        if cfg.safe_abort:
+            self._step += mpi_sum(reset_steps)
+            for r in reset_rollouts:
+                self._reset_agent.update_normalizer(r["obs"])
+            self._reset_agent.recompute_normalizer()
         return rollout.get(), ep_info
 
     def _reset_rollout(self, init_ob) -> Tuple[dict, dict]:
@@ -236,7 +238,7 @@ class ResetTrainer(Trainer):
             # 1. Run and train forward policy
             rollout, ep_info = self._forward_rollout(init_ob)
             self._agent.store_episode(rollout)
-            self._update_normalizer(rollout, self._agent)
+            self._update_recompute_normalizer(rollout, self._agent)
             train_info = self._agent.train()
             step_per_batch = mpi_sum(len(rollout["ac"]))
             self._step += step_per_batch
@@ -264,7 +266,7 @@ class ResetTrainer(Trainer):
                 self._reset_agent.store_episode(r_rollout)
                 if cfg.use_aot and cfg.aot_success_buffer:
                     self._aot_agent.store_episode(r_rollout, success=reset_success)
-                self._update_normalizer(r_rollout, self._reset_agent)
+                self._update_recompute_normalizer(r_rollout, self._reset_agent)
                 r_train_info = self._reset_agent.train()
                 step_per_batch = mpi_sum(len(r_rollout["ac"]))
                 self._step += step_per_batch
@@ -642,9 +644,9 @@ class ResetTrainer(Trainer):
         f.savefig(fpath, dpi=300)
         plt.close("all")
 
-    def _update_normalizer(self, rollout, agent):
+    def _update_recompute_normalizer(self, rollout, agent):
         if self._step < self._config.max_ob_norm_step and self._config.ob_norm:
-            agent.update_normalizer(rollout["ob"])
+            agent.update_recompute_normalizer(rollout["ob"])
 
     def _reduce_info(self, ep_info, reduction="sum"):
         for key, value in ep_info.items():
@@ -718,7 +720,7 @@ class ResetTrainer(Trainer):
             rollout = rollout.get()
             self._agent.store_episode(rollout)
             train_info = self._agent.train()
-            self._update_normalizer(rollout, self._agent)
+            self._update_recompute_normalizer(rollout, self._agent)
             step_per_batch = mpi_sum(len(rollout["ac"]))
             self._step += step_per_batch
             if self._is_chef:
@@ -787,7 +789,7 @@ class ResetTrainer(Trainer):
                 if cfg.use_aot and cfg.aot_success_buffer:
                     self._aot_agent.store_episode(r_rollout, success=reset_success)
                 r_train_info = self._reset_agent.train()
-                self._update_normalizer(r_rollout, self._reset_agent)
+                self._update_recompute_normalizer(r_rollout, self._reset_agent)
                 step_per_batch = mpi_sum(len(r_rollout["ac"]))
                 self._step += step_per_batch
 
