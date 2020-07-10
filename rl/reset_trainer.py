@@ -158,7 +158,7 @@ class ResetTrainer(Trainer):
         if cfg.safe_abort:
             self._step += mpi_sum(reset_steps)
             for r in reset_rollouts:
-                self._reset_agent.update_normalizer(r["obs"])
+                self._reset_agent.update_normalizer(r["ob"])
             self._reset_agent.recompute_normalizer()
         return rollout.get(), ep_info
 
