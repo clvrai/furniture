@@ -1,69 +1,69 @@
 <mujoco model="chair_bernhard_0146">
   <custom>
-    <numeric name="1_leg1_initpos" data="-0.13380787 0.27933695 0.02897993 0.03513113 -0.70623352 -0.03513102 -0.70623356"/>
-    <numeric name="2_leg2_initpos" data="-0.15797297 -0.09164478 0.02897894 0.70598201 -0.03986807 0.70598193 0.03986797"/>
-    <numeric name="3_seat_initpos" data="0.19958587 0.1383014 0.00785407 0.2609328 -0.64974346 0.66253613 -0.26607026"/>
+    <numeric data="-0.13380787 0.27933695 0.02897993 0.03513113 -0.70623352 -0.03513102 -0.70623356" name="1_part1_initpos" />
+    <numeric data="-0.15797297 -0.09164478 0.02897894 0.70598201 -0.03986807 0.70598193 0.03986797" name="2_part2_initpos" />
+    <numeric data="0.19958587 0.1383014 0.00785407 0.2609328 -0.64974346 0.66253613 -0.26607026" name="3_part3_initpos" />
   </custom>
   <asset>
-    <mesh file="chair_bernhard_0146/left_leg.stl" name="1_leg1" scale="0.576 0.576 0.576" />
-    <mesh file="chair_bernhard_0146/right_leg.stl" name="2_leg2" scale="0.576 0.576 0.576" />
-    <mesh file="chair_bernhard_0146/seat.stl" name="3_seat" scale="0.576 0.576 0.576" />
-    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_bernhard_0146/left_leg.stl" name="1_part1" scale="0.576 0.576 0.576" />
+    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_bernhard_0146/right_leg.stl" name="2_part2" scale="0.576 0.576 0.576" />
+    <mesh file="/home/alex/furniture/env/models/assets/objects/chair_bernhard_0146/seat.stl" name="3_part3" scale="0.576 0.576 0.576" />
+    <texture file="/home/alex/furniture/env/models/assets/objects/../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
-    <weld active="false" body1="1_leg1" body2="3_seat" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="2_leg2" body2="3_seat" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_part1" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="2_part2" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />
   </equality>
   <worldbody>
-    <body name="1_leg1" pos="-0.115 0.0 0.182" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="1_leg1" name="1_leg1_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-      <geom density="100" euler="0.401426 0 0" name="noviz_collision_1_leg1_1" pos="-0.02 0.08 0" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
-      <geom density="100" euler="-0.401426 0 0" name="noviz_collision_1_leg1_2" pos="-0.02 -0.08 0" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
-      <geom density="100" euler="1.57 0 0" name="noviz_collision_1_leg1_3" pos="-0.02 0 -0.135" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
-      <site name="leg1-seat,0,conn_site1" pos="0.0 0.0 0.1401" quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
-      <site name="1_leg1_corner_site1" pos="-0.019 0.1305 -0.144" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_corner_site2" pos="-0.019 -0.129 -0.144" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_corner_site3" pos="0.0307 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_corner_site4" pos="0.0307 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_corner_site5" pos="-0.019 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_corner_site6" pos="-0.019 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_bottom_site" pos="-0.019 0.0 -0.134" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_top_site" pos="0.0 0.0 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="1_leg1_horizontal_radius_site" pos="-0.019 0.0 0.0" rgba="0 0 1 0.3" size="0.0057" />
+    <body name="1_part1" pos="-0.115 0.0 0.182" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="1_part1" name="1_part1_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" euler="0.401426 0 0" name="noviz_collision_1_part1_1" pos="-0.02 0.08 0" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="-0.401426 0 0" name="noviz_collision_1_part1_2" pos="-0.02 -0.08 0" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="1.57 0 0" name="noviz_collision_1_part1_3" pos="-0.02 0 -0.135" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
+      <site name="part1-part3,0,conn_site1" pos="0.0 0.0 0.1401" quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="1_part1_corner_site1" pos="-0.019 0.1305 -0.144" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_corner_site2" pos="-0.019 -0.129 -0.144" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_corner_site3" pos="0.0307 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_corner_site4" pos="0.0307 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_corner_site5" pos="-0.019 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_corner_site6" pos="-0.019 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_bottom_site" pos="-0.019 0.0 -0.134" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_top_site" pos="0.0 0.0 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="1_part1_horizontal_radius_site" pos="-0.019 0.0 0.0" rgba="0 0 1 0.3" size="0.0057" />
     </body>
-    <body name="2_leg2" pos="0.1152 0.0 0.182" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="2_leg2" name="2_leg2_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-      <geom density="100" euler="0.401426 0 0" name="noviz_collision_2_leg2_1" pos="0.02 0.08 0" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
-      <geom density="100" euler="-0.401426 0 0" name="noviz_collision_2_leg2_2" pos="0.02 -0.08 0" rgba="0 1 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
-      <geom density="100" euler="1.57 0 0" name="noviz_collision_2_leg2_3" pos="0.02 0 -0.135" rgba="0 0 1 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
-      <site name="leg2-seat,0,conn_site2" pos="0.0 0.0 0.1401" quat="0.707 0 -0.707 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
-      <site name="2_leg2_corner_site1" pos="0.0192 0.1305 -0.144" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_corner_site2" pos="0.0192 -0.129 -0.144" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_corner_site3" pos="0.0268 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_corner_site4" pos="0.0268 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_corner_site5" pos="-0.028 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_corner_site6" pos="-0.028 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_bottom_site" pos="0.0192 0.0 -0.134" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_top_site" pos="0.0 0.0 0.1382" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="2_leg2_horizontal_radius_site" pos="0.0172 0.0057 0.0" rgba="0 0 1 0.3" size="0.0057" />
+    <body name="2_part2" pos="0.1152 0.0 0.182" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="2_part2" name="2_part2_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="100" euler="0.401426 0 0" name="noviz_collision_2_part2_1" pos="0.02 0.08 0" rgba="1 0 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="-0.401426 0 0" name="noviz_collision_2_part2_2" pos="0.02 -0.08 0" rgba="0 1 0 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
+      <geom density="100" euler="1.57 0 0" name="noviz_collision_2_part2_3" pos="0.02 0 -0.135" rgba="0 0 1 1" size="0.009 0.14" solref="0.001 1" type="cylinder" />
+      <site name="part2-part3,0,conn_site2" pos="0.0 0.0 0.1401" quat="0.707 0 -0.707 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="2_part2_corner_site1" pos="0.0192 0.1305 -0.144" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_corner_site2" pos="0.0192 -0.129 -0.144" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_corner_site3" pos="0.0268 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_corner_site4" pos="0.0268 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_corner_site5" pos="-0.028 0.0230 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_corner_site6" pos="-0.028 -0.022 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_bottom_site" pos="0.0192 0.0 -0.134" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_top_site" pos="0.0 0.0 0.1382" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="2_part2_horizontal_radius_site" pos="0.0172 0.0057 0.0" rgba="0 0 1 0.3" size="0.0057" />
     </body>
-    <body name="3_seat" pos="0.0 0.0 0.4416" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="3_seat" name="3_seat_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-      <geom density="300" name="noviz_collision_3_seat_1" pos="0 0 -0.11" rgba="1 0 0 1" size="0.14 0.12 0.006" solref="0.001 1" type="box" />
-      <geom density="300" euler="1.57 0 0" name="noviz_collision_3_seat_2" pos="0 -0.12 0" rgba="0 1 0 1" size="0.14 0.12 0.006" solref="0.001 1" type="box" />
-      <site name="seat-leg1,0,conn_site1" pos="-0.115 0.0 -0.126" quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
-      <site name="seat-leg2,0,conn_site2" pos="0.1152 0.0 -0.126" quat="0.707 0 -0.707 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
-      <site name="3_seat_corner_site1" pos="0.1420 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_corner_site2" pos="0.0 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_corner_site3" pos="-0.141 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_corner_site4" pos="0.1420 -0.116 -0.115" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_corner_site5" pos="-0.141 -0.116 -0.115" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_corner_site6" pos="0.1420 0.1267 -0.109" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_corner_site7" pos="-0.141 0.1267 -0.109" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_bottom_site" pos="0.0 0.0 -0.115" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_top_site" pos="0.0 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
-      <site name="3_seat_horizontal_radius_site" pos="0.0057 0.0057 0.0" rgba="0 0 1 0.3" size="0.0057" />
+    <body name="3_part3" pos="0.0 0.0 0.4416" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="3_part3" name="3_part3_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
+      <geom density="300" name="noviz_collision_3_part3_1" pos="0 0 -0.11" rgba="1 0 0 1" size="0.14 0.12 0.006" solref="0.001 1" type="box" />
+      <geom density="300" euler="1.57 0 0" name="noviz_collision_3_part3_2" pos="0 -0.12 0" rgba="0 1 0 1" size="0.14 0.12 0.006" solref="0.001 1" type="box" />
+      <site name="part3-part1,0,conn_site1" pos="-0.115 0.0 -0.126" quat="0.707 0 -0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="part3-part2,0,conn_site2" pos="0.115 0.0 -0.126" quat="0.707 0 -0.707 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
+      <site name="3_part3_corner_site1" pos="0.1420 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_corner_site2" pos="0.0 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_corner_site3" pos="-0.141 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_corner_site4" pos="0.1420 -0.116 -0.115" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_corner_site5" pos="-0.141 -0.116 -0.115" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_corner_site6" pos="0.1420 0.1267 -0.109" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_corner_site7" pos="-0.141 0.1267 -0.109" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_bottom_site" pos="0.0 0.0 -0.115" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_top_site" pos="0.0 -0.116 0.1267" rgba="0 0 1 0.3" size="0.0057" />
+      <site name="3_part3_horizontal_radius_site" pos="0.0057 0.0057 0.0" rgba="0 0 1 0.3" size="0.0057" />
     </body>
   </worldbody>
-</mujoco>
+<actuator /><sensor /><contact /><default /></mujoco>
