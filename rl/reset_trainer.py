@@ -68,7 +68,6 @@ class ResetTrainer(Trainer):
         self._aot_agent: AoTAgent = None
         rew = None
         if config.use_aot:
-
             self._aot_agent = AoTAgent(
                 config, rev_space, self._agent._buffer, self._env.get_reverse
             )
@@ -110,13 +109,86 @@ class ResetTrainer(Trainer):
                 notes=config.notes,
             )
 
+    def _forward_rollout(self, init_ob) -> Tuple[dict, dict]:
+        cfg = self._config
+        env = self._env
+        ob = init_ob
+        # 1. Run and train forward policy
+        rollout = Rollout()
+        ep_info = defaultdict(list)
+        done = False
+        ep_len = ep_rew = safe_act = 0
+        env.begin_forward()
+        while not done:  # env return done if time limit is reached or task done
+            ac, ac_before_activation = self._agent.act(ob, is_train=True)
+            if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
+                ac, ac_before_activation = self._agent.safe_act(ob, is_train=True)
+                safe_act += 1
+            rollout.add(
+                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+            )
+            ob, reward, done, info = env.step(ac)
+            done = done or ep_len >= cfg.max_episode_steps
+            rollout.add({"done": done, "rew": reward})
+            ep_len += 1
+            ep_rew += reward
+            for key, value in info.items():
+                ep_info[key].append(value)
+        # last frame
+        rollout.add({"ob": ob})
+        # compute average/sum of information
+        ep_info = self._reduce_info(ep_info)
+        ep_info.update({"len": ep_len, "rew": ep_rew, "safe_act": safe_act})
+        return rollout.get(), ep_info
+
+    def _reset_rollout(self, init_ob) -> Tuple[dict, dict]:
+        cfg = self._config
+        env = self._env
+        r_rollout = Rollout()
+        r_ep_info = defaultdict(list)
+        reset_done = reset_success = False
+        ep_len = ep_rew = 0
+        ob = init_ob
+        env.begin_reset()
+        while not reset_done:
+            ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
+            prev_ob = ob
+            r_rollout.add(
+                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+            )
+            ob, env_reward, reset_done, info = env.step(ac)
+            # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+            reward = env_reward
+            if cfg.use_aot:
+                intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
+                info["intr_reward"] = intr_reward
+                info["env_reward"] = env_reward
+                reward += intr_reward
+            info["reward"] = reward
+            reset_success = env.reset_success()
+            info["episode_success"] = int(reset_success)
+            reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+            # don't add rew to rollout because it gets computed online
+            if cfg.use_aot:
+                r_rollout.add({"done": reset_done, "env_rew": env_reward})
+            else:
+                r_rollout.add({"done": reset_done, "rew": reward})
+            ep_len += 1
+            ep_rew += reward
+            for key, value in info.items():
+                r_ep_info[key].append(value)
+        # last frame
+        r_rollout.add({"ob": ob})
+        # compute average/sum of information
+        r_ep_info = self._reduce_info(r_ep_info)
+        r_ep_info.update({"len": ep_len, "rew": ep_rew})
+        return r_rollout.get(), r_ep_info
+
     def train(self):
         """
         Training loop for reset RL.
-        1. Train forward policy
-        2. Train AoT model on forward policy
-        3. Train Reset policy
-        4. Reset env if needed
+        1. Get forward rollout and reset rollout
+        2. Train Policies, AoT
         Repeat
         """
         cfg = self._config
@@ -139,36 +211,10 @@ class ResetTrainer(Trainer):
             self._pbar = tqdm(
                 initial=self._step, total=cfg.max_global_step, desc=cfg.run_name
             )
-        ob = env.reset(is_train=True)
+        init_ob = env.reset(is_train=True)
         while self._step < cfg.max_global_step:
             # 1. Run and train forward policy
-            rollout = Rollout()
-            ep_info = defaultdict(list)
-            done = False
-            ep_len = ep_rew = safe_act = 0
-            env.begin_forward()
-            while not done:  # env return done if time limit is reached or task done
-                ac, ac_before_activation = self._agent.act(ob, is_train=True)
-                if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
-                    ac, ac_before_activation = self._agent.safe_act(ob, is_train=True)
-                    safe_act += 1
-                rollout.add(
-                    {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
-                )
-                ob, reward, done, info = env.step(ac)
-                done = done or ep_len >= cfg.max_episode_steps
-                rollout.add({"done": done, "rew": reward})
-                ep_len += 1
-                ep_rew += reward
-                for key, value in info.items():
-                    ep_info[key].append(value)
-            # last frame
-            rollout.add({"ob": ob})
-            # compute average/sum of information
-            ep_info = self._reduce_info(ep_info)
-            ep_info.update({"len": ep_len, "rew": ep_rew, "safe_act": safe_act})
-            # train forward agent
-            rollout = rollout.get()
+            rollout, ep_info = self._forward_rollout(init_ob)
             self._agent.store_episode(rollout)
             train_info = self._agent.train()
             self._update_normalizer(rollout, self._agent)
@@ -181,7 +227,7 @@ class ResetTrainer(Trainer):
                     self._log_train(self._step, train_info, ep_info, "forward")
             if cfg.status_quo_baseline:
                 total_reset += 1
-                ob = env.reset(is_train=True)
+                init_ob = env.reset(is_train=True)
                 r_train_info = {}
                 r_ep_info = {}
             else:
@@ -191,51 +237,10 @@ class ResetTrainer(Trainer):
                     if self._is_chef and self._update_iter % cfg.log_interval == 0:
                         self._log_train(self._step, arrow_train_info, {}, "aot")
 
-                # 3. Run and train reset policy
-                r_rollout = Rollout()
-                r_ep_info = defaultdict(list)
-                r_train_info = {}
-                reset_done = reset_success = False
-                ep_len = ep_rew = 0
-                env.begin_reset()
-                while not reset_done:
-                    ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
-                    prev_ob = ob
-                    r_rollout.add(
-                        {
-                            "ob": ob,
-                            "ac": ac,
-                            "ac_before_activation": ac_before_activation,
-                        }
-                    )
-                    ob, env_reward, reset_done, info = env.step(ac)
-                    # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
-                    reward = env_reward
-                    if cfg.use_aot:
-                        intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
-                        info["intr_reward"] = intr_reward
-                        info["env_reward"] = env_reward
-                        reward += intr_reward
-                    info["reward"] = reward
-                    reset_success = env.reset_success()
-                    info["episode_success"] = int(reset_success)
-                    reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
-                    # don't add rew to rollout because it gets computed online
-                    if cfg.use_aot:
-                        r_rollout.add({"done": reset_done, "env_rew": env_reward})
-                    else:
-                        r_rollout.add({"done": reset_done, "rew": reward})
-                    ep_len += 1
-                    ep_rew += reward
-                    for key, value in info.items():
-                        r_ep_info[key].append(value)
-                # last frame
-                r_rollout.add({"ob": ob})
-                # compute average/sum of information
-                r_ep_info = self._reduce_info(r_ep_info)
-                r_ep_info.update({"len": ep_len, "rew": ep_rew})
-                # train reset agent
-                r_rollout = r_rollout.get()
+                # 3. Run reset agent
+                r_init_ob = rollout["ob"][-1]
+                r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
+                reset_success = np.max(r_ep_info["episode_success"])
                 self._reset_agent.store_episode(r_rollout)
                 if cfg.use_aot and cfg.aot_success_buffer:
                     self._aot_agent.store_episode(r_rollout, success=reset_success)
@@ -244,13 +249,15 @@ class ResetTrainer(Trainer):
                 step_per_batch = mpi_sum(len(r_rollout["ac"]))
                 self._step += step_per_batch
 
+                init_ob = r_rollout["ob"][-1]
                 # 4. Hard Reset if necessary
                 if not reset_success:
                     reset_fail += 1
                     if reset_fail % cfg.max_failed_reset == 0:
                         reset_fail = 0
                         total_reset += 1
-                        ob = env.reset(is_train=True)
+                        init_ob = env.reset(is_train=True)
+
             if self._is_chef:
                 if not cfg.status_quo_baseline:
                     self._pbar.update(step_per_batch)
@@ -635,6 +642,158 @@ class ResetTrainer(Trainer):
                 elif reduction == "sum":
                     ep_info[key] = np.sum(value)
         return ep_info
+
+    def old_train(self):
+        """
+        Training loop for reset RL.
+        1. Train forward policy
+        2. Train AoT model on forward policy
+        3. Train Reset policy
+        4. Reset env if needed
+        Repeat
+        """
+        cfg = self._config
+        total_reset = reset_fail = 0
+        env = self._env
+
+        # load checkpoint
+        self._step, self._update_iter = self._load_ckpt()
+        if cfg.init_ckpt_path:
+            self._load_ckpt(ckpt_path=cfg.init_ckpt_path)
+        if cfg.reset_init_ckpt_path:
+            self._load_reset_policy(cfg.reset_init_ckpt_path)
+        # sync the networks across the cpus
+        self._agent.sync_networks()
+        self._reset_agent.sync_networks()
+        if self._aot_agent is not None:
+            self._aot_agent.sync_networks()
+
+        if self._is_chef:
+            self._pbar = tqdm(
+                initial=self._step, total=cfg.max_global_step, desc=cfg.run_name
+            )
+        ob = env.reset(is_train=True)
+        while self._step < cfg.max_global_step:
+            # 1. Run and train forward policy
+            rollout = Rollout()
+            ep_info = defaultdict(list)
+            done = False
+            ep_len = ep_rew = safe_act = 0
+            env.begin_forward()
+            while not done:  # env return done if time limit is reached or task done
+                ac, ac_before_activation = self._agent.act(ob, is_train=True)
+                if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
+                    ac, ac_before_activation = self._agent.safe_act(ob, is_train=True)
+                    safe_act += 1
+                rollout.add(
+                    {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
+                )
+                ob, reward, done, info = env.step(ac)
+                done = done or ep_len >= cfg.max_episode_steps
+                rollout.add({"done": done, "rew": reward})
+                ep_len += 1
+                ep_rew += reward
+                for key, value in info.items():
+                    ep_info[key].append(value)
+            # last frame
+            rollout.add({"ob": ob})
+            # compute average/sum of information
+            ep_info = self._reduce_info(ep_info)
+            ep_info.update({"len": ep_len, "rew": ep_rew, "safe_act": safe_act})
+            # train forward agent
+            rollout = rollout.get()
+            self._agent.store_episode(rollout)
+            train_info = self._agent.train()
+            self._update_normalizer(rollout, self._agent)
+            step_per_batch = mpi_sum(len(rollout["ac"]))
+            self._step += step_per_batch
+            if self._is_chef:
+                self._pbar.update(step_per_batch)
+                if self._update_iter % cfg.log_interval == 0:
+                    train_info.update({"update_iter": self._update_iter})
+                    self._log_train(self._step, train_info, ep_info, "forward")
+            if cfg.status_quo_baseline:
+                total_reset += 1
+                ob = env.reset(is_train=True)
+                r_train_info = {}
+                r_ep_info = {}
+            else:
+                # 2. Update AoT Classifier
+                if self._aot_agent is not None:
+                    arrow_train_info = self._aot_agent.train()
+                    if self._is_chef and self._update_iter % cfg.log_interval == 0:
+                        self._log_train(self._step, arrow_train_info, {}, "aot")
+
+                # 3. Run and train reset policy
+                r_rollout = Rollout()
+                r_ep_info = defaultdict(list)
+                r_train_info = {}
+                reset_done = reset_success = False
+                ep_len = ep_rew = 0
+                env.begin_reset()
+                while not reset_done:
+                    ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
+                    prev_ob = ob
+                    r_rollout.add(
+                        {
+                            "ob": ob,
+                            "ac": ac,
+                            "ac_before_activation": ac_before_activation,
+                        }
+                    )
+                    ob, env_reward, reset_done, info = env.step(ac)
+                    # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
+                    reward = env_reward
+                    if cfg.use_aot:
+                        intr_reward = self._aot_agent.rew(prev_ob, ob)[0]
+                        info["intr_reward"] = intr_reward
+                        info["env_reward"] = env_reward
+                        reward += intr_reward
+                    info["reward"] = reward
+                    reset_success = env.reset_success()
+                    info["episode_success"] = int(reset_success)
+                    reset_done = reset_success or ep_len >= cfg.max_reset_episode_steps
+                    # don't add rew to rollout because it gets computed online
+                    if cfg.use_aot:
+                        r_rollout.add({"done": reset_done, "env_rew": env_reward})
+                    else:
+                        r_rollout.add({"done": reset_done, "rew": reward})
+                    ep_len += 1
+                    ep_rew += reward
+                    for key, value in info.items():
+                        r_ep_info[key].append(value)
+                # last frame
+                r_rollout.add({"ob": ob})
+                # compute average/sum of information
+                r_ep_info = self._reduce_info(r_ep_info)
+                r_ep_info.update({"len": ep_len, "rew": ep_rew})
+                # train reset agent
+                r_rollout = r_rollout.get()
+                self._reset_agent.store_episode(r_rollout)
+                if cfg.use_aot and cfg.aot_success_buffer:
+                    self._aot_agent.store_episode(r_rollout, success=reset_success)
+                r_train_info = self._reset_agent.train()
+                self._update_normalizer(r_rollout, self._reset_agent)
+                step_per_batch = mpi_sum(len(r_rollout["ac"]))
+                self._step += step_per_batch
+
+                # 4. Hard Reset if necessary
+                if not reset_success:
+                    reset_fail += 1
+                    if reset_fail % cfg.max_failed_reset == 0:
+                        reset_fail = 0
+                        total_reset += 1
+                        ob = env.reset(is_train=True)
+            if self._is_chef:
+                if not cfg.status_quo_baseline:
+                    self._pbar.update(step_per_batch)
+                if self._update_iter % cfg.log_interval == 0:
+                    r_ep_info.update({"total_reset": total_reset})
+                    self._log_train(self._step, r_train_info, r_ep_info, "reset")
+
+            self._evaluate(record=True)
+            self._update_iter += 1
+            self._save_ckpt(self._step, self._update_iter)
 
 
 def test_aot_visualization():
