@@ -104,11 +104,17 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         if self._record_demo:
             self._demo.add(ob=obs, action=a, reward=r)
         info["reward"] = r
-        info["episode_success"] = int(self._success)
+        if self._task == "forward":
+            dist = np.linalg.norm(obs["object_ob"] - self._goal)
+            success = dist < self._goal_pos_threshold
+        elif self._task == "reset":
+            dist = np.linalg.norm(obs["object_ob"] - self._start)
+            success = dist < self._start_pos_threshold
+        info["episode_success"] = int(success)
         self._episode_reward += r
         if self._config.algo in ["ppo", "ddpg"]:
             done = self._episode_length == self._max_episode_steps
-        if self._success:
+        if success:
             done = True
         return obs, r, done, info
 
@@ -157,7 +163,6 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         """
         Resets episodic variables
         """
-        self._success = False
         self._prev_push_dist = np.linalg.norm(
             self.get_body_com("object")[:2] - self._goal
         )
@@ -236,7 +241,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         dist_diff = self._prev_push_dist - obj_to_goal_dist
         obj_to_goal_rew = dist_diff * self._obj_to_point_coeff
-        self._success = obj_to_goal_dist < self._goal_pos_threshold
+        success = obj_to_goal_dist < self._goal_pos_threshold
 
         control_dist = np.linalg.norm(a)
         control_reward = self._reward_fn(control_dist, bound=3.464) * 0.01
@@ -260,7 +265,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         dist_diff = self._prev_pull_dist - obj_to_start_dist
         obj_to_start_rew = dist_diff * self._obj_to_point_coeff
-        self._success = obj_to_start_dist < self._start_pos_threshold
+        success = obj_to_start_dist < self._start_pos_threshold
 
         control_dist = np.linalg.norm(a)
         control_reward = self._reward_fn(control_dist, bound=3.464) * 0.01
@@ -279,7 +284,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         control_dist = np.linalg.norm(a)
-        self._success = obj_to_goal_dist < self._goal_pos_threshold
+        success = obj_to_goal_dist < self._goal_pos_threshold
 
         forward_reward = self._reward_fn(obj_to_goal_dist)
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
@@ -291,7 +296,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         control_reward *= self._lnt_control_rew_coeff
         forward_shaped_reward = forward_reward + obj_to_arm_reward + control_reward
         assert 0 <= forward_shaped_reward <= 1
-        if self._success:
+        if success:
             forward_shaped_reward += self._config.success_rew
         info["forward_reward"] = forward_reward
         info["obj_to_arm_reward"] = obj_to_arm_reward
@@ -307,7 +312,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         control_dist = np.linalg.norm(a)
-        self._success = obj_to_start_dist < self._start_pos_threshold
+        success = obj_to_start_dist < self._start_pos_threshold
 
         reset_reward = self._reward_fn(obj_to_start_dist)
         obj_to_arm_reward = self._reward_fn(obj_to_arm_dist)
@@ -316,7 +321,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
 
         if self._sparse_remove_rew:
             success_reward = 0
-            if self._success:
+            if success:
                 success_reward = self._config.success_rew
                 if self._config.use_aot:
                     success_reward = self._config.aot_succ_rew
@@ -329,7 +334,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
             control_reward *= self._lnt_control_rew_coeff
             reset_shaped_reward = reset_reward + obj_to_arm_reward + control_reward
             assert 0 <= reset_shaped_reward <= 1
-            if self._success:
+            if success:
                 reset_shaped_reward += self._config.reset_success_rew
 
         info["reset_reward"] = reset_reward
