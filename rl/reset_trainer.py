@@ -77,7 +77,9 @@ class ResetTrainer(Trainer):
         self._reset_agent: SACAgent = get_agent_by_name(config.algo)(
             config, ob_space, ac_space, actor, critic, True, rew
         )
-
+        if config.share_buffer:
+            self._reset_agent.share_buffer(self._agent)
+            self._agent.share_buffer(self._reset_agent)
         if config.reset_kl_penalty:
             self._reset_agent.set_forward_actor(self._agent._actor)
         if config.safe_forward:
@@ -120,13 +122,14 @@ class ResetTrainer(Trainer):
         ep_len = ep_rew = safe_act = 0
         env.begin_forward()
         while not done:  # env return done if time limit is reached or task done
-            ac, ac_before_activation = self._agent.act(ob, is_train=True)
+            ac, _ = self._agent.act(ob, is_train=True)
             if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
-                ac, ac_before_activation = self._agent.safe_act(ob, is_train=True)
+                ac, _ = self._agent.safe_act(ob, is_train=True)
                 safe_act += 1
-            rollout.add(
-                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
-            )
+            rollout.add({"ob": ob, "ac": ac})
+            if cfg.share_buffer:
+                reset_rew = env.reset_reward(ob, ac)
+                rollout.add({"other_agent_rew": reset_rew})
             ob, reward, done, info = env.step(ac)
             done = done or ep_len >= cfg.max_episode_steps
             rollout.add({"done": done, "rew": reward})
@@ -151,11 +154,12 @@ class ResetTrainer(Trainer):
         ob = init_ob
         env.begin_reset()
         while not reset_done:
-            ac, ac_before_activation = self._reset_agent.act(ob, is_train=True)
+            ac, _ = self._reset_agent.act(ob, is_train=True)
             prev_ob = ob
-            r_rollout.add(
-                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
-            )
+            r_rollout.add({"ob": ob, "ac": ac})
+            if cfg.share_buffer:
+                forward_rew = env.forward_reward(ob, ac)
+                r_rollout.add({"other_agent_rew": forward_rew})
             ob, env_reward, reset_done, info = env.step(ac)
             # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
             reward = env_reward
@@ -333,13 +337,11 @@ class ResetTrainer(Trainer):
             forward_frames.append(frame)
         env.begin_forward()
         while not done:  # env return done if time limit is reached or task done
-            ac, ac_before_activation = self._agent.act(ob, is_train=False)
+            ac, _ = self._agent.act(ob, is_train=False)
             if self._config.safe_forward and not self._agent.is_safe_action(ob, ac):
-                ac, ac_before_activation = self._agent.safe_act(ob, is_train=False)
+                ac, _ = self._agent.safe_act(ob, is_train=False)
                 safe_act += 1
-            rollout.add(
-                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
-            )
+            rollout.add({"ob": ob, "ac": ac})
             ob, reward, done, info = env.step(ac)
             done = done or ep_len >= cfg.max_episode_steps
             rollout.add({"done": done, "rew": reward, "safe_act": safe_act})
@@ -374,11 +376,9 @@ class ResetTrainer(Trainer):
             reset_frames.append(frame)
         env.begin_reset()
         while not reset_done:
-            ac, ac_before_activation = self._reset_agent.act(ob, is_train=False)
+            ac, _ = self._reset_agent.act(ob, is_train=False)
             prev_ob = ob
-            r_rollout.add(
-                {"ob": ob, "ac": ac, "ac_before_activation": ac_before_activation}
-            )
+            r_rollout.add({"ob": ob, "ac": ac})
             ob, env_reward, reset_done, info = env.step(ac)
             # env_reward, reset_rew_info = env.reset_reward(prev_ob, ac, ob)
             reward = env_reward

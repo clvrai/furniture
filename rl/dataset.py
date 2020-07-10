@@ -22,6 +22,9 @@ class ReplayBuffer:
         self._keys = keys
         self.clear()
 
+    def __len__(self):
+        return self._current_size
+
     def clear(self):
         self._idx = 0
         self._current_size = 0

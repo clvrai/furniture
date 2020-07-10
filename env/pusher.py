@@ -78,12 +78,15 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         start = self.get_body_com("object").copy()[:2]
         return (goal, start)
 
-    def step(self, a) -> Tuple[dict, float, bool, dict]:
+    def _preprocess_action(self, a):
+        """Make into array and scale to -2 and 2"""
         if isinstance(a, dict):
             a = np.concatenate([a[key] for key in self.action_space.shape.keys()])
-        # scale to -2 and 2
-        # assert np.min(a) >= -1 and np.max(a) <= 1
         a = a * 2
+        return a
+
+    def step(self, a) -> Tuple[dict, float, bool, dict]:
+        a = self._preprocess_action(a)
         self.do_simulation(a, self.frame_skip)
         done = False
         obs = self._get_obs()
@@ -270,10 +273,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         return rew, info
 
     def _forward_reward(self, s, a):
-        del s
         info = {}
-        obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
-        obj_to_goal = self.get_body_com("object")[:2] - self._goal
+        obj_to_arm = s["object_ob"] - s["robot_ob"][-2:]
+        obj_to_goal = s["object_ob"] - self._goal
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_goal_dist = np.linalg.norm(obj_to_goal)
         control_dist = np.linalg.norm(a)
@@ -299,13 +301,9 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         return forward_shaped_reward, info
 
     def _reset_reward(self, s, a):
-        del s
         info = {}
-        if not hasattr(self, "_goal"):
-            print("Warning: goal or start has not been set")
-            return (0, 0)
-        obj_to_arm = self.get_body_com("object")[:2] - self.get_body_com("tips_arm")[:2]
-        obj_to_start = self.get_body_com("object")[:2] - self._start
+        obj_to_arm = s["object_ob"] - s["robot_ob"][-2:]
+        obj_to_start = s["object_ob"] - self._goal
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         control_dist = np.linalg.norm(a)
@@ -340,6 +338,16 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
         info["obj_to_arm_dist"] = obj_to_arm_dist
         info["obj_to_start_dist"] = obj_to_start_dist
         return reset_shaped_reward, info
+
+    def reset_reward(self, s, a, preprocess_action=True):
+        if preprocess_action:
+            a = self._preprocess_action(a)
+        return self._reset_reward(s, a)[0]
+
+    def forward_reward(self, s, a, preprocess_action=True):
+        if preprocess_action:
+            a = self._preprocess_action(a)
+        return self._forward_reward(s, a)[0]
 
     @property
     def dof(self) -> int:

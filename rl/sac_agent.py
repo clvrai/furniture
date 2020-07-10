@@ -28,6 +28,7 @@ class SACAgent(BaseAgent):
         self._ob_space = ob_space
         self._ac_space = ac_space
         self._load_buffer_demos = self._config.load_buffer_demos
+        self._share_buffer = self._config.share_buffer
         self._demo_dir = self._config.demo_dir
 
         self._reward_scale = self._config.reward_scale
@@ -61,6 +62,8 @@ class SACAgent(BaseAgent):
 
         sampler = RandomSampler()
         buffer_keys = ["ob", "ac", "done", "rew"]
+        if self._share_buffer:
+            buffer_keys.append("other_agent_rew")
         self._buffer = ReplayBuffer(config, buffer_keys, sampler.sample_func)
         self._reset = reset
         if reset:
@@ -91,6 +94,9 @@ class SACAgent(BaseAgent):
         self._actor = actor(
             self._config, self._ob_space, self._ac_space, self._config.tanh_policy
         )
+
+    def share_buffer(self, other_agent):
+        self._other_buffer = other_agent._buffer
 
     def store_episode(self, rollouts):
         self._buffer.store_episode(rollouts)
@@ -150,6 +156,11 @@ class SACAgent(BaseAgent):
         for _ in range(self._config.num_batches):
             transitions = self._buffer.sample(self._config.batch_size)
             train_info = self._update_network(transitions)
+            if self._share_buffer and len(self._other_buffer) > 0:
+                o_transitions = self._other_buffer.sample(self._config.batch_size)
+                o_transitions["rew"] = o_transitions["other_agent_rew"]
+                self._update_network(o_transitions)
+
             self._soft_update_target_network(
                 self._critic1_target, self._critic1, self._config.polyak
             )

@@ -9,6 +9,7 @@ def add_argument(parser):
     parser.add_argument("--reset_kl_penalty", type=str2bool, default=False)
     parser.add_argument("--kl_penalty_coeff", type=float, default=10)
     parser.add_argument("--zero_qvel", type=str2bool, default=True, help="Zero the robot qvel on forward start")
+    parser.add_argument("--share_buffer", type=str2bool, default=False)
 
     # aot config
     parser.add_argument("--status_quo_baseline", type=str2bool, default=False)

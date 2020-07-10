@@ -38,6 +38,9 @@ class Rollout(object):
         else:
             batch["rew"] = self._history["rew"]
 
+        if "other_agent_rew" in self._history:
+            batch["other_agent_rew"] = self._history["other_agent_rew"]
+
         self._history = defaultdict(list)
         return batch
 
