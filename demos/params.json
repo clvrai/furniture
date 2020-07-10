@@ -1,6 +1,6 @@
 {
     "action_loss_coeff": 1.0,
-    "agent_placement_randomness": 0.02,
+    "agent_xyz_rand": 0.02,
     "algo": "sac",
     "aligned_rew": 10,
     "assembled": false,
@@ -51,8 +51,8 @@
     "eval_on_train_set": false,
     "evaluate_interval": 10,
     "fix_init": false,
-    "furn_placement_randomness": 0.02,
-    "furn_size_randomness": 0.0,
+    "furn_xyz_rand": 0.02,
+    "furn_size_rand": 0.0,
     "furniture_id": 1,
     "furniture_name": null,
     "gae_lambda": 0.95,

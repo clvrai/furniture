@@ -600,6 +600,19 @@ def unit_vector(data, axis=None, out=None):
         return data
 
 
+def quaternion_to_euler(x, y, z, w):
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    X = math.degrees(math.atan2(t0, t1))
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    Y = math.degrees(math.asin(t2))
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    Z = math.degrees(math.atan2(t3, t4))
+    return X, Y, Z
+
 def euler_to_quat(rotation, quat=None):
     """ Returns a quaternion of a euler rotation """
     q1 = Quaternion(axis=[1, 0, 0], degrees=rotation[0])
@@ -650,6 +663,35 @@ def l2_dist(a, b):
     """ Returns l2 distance between vectors @a and @b """
     return np.linalg.norm(a - b)
 
+
+def angle_between2D(cur, tgt):
+    """ Returns the relative angle in radians between 2D vectors 'cur' and 'tgt'::
+
+            >>> angle_between2D((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between2D((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between2D((1, 0, 0), (-1, -1, 0))
+            3.9269908169872414
+    """
+    cur_u = unit_vector(cur)
+    tgt_u = unit_vector(tgt)
+    return math.atan2(cur_u[0], cur_u[1]) - math.atan2(tgt_u[0], tgt_u[1])
+
+
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 def cos_dist(a, b):
     """ Returns cos distance between vectors @a and @b """

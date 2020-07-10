@@ -1,10 +1,12 @@
 import copy
 import xml.etree.ElementTree as ET
 import numpy as np
+from pyquaternion import Quaternion
 
 from env.models.base import MujocoXML
 from env.mjcf_utils import string_to_array, array_to_string
 from env.xml_adjusting.rescale import *
+from util import Qpos
 
 
 class MujocoObject:
@@ -144,6 +146,23 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         self.tree = rescale(self.tree, self.root, resize_factor, write=False)
         self.root = self.tree.getroot()
 
+    def get_init_pos(self, names):
+        init_pos = None
+        # see custom numeric tag in mujoco xml reference
+        numerics = self.root.find('custom')
+        if numerics is not None:
+            for numeric in numerics:
+                if 'name' in numeric.attrib and 'initpos' in numeric.attrib['name']:
+                    name = '_'.join(numeric.attrib['name'].split('_')[0:-1])
+                    if name in names:
+                        if init_pos is None:
+                            init_pos = {}
+                        data = numeric.attrib['data'].split(' ')
+                        xpos = [float(data[i]) for i in range(3)]
+                        quat = Quaternion([float(data[i]) for i in range(3, 7)])
+                        init_pos[name] = Qpos(xpos[0], xpos[1], xpos[2], quat)
+        return init_pos
+
     def get_bottom_offset(self, name=None):
         if name is None:
             name = self.name
@@ -163,8 +182,6 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
             "./body/site[@name='%s_horizontal_radius_site']" % name
         )
         return float(horizontal_radius_site.get("size"))
-
-    # 'noviz' geom, 'visual' mesh should come in pairs 
 
     def get_collision(self, name=None, site=False, friction=(1, 10, .5)):
         # get the mujocoXMLobject for geom labeled 'noviz' 

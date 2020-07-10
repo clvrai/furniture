@@ -1,4 +1,9 @@
 <mujoco model="chair_agne_0007">
+  <custom>
+    <numeric name="1_leg1_initpos" data="0.35504385 0.15554402 0.00905085 0.53152065 -0.46635207 0.53153488 0.46633918"/>
+    <numeric name="2_leg2_initpos" data="-0.22844776 0.17310733 0.00897921 0.70668947 -0.70668162 -0.02440361 0.02440389"/>
+    <numeric name="3_seat3_initpos" data="0.06229593 0.28005894 0.00895991 -0.00000009 0.00220165 -0.99999758 0.00000001"/>
+  </custom>
   <asset>
     <mesh file="chair_agne_0007/leg1.stl" name="leg1" scale="0.0005 0.0005 0.0005" />
     <mesh file="chair_agne_0007/leg2.stl" name="leg2" scale="0.0005 0.0005 0.0005" />
@@ -8,7 +13,7 @@
   </asset>
   <equality>
     <weld active="false" body1="2_leg2" body2="1_leg1" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="1_leg1" body2="3_seat" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_leg1" body2="3_seat3" solimp="1 1 0.5" solref="0.01 0.3" />
   </equality>
   <worldbody>
     <body name="1_leg1" pos="0 0 0" quat="1 0 0 0">
@@ -20,7 +25,7 @@
       <site name="leg1-seat,conn_site" pos="0.0 0.0 0.2" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
       <site name="1_leg1_bottom_site" pos="0 0 -0.18" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_leg1_top_site" pos="0.0 0.0 0.2" rgba="0 0 1 0.3" size="0.01" />
-      <site name="1_leg1_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.1" />
+      <site name="1_leg1_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.04" />
     </body>
     <body name="2_leg2" pos="-0.005 -0.01 0" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="leg2" name="2_leg2_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -30,15 +35,15 @@
       <site name="leg2-leg1,0,180,conn_site" pos="0.0 0.0 0.2" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="2_leg2_bottom_site" pos="0 0 -0.18" rgba="0 0 1 0.3" size="0.01" />
       <site name="2_leg2_top_site" pos="0.0 0.0 0.2" rgba="0 0 1 0.3" size="0.01" />
-      <site name="2_leg2_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.1" />
+      <site name="2_leg2_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.04" />
     </body>
-    <body name="3_seat" pos="0 0 0.2">
-      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="seat" name="3_seat_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" euler="0 0 0" name="noviz_collision_3_seat" pos="0 0 0.002" rgba="1 0 0 1" size="0.115 0.007" solref="0.001 1" type="cylinder" />
+    <body name="3_seat3" pos="0 0 0.2">
+      <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="seat" name="3_seat3_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" euler="0 0 0" name="noviz_collision_3_seat3" pos="0 0 0.002" rgba="1 0 0 1" size="0.115 0.007" solref="0.001 1" type="cylinder" />
       <site name="seat-leg1,conn_site" pos="0.0 0.0 -0.006" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
-      <site name="3_seat_bottom_site" pos="0.0 0.0 -0.006" rgba="0 0 1 0.3" size="0.003" />
-      <site name="3_seat_top_site" pos="0.0 0.0 0.01" rgba="0 0 1 0.3" size="0.003" />
-      <site name="3_seat_horizontal_radius_site" pos="0.006 0.006 0.0" rgba="0 0 1 0.3" size="0.1" />
+      <site name="3_seat3_bottom_site" pos="0.0 0.0 -0.006" rgba="0 0 1 0.3" size="0.003" />
+      <site name="3_seat3_top_site" pos="0.0 0.0 0.01" rgba="0 0 1 0.3" size="0.003" />
+      <site name="3_seat3_horizontal_radius_site" pos="0.006 0.006 0.0" rgba="0 0 1 0.3" size="0.1" />
     </body>
   </worldbody>
 </mujoco>

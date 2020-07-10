@@ -3,7 +3,6 @@ from .task import Task
 from .placement_sampler import (
     ObjectPositionSampler,
     UniformRandomSampler,
-    UniformRandomPegsSampler,
 )
 
 from .floor_task import FloorTask

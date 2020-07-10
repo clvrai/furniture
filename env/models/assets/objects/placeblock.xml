@@ -1,4 +1,8 @@
 <mujoco model="singleblock">
+  <custom>
+    <numeric data="0.04521311 0.04596679 0.11724173 0.51919501 0.52560512 0.47367611 0.47938163" name="1_block_l_initpos" />
+    <numeric data="0 90 180 270" name="1_block_l_gripangles"/>
+  </custom>
   <asset>
     <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
@@ -7,6 +11,9 @@
   </equality>
   <worldbody>
     <body name="1_block_l" pos="0.0 0.0 0.05" quat="1 0 0 0">
+      <site name="ltgt_site" pos="0 0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="rtgt_site" pos="0 -0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+
       <geom density="100" material="light-wood" name="box_l_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.025 0.025 0.025" solref="0.001 1" type="box" />
       <site name="1_block_l_bottom_site" pos="0.0 0.0 -0.05" rgba="0 0 1 0.3" size="0.0015" />
       <site name="1_block_l_top_site" pos="0.0 0.0 0.05" rgba="0 0 1 0.3" size="0.0015" />

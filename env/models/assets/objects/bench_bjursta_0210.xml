@@ -1,4 +1,12 @@
 <mujoco model="bench_bjursta_0210">
+  <custom>
+    <numeric name="0_part0_initpos" data="0.31290188 0.31518294 0.01277334 0.70707651 0.00654282 0.70707651 -0.00654282"/>
+    <numeric name="4_part4_initpos" data="0.0524124 0.11014674 0.01851991 0.00000005 0.99999844 0.0017675 0.00000001"/>
+    <numeric name="3_part3_initpos" data="-0.23706014 0.3203578 0.01266991 0.70710559 0.00129887 -0.70710559 0.00129887"/>
+    <numeric name="2_part2_initpos" data="0.31724176 0.39883623 0.01266991 0.49269428 -0.49269419 0.50720049 -0.50720059"/>
+    <numeric name="1_part1_initpos" data="-0.23790756 0.41602809 0.01266991 -0.5022942 0.50229429 0.49769522 -0.49769513"/>
+
+  </custom>
   <asset>
     <mesh file="bench_bjursta_0210/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
     <mesh file="bench_bjursta_0210/4.stl" name="part4" scale="0.0005 0.0005 0.0005" />
@@ -6,6 +14,7 @@
     <mesh file="bench_bjursta_0210/2.stl" name="part2" scale="0.0005 0.0005 0.0005" />
     <mesh file="bench_bjursta_0210/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
   </asset>
+  
   <equality>
     <weld active="false" body1="0_part0" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="4_part4" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />

@@ -1,4 +1,10 @@
 <mujoco model="table_dockstra_0279">
+  <custom>
+    <numeric name="0_part0_initpos" data="-0.12408194 0.37912191 0.02820991 0.99991314 0.00000003 0. 0.01318021"/>
+    <numeric name="3_part3_initpos" data="-0.1275318 0.14894916 0.013678 0.84919405 -0.00000006 -0.00000004 0.52808093"/>
+    <numeric name="2_part2_initpos" data="0.18361713 0.15712415 0.00313609 -0.00000001 -0.08251866 -0.99658952 -0.00000008"/> 
+    <numeric name="1_part1_initpos" data="0.20499342 0.41974184 0.02265931 0.58214439 -0.4558896 0.5405225 -0.40138261"/>
+  </custom>
   <asset>
     <mesh file="table_dockstra_0279/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
     <mesh file="table_dockstra_0279/3.stl" name="part3" scale="0.0005 0.0005 0.0005" />
