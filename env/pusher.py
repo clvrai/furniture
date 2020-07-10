@@ -308,7 +308,7 @@ class PusherEnv(mujoco_env.MujocoEnv, metaclass=EnvMeta):
     def _reset_reward(self, s, a):
         info = {}
         obj_to_arm = s["object_ob"] - s["robot_ob"][-2:]
-        obj_to_start = s["object_ob"] - self._goal
+        obj_to_start = s["object_ob"] - self._start
         obj_to_arm_dist = np.linalg.norm(obj_to_arm)
         obj_to_start_dist = np.linalg.norm(obj_to_start)
         control_dist = np.linalg.norm(a)
