@@ -125,16 +125,22 @@ class ResetTrainer(Trainer):
             if cfg.safe_forward and not self._agent.is_safe_action(ob, ac):
                 ac, _ = self._agent.safe_act(ob, is_train=True)
                 safe_act += 1
-            elif cfg.safe_abort and not self._agent.is_safe_action(ob, ac):
-                r_rollout, r_ep_info = self._reset_rollout(ob)
-                reset_success = r_ep_info["episode_success"]
-                self._reset_agent.store_episode(r_rollout)
-                if cfg.use_aot and cfg.aot_success_buffer:
-                    self._aot_agent.store_episode(r_rollout, success=reset_success)
-                self._update_normalizer(r_rollout, self._reset_agent)
-                env.begin_forward()
-                ob = r_rollout["ob"][-1]
-                safe_act += 1
+            elif cfg.safe_abort:
+                if not self._agent.is_safe_action(ob, ac):
+                    r_rollout, r_ep_info = self._reset_rollout(ob)
+                    reset_success = r_ep_info["episode_success"]
+                    self._reset_agent.store_episode(r_rollout)
+                    if cfg.use_aot and cfg.aot_success_buffer:
+                        self._aot_agent.store_episode(r_rollout, success=reset_success)
+                    self._update_normalizer(r_rollout, self._reset_agent)
+                    env.begin_forward()
+                    ob = r_rollout["ob"][-1]
+                    safe_act += 1
+                    step_per_batch = mpi_sum(len(r_rollout["ac"]))
+                else:
+                    self._reset_agent.sync_normalizer()
+                    step_per_batch = mpi_sum(0)
+                self._step += step_per_batch
 
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
