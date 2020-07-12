@@ -172,13 +172,13 @@ class ResetTrainer(Trainer):
         if cfg.safe_abort:
             step_per_batch = mpi_sum(reset_steps)
             self._step += step_per_batch
-            if self._is_chef:
-                self._pbar.update(step_per_batch)
             for r in reset_rollouts:
                 self._reset_agent.update_normalizer(r["ob"])
             self._reset_agent.recompute_normalizer()
             r_train_info = self._reset_agent.train()
-            self._log_train(self._step, r_train_info, r_ep_info, "reset")
+            if self._is_chef:
+                self._pbar.update(step_per_batch)
+                self._log_train(self._step, r_train_info, r_ep_info, "reset")
         return rollout.get(), ep_info
 
     def _reset_rollout(self, init_ob) -> Tuple[dict, dict]:
