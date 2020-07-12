@@ -127,13 +127,14 @@ class ResetTrainer(Trainer):
                 ac, _ = self._agent.safe_act(ob, is_train=True)
                 safe_act += 1
             elif cfg.safe_abort:
+                reset_fail = 0
+                reset_rollouts = []
                 if not self._agent.is_safe_action(ob, ac):
                     # 3. Run reset agent for max_failed tries
+                    safe_act += 1
                     env.begin_reset()
                     r_init_ob = ob
                     r_success = False
-                    reset_fail = reset_steps = 0
-                    reset_rollouts = []
                     while reset_fail < cfg.max_failed_reset and not r_success:
                         r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
                         r_success = r_ep_info["episode_success"]
@@ -145,24 +146,11 @@ class ResetTrainer(Trainer):
                         r_init_ob = ob = r_rollout["ob"][-1]
                         if not r_success:
                             reset_fail += 1
-                    step_per_batch = mpi_sum(reset_steps)
-                    self._step += step_per_batch
-                    for r in reset_rollouts:
-                        self._reset_agent.update_normalizer(r["ob"])
-                    self._reset_agent.recompute_normalizer()
-                    self._reset_agent.train()
                     env.begin_forward()
                     # 4. Hard Reset if necessary
                     if not r_success:
                         self._total_reset += 1
                         ob = env.reset(is_train=True)
-                else:
-                    # sync with other threads
-                    step_per_batch = mpi_sum(0)
-                    self._reset_agent.recompute_normalizer()
-
-                if self._is_chef:
-                    self._pbar.update(step_per_batch)
 
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
@@ -180,11 +168,16 @@ class ResetTrainer(Trainer):
         # compute average/sum of information
         ep_info = self._reduce_info(ep_info)
         ep_info.update({"len": ep_len, "rew": ep_rew, "safe_act": safe_act})
+
         if cfg.safe_abort:
-            self._step += mpi_sum(reset_steps)
+            step_per_batch = mpi_sum(reset_steps)
+            self._step += step_per_batch
+            if self._is_chef:
+                self._pbar.update(step_per_batch)
             for r in reset_rollouts:
                 self._reset_agent.update_normalizer(r["ob"])
             self._reset_agent.recompute_normalizer()
+            self._reset_agent.train()
         return rollout.get(), ep_info
 
     def _reset_rollout(self, init_ob) -> Tuple[dict, dict]:
@@ -285,7 +278,6 @@ class ResetTrainer(Trainer):
                         self._log_train(self._step, arrow_train_info, {}, "aot")
 
                 # 3. Run reset agent for max_failed tries
-                env.begin_reset()
                 r_init_ob = rollout["ob"][-1]
                 r_success = False
                 reset_fail = reset_steps = 0
