@@ -144,7 +144,7 @@ class ResetTrainer(Trainer):
                         reset_rollouts.append(r_rollout)
                         r_init_ob = ob = r_rollout["ob"][-1]
                         if not r_success:
-                            self._reset_fail += 1
+                            reset_fail += 1
                     step_per_batch = mpi_sum(reset_steps)
                     self._step += step_per_batch
                     if self._is_chef:
@@ -234,7 +234,7 @@ class ResetTrainer(Trainer):
         Repeat
         """
         cfg = self._config
-        self._total_reset = self._reset_fail = 0
+        self._total_reset = 0
         env = self._env
 
         # load checkpoint
@@ -295,7 +295,7 @@ class ResetTrainer(Trainer):
                     reset_rollouts.append(r_rollout)
                     r_init_ob = init_ob = r_rollout["ob"][-1]
                     if not r_success:
-                        self._reset_fail += 1
+                        reset_fail += 1
                 step_per_batch = mpi_sum(reset_steps)
                 self._step += step_per_batch
                 for r in reset_rollouts:
