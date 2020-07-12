@@ -145,8 +145,10 @@ class ResetTrainer(Trainer):
                         r_init_ob = ob = r_rollout["ob"][-1]
                         if not r_success:
                             self._reset_fail += 1
-
-                    self._step += mpi_sum(reset_steps)
+                    step_per_batch = mpi_sum(reset_steps)
+                    self._step += step_per_batch
+                    if self._is_chef:
+                        self._pbar.update(step_per_batch)
                     for r in reset_rollouts:
                         self._reset_agent.update_normalizer(r["ob"])
                     self._reset_agent.recompute_normalizer()
@@ -294,8 +296,8 @@ class ResetTrainer(Trainer):
                     r_init_ob = init_ob = r_rollout["ob"][-1]
                     if not r_success:
                         self._reset_fail += 1
-
-                self._step += mpi_sum(reset_steps)
+                step_per_batch = mpi_sum(reset_steps)
+                self._step += step_per_batch
                 for r in reset_rollouts:
                     self._reset_agent.update_normalizer(r["ob"])
                 self._reset_agent.recompute_normalizer()
