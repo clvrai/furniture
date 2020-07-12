@@ -131,19 +131,19 @@ class ResetTrainer(Trainer):
                     # 3. Run reset agent for max_failed tries
                     env.begin_reset()
                     r_init_ob = ob
-                    reset_success = False
+                    r_success = False
                     reset_fail = reset_steps = 0
                     reset_rollouts = []
                     while reset_fail < cfg.max_failed_reset and not reset_success:
                         r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
-                        reset_success = r_ep_info["episode_success"]
+                        r_success = r_ep_info["episode_success"]
                         self._reset_agent.store_episode(r_rollout)
                         if cfg.use_aot and cfg.aot_success_buffer:
-                            self._aot_agent.store_episode(r_rollout, success=reset_success)
+                            self._aot_agent.store_episode(r_rollout, success=r_success)
                         reset_steps += len(r_rollout["ac"])
                         reset_rollouts.append(r_rollout)
                         r_init_ob = ob = r_rollout["ob"][-1]
-                        if not reset_success:
+                        if not r_success:
                             self._reset_fail += 1
 
                     self._step += mpi_sum(reset_steps)
@@ -153,7 +153,7 @@ class ResetTrainer(Trainer):
                     r_train_info = self._reset_agent.train()
                     env.begin_forward()
                     # 4. Hard Reset if necessary
-                    if not reset_success:
+                    if not r_success:
                         self._total_reset += 1
                         ob = env.reset(is_train=True)
 
@@ -280,19 +280,19 @@ class ResetTrainer(Trainer):
                 # 3. Run reset agent for max_failed tries
                 env.begin_reset()
                 r_init_ob = rollout["ob"][-1]
-                reset_success = False
+                r_success = False
                 reset_fail = reset_steps = 0
                 reset_rollouts = []
-                while reset_fail < cfg.max_failed_reset and not reset_success:
+                while reset_fail < cfg.max_failed_reset and not r_success:
                     r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
-                    reset_success = r_ep_info["episode_success"]
+                    r_success = r_ep_info["episode_success"]
                     self._reset_agent.store_episode(r_rollout)
                     if cfg.use_aot and cfg.aot_success_buffer:
-                        self._aot_agent.store_episode(r_rollout, success=reset_success)
+                        self._aot_agent.store_episode(r_rollout, success=r_success)
                     reset_steps += len(r_rollout["ac"])
                     reset_rollouts.append(r_rollout)
                     r_init_ob = init_ob = r_rollout["ob"][-1]
-                    if not reset_success:
+                    if not r_success:
                         self._reset_fail += 1
 
                 self._step += mpi_sum(reset_steps)
@@ -302,7 +302,7 @@ class ResetTrainer(Trainer):
                 r_train_info = self._reset_agent.train()
 
                 # 4. Hard Reset if necessary
-                if not reset_success:
+                if not r_success:
                     self._total_reset += 1
                     init_ob = env.reset(is_train=True)
 
