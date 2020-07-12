@@ -177,7 +177,8 @@ class ResetTrainer(Trainer):
             for r in reset_rollouts:
                 self._reset_agent.update_normalizer(r["ob"])
             self._reset_agent.recompute_normalizer()
-            self._reset_agent.train()
+            r_train_info = self._reset_agent.train()
+            self._log_train(self._step, r_train_info, r_ep_info, "reset")
         return rollout.get(), ep_info
 
     def _reset_rollout(self, init_ob) -> Tuple[dict, dict]:

@@ -3,6 +3,7 @@
 
 
 from copy import deepcopy
+from time import time
 
 import numpy as np
 import torch
@@ -153,6 +154,7 @@ class SACAgent(BaseAgent):
         sync_networks(self._critic2)
 
     def train(self):
+        start = time()
         if self._reset and self._share_buffer and len(self._other_buffer) > 0:
             for _ in range(self._config.share_num_batches):
                 o_transitions = self._other_buffer.sample(self._config.batch_size)
@@ -182,6 +184,7 @@ class SACAgent(BaseAgent):
                 "critic2_grad_norm": compute_gradient_norm(self._critic2),
                 "critic1_weight_norm": compute_weight_norm(self._critic1),
                 "critic2_weight_norm": compute_weight_norm(self._critic2),
+                "train_time": time() - start
             }
         )
         return train_info
