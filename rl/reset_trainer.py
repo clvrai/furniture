@@ -147,8 +147,6 @@ class ResetTrainer(Trainer):
                             reset_fail += 1
                     step_per_batch = mpi_sum(reset_steps)
                     self._step += step_per_batch
-                    if self._is_chef:
-                        self._pbar.update(step_per_batch)
                     for r in reset_rollouts:
                         self._reset_agent.update_normalizer(r["ob"])
                     self._reset_agent.recompute_normalizer()
@@ -160,8 +158,11 @@ class ResetTrainer(Trainer):
                         ob = env.reset(is_train=True)
                 else:
                     # sync with other threads
-                    mpi_sum(0)
+                    step_per_batch = mpi_sum(0)
                     self._reset_agent.recompute_normalizer()
+
+                if self._is_chef:
+                    self._pbar.update(step_per_batch)
 
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
