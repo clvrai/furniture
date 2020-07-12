@@ -8,6 +8,7 @@ import gzip
 import os
 import pickle
 from collections import defaultdict
+from time import time
 from typing import Tuple
 
 import matplotlib.cm as cm
@@ -111,6 +112,7 @@ class ResetTrainer(Trainer):
             )
 
     def _forward_rollout(self, init_ob) -> Tuple[dict, dict]:
+        start_time = time()
         cfg = self._config
         env = self._env
         ob = init_ob
@@ -180,9 +182,11 @@ class ResetTrainer(Trainer):
             if self._is_chef:
                 self._pbar.update(step_per_batch)
                 self._log_train(self._step, r_train_info, r_ep_info, "reset")
+        ep_info["time"] = time() - start_time
         return rollout.get(), ep_info
 
     def _reset_rollout(self, init_ob) -> Tuple[dict, dict]:
+        start_time = time()
         cfg = self._config
         env = self._env
         r_rollout = Rollout()
@@ -224,6 +228,7 @@ class ResetTrainer(Trainer):
         # compute average/sum of information
         r_ep_info = self._reduce_info(r_ep_info)
         r_ep_info.update({"len": ep_len, "rew": ep_rew})
+        r_ep_info["time"] = time() - start_time
         return r_rollout.get(), r_ep_info
 
     def train(self):
@@ -284,8 +289,10 @@ class ResetTrainer(Trainer):
                 r_success = False
                 reset_fail = reset_steps = 0
                 reset_rollouts = []
+                r_time = 0
                 while reset_fail < cfg.max_failed_reset and not r_success:
                     r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
+                    r_time += r_ep_info["time"]
                     r_success = r_ep_info["episode_success"]
                     self._reset_agent.store_episode(r_rollout)
                     if cfg.use_aot and cfg.aot_success_buffer:
@@ -295,6 +302,7 @@ class ResetTrainer(Trainer):
                     r_init_ob = init_ob = r_rollout["ob"][-1]
                     if not r_success:
                         reset_fail += 1
+                r_ep_info["time"] = r_time
                 step_per_batch = mpi_sum(reset_steps)
                 self._step += step_per_batch
                 for r in reset_rollouts:
