@@ -134,7 +134,7 @@ class ResetTrainer(Trainer):
                     r_success = False
                     reset_fail = reset_steps = 0
                     reset_rollouts = []
-                    while reset_fail < cfg.max_failed_reset and not reset_success:
+                    while reset_fail < cfg.max_failed_reset and not r_success:
                         r_rollout, r_ep_info = self._reset_rollout(r_init_ob)
                         r_success = r_ep_info["episode_success"]
                         self._reset_agent.store_episode(r_rollout)
@@ -150,7 +150,7 @@ class ResetTrainer(Trainer):
                     for r in reset_rollouts:
                         self._reset_agent.update_normalizer(r["ob"])
                     self._reset_agent.recompute_normalizer()
-                    r_train_info = self._reset_agent.train()
+                    self._reset_agent.train()
                     env.begin_forward()
                     # 4. Hard Reset if necessary
                     if not r_success:
