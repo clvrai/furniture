@@ -129,6 +129,7 @@ class ResetTrainer(Trainer):
             elif cfg.safe_abort:
                 reset_fail = 0
                 reset_rollouts = []
+                r_ep_info = {}
                 if not self._agent.is_safe_action(ob, ac):
                     # 3. Run reset agent for max_failed tries
                     safe_act += 1
