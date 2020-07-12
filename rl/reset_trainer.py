@@ -158,6 +158,10 @@ class ResetTrainer(Trainer):
                     if not r_success:
                         self._total_reset += 1
                         ob = env.reset(is_train=True)
+                else:
+                    # sync with other threads
+                    mpi_sum(0)
+                    self._reset_agent.recompute_normalizer()
 
             rollout.add({"ob": ob, "ac": ac})
             if cfg.share_buffer:
