@@ -250,11 +250,22 @@ def main():
     from config import create_parser
 
     parser = create_parser(env="FurnitureBaxterEnv")
+    parser.set_defaults(max_episode_steps=2000)
+
+    # settings for VR demos
+    parser.set_defaults(alignment_pos_dist=0.15)
+    parser.set_defaults(alignment_rot_dist_up=0.8)
+    parser.set_defaults(alignment_rot_dist_forward=0.8)
+    parser.set_defaults(alignment_project_dist=0.2)
+    parser.set_defaults(control_type=ik_quaternion)
+    parser.set_defaults(move_speed=0.05)
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterEnv(config)
-    env.run_manual(config)
+    # env.run_manual(config)
+    env.run_vr(config)
+    # env.run_demo(config)
 
 
 if __name__ == "__main__":
