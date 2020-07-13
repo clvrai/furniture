@@ -55,6 +55,8 @@ class FurnitureBaxterEnv(FurnitureEnv):
             dof = (7 + 2) * 2
         elif self._control_type == "ik":
             dof = (3 + 3 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
+        elif self._control_type == "ik_quaternion":
+            dof = (3 + 4 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
         return dof
 
     def _step(self, a):
@@ -106,21 +108,21 @@ class FurnitureBaxterEnv(FurnitureEnv):
         if self._robot_ob:
             robot_states = OrderedDict()
             if self._control_type == "impedance":
-                for arm in ["right", "left"]:
+                for arm in self._arms:
                     robot_states[arm + "_joint_pos"] = np.array(
                         [
                             self.sim.data.qpos[x]
                             for x in self._ref_joint_pos_indexes[arm]
                         ]
                     )
-                for arm in ["right", "left"]:
+                for arm in self._arms:
                     robot_states[arm + "_joint_vel"] = np.array(
                         [
                             self.sim.data.qvel[x]
                             for x in self._ref_joint_vel_indexes[arm]
                         ]
                     )
-                for arm in ["right", "left"]:
+                for arm in self._arms:
                     robot_states[arm + "_gripper_qpos"] = np.array(
                         [
                             self.sim.data.qpos[x]
@@ -134,7 +136,7 @@ class FurnitureBaxterEnv(FurnitureEnv):
                         ]
                     )
 
-            for arm in ["right", "left"]:
+            for arm in self._arms:
                 gripper_qpos = [
                     self.sim.data.qpos[x]
                     for x in self._ref_gripper_joint_pos_indexes[arm]
@@ -143,7 +145,7 @@ class FurnitureBaxterEnv(FurnitureEnv):
                     [abs(gripper_qpos[0] - gripper_qpos[1])]
                 )
 
-            for arm in ["right", "left"]:
+            for arm in self._arms:
                 robot_states[arm + "_eef_pos"] = np.array(
                     self.sim.data.site_xpos[self.eef_site_id[arm]]
                 )
@@ -154,7 +156,7 @@ class FurnitureBaxterEnv(FurnitureEnv):
                     self.eef_site_id[arm]
                 ]  # 3-dim
 
-            for arm in ["right", "left"]:
+            for arm in self._arms:
                 robot_states[arm + "_eef_quat"] = T.convert_quat(
                     self.sim.data.get_body_xquat(arm + "_hand"), to="xyzw"
                 )

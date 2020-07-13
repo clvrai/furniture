@@ -55,6 +55,7 @@ def add_argument(parser):
         default="ik",
         choices=[
             "ik",
+            "ik_quaternion",
             "impedance",
             "torque",
             "position",
@@ -205,11 +206,6 @@ def add_argument(parser):
     )
     parser.add_argument(
         "--render", type=str2bool, default=False, help="whether to render camera"
-    )
-
-    # vr controller
-    parser.add_argument(
-        "--wrist_only", type=str2bool, default=False, help="fix rotation to robot wrist"
     )
 
     # debug

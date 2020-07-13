@@ -161,7 +161,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._preassembled = config.preassembled
 
-        if self._agent_type != "Cursor" and self._control_type == "ik":
+        if self._agent_type != "Cursor" and self._control_type in ["ik", "ik_quaternion"]:
             self._min_gripper_pos = np.array([-1.5, -1.5, 0.0])
             self._max_gripper_pos = np.array([1.5, 1.5, 1.5])
             self._action_repeat = 5
@@ -341,15 +341,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._step_discrete(a.copy())
             self._do_simulation(None)
 
-        elif self._control_type in ["ik", "torque"]:
+        elif self._control_type in ["ik", "ik_quaternion", "torque", "impedance"]:
             self._step_continuous(a.copy())
 
         elif self._control_type in NEW_CONTROLLERS:
             self._step_continuous(a.copy())
-
-        elif self._control_type == "impedance":
-            a = self._setup_action(a.copy())
-            self._do_simulation(a)
 
         else:
             raise ValueError
@@ -1079,94 +1075,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         Step function for continuous control, like Sawyer and Baxter
         """
         connect = action[-1]
-        if self._control_type == "ik":
-            for arm in self._arms:
-                for qvel_addr in self._ref_joint_vel_indexes[arm]:
-                    self.sim.data.qvel[qvel_addr] = 0.0
-            self.sim.forward()
-
-            if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-                action[:3] = action[:3] * self._move_speed
-                action[:3] = [-action[1], action[0], action[2]]
-                gripper_pos = self.sim.data.get_body_xpos("right_hand")
-                d_pos = self._bounded_d_pos(action[:3], gripper_pos)
-                self._initial_right_hand_quat = T.euler_to_quat(
-                    action[3:6] * self._rotate_speed, self._initial_right_hand_quat
-                )
-                d_quat = T.quat_multiply(
-                    T.quat_inverse(self._right_hand_quat), self._initial_right_hand_quat
-                )
-                gripper_dis = action[-2]
-                action = np.concatenate([d_pos, d_quat, [gripper_dis]])
-
-            elif self._agent_type == "Baxter":
-                action[:3] = action[:3] * self._move_speed
-                action[:3] = [-action[1], action[0], action[2]]
-                action[6:9] = action[6:9] * self._move_speed
-                action[6:9] = [-action[7], action[6], action[8]]
-                right_gripper_pos = self.sim.data.get_body_xpos("right_hand")
-                right_d_pos = self._bounded_d_pos(action[:3], right_gripper_pos)
-                self._initial_right_hand_quat = T.euler_to_quat(
-                    action[3:6] * self._rotate_speed, self._initial_right_hand_quat
-                )
-                right_d_quat = T.quat_multiply(
-                    T.quat_inverse(self._right_hand_quat), self._initial_right_hand_quat
-                )
-
-                right_gripper_dis = action[-3]
-                left_gripper_pos = self.sim.data.get_body_xpos("left_hand")
-                left_d_pos = self._bounded_d_pos(action[6:9], left_gripper_pos)
-                self._initial_left_hand_quat = T.euler_to_quat(
-                    action[9:12] * self._rotate_speed, self._initial_left_hand_quat
-                )
-                left_d_quat = T.quat_multiply(
-                    T.quat_inverse(self._left_hand_quat), self._initial_left_hand_quat
-                )
-                left_gripper_dis = action[-2]
-                action = np.concatenate(
-                    [
-                        right_d_pos,
-                        right_d_quat,
-                        left_d_pos,
-                        left_d_quat,
-                        [right_gripper_dis, left_gripper_dis],
-                    ]
-                )
-
-            input_1 = self._make_input(action[:7], self._right_hand_quat)
-            if self._agent_type in ["Sawyer", "Panda"]:
-                velocities = self._controller.get_control(**input_1)
-                low_action = np.concatenate([velocities, action[7:8]])
-            elif self._agent_type == "Jaco":
-                velocities = self._controller.get_control(**input_1)
-                low_action = np.concatenate([velocities] + [action[7:]] * 3)
-            elif self._agent_type == "Baxter":
-                input_2 = self._make_input(action[7:14], self._left_hand_quat)
-                velocities = self._controller.get_control(input_1, input_2)
-                low_action = np.concatenate([velocities, action[14:16]])
-            else:
-                raise Exception(
-                    "Only Sawyer, Panda, Jaco, Baxter robot environments are supported for IK "
-                    "control currently."
-                )
-
-            # keep trying to reach the target in a closed-loop
-            ctrl = self._setup_action(low_action)
-            for i in range(self._action_repeat):
-                self._do_simulation(ctrl)
-
-                if i + 1 < self._action_repeat:
-                    velocities = self._controller.get_control()
-                    if self._agent_type in ["Sawyer", "Panda"]:
-                        low_action = np.concatenate([velocities, action[7:]])
-                    elif self._agent_type == "Jaco":
-                        low_action = np.concatenate([velocities] + [action[7:]] * 3)
-                    elif self._agent_type == "Baxter":
-                        low_action = np.concatenate([velocities, action[14:]])
-                    ctrl = self._setup_action(low_action)
+        if self._control_type in ["ik", "ik_quaternion"]:
+            self._do_ik_step(action)
 
         elif self._control_type == "torque":
             self._do_simulation(action)
+
+        elif self._control_type == "impedance":
+            a = self._setup_action(action)
+            self._do_simulation(a)
 
         elif self._control_type in NEW_CONTROLLERS:
             self._do_controller_step(action)
@@ -1510,7 +1427,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._agent_type == "Baxter":
                 self._initial_left_hand_quat = self._left_hand_quat
 
-            if self._control_type == "ik":
+            if self._control_type in ["ik", "ik_quaternion"]:
                 # set up ik controller
                 self._controller.sync_state()
 
@@ -1723,7 +1640,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.sim.forward()
 
         # setup mocap for ik control
-        if self._control_type == "ik" and self._agent_type != "Cursor":
+        if self._control_type in ["ik", "ik_quaternion"] and self._agent_type != "Cursor":
             import env.models
 
             if self._agent_type == "Sawyer":
@@ -2051,9 +1968,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         # pose = c.get_pose_euler()
         pose = c.get_pose_quaternion()
         # match rotation in sim and vr controller
-        pose[3:] = T.euler_to_quat([0, 0, -90], pose[3:])
+        if self._control_type == "ik":
+            pose[3:] = T.euler_to_quat([0, 0, -90], pose[3:])
+        else:
+            pose[3:] = T.euler_to_quat([0, 0, 180], pose[3:])
         state = c.get_controller_inputs()
-        if pose is None or state is None:
+        if pose is None or state is None or np.linalg.norm(pose[:3]) < 0.001:
             print("Lost track of pose ", controller)
             return None, None
         return np.asarray(pose), state
@@ -2087,44 +2007,69 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         def init_origin():
             for i, arm in enumerate(self._arms):
-                origin_pose, _ = self.get_vr_input("controller_%d" % (i + 1))
-                origin_vr_pos[arm] = origin_pose[:3]
-                origin_vr_quat[arm] = origin_pose[3:]
-                origin_sim_pos[arm] = self.sim.data.get_body_xpos("%s_hand" % arm).copy()
-                origin_sim_quat[arm] = self.sim.data.get_body_xquat("%s_hand" % arm).copy()
+                logger.warn("Initialize %s VR controller", arm)
+                while True:
+                    origin_pose, origin_state = self.get_vr_input("controller_%d" % (i + 1))
+                    if origin_pose is None or origin_state is None:
+                        time.sleep(0.1)
+                    else:
+                        break
+                origin_vr_pos[arm] = origin_pose[:3].copy()
+                origin_vr_quat[arm] = origin_pose[3:].copy()
+                origin_sim_pos[arm] = self.sim.data.get_body_xpos(
+                    "%s_hand" % arm
+                ).copy()
+                origin_sim_quat[arm] = self.sim.data.get_body_xquat(
+                    "%s_hand" % arm
+                ).copy()
                 flag[arm] = -1
 
         def rel_pos(a, b):
             return a - b
 
         def rel_quat(a, b):
-            return list(Quaternion(a).inverse * Quaternion(b))
+            return np.array(list(Quaternion(a).inverse * Quaternion(b)))
+
+        def quat_to_rot(quat):
+            rot = np.array(
+                T.quaternion_to_euler(*T.convert_quat(np.array(quat), to="xyzw"))
+            )
+            # swap rotation axes
+            rot[1] = -rot[1]
+            rot[0], rot[2] = -rot[2], rot[0]
+
+            if abs(rot[0]) < 1:
+                rot[0] = 0
+            if abs(rot[1]) < 1:
+                rot[1] = 0
+            if abs(rot[2]) < 1:
+                rot[2] = 0
+            return rot
 
         def get_action(pose, arm):
             rel_vr_pos = rel_pos(origin_vr_pos[arm], pose[:3])
-            rel_vr_pos *= 10
+            # relative movement speed between VR and simulation
+            rel_vr_pos *= 2.5
             # swap y, z axes
             rel_vr_pos[1], rel_vr_pos[2] = -rel_vr_pos[2], rel_vr_pos[1]
-            rel_vr_quat = rel_quat(origin_vr_quat[arm], pose[3:])
+            rel_vr_quat = rel_quat(origin_vr_quat[arm], pose[3:])  # wxyz
 
-            sim_pos = self.sim.data.get_body_xpos("%s_hand" % arm)
-            sim_quat = self.sim.data.get_body_xquat("%s_hand" % arm)
+            sim_pos = self.sim.data.get_body_xpos("%s_hand" % arm).copy()
+            sim_quat = self.sim.data.get_body_xquat("%s_hand" % arm).copy()  # wxyz
             rel_sim_pos = rel_pos(origin_sim_pos[arm], sim_pos)
-            rel_sim_quat = rel_quat(origin_sim_quat[arm], sim_quat)
+            rel_sim_quat = rel_quat(origin_sim_quat[arm], sim_quat)  # wxyz
 
             action_pos = rel_pos(rel_sim_pos, rel_vr_pos)
-            action_rot = rel_quat(rel_sim_quat, rel_vr_quat)
-            action_rot = T.quaternion_to_euler(action_rot[1],
-                                               action_rot[2],
-                                               action_rot[3],
-                                               action_rot[0])
-            action_rot = np.array(action_rot)
-            # swap rotation axes
-            action_rot[1] = -action_rot[1]
-            action_rot[0], action_rot[2] = -action_rot[2], action_rot[0]
-            return action_pos, action_rot
+            action_quat = rel_quat(rel_sim_quat, rel_vr_quat)  # wxyz
+            action_rot = quat_to_rot(action_quat)
+
+            if self._control_type == "ik":
+                return action_pos, action_rot
+            elif self._control_type == "ik_quaternion":
+                return action_pos, action_quat
 
         t = 0
+        connect = -1
         init_origin()
         while True:
             pose = {}
@@ -2132,19 +2077,21 @@ class FurnitureEnv(metaclass=EnvMeta):
             action_pos = {}
             action_rot = {}
             for i, arm in enumerate(self._arms):
-                # get pose of the vr
-                pose[arm], state[arm] = self.get_vr_input("controller_%d" % (i + 1))
-                # check if controller is connected
-                if pose[arm] is None or state[arm] is None:
-                    time.sleep(0.1)
-                    continue
+                while True:
+                    # get pose of the vr
+                    pose[arm], state[arm] = self.get_vr_input("controller_%d" % (i + 1))
+                    # check if controller is connected
+                    if pose[arm] is None or state[arm] is None:
+                        time.sleep(0.1)
+                    else:
+                        break
                 action_pos[arm], action_rot[arm] = get_action(pose[arm], arm)
 
             if config.render:
                 self.render()
 
             reset = False
-            connect = 0
+            connect = -1
             for arm in self._arms:
                 s = state[arm]
                 # select
@@ -2160,10 +2107,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 # reset
                 if s["grip_button"] != 0:
                     reset = True
-                    break
 
             if reset:
                 t = 0
+                connect = -1
                 if self._record_demo:
                     self._demo.save(self.file_prefix)
                 self.reset(config.furniture_id, config.background)
@@ -2173,7 +2120,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             action_items = []
             for arm in self._arms:
                 action_items.append(action_pos[arm])
-                action_items.append(action_rot[arm] / self._rotate_speed)
+                if self._control_type == "ik":
+                    action_items.append(action_rot[arm] / self._rotate_speed)
+                else:
+                    action_items.append(action_rot[arm])
             for arm in self._arms:
                 action_items.append([flag[arm]])
             action_items.append([connect])
@@ -2181,11 +2131,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.hstack(action_items)
             action = np.clip(action, -1.0, 1.0)
 
-            print("Take action: " + str(action))
+            print(str(t) + " Take action: " + str(action))
             ob, reward, done, info = self.step(action)
 
             if self._record_vid:
                 self.vid_rec.capture_frame(self.render("rgb_array")[0])
+            t += 1
             if done:
                 if self._record_demo:
                     self._demo.save(self.file_prefix)
@@ -2193,8 +2144,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
                 t = 0
+                connect = -1
                 init_origin()
-            t += 1
+
+            time.sleep(0.05)
 
     def run_manual(self, config):
         """
@@ -2625,6 +2578,157 @@ class FurnitureEnv(metaclass=EnvMeta):
             logger.warn(e)
             self.reset()
             self._fail = True
+
+    def _do_ik_step(self, action):
+        """
+        Take multiple physics simulation steps, bounded by self._control_timestep
+        """
+        for arm in self._arms:
+            for qvel_addr in self._ref_joint_vel_indexes[arm]:
+                self.sim.data.qvel[qvel_addr] = 0.0
+        self.sim.forward()
+
+        if self._control_type == "ik":
+            if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+                action[:3] = action[:3] * self._move_speed
+                action[:3] = [-action[1], action[0], action[2]]
+                gripper_pos = self.sim.data.get_body_xpos("right_hand")
+                d_pos = self._bounded_d_pos(action[:3], gripper_pos)
+                self._initial_right_hand_quat = T.euler_to_quat(
+                    action[3:6] * self._rotate_speed, self._initial_right_hand_quat
+                )
+                d_quat = T.quat_multiply(
+                    T.quat_inverse(self._right_hand_quat), self._initial_right_hand_quat
+                )
+                gripper_dis = action[-2]
+                action = np.concatenate([d_pos, d_quat, [gripper_dis]])
+
+            elif self._agent_type == "Baxter":
+                action[:3] = action[:3] * self._move_speed
+                action[:3] = [-action[1], action[0], action[2]]
+                action[6:9] = action[6:9] * self._move_speed
+                action[6:9] = [-action[7], action[6], action[8]]
+                right_gripper_pos = self.sim.data.get_body_xpos("right_hand")
+                right_d_pos = self._bounded_d_pos(action[:3], right_gripper_pos)
+                self._initial_right_hand_quat = T.euler_to_quat(
+                    action[3:6] * self._rotate_speed, self._initial_right_hand_quat
+                )
+                right_d_quat = T.quat_multiply(
+                    T.quat_inverse(self._right_hand_quat), self._initial_right_hand_quat
+                )
+
+                right_gripper_dis = action[-3]
+                left_gripper_pos = self.sim.data.get_body_xpos("left_hand")
+                left_d_pos = self._bounded_d_pos(action[6:9], left_gripper_pos)
+                self._initial_left_hand_quat = T.euler_to_quat(
+                    action[9:12] * self._rotate_speed, self._initial_left_hand_quat
+                )
+                left_d_quat = T.quat_multiply(
+                    T.quat_inverse(self._left_hand_quat), self._initial_left_hand_quat
+                )
+                left_gripper_dis = action[-2]
+                action = np.concatenate(
+                    [
+                        right_d_pos,
+                        right_d_quat,
+                        left_d_pos,
+                        left_d_quat,
+                        [right_gripper_dis, left_gripper_dis],
+                    ]
+                )
+
+            input_1 = self._make_input(action[:7], self._right_hand_quat)
+            if self._agent_type in ["Sawyer", "Panda"]:
+                velocities = self._controller.get_control(**input_1)
+                low_action = np.concatenate([velocities, action[7:8]])
+            elif self._agent_type == "Jaco":
+                velocities = self._controller.get_control(**input_1)
+                low_action = np.concatenate([velocities] + [action[7:]] * 3)
+            elif self._agent_type == "Baxter":
+                input_2 = self._make_input(action[7:14], self._left_hand_quat)
+                velocities = self._controller.get_control(input_1, input_2)
+                low_action = np.concatenate([velocities, action[14:16]])
+            else:
+                raise Exception(
+                    "Only Sawyer, Panda, Jaco, Baxter robot environments are supported for IK "
+                    "control currently."
+                )
+
+            # keep trying to reach the target in a closed-loop
+            ctrl = self._setup_action(low_action)
+            for i in range(self._action_repeat):
+                self._do_simulation(ctrl)
+
+                if i + 1 < self._action_repeat:
+                    velocities = self._controller.get_control()
+                    if self._agent_type in ["Sawyer", "Panda"]:
+                        low_action = np.concatenate([velocities, action[7:]])
+                    elif self._agent_type == "Jaco":
+                        low_action = np.concatenate([velocities] + [action[7:]] * 3)
+                    elif self._agent_type == "Baxter":
+                        low_action = np.concatenate([velocities, action[14:]])
+                    ctrl = self._setup_action(low_action)
+
+        elif self._control_type == "ik_quaternion":
+            arm_pos = {}
+            arm_quat = {}
+            gripper_action = {}
+            last = 0
+            for arm in self._arms:
+                d_pos = action[last : last + 3] * self._move_speed
+                d_pos = [-d_pos[1], d_pos[0], d_pos[2]]
+                gripper_pos = self.sim.data.get_body_xpos("%s_hand" % arm)
+                d_pos = self._bounded_d_pos(d_pos, gripper_pos)
+                arm_pos[arm] = d_pos
+                arm_quat[arm] = T.convert_quat(action[last + 3 : last + 7])
+                last += 7
+
+            for arm in self._arms:
+                gripper_action[arm] = [action[last]]
+                last += 1
+
+            action_items = []
+            for arm in self._arms:
+                action_items.append(arm_pos[arm])
+                action_items.append(arm_quat[arm])
+            action = np.hstack(action_items)
+
+            action_items = []
+            for arm in self._arms:
+                action_items.append(gripper_action[arm])
+            gripper_action = np.hstack(action_items)
+
+            input_1 = self._make_input(action[:7], self._right_hand_quat)
+            if self._agent_type in ["Sawyer", "Panda"]:
+                velocities = self._controller.get_control(**input_1)
+                low_action = np.concatenate([velocities, gripper_action])
+            elif self._agent_type == "Jaco":
+                velocities = self._controller.get_control(**input_1)
+                low_action = np.concatenate([velocities] + [gripper_action] * 3)
+            elif self._agent_type == "Baxter":
+                input_2 = self._make_input(action[7:14], self._left_hand_quat)
+                velocities = self._controller.get_control(input_1, input_2)
+                low_action = np.concatenate([velocities, gripper_action])
+            else:
+                raise Exception(
+                    "Only Sawyer, Panda, Jaco, Baxter robot environments are supported for IK "
+                    "control currently."
+                )
+
+            # keep trying to reach the target in a closed-loop
+            ctrl = self._setup_action(low_action)
+            for i in range(self._action_repeat):
+                self._do_simulation(ctrl)
+
+                if i + 1 < self._action_repeat:
+                    velocities = self._controller.get_control()
+                    if self._agent_type in ["Sawyer", "Panda"]:
+                        low_action = np.concatenate([velocities, gripper_action])
+                    elif self._agent_type == "Jaco":
+                        low_action = np.concatenate([velocities] + [gripper_action] * 3)
+                    elif self._agent_type == "Baxter":
+                        low_action = np.concatenate([velocities, gripper_action])
+                    ctrl = self._setup_action(low_action)
 
     def _do_controller_step(self, action):
         """

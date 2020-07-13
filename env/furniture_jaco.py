@@ -57,6 +57,8 @@ class FurnitureJacoEnv(FurnitureEnv):
             dof = 6 + 3
         elif self._control_type == "ik":
             dof = 3 + 3 + 1 + 1  # move, rotate, select, connect
+        elif self._control_type == "ik_quaternion":
+            dof = 3 + 4 + 1 + 1  # move, rotate, select, connect
         return dof
 
     def _step(self, a):

@@ -43,7 +43,7 @@
                     <inertial pos="0 0 0" quat="0 0 0 1" mass="0.01" diaginertia="0.01 0.01 0.01" />
                     <geom name="r_gripper_l_finger_tip_visual" quat="0 0 0 1" type="mesh" contype="0" conaffinity="0" group="1" mesh="half_round_tip" />
                 <!--     <geom size="0.004 0.004 0.0185" pos="0 -0.0045 -0.015" quat="0 0 0 1" type="box"  conaffinity="1" contype="0" name="l_fingertip_g0" friction="0.5 0.005 0.0001"/> -->
-                <geom size="0.004 0.004 0.0185" pos="0 -0.0045 -0.015" quat="0 0 0 1" type="box"  conaffinity="1" contype="0" name="l_fingertip_g0" friction="1 10 0.5"/>
+                <geom size="0.004 0.004 0.0185" pos="0 -0.0045 -0.015" quat="0 0 0 1" type="box"  conaffinity="1" contype="0" name="l_fingertip_g0" friction="2 10 0.5"/>
 
                 </body>
             </body>
@@ -56,7 +56,7 @@
                 <body name="r_gripper_r_finger_tip" pos="0 -0.01725 0.075">
                     <inertial pos="0 0 0" mass="0.01" diaginertia="0.01 0.01 0.01" />
                     <geom name="r_gripper_r_finger_tip_visual" type="mesh" contype="0" conaffinity="0" group="1" mesh="half_round_tip" />
-                    <geom size="0.004 0.004 0.0185" pos="0 0.0045 -0.015" type="box"  conaffinity="1" contype="0" name="r_fingertip_g0" friction="1 10 0.5"/>
+                    <geom size="0.004 0.004 0.0185" pos="0 0.0045 -0.015" type="box"  conaffinity="1" contype="0" name="r_fingertip_g0" friction="2 10 0.5"/>
                 </body>
             </body>
         </body>

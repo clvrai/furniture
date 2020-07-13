@@ -35,11 +35,12 @@ class BaxterIKController(Controller):
         # Set up inverse kinematics
         self.robot_jpos_getter = robot_jpos_getter
 
+        # Do any setup needed for Inverse Kinematics.
         path = os.path.join(bullet_data_path, "baxter_description/urdf/baxter_mod.urdf")
         self.setup_inverse_kinematics(path)
 
-        self.rest_joints = np.zeros(14)
-        self.commanded_joint_positions = robot_jpos_getter()
+        # Should be in (0, 1], smaller values mean less sensitivity.
+        self.user_sensitivity = 1.0
 
         self.sync_state()
 
@@ -304,8 +305,8 @@ class BaxterIKController(Controller):
         dpos_left = left["dpos"]
         self.target_pos_right = self.ik_robot_target_pos_right + np.array([0, 0, 0.913])
         self.target_pos_left = self.ik_robot_target_pos_left + np.array([0, 0, 0.913])
-        self.ik_robot_target_pos_right += dpos_right
-        self.ik_robot_target_pos_left += dpos_left
+        self.ik_robot_target_pos_right += dpos_right * self.user_sensitivity
+        self.ik_robot_target_pos_left += dpos_left * self.user_sensitivity
 
         rotation_right = right["rotation"]
         rotation_left = left["rotation"]
@@ -321,7 +322,8 @@ class BaxterIKController(Controller):
         )
 
         # Empirically, more iterations aren't needed, and it's faster
-        for _ in range(5):
+        # for _ in range(5):
+        for _ in range(20):
             arm_joint_pos = self.inverse_kinematics(
                 world_targets_right[0],
                 world_targets_right[1],

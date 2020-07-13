@@ -619,10 +619,14 @@ def euler_to_quat(rotation, quat=None):
     q1 = Quaternion(axis=[1, 0, 0], degrees=rotation[0])
     q2 = Quaternion(axis=[0, 1, 0], degrees=rotation[1])
     q3 = Quaternion(axis=[0, 0, 1], degrees=rotation[2])
+    q = q3 * q2 * q1
+    # q = Quaternion(
+    #     convert_quat(mat2quat(euler2mat(np.array(rotation) / 180.0 * np.pi)), to="wxyz")
+    # )
     if quat is None:
-        final_quat = list(q3 * q2 * q1)
+        final_quat = list(q)
     else:
-        final_quat = list(Quaternion(quat) * q3 * q2 * q1)
+        final_quat = list(Quaternion(quat) * q)
     return final_quat
 
 

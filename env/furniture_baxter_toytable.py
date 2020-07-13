@@ -97,6 +97,8 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
     def _ctrl_reward(self, action):
         if self._config.control_type in ["ik", "position_orientation"]:
             a = np.linalg.norm(action[:12])
+        elif self._config.control_type in ["ik_quaternion"]:
+            a = np.linalg.norm(action[:14])
         elif self._config.control_type in ["position"]:
             a = np.linalg.norm(action[:6])
         elif self._config.control_type == "impedance":
@@ -175,7 +177,6 @@ def main():
     from config import create_parser
 
     parser = create_parser(env="FurnitureBaxterToyTableEnv")
-    parser.set_defaults(wrist_only=True)
     parser.set_defaults(max_episode_steps=1000)
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
