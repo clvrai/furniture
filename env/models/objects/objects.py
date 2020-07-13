@@ -184,7 +184,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         return float(horizontal_radius_site.get("size"))
 
     def get_collision(self, name=None, site=False, friction=(1, 10, .5)):
-        # get the mujocoXMLobject for geom labeled 'noviz' 
+        # get the mujocoXMLobject for geom labeled 'noviz'
         self.name = name
         collision = copy.deepcopy(self.worldbody.find("./body[@name='%s']" % name))
         collision.attrib.pop("name")
@@ -206,7 +206,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         return collision
 
     def get_visual(self, name=None, site=False):
-        # get the mujocoXMLobject for mesh labeled 'visual' 
+        # get the mujocoXMLobject for mesh labeled 'visual'
         visual = copy.deepcopy(self.worldbody.find("./body/body[@name='visual']"))
         visual.attrib.pop("name")
         if name is not None:

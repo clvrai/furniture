@@ -191,7 +191,7 @@ class UniformRandomSampler(ObjectPositionSampler):
                         )
                     quat = self.sample_quat(self.init_qpos[obj_name].quat)
 
-                    placed_objects.append((horiz_rad, Qpos(pos[0], pos[1],  
+                    placed_objects.append((horiz_rad, Qpos(pos[0], pos[1],
                         pos[2], quat)))
                     quat_arr[obj_name] = quat
                     pos_arr[obj_name] = pos
