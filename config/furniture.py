@@ -157,6 +157,31 @@ def add_argument(parser):
         help="variance in size of furniture at episode start, ranging from size*(1-rand) to size*(1+rand)",
     )
     parser.add_argument(
+        "--alignment_pos_dist",
+        type=float,
+        default=0.1,
+        help="threshold for checking alignment",
+    )
+    parser.add_argument(
+        "--alignment_rot_dist_up",
+        type=float,
+        default=0.9,
+        help="threshold for checking alignment",
+    )
+    parser.add_argument(
+        "--alignment_rot_dist_forward",
+        type=float,
+        default=0.9,
+        help="threshold for checking alignment",
+    )
+    parser.add_argument(
+        "--alignment_project_dist",
+        type=float,
+        default=0.3,
+        help="threshold for checking alignment",
+    )
+
+    parser.add_argument(
         "--robot_ob",
         type=str2bool,
         default=True,
@@ -167,6 +192,12 @@ def add_argument(parser):
         type=str2bool,
         default=True,
         help="includes object pose in observation",
+    )
+    parser.add_argument(
+        "--object_ob_all",
+        type=str2bool,
+        default=True,
+        help="includes all object pose in observation",
     )
     parser.add_argument(
         "--visual_ob",

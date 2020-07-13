@@ -71,10 +71,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             "furn_size_rand": config.furn_size_rand,
             "unstable_penalty": 100,
             "boundary": 1.5,  # XYZ cube boundary
-            "pos_dist": 0.1,
-            "rot_dist_up": 0.9,
-            "rot_dist_forward": 0.9,
-            "project_dist": 0.3,
+            "pos_dist": config.alignment_pos_dist,
+            "rot_dist_up": config.alignment_rot_dist_up,
+            "rot_dist_forward": config.alignment_rot_dist_forward,
+            "project_dist": config.alignment_project_dist,
         }
 
         self._debug = config.debug
@@ -113,6 +113,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._robot_ob = config.robot_ob
         self._object_ob = config.object_ob
+        self._object_ob_all = config.object_ob_all
         self._visual_ob = config.visual_ob
         self._subtask_ob = config.subtask_ob
         self._segmentation_ob = config.segmentation_ob
@@ -135,9 +136,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                 demo = pickle.load(f)
                 self._init_qpos = demo["qpos"][0]
 
-        self.file_prefix = (
-            self._agent_type + "_" + furniture_names[config.furniture_id] + "_"
-        )
+        if config.furniture_name:
+            furniture_name = config.furniture_name
+        else:
+            furniture_name = furniture_names[config.furniture_id]
+        self.file_prefix = self._agent_type + "_" + furniture_name + "_"
 
         self._record_demo = config.record_demo
         if self._record_demo:
@@ -161,7 +164,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._preassembled = config.preassembled
 
-        if self._agent_type != "Cursor" and self._control_type in ["ik", "ik_quaternion"]:
+        if self._agent_type != "Cursor" and self._control_type in [
+            "ik",
+            "ik_quaternion",
+        ]:
             self._min_gripper_pos = np.array([-1.5, -1.5, 0.0])
             self._max_gripper_pos = np.array([1.5, 1.5, 1.5])
             self._action_repeat = 5
@@ -180,6 +186,14 @@ class FurnitureEnv(metaclass=EnvMeta):
 
             GlfwContext(offscreen=True)  # create a window to init GLFW
 
+        if self._object_ob_all:
+            if config.furniture_name is not None:
+                self._furniture_id = furniture_name2id[config.furniture_name]
+            else:
+                self._furniture_id = config.furniture_id
+            self._load_model_object()
+            self._furniture_id = None
+
     @property
     def observation_space(self):
         """
@@ -196,9 +210,14 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         if self._object_ob:
             # can be changed to the desired number depending on the task
-            ob_space["object_ob"] = gym.spaces.Box(
-                low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
-            )
+            if self._object_ob_all:
+                ob_space["object_ob"] = gym.spaces.Box(
+                    low=-np.inf, high=np.inf, shape=((3 + 4) * self.n_objects,),
+                )
+            else:
+                ob_space["object_ob"] = gym.spaces.Box(
+                    low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
+                )
 
         if self._subtask_ob:
             ob_space["subtask_ob"] = gym.spaces.Box(low=0.0, high=np.inf, shape=(2,),)
@@ -937,10 +956,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         project2_1 = np.dot(up2, T.unit_vector(site1_xpos[:3] - site2_xpos[:3]))
 
         logger.debug(
-            f"pos_dist: {pos_dist}"
-            + f"rot_dist_up: {rot_dist_up}"
-            + f"rot_dist_forward: {rot_dist_forward}"
-            + f"project: {project1_2}, {project2_1}"
+            f"pos_dist: {pos_dist}  "
+            + f"rot_dist_up: {rot_dist_up}  "
+            + f"rot_dist_forward: {rot_dist_forward}  "
+            + f"project: {project1_2}, {project2_1}  "
         )
 
         max_rot_dist_forward = rot_dist_forward
@@ -1163,7 +1182,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._object_ob:
             obj_states = OrderedDict()
             for i, obj_name in enumerate(self._object_names):
-                if i in [self._subtask_part1, self._subtask_part2]:
+                if self._object_ob_all or i in [
+                    self._subtask_part1,
+                    self._subtask_part2,
+                ]:
                     obj_pos = self._get_pos(obj_name)
                     obj_quat = self._get_quat(obj_name)
                     obj_states["{}_pos".format(obj_name)] = obj_pos
@@ -1640,7 +1662,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.sim.forward()
 
         # setup mocap for ik control
-        if self._control_type in ["ik", "ik_quaternion"] and self._agent_type != "Cursor":
+        if (
+            self._control_type in ["ik", "ik_quaternion"]
+            and self._agent_type != "Cursor"
+        ):
             import env.models
 
             if self._agent_type == "Sawyer":
@@ -2009,7 +2034,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             for i, arm in enumerate(self._arms):
                 logger.warn("Initialize %s VR controller", arm)
                 while True:
-                    origin_pose, origin_state = self.get_vr_input("controller_%d" % (i + 1))
+                    origin_pose, origin_state = self.get_vr_input(
+                        "controller_%d" % (i + 1)
+                    )
                     if origin_pose is None or origin_state is None:
                         time.sleep(0.1)
                     else:
