@@ -33,11 +33,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
-        # mask actions
         a = a.copy()
-        a[3:6] = 0
-        a[9:12] = 0
-        a[12:14] = -1
 
         # discretize gripper action
         if self._discretize_grip:
