@@ -56,6 +56,7 @@ register(
     },
 )
 
+
 register(
     id="furniture-jaco-v0",
     entry_point="env.furniture_gym:FurnitureGym",

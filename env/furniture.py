@@ -65,6 +65,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._env_config = {
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
+            "touch_reward": 1,
+            "pick_reward": 1,
             "ctrl_reward": 1e-3,
             "furn_xyz_rand": config.furn_xyz_rand,
             "agent_xyz_rand": config.agent_xyz_rand,
@@ -138,6 +140,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         if config.furniture_name:
             furniture_name = config.furniture_name
+            config.furniture_id = furniture_name2id[config.furniture_name]
         else:
             furniture_name = furniture_names[config.furniture_id]
         self.file_prefix = self._agent_type + "_" + furniture_name + "_"
@@ -419,6 +422,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             step_log["episode_length"] = self._episode_length
             step_log["episode_time"] = total_time
             step_log["episode_unstable"] = penalty
+            step_log["episode_num_connected"] = self._num_connected
 
         return self._terminal, step_log, penalty
 
@@ -426,10 +430,57 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Computes the reward at the current step
         """
-        reward = self._env_config["success_reward"] * self._num_connected
+        # Touch & pick reward
+        touch_reward = 0
+        pick_reward = 0
+        floor_geom_id = self.sim.model.geom_name2id("FLOOR")
+        touch_floor = {}
+        for arm in self._arms:
+            touch_left_finger = {}
+            touch_right_finger = {}
+            for body_id in self._object_body_ids:
+                touch_left_finger[body_id] = False
+                touch_right_finger[body_id] = False
+                touch_floor[body_id] = False
+
+            for j in range(self.sim.data.ncon):
+                c = self.sim.data.contact[j]
+                body1 = self.sim.model.geom_bodyid[c.geom1]
+                body2 = self.sim.model.geom_bodyid[c.geom2]
+
+                for geom_id, body_id in [(c.geom1, body2), (c.geom2, body1)]:
+                    if not (body_id in self._object_body_ids):
+                        continue
+                    if geom_id in self.l_finger_geom_ids[arm]:
+                        touch_left_finger[body_id] = True
+                    if geom_id in self.r_finger_geom_ids[arm]:
+                        touch_right_finger[body_id] = True
+                    if geom_id == floor_geom_id:
+                        touch_floor[body_id] = True
+
+            for body_id in self._object_body_ids:
+                if touch_left_finger[body_id] and touch_right_finger[body_id]:
+                    if not self._touched[body_id]:
+                        self._touched[body_id] = True
+                        touch_reward += self._env_config["touch_reward"]
+                    if not self._picked[body_id]:
+                        self._picked[body_id] = True
+                        pick_reward += self._env_config["pick_reward"]
+
+        # Success reward
+        success_reward = self._env_config["success_reward"] * (
+            self._num_connected - self._prev_num_connected
+        )
+        self._prev_num_connected = self._num_connected
+
+        reward = success_reward + touch_reward + pick_reward
         # do not terminate
         done = False
-        info = {}
+        info = {
+            "success_reward": success_reward,
+            "touch_reward": touch_reward,
+            "pick_reward": pick_reward,
+        }
         return reward, done, info
 
     def _ctrl_reward(self, a):
@@ -1191,7 +1242,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     obj_states["{}_pos".format(obj_name)] = obj_pos
                     obj_states["{}_quat".format(obj_name)] = obj_quat
 
-            if self._subtask_part1 == -1:
+            if not self._object_ob_all and self._subtask_part1 == -1:
                 obj_states["dummy"] = np.zeros(14)
 
             state["object_ob"] = np.concatenate(
@@ -1322,8 +1373,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._connected_body1_pos = None
         self._connected_body1_quat = None
         self._num_connected = 0
+        self._prev_num_connected = 0
         if self._agent_type == "Cursor":
             self._cursor_selected = [None, None]
+
+        self._touched = {}
+        self._picked = {}
+        for body_id in self._object_body_ids:
+            self._touched[body_id] = False
+            self._picked[body_id] = False
 
         # initialize weld constraints
         eq_obj1id = self.sim.model.eq_obj1id

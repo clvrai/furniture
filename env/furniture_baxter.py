@@ -38,7 +38,7 @@ class FurnitureBaxterEnv(FurnitureEnv):
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
                     low=-np.inf, high=np.inf, shape=(64,),
                 )
-            elif self._control_type == "ik":
+            elif self._control_type in ["ik", "ik_quaternion"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
                     low=-np.inf, high=np.inf, shape=((3 + 4 + 3 + 3 + 1) * 2,),
                 )
@@ -257,15 +257,17 @@ def main():
     parser.set_defaults(alignment_rot_dist_up=0.8)
     parser.set_defaults(alignment_rot_dist_forward=0.8)
     parser.set_defaults(alignment_project_dist=0.2)
-    parser.set_defaults(control_type=ik_quaternion)
+    parser.set_defaults(control_type="ik_quaternion")
     parser.set_defaults(move_speed=0.05)
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterEnv(config)
-    # env.run_manual(config)
-    env.run_vr(config)
-    # env.run_demo(config)
+    if config.load_demo:
+        env.run_demo(config)
+    else:
+        env.run_vr(config)
+        # env.run_manual(config)
 
 
 if __name__ == "__main__":

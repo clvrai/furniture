@@ -1,3 +1,5 @@
+import argparse
+
 from util import str2bool, str2intlist
 from env.models import furniture_names, furniture_ids, background_names
 
@@ -261,9 +263,6 @@ def get_default_config():
     """
     Gets default configurations for the furniture assembly environment.
     """
-    import argparse
-    from util import str2bool
-
     parser = argparse.ArgumentParser(
         "Default Configuration for IKEA Furniture Assembly Environment"
     )
@@ -272,5 +271,5 @@ def get_default_config():
     parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--debug", type=str2bool, default=False)
 
-    config = parser.parse_args([])
+    config, unparsed = parser.parse_known_args()
     return config
