@@ -2861,7 +2861,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Returns the cursor positions
         """
         if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
-            return self.sim.data.site_xpos[self.eef_site_id["right"]]
+            return self.sim.data.site_xpos[self.eef_site_id["right"]].copy()
         elif self._agent_type == "Cursor":
             if name:
                 return self._get_pos(name)
