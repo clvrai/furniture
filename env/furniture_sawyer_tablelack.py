@@ -30,17 +30,17 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 "project_dist": -1,
             }
         )
-        self._pos_threshold = 0.01
-        self._rot_threshold = 0.05
-        self._ctrl_penalty_coef = 1
-        self._eef_leg_up_dist_coef = 1
-        self._eef_leg_left_dist_coef = 1
-        self._above_leg_z = 0.1
+        self._ctrl_penalty_coef = config.ctrl_penalty_coef
+        self._pos_threshold = config.pos_threshold
+        self._rot_threshold = config.rot_threshold
+        self._eef_leg_rot_dist_coef = config.eef_leg_rot_dist_coef
+        self._eef_leg_pos_dist_coef = config.eef_leg_pos_dist_coef
+        self._above_leg_z = config.above_leg_z
         # self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
         # parts.
         self._num_connect_steps = 0
-        self._discretize_grip = config.discretize_grip
+        # self._discretize_grip = config.discretize_grip
 
     def _reset_reward_variables(self):
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "done"]
@@ -48,6 +48,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._current_leg = "1_leg1"
         self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
         self._current_table_site = "table-leg,0,90,180,270,conn_site1"
+
+    def _reset(self, furniture_id=None, background=None):
+        super()._reset(furniture_id, background)
+        self._reset_reward_variables()
 
     def _step(self, a):
         """
@@ -65,7 +69,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         #     pose = self._get_qpos(body)
         #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
 
-        info["ac"] = a
+        # info["ac"] = a
         return ob, reward, done, info
 
     def _place_objects(self):
@@ -143,8 +147,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         eef_pos = self._get_cursor_pos()
         leg_pos = self._get_pos(self._current_leg) + [0, 0, self._above_leg_z]
-        eef_above_leg_distance = -np.linalg.norm(eef_pos - leg_pos)
-        rew = eef_above_leg_distance * self._eef_leg_pos_coef
+        eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
+        rew = -eef_above_leg_distance * self._eef_leg_pos_dist_coef
         info = {"eef_above_leg_distance": eef_above_leg_distance, "eef_leg_rew": rew}
         info["move_eef_above_leg_succ"] = eef_above_leg_distance < self._pos_threshold
         assert rew <= 0
@@ -159,8 +163,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         eef_pos = self._get_cursor_pos()
         leg_pos = self._get_pos(self._current_leg)
-        eef_leg_distance = -np.linalg.norm(eef_pos - leg_pos)
-        rew = eef_leg_distance * self._eef_leg_pos_coef
+        eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
+        rew = -eef_leg_distance * self._eef_leg_pos_dist_coef
         info = {"eef_leg_distance": eef_leg_distance, "eef_leg_rew": rew}
         info["lower_eef_over_leg_succ"] = eef_leg_distance < self._pos_threshold
         assert rew <= 0
@@ -175,15 +179,14 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         eef_up = self._get_up_vector("grip_site")
         leg_up = self._get_up_vector(self._current_leg_site)
         eef_leg_up_dist = T.cos_dist(eef_up, leg_up)
-        logger.debug(f"eef_leg_up_dist: {eef_leg_up_dist}")
-        eef_leg_up_rew = self._eef_leg_up_dist_coef * -np.abs(eef_leg_up_dist)
+        eef_leg_up_rew = self._eef_leg_rot_dist_coef * -np.abs(eef_leg_up_dist)
 
         # up vector of leg and left vector of grip site should be parallel (close to -1 or 1)
         eef_left = self._get_left_vector("grip_site")
         eef_leg_left_dist = T.cos_dist(eef_left, leg_up)
         eef_leg_left_rew = (
             np.abs(eef_leg_left_dist) - 1
-        ) * self._eef_leg_left_dist_coef
+        ) * self._eef_leg_rot_dist_coef
         info = {
             "eef_leg_up_dist": eef_leg_up_dist,
             "eef_leg_up_rew": eef_leg_up_rew,
@@ -191,6 +194,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             "eef_leg_left_rew": eef_leg_left_rew,
         }
         assert eef_leg_up_rew <= 0 and eef_leg_left_rew <= 0
+        # print(f"Close to 0; eef_leg_up_dist: {eef_leg_up_dist}")
+        # print(f"Close to 1 or -1; eef_leg_left_dist: {eef_leg_left_dist}")
         rew = eef_leg_up_rew + eef_leg_left_rew
         info["stable_grip_succ"] = (
             eef_leg_up_dist < self._rot_threshold
@@ -218,7 +223,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 def main():
     from config import create_parser
 
-    parser = create_parser(env="FurnitureSawyerToyTableEnv")
+    parser = create_parser(env="FurnitureSawyerTableLackEnv")
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
         logger.error("Unparsed argument is detected:\n%s", unparsed)

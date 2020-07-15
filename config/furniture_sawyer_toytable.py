@@ -1,5 +1,4 @@
-from util import str2bool, str2intlist
-from env.models import furniture_names, furniture_ids, background_names
+from util import str2bool
 
 
 def add_argument(parser):

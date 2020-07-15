@@ -52,6 +52,9 @@ def get_env_specific_argument(env):
     elif env == "FurnitureSawyerPickEnv":
         import config.furniture_sawyer_pick as f
 
+    elif env == "FurnitureSawyerTableLackEnv":
+        import config.furniture_sawyer_tablelack as f
+
     return f
 
 
