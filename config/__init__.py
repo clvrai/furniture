@@ -39,7 +39,6 @@ def create_parser(env=None):
 
 def get_env_specific_argument(env):
     f = None
-
     if env == "FurnitureCursorToyTableEnv":
         import config.furniture_cursor_toytable as f
 
@@ -52,7 +51,7 @@ def get_env_specific_argument(env):
     elif env == "FurnitureSawyerPickEnv":
         import config.furniture_sawyer_pick as f
 
-    elif env == "FurnitureSawyerTableLackEnv":
+    elif env == "furniture-sawyer-tablelack-v0":
         import config.furniture_sawyer_tablelack as f
 
     return f
