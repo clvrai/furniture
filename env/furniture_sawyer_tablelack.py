@@ -119,7 +119,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         reward = 0
         done = False
-        info = {}
+        info = {"phase": self._phase_i}
         phase = self._phases[self._phase_i]
 
         opp_penalty, opp_info = self._other_parts_penalty()
@@ -134,8 +134,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info["lower_eef_to_leg_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
 
-        reward = opp_penalty + ctrl_penalty + phase_reward
-        info = {**info, **opp_info, **ctrl_info, **sg_info, **phase_info}
+        reward = opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
+        info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info}
         return reward, done, info
 
     def _move_eef_above_leg_reward(self) -> Tuple[float, dict]:
