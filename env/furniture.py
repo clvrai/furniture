@@ -433,39 +433,40 @@ class FurnitureEnv(metaclass=EnvMeta):
         # Touch & pick reward
         touch_reward = 0
         pick_reward = 0
-        floor_geom_id = self.sim.model.geom_name2id("FLOOR")
-        touch_floor = {}
-        for arm in self._arms:
-            touch_left_finger = {}
-            touch_right_finger = {}
-            for body_id in self._object_body_ids:
-                touch_left_finger[body_id] = False
-                touch_right_finger[body_id] = False
-                touch_floor[body_id] = False
+        if self._agent_type != "Cursor":
+            floor_geom_id = self.sim.model.geom_name2id("FLOOR")
+            touch_floor = {}
+            for arm in self._arms:
+                touch_left_finger = {}
+                touch_right_finger = {}
+                for body_id in self._object_body_ids:
+                    touch_left_finger[body_id] = False
+                    touch_right_finger[body_id] = False
+                    touch_floor[body_id] = False
 
-            for j in range(self.sim.data.ncon):
-                c = self.sim.data.contact[j]
-                body1 = self.sim.model.geom_bodyid[c.geom1]
-                body2 = self.sim.model.geom_bodyid[c.geom2]
+                for j in range(self.sim.data.ncon):
+                    c = self.sim.data.contact[j]
+                    body1 = self.sim.model.geom_bodyid[c.geom1]
+                    body2 = self.sim.model.geom_bodyid[c.geom2]
 
-                for geom_id, body_id in [(c.geom1, body2), (c.geom2, body1)]:
-                    if not (body_id in self._object_body_ids):
-                        continue
-                    if geom_id in self.l_finger_geom_ids[arm]:
-                        touch_left_finger[body_id] = True
-                    if geom_id in self.r_finger_geom_ids[arm]:
-                        touch_right_finger[body_id] = True
-                    if geom_id == floor_geom_id:
-                        touch_floor[body_id] = True
+                    for geom_id, body_id in [(c.geom1, body2), (c.geom2, body1)]:
+                        if not (body_id in self._object_body_ids):
+                            continue
+                        if geom_id in self.l_finger_geom_ids[arm]:
+                            touch_left_finger[body_id] = True
+                        if geom_id in self.r_finger_geom_ids[arm]:
+                            touch_right_finger[body_id] = True
+                        if geom_id == floor_geom_id:
+                            touch_floor[body_id] = True
 
-            for body_id in self._object_body_ids:
-                if touch_left_finger[body_id] and touch_right_finger[body_id]:
-                    if not self._touched[body_id]:
-                        self._touched[body_id] = True
-                        touch_reward += self._env_config["touch_reward"]
-                    if not self._picked[body_id]:
-                        self._picked[body_id] = True
-                        pick_reward += self._env_config["pick_reward"]
+                for body_id in self._object_body_ids:
+                    if touch_left_finger[body_id] and touch_right_finger[body_id]:
+                        if not self._touched[body_id]:
+                            self._touched[body_id] = True
+                            touch_reward += self._env_config["touch_reward"]
+                        if not self._picked[body_id]:
+                            self._picked[body_id] = True
+                            pick_reward += self._env_config["pick_reward"]
 
         # Success reward
         success_reward = self._env_config["success_reward"] * (
@@ -1000,8 +1001,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         forward1 = self._get_forward_vector(connector1)
         forward2 = self._get_forward_vector(connector2)
         pos_dist = T.l2_dist(site1_xpos[:3], site2_xpos[:3])
-        rot_dist_up = T.cos_dist(up1, up2)
-        rot_dist_forward = T.cos_dist(forward1, forward2)
+        rot_dist_up = T.cos_siml(up1, up2)
+        rot_dist_forward = T.cos_siml(forward1, forward2)
 
         project1_2 = np.dot(up1, T.unit_vector(site2_xpos[:3] - site1_xpos[:3]))
         project2_1 = np.dot(up2, T.unit_vector(site1_xpos[:3] - site2_xpos[:3]))
@@ -1016,11 +1017,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         max_rot_dist_forward = rot_dist_forward
         if len(allowed_angles) == 0:
             is_rot_forward_aligned = True
-            cos = T.cos_dist(forward1, forward2)
-            forward1_rotated_pos = T.rotate_vector_cos_dist(forward1, up1, cos, 1)
-            forward1_rotated_neg = T.rotate_vector_cos_dist(forward1, up1, cos, -1)
-            rot_dist_forward_pos = T.cos_dist(forward1_rotated_pos, forward2)
-            rot_dist_forward_neg = T.cos_dist(forward1_rotated_neg, forward2)
+            cos = T.cos_siml(forward1, forward2)
+            forward1_rotated_pos = T.rotate_vector_cos_siml(forward1, up1, cos, 1)
+            forward1_rotated_neg = T.rotate_vector_cos_siml(forward1, up1, cos, -1)
+            rot_dist_forward_pos = T.cos_siml(forward1_rotated_pos, forward2)
+            rot_dist_forward_neg = T.cos_siml(forward1_rotated_neg, forward2)
             if rot_dist_forward_pos > rot_dist_forward_neg:
                 forward1_rotated = forward1_rotated_pos
             else:
@@ -1033,7 +1034,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             is_rot_forward_aligned = False
             for angle in allowed_angles:
                 forward1_rotated = T.rotate_vector(forward1, up1, angle)
-                rot_dist_forward = T.cos_dist(forward1_rotated, forward2)
+                rot_dist_forward = T.cos_siml(forward1_rotated, forward2)
                 max_rot_dist_forward = max(max_rot_dist_forward, rot_dist_forward)
                 if rot_dist_forward > self._env_config["rot_dist_forward"]:
                     is_rot_forward_aligned = True

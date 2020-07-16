@@ -26,8 +26,8 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         self._env_config.update(
             {
                 "pos_dist": 0.04,
-                "rot_dist_up": 0.95,
-                "rot_dist_forward": 0.9,
+                "rot_siml_up": 0.95,
+                "rot_siml_forward": 0.9,
                 "project_dist": -1,
                 "site_dist_rew": config.site_dist_rew,
                 "site_up_rew": config.site_up_rew,
@@ -107,9 +107,9 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         )
         offset_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-        rot_dist_up = T.cos_dist(up1, up2)
-        rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
-        rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
+        rot_siml_up = T.cos_siml(up1, up2)
+        rot_siml_project1_2 = T.cos_siml(up1, leg_site_xpos[:3] - top_site_xpos[:3])
+        rot_siml_project2_1 = T.cos_siml(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         leg_top_site_xpos = self._site_xpos_xquat("2_part2_top_site")
         leg_bot_site_xpos = self._site_xpos_xquat("2_part2_bottom_site")
@@ -130,17 +130,17 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         hand_left = self._get_left_vector("grip_site")
 
         grip_site_up = self._get_up_vector("2_part2_top_site")
-        grip_up_dist = T.cos_dist(hand_up, grip_site_up)
-        grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
+        grip_up_siml = T.cos_siml(hand_up, grip_site_up)
+        grip_left_dist = np.abs(T.cos_siml(hand_left, grip_site_up))
 
         # offset site dist
         self._prev_offset_dist = offset_dist
         # actual site dist
         self._prev_site_dist = site_dist
-        self._prev_rot_dist_up = rot_dist_up
-        self._prev_rot_dist_project1_2 = rot_dist_project1_2
-        self._prev_rot_dist_project2_1 = rot_dist_project2_1
-        self._prev_grip_up_dist = grip_up_dist
+        self._prev_rot_siml_up = rot_siml_up
+        self._prev_rot_siml_project1_2 = rot_siml_project1_2
+        self._prev_rot_siml_project2_1 = rot_siml_project2_1
+        self._prev_grip_up_siml = grip_up_siml
         self._prev_grip_left_dist = grip_left_dist
 
         self._prev_grip_dist = grip_dist
@@ -254,7 +254,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         #    ctrl_penalty += grip_penalty
 
         # give reward for holding site stably
-        grip_up_dist = grip_left_dist = grip_rew = 0
+        grip_up_siml = grip_left_dist = grip_rew = 0
         if gripped or self._phase in [
             "grasp_offset",
             "grasp_leg",
@@ -264,13 +264,13 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         ]:
             # up vector of leg and up vector of grip site should be perpendicular
             grip_site_up = self._get_up_vector("2_part2_top_site")
-            grip_up_dist = np.abs(T.cos_dist(hand_up, grip_site_up))
-            logger.debug(f"grip_up_dist {grip_up_dist}")
-            grip_up_offset = clamp((self._prev_grip_up_dist - grip_up_dist), -0.2, 0.2)
+            grip_up_siml = np.abs(T.cos_siml(hand_up, grip_site_up))
+            logger.debug(f"grip_up_siml {grip_up_siml}")
+            grip_up_offset = clamp((self._prev_grip_up_siml - grip_up_siml), -0.2, 0.2)
             grip_up_rew = self._env_config["grip_up_rew"] * grip_up_offset
 
             # up vector of leg and left vector of grip site should be parallel
-            grip_left_dist = np.abs(T.cos_dist(hand_left, grip_site_up))
+            grip_left_dist = np.abs(T.cos_siml(hand_left, grip_site_up))
             logger.debug(f"grip_left_dist {grip_left_dist}")
             grip_left_offset = clamp(
                 (grip_left_dist - self._prev_grip_left_dist), -0.2, 0.2
@@ -278,14 +278,14 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grip_up_rew += 0.5 * self._env_config["grip_up_rew"] * grip_left_offset
 
             self._prev_grip_left_dist = grip_left_dist
-            self._prev_grip_up_dist = grip_up_dist
+            self._prev_grip_up_siml = grip_up_siml
 
         up1 = self._get_up_vector(top_site_name)
         up2 = self._get_up_vector(leg_site_name)
 
-        rot_dist_up = T.cos_dist(up1, up2)
-        rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
-        rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
+        rot_siml_up = T.cos_siml(up1, up2)
+        rot_siml_project1_2 = T.cos_siml(up1, leg_site_xpos[:3] - top_site_xpos[:3])
+        rot_siml_project2_1 = T.cos_siml(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
         point_above_topsite = top_site_xpos[:3] + np.array(
@@ -304,7 +304,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             grip_dist_rew = self._env_config["grip_dist_rew"] * grip_dist_offset
             self._prev_grip_dist = grip_dist
 
-            if grip_dist < 0.03 and grip_up_dist < 0.15 and grip_left_dist > 0.9:
+            if grip_dist < 0.03 and grip_up_siml < 0.15 and grip_left_dist > 0.9:
                 logger.warning("Done with grasp offset alignment")
                 self._phase = "grasp_leg"
                 self._prev_grip_dist = np.linalg.norm(hand_pos - grasp_pos)
@@ -322,7 +322,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             if (
                 grip_dist < 0.02
                 and (hand_pos[-1] - grasp_pos[-1]) < 0.001
-                and grip_up_dist < 0.12
+                and grip_up_siml < 0.12
                 and grip_left_dist > 0.9
             ):
                 logger.warning("Done with grasp leg alignment")
@@ -379,24 +379,24 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
             logger.debug(f"offset_dist: {offset_dist}")
 
             # give rew for making angular dist between sites
-            site_up_diff = 0.5 * clamp(rot_dist_up - self._prev_rot_dist_up, -0.2, 0.2)
+            site_up_diff = 0.5 * clamp(rot_siml_up - self._prev_rot_siml_up, -0.2, 0.2)
             site_up1_diff = 0.5 * clamp(
-                rot_dist_project1_2 - self._prev_rot_dist_project1_2, -0.2, 0.2
+                rot_siml_project1_2 - self._prev_rot_siml_project1_2, -0.2, 0.2
             )
             site_up2_diff = 0.5 * clamp(
-                rot_dist_project2_1 - self._prev_rot_dist_project2_1, -0.2, 0.2
+                rot_siml_project2_1 - self._prev_rot_siml_project2_1, -0.2, 0.2
             )
             site_up_diff += site_up1_diff + site_up2_diff
             site_up_rew = self._env_config["site_up_rew"] * site_up_diff
-            self._prev_rot_dist_up = rot_dist_up
-            self._prev_rot_dist_project1_2 = rot_dist_project1_2
-            self._prev_rot_dist_project2_1 = rot_dist_project2_1
+            self._prev_rot_siml_up = rot_siml_up
+            self._prev_rot_siml_project1_2 = rot_siml_project1_2
+            self._prev_rot_siml_project2_1 = rot_siml_project2_1
 
             if (
                 offset_dist < 0.03
-                and rot_dist_up > self._env_config["rot_dist_up"]
-                and rot_dist_project1_2 > 0.8
-                and rot_dist_project2_1 > 0.8
+                and rot_siml_up > self._env_config["rot_siml_up"]
+                and rot_siml_project1_2 > 0.8
+                and rot_siml_project2_1 > 0.8
             ):
                 self._phase = "move_leg_2"
                 aligned_rew = self._env_config["aligned_rew"]
@@ -405,18 +405,18 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         elif self._phase == "move_leg_2":  # multiple site rews by 2 for faster conv
 
             # give rew for making angular dist between sites
-            site_up_diff = 0.5 * clamp(rot_dist_up - self._prev_rot_dist_up, -0.2, 0.2)
+            site_up_diff = 0.5 * clamp(rot_siml_up - self._prev_rot_siml_up, -0.2, 0.2)
             site_up1_diff = 0.5 * clamp(
-                rot_dist_project1_2 - self._prev_rot_dist_project1_2, -0.2, 0.2
+                rot_siml_project1_2 - self._prev_rot_siml_project1_2, -0.2, 0.2
             )
             site_up2_diff = 0.5 * clamp(
-                rot_dist_project2_1 - self._prev_rot_dist_project2_1, -0.2, 0.2
+                rot_siml_project2_1 - self._prev_rot_siml_project2_1, -0.2, 0.2
             )
             site_up_diff += site_up1_diff + site_up2_diff
             site_up_rew = self._env_config["site_up_rew"] * site_up_diff
-            self._prev_rot_dist_up = rot_dist_up
-            self._prev_rot_dist_project1_2 = rot_dist_project1_2
-            self._prev_rot_dist_project2_1 = rot_dist_project2_1
+            self._prev_rot_siml_up = rot_siml_up
+            self._prev_rot_siml_project1_2 = rot_siml_project1_2
+            self._prev_rot_siml_project2_1 = rot_siml_project2_1
 
             site_dist_diff = self._prev_site_dist - site_dist
             site_dist_rew = self._env_config["site_dist_rew"] * site_dist_diff
@@ -442,9 +442,9 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
                     self._prev_z_dist = z_dist
 
                 if (
-                    rot_dist_up > self._env_config["rot_dist_up"]
-                    and rot_dist_project1_2 > 0.95
-                    and rot_dist_project2_1 > 0.95
+                    rot_siml_up > self._env_config["rot_siml_up"]
+                    and rot_siml_project1_2 > 0.95
+                    and rot_siml_project2_1 > 0.95
                     and z_dist < 0.03
                     and xy_dist <= 0.005
                 ):
@@ -475,7 +475,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         info["grip_rew"] = grip_rew
         info["grip_penalty"] = grip_penalty
         info["ctrl_penalty"] = ctrl_penalty
-        info["rot_dist_up"] = rot_dist_up
+        info["rot_siml_up"] = rot_siml_up
         info["site_dist"] = site_dist
         info["offset_dist"] = offset_dist
 

@@ -28,8 +28,8 @@ class FurnitureCursorEnv(FurnitureEnv):
             {
                 "success_reward": 100,
                 "pos_dist": 0.1,
-                "rot_dist_up": 0.9,
-                "rot_dist_forward": 0.9,
+                "rot_siml_up": 0.9,
+                "rot_siml_forward": 0.9,
                 "project_dist": -1,
             }
         )

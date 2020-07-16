@@ -1,0 +1,59 @@
+# xyz parameters
+fine_magnitude: 4
+z_finedist: 0.05              # distance between connsites at which to start fine adjustment
+z_conn_dist: -0.005                # distance between connsites at which to connect
+lat_magnitude: 20             # keep movespeed constant at 0.025
+eps: 0.01                     # max acceptable x,y,z difference
+eps_fine: 0.001               # max acceptable x,y,z difference
+# rot parameters
+rot_magnitude: 0.2
+rot_eps: 0.05
+rot_eps_fine: 0.01
+min_rot_act: 0.05
+min_rot_act_fine: 0.01
+#general parameters
+use_closest: True            
+max_success_steps: 2000            # max # of steps a successful demo will take
+recipe: 
+        - !!python/tuple ["2_part2", "3_part3"]
+        - !!python/tuple ["1_part1", "3_part3"]
+        - !!python/tuple ["1_part1", "4_part4"]
+        - !!python/tuple ["0_part0", "1_part1"]
+
+grip_safepos: 
+      - 
+        - !!python/tuple ["z", 0.32] 
+      - 
+        - !!python/tuple ["z", 0.32] 
+      - 
+        - !!python/tuple ["z", 0.32] 
+      - 
+        - !!python/tuple ["z", 0.32] 
+
+nogrip_safepos:
+      - 
+        - !!python/tuple ["z", 0.2] 
+      - 
+        - !!python/tuple ["z", 0.2] 
+      - 
+        - !!python/tuple ["z", 0.2] 
+      - 
+        - !!python/tuple ["z", 0.2] 
+
+grip_angles: 
+        - 
+          -  0
+          -  0
+          - -1
+        -
+          -  0
+          -  0
+          - -1
+        -
+          -  0
+          -  0
+          - -1
+        -
+          -  0
+          -  0
+          - -1                

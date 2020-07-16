@@ -117,7 +117,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
 
         top_site_name = "top-leg,,conn_site4"
         up = self._get_up_vector(top_site_name)
-        rot_dist_up = T.cos_dist(up, [0, 0, 1])
+        rot_dist_up = T.cos_siml(up, [0, 0, 1])
 
         table_pos = self._get_pos("4_part4")
         table_dist = T.l2_dist(table_pos, self._target_table_pos)
