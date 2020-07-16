@@ -4,6 +4,7 @@
 from gym.envs.registration import register
 
 from env.base import make_env, make_vec_env
+
 # register all environment to use
 from env.furniture_baxter import FurnitureBaxterEnv
 from env.furniture_baxter_block import FurnitureBaxterBlockEnv
@@ -15,6 +16,7 @@ from env.furniture_panda import FurniturePandaEnv
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.furniture_sawyer_tablelack import FurnitureSawyerTableLackEnv
 from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
+
 
 # add cursor environment to Gym
 register(
@@ -55,6 +57,7 @@ register(
 )
 
 
+# add jaco environment to Gym
 register(
     id="furniture-jaco-v0",
     entry_point="env.furniture_gym:FurnitureGym",
@@ -67,6 +70,7 @@ register(
 )
 
 
+# add panda environment to Gym
 register(
     id="furniture-panda-v0",
     entry_point="env.furniture_gym:FurnitureGym",
@@ -90,6 +94,7 @@ register(
         "port": 1050,
     },
 )
+
 
 register(
     id="furniture-sawyer-tablelack-v0",

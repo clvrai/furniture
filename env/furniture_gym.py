@@ -21,8 +21,7 @@ class FurnitureGym(gym.Env):
 
         name = kwarg["name"]
         for key, value in kwarg.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
+            setattr(config, key, value)
 
         # create an environment
         self.env = make_env(name, config)
