@@ -8,7 +8,7 @@ def add_argument(parser):
     parser.add_argument("--rot_threshold", type=float, default=0.05)
 
     # environment offsets
-    parser.add_argument("--above_leg_z", type=float, default=1)
+    parser.add_argument("--above_leg_z", type=float, default=0.1)
 
     # reward coefficients
     parser.add_argument("--ctrl_penalty_coef", type=float, default=1)

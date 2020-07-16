@@ -30,7 +30,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 "project_dist": -1,
             }
         )
-        import ipdb; ipdb.set_trace()
         self._ctrl_penalty_coef = config.ctrl_penalty_coef
         self._pos_threshold = config.pos_threshold
         self._rot_threshold = config.rot_threshold
