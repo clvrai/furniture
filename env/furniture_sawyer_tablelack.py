@@ -149,7 +149,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_pos = self._get_pos(self._current_leg) + [0, 0, self._above_leg_z]
         eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_above_leg_distance * self._eef_leg_pos_dist_coef
-        info = {"eef_above_leg_distance": eef_above_leg_distance, "eef_leg_rew": rew}
+        info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
         info["move_eef_above_leg_succ"] = eef_above_leg_distance < self._pos_threshold
         assert rew <= 0
         return rew, info
@@ -165,7 +165,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_pos = self._get_pos(self._current_leg)
         eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_leg_distance * self._eef_leg_pos_dist_coef
-        info = {"eef_leg_distance": eef_leg_distance, "eef_leg_rew": rew}
+        info = {"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew}
         info["lower_eef_over_leg_succ"] = eef_leg_distance < self._pos_threshold
         assert rew <= 0
         return rew, info
