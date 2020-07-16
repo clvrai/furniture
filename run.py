@@ -12,7 +12,7 @@ if __name__ == "__main__":
     add_method_arguments(parser)
 
     # change default values
-    parser.set_defaults(wandb_project="bimanual")
+    parser.set_defaults(wandb_project="furniture")
 
     # execute training code in method/main.py
     run(parser)
