@@ -669,6 +669,22 @@ def l2_dist(a, b):
     return np.linalg.norm(a - b)
 
 
+def pos_atan(y, x):
+    if x > 0:
+        angle = math.atan(y/x);
+    if y >= 0 and x < 0:
+        angle = np.pi + math.atan(y/x)
+    if y < 0 and x < 0:
+        angle = -np.pi + math.atan(y/x);
+    if y > 0 and x == 0:
+        angle = np.pi/2
+    if y < 0 and x == 0:
+        angle = -np.pi/2
+    if angle < 0:
+        angle = angle + 2*np.pi
+    return angle
+
+
 def angle_between2D(cur, tgt):
     """ Returns the relative angle in radians between 2D vectors 'cur' and 'tgt'::
 
@@ -681,7 +697,7 @@ def angle_between2D(cur, tgt):
     """
     cur_u = unit_vector(cur)
     tgt_u = unit_vector(tgt)
-    return math.atan2(cur_u[0], cur_u[1]) - math.atan2(tgt_u[0], tgt_u[1])
+    return pos_atan(tgt_u[1], tgt_u[0]) - pos_atan(cur_u[1], cur_u[0])
 
 
 def angle_between(v1, v2):
@@ -699,16 +715,25 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 
-def cos_dist(a, b):
+def cos_siml(a, b):
     """ Returns cos distance between vectors @a and @b """
     return np.dot(a, b) / np.linalg.norm(a) / np.linalg.norm(b)
 
 
-def up_vector_cos_dist(quat1, quat2):
+def up_vector_cos_siml(quat1, quat2):
     """ Returns cos distance between up vectors of quaternions @quat1 and @quat2 """
     up1 = up_vector_from_quat(quat1)
     up2 = up_vector_from_quat(quat2)
-    return cos_dist(up1, up2)
+    return cos_siml(up1, up2)
+
+
+def rotate_vector2D(vec, angle):
+    """
+    Rotate a vec counterclockwise by a given angle
+    """
+    qx = math.cos(angle) * vec[0] - math.sin(angle) * vec[1]
+    qy = math.sin(angle) * vec[0] + math.cos(angle) * vec[1]
+    return np.array([qx, qy])
 
 
 def rotate_vector(v, rotation_axis, angle):
@@ -720,7 +745,7 @@ def rotate_vector(v, rotation_axis, angle):
     return new_v
 
 
-def rotate_vector_cos_dist(v, rotation_axis, cos, direction):
+def rotate_vector_cos_siml(v, rotation_axis, cos, direction):
     """ Returns a vector rotating @v an angle of @cos along @rotation_axis """
     assert direction in [-1, 1]
     v = np.asarray(v)

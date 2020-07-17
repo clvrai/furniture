@@ -1,10 +1,10 @@
 <mujoco model="table_bjorkudden_0207">
   <custom>
-    <numeric name="0_part0_initpos" data="0.23904979 0.35146652 0.01584491 0.7 0 0.7 0"/>
-   <numeric name="4_part4_initpos" data="0.06206487 0.10316954 0.01845491 0 1 0 0"/>
-   <numeric name="3_part3_initpos" data="-0.13323603 0.45360683 0.01584491 0.5 -0.5 0.5 -0.5"/>
-   <numeric name="2_part2_initpos" data="-0.14430278 0.3532167 0.01584491 0.5 -0.5 0.5 -0.5"/>
-   <numeric name="1_part1_initpos" data="0.24689381 0.45311691 0.01584491 0.7 0 0.7 0"/>
+    <numeric name="0_part0_initpos" data="0.23904979 0.36 0.01584491 0.7 0 0.7 0"/>
+   <numeric name="4_part4_initpos" data="-0.08 0.0616954 0.01845491 0 1 0 0"/>
+   <numeric name="3_part3_initpos" data="-0.13323603 0.47 0.01584491 0.5 -0.5 0.5 -0.5"/>
+   <numeric name="2_part2_initpos" data="-0.14430278 0.36 0.01584491 0.5 -0.5 0.5 -0.5"/>
+   <numeric name="1_part1_initpos" data="0.24689381 0.47 0.01584491 0.7 0 0.7 0"/>
   </custom>
   <asset>
     <mesh file="table_bjorkudden_0207/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
@@ -25,6 +25,8 @@
   </equality>
   <worldbody>
     <body name="0_part0" pos="0.5064125 -0.263525 -0.15875" quat="1 0 0 0">
+      <site name="0_part0_ltgt_site0" pos="0 -0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="0_part0_rtgt_site0" pos="0 0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <geom conaffinity="0" contype="0" density="0" mesh="part1" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="0_part0_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="0_part0_top_site" pos="0.0 0.0 0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
@@ -65,6 +67,8 @@
     </body>
     <body name="3_part3" pos="-0.0079375 -0.263525 -0.15875" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part4" name="3_part3_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="3_part3_ltgt_site0" pos="-0.02 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="3_part3_rtgt_site0" pos="0.02 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="3_part3_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="3_part3_top_site" pos="0.0 0.0 0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="3_part3_bottom_site" pos="0.0 0.0 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
@@ -81,6 +85,8 @@
     </body>
     <body name="2_part2" pos="-0.0079375 0.022225 -0.15875" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part3" name="2_part2_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="2_part2_ltgt_site0" pos="-0.02 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="2_part2_rtgt_site0" pos="0.02 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="2_part2_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="2_part2_top_site" pos="0.0 0.0 0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="2_part2_bottom_site" pos="0.0 0.0 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
@@ -97,6 +103,8 @@
     </body>
     <body name="1_part1" pos="0.5064125 0.022225 -0.15875" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part2" name="1_part1_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="1_part1_ltgt_site0" pos="0 -0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="1_part1_rtgt_site0" pos="0 0.02 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="1_part1_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="1_part1_top_site" pos="0.0 0.0 0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="1_part1_bottom_site" pos="0.0 0.0 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />

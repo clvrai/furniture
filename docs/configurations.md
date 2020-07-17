@@ -48,7 +48,7 @@ This can be addressed by initializing the difficult parts in a predefined, easy 
 
 ## Assembly Configuration
 Two parts will be assembled when an agent activates `connect` action and two parts are well-aligned.
-The thresholds for determining successful connection are defined by distance between two connectors `pos_dist`, cosine distance between up vectors of connectors `rot_dist_up`, cosine distance between forward vectors of connectors `rot_dist_forward`, and relative pose of two connectors `project_dist`. These values are configurable by changing those values in [`furniture/env/furniture.py`](../env/furniture.py). Please refer to `_is_aligned(connector1, connector2)` method in [`furniture/env/furniture.py`](../env/furniture.py) for details.
+The thresholds for determining successful connection are defined by distance between two connectors `pos_dist`, cosine similarity between up vectors of connectors `rot_siml_up`, cosine similarity between forward vectors of connectors `rot_siml_forward`, and relative pose of two connectors `project_dist`. These values are configurable by changing those values in [`furniture/env/furniture.py`](../env/furniture.py). Please refer to `_is_aligned(connector1, connector2)` method in [`furniture/env/furniture.py`](../env/furniture.py) for details.
 
 ## Background Scenes
 

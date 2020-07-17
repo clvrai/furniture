@@ -42,7 +42,6 @@ class UniformRandomSampler(ObjectPositionSampler):
         rng,
         r_xyz=None,
         r_rot=None,
-        use_radius=False,
         use_xml_init=True,
         init_qpos=None
     ):
@@ -55,12 +54,6 @@ class UniformRandomSampler(ObjectPositionSampler):
                 None: Add uniform random random z-rotation
                 iterable (a,b): Uniformly randomize rotation angle between a and b (in degrees)
                 value: Add fixed angle z-rotation
-            use_radius:
-                True: The center of object is at position:
-                     [uniform(min x_range + radius, max x_range - radius)], [uniform(min x_range + radius, max x_range - radius)]
-                False:
-                    [uniform(min x_range, max x_range)], [uniform(min x_range, max x_range)]
-
             use_xml_init:
                 True: use xml initial positions as initial positions
                 False: randomly sample initial positions from range +-self.table_size/2
@@ -71,7 +64,6 @@ class UniformRandomSampler(ObjectPositionSampler):
             self.rot_range = [-r_rot, r_rot]
         else:
             self.rot_range = r_rot
-        self.use_radius = use_radius
         self.rng = rng
         self._use_xml_init = use_xml_init
         self.init_qpos = init_qpos
@@ -97,10 +89,11 @@ class UniformRandomSampler(ObjectPositionSampler):
             if obj_name not in self.init_qpos.keys():
                 self.init_qpos[obj_name] = Qpos(0, 0, 0, Quaternion())
             elif self._use_xml_init:
-                horiz_rad = obj_mjcf.get_horizontal_radius(obj_name)
-                preset_objects.append((horiz_rad, self.init_qpos[obj_name]))
+                r = obj_mjcf.get_horizontal_radius(obj_name)
+                preset_objects.append((obj_name, r, self.init_qpos[obj_name]))
                 remaining_objects.pop(obj_name)
         # use random init qpos for remaining parts
+        #print('remaining_objects', remaining_objects)
         if len(remaining_objects) > 0:
             spec_x_range, spec_y_range = self.x_range, self.y_range
             self.x_range, self.y_range = None, None
@@ -113,26 +106,20 @@ class UniformRandomSampler(ObjectPositionSampler):
             self.x_range, self.y_range = spec_x_range, spec_y_range
 
 
-    def sample_x(self, obj_horiz_rad):
+    def sample_x(self, obj_r):
         x_range = self.x_range
         if x_range is None:
             x_range = [-self.table_size[0] / 2, self.table_size[0] / 2]
         minimum = min(x_range)
         maximum = max(x_range)
-        if self.use_radius:
-            minimum += obj_horiz_rad
-            maximum -= obj_horiz_rad
         return self.rng.uniform(high=maximum, low=minimum)
 
-    def sample_y(self, obj_horiz_rad):
+    def sample_y(self, obj_r):
         y_range = self.y_range
         if y_range is None:
             y_range = [-self.table_size[0] / 2, self.table_size[0] / 2]
         minimum = min(y_range)
         maximum = max(y_range)
-        if self.use_radius:
-            minimum += obj_horiz_rad
-            maximum -= obj_horiz_rad
         return self.rng.uniform(high=maximum, low=minimum)
 
 
@@ -148,7 +135,7 @@ class UniformRandomSampler(ObjectPositionSampler):
         rotated_quat = T.euler_to_quat(euler)
         return rotated_quat
 
-    # def _collision_check(obj_x, obj_y, horiz_rad, placed_objects):
+    # def _collision_check(obj_x, obj_y, r, placed_objects):
 
 #    def _initialize_qpos(self, ):
     def sample(self, objects=None, placed_objects=None):
@@ -160,38 +147,35 @@ class UniformRandomSampler(ObjectPositionSampler):
         if placed_objects is None:
             placed_objects = []
         for obj_name, obj_mjcf in objects.items():
-            horiz_rad = obj_mjcf.get_horizontal_radius(obj_name)
+            obj_r = obj_mjcf.get_horizontal_radius(obj_name)
             # bottom_offset = obj_mjcf.get_bottom_offset(obj_name)
             success = False
             for i in range(10000):  # 1000 retries
-                obj_x = self.init_qpos[obj_name].x + self.sample_x(horiz_rad)
-                obj_y = self.init_qpos[obj_name].y + self.sample_y(horiz_rad)
+                obj_x = self.init_qpos[obj_name].x + self.sample_x(obj_r)
+                obj_y = self.init_qpos[obj_name].y + self.sample_y(obj_r)
                 obj_z = self.init_qpos[obj_name].z
                 # objects cannot overlap
                 location_valid = True
-                for r, qpos in placed_objects:
-                    x = qpos.x
-                    y = qpos.y
+                for po_name, po_r, qpos in placed_objects:
+                    po_x = qpos.x
+                    po_y = qpos.y
+                    # print(obj_name, po_name, np.linalg.norm([obj_x - po_x, obj_y - po_y], 2), po_r + obj_r)
+                    # print(obj_name, obj_x, obj_y, obj_r)
+                    # print(po_name, po_x, po_y, po_r)
                     if (
-                        np.linalg.norm([obj_x - x, obj_y - y], 2)
-                        <= r + horiz_rad
+                        np.linalg.norm([obj_x - po_x, obj_y - po_y], 2)
+                        <= po_r + obj_r
                     ):
                         location_valid = False
                         break
                 if location_valid:
-                    # location is valid, put the object down
-                    # pos = (
-                    #     self.table_top_offset
-                    #     - bottom_offset
-                    #     + np.array([obj_x, obj_y, obj_z])
-                    # )
                     pos = (
                         self.table_top_offset
                         + np.array([obj_x, obj_y, obj_z])
                         )
                     quat = self.sample_quat(self.init_qpos[obj_name].quat)
 
-                    placed_objects.append((horiz_rad, Qpos(pos[0], pos[1],
+                    placed_objects.append((obj_name, obj_r, Qpos(pos[0], pos[1],
                         pos[2], quat)))
                     quat_arr[obj_name] = quat
                     pos_arr[obj_name] = pos

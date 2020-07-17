@@ -28,8 +28,8 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         self._env_config.update(
             {
                 "pos_dist": 0.1,
-                "rot_dist_up": 0.9,
-                "rot_dist_forward": 0.9,
+                "rot_siml_up": 0.9,
+                "rot_siml_forward": 0.9,
                 "project_dist": -1,
                 "site_dist_rew": config.site_dist_rew,
                 "site_up_rew": config.site_up_rew,
@@ -119,17 +119,17 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         point_above_topsite = top_site_xpos[:3] + np.array([0, 0, 0.2])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-        rot_dist_up = T.cos_dist(up1, up2)
-        rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
-        rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
+        rot_siml_up = T.cos_siml(up1, up2)
+        rot_siml_project1_2 = T.cos_siml(up1, leg_site_xpos[:3] - top_site_xpos[:3])
+        rot_siml_project2_1 = T.cos_siml(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
 
         # offset site dist
         self._prev_pos_dist = pos_dist
         # actual site dist
         self._prev_site_dist = site_dist
-        self._prev_rot_dist_up = rot_dist_up
-        self._prev_rot_dist_project1_2 = rot_dist_project1_2
-        self._prev_rot_dist_project2_1 = rot_dist_project2_1
+        self._prev_rot_siml_up = rot_siml_up
+        self._prev_rot_siml_project1_2 = rot_siml_project1_2
+        self._prev_rot_siml_project2_1 = rot_siml_project2_1
 
         self._phase = "align_eucl_1"
         self._num_connect_successes = 0
@@ -243,9 +243,9 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         point_above_topsite = top_site_xpos[:3] + np.array([0, 0, 0.2])
         pos_dist = T.l2_dist(point_above_topsite, leg_site_xpos[:3])
         site_dist = T.l2_dist(top_site_xpos[:3], leg_site_xpos[:3])
-        rot_dist_project1_2 = T.cos_dist(up1, leg_site_xpos[:3] - top_site_xpos[:3])
-        rot_dist_project2_1 = T.cos_dist(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
-        rot_dist_up = T.cos_dist(up1, up2)
+        rot_siml_project1_2 = T.cos_siml(up1, leg_site_xpos[:3] - top_site_xpos[:3])
+        rot_siml_project2_1 = T.cos_siml(-up2, top_site_xpos[:3] - leg_site_xpos[:3])
+        rot_siml_up = T.cos_siml(up1, up2)
 
         # cursor 0 select table top
         if holding_top and not self._top_picked:
@@ -263,9 +263,9 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         elif holding_top and holding_leg:
 
             angles_aligned = (
-                rot_dist_up > self._env_config["rot_dist_up"]
-                and rot_dist_project1_2 > 0.98
-                and rot_dist_project2_1 > 0.98
+                rot_siml_up > self._env_config["rot_siml_up"]
+                and rot_siml_project1_2 > 0.98
+                and rot_siml_project2_1 > 0.98
             )
             dist_aligned = pos_dist < 0.1
             sites_aligned = site_dist < self._env_config["pos_dist"]
@@ -292,12 +292,12 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                 aligned_rew = self._env_config["aligned_rew"] / 10
 
                 # give rew for making angular dist between sites
-                site_up_diff = rot_dist_up - self._prev_rot_dist_up
+                site_up_diff = rot_siml_up - self._prev_rot_siml_up
                 site_up_diff += (
-                    rot_dist_project1_2 - self._prev_rot_dist_project1_2
+                    rot_siml_project1_2 - self._prev_rot_siml_project1_2
                 ) * 0.5
                 site_up_diff += (
-                    rot_dist_project2_1 - self._prev_rot_dist_project2_1
+                    rot_siml_project2_1 - self._prev_rot_siml_project2_1
                 ) * 0.5
                 site_up_rew = self._env_config["site_up_rew"] * site_up_diff
 
@@ -311,12 +311,12 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
                 aligned_rew = self._env_config["aligned_rew"] / 5
 
                 # give rew for making angular dist between sites
-                site_up_diff = rot_dist_up - self._prev_rot_dist_up
+                site_up_diff = rot_siml_up - self._prev_rot_siml_up
                 site_up_diff += (
-                    rot_dist_project1_2 - self._prev_rot_dist_project1_2
+                    rot_siml_project1_2 - self._prev_rot_siml_project1_2
                 ) * 0.5
                 site_up_diff += (
-                    rot_dist_project2_1 - self._prev_rot_dist_project2_1
+                    rot_siml_project2_1 - self._prev_rot_siml_project2_1
                 ) * 0.5
                 site_up_rew = self._env_config["site_up_rew"] * site_up_diff
 
@@ -326,9 +326,9 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
 
             self._prev_site_dist = site_dist
             self._prev_pos_dist = pos_dist
-            self._prev_rot_dist_up = rot_dist_up
-            self._prev_rot_dist_project1_2 = rot_dist_project1_2
-            self._prev_rot_dist_project2_1 = rot_dist_project2_1
+            self._prev_rot_siml_up = rot_siml_up
+            self._prev_rot_siml_project1_2 = rot_siml_project1_2
+            self._prev_rot_siml_project2_1 = rot_siml_project2_1
 
         elif (not holding_top and self._top_picked) or (
             not holding_leg and self._leg_picked
@@ -349,9 +349,9 @@ class FurnitureCursorToyTableEnv(FurnitureEnv):
         info["ctrl_penalty"] = ctrl_penalty
         info["c0_ctrl_penalty"] = c0_ctrl_penalty
         info["c1_ctrl_penalty"] = c1_ctrl_penalty
-        info["rot_dist_up"] = rot_dist_up
-        info["rot_dist_project1_2"] = rot_dist_project1_2
-        info["rot_dist_project2_1"] = rot_dist_project2_1
+        info["rot_siml_up"] = rot_siml_up
+        info["rot_siml_project1_2"] = rot_siml_project1_2
+        info["rot_siml_project2_1"] = rot_siml_project2_1
         info["site_dist"] = site_dist
         info["pos_dist"] = pos_dist
 

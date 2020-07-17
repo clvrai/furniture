@@ -28,11 +28,11 @@ class FloorTask(Task):
         self.merge_robot(mujoco_robot)
         self.merge_objects(mujoco_objects)
         self.merge_equality(mujoco_equality)
-        initializer = UniformRandomSampler(rng, use_radius=False, \
+        initializer = UniformRandomSampler(rng,
            r_xyz=furn_xyz_rand, r_rot=furn_rot_rand, init_qpos=init_qpos)
 
         self.initializer = initializer
-        self.initializer.setup(mujoco_objects, (0, -0.05, 0), (0.7, 0.7, 0))
+        self.initializer.setup(mujoco_objects, (0, 0, 0), (0.7, 0.7, 0))
         self.rng = rng
         self.legal_pos = None
 

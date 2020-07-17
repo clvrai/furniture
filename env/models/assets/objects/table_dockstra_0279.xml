@@ -1,9 +1,9 @@
 <mujoco model="table_dockstra_0279">
   <custom>
-    <numeric name="0_part0_initpos" data="-0.12408194 0.37912191 0.02820991 0.99991314 0.00000003 0. 0.01318021"/>
-    <numeric name="3_part3_initpos" data="-0.1275318 0.14894916 0.013678 0.84919405 -0.00000006 -0.00000004 0.52808093"/>
-    <numeric name="2_part2_initpos" data="0.18361713 0.15712415 0.00313609 -0.00000001 -0.08251866 -0.99658952 -0.00000008"/> 
-    <numeric name="1_part1_initpos" data="0.20499342 0.41974184 0.02265931 0.58214439 -0.4558896 0.5405225 -0.40138261"/>
+    <numeric name="0_part0_initpos" data="-0.14 0.27912191 0.02820991 0.99991314 0.00000003 0. 0.01318021"/>
+    <numeric name="3_part3_initpos" data="-0.14 0.04894916 0.013678 0 -1 0 0"/>
+    <numeric name="2_part2_initpos" data="0.18361713 0.09 0.00313609 -0.00000001 -0.08251866 -0.99658952 -0.00000008"/> 
+    <numeric name="1_part1_initpos" data="0.20499342 0.36 0.02265931 0.58214439 -0.4558896 0.5405225 -0.40138261"/>
   </custom>
   <asset>
     <mesh file="table_dockstra_0279/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
@@ -36,6 +36,8 @@
     </body>
     <body name="3_part3" pos="-1.25e-09 2.3349999999999997e-08 0.34686874425" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part3" name="3_part3_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="3_part3_ltgt_site0" pos="0.02 0 -0.3" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="3_part3_rtgt_site0" pos="-0.02 0 -0.3" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="3_part3_horizontal_radius_site" pos="0.0 -0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="3_part3_top_site" pos="0.0 0.0 0.026193756100000003" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="3_part3_bottom_site" pos="0.0 0.0 -0.026193756100000003" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
@@ -70,6 +72,10 @@
     </body>
     <body name="1_part1" pos="1.25e-09 2.3349999999999997e-08 0.17462500035" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" mesh="part1" name="1_part1_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="1_part1_ltgt_site0" pos="0.02 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="1_part1_rtgt_site0" pos="-0.02 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="1_part1_ltgt_site1" pos="0.02 0 -0.1" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="1_part1_rtgt_site1" pos="-0.02 0 -0.1" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="1_part1_horizontal_radius_site" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_top_site" pos="0.0 0.0 0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_bottom_site" pos="0.0 0.0 -0.15875" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />

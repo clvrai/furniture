@@ -230,9 +230,9 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
 
             # encourage gripper not to rotate
             gripper_rot_reward = self._env_config["gripper_rot_reward"] * (
-                T.cos_dist(self._gripper_up[arm_i], gripper_up[arm_i])
+                T.cos_siml(self._gripper_up[arm_i], gripper_up[arm_i])
                 - 0.8
-                + T.cos_dist(self._gripper_forward[arm_i], gripper_forward[arm_i])
+                + T.cos_siml(self._gripper_forward[arm_i], gripper_forward[arm_i])
                 - 0.8
             )
             gripper_rot_reward = max(gripper_rot_reward, -2)
@@ -428,11 +428,11 @@ class FurnitureBaxterBlockEnv(FurnitureBaxterEnv):
                 )
 
                 obj_rot_reward = self._env_config["obj_rot_reward"] * (
-                    T.cos_dist(
+                    T.cos_siml(
                         self._get_up_vector(self._target_body[arm_i]),
                         self._target_up[arm_i],
                     )
-                    + T.cos_dist(
+                    + T.cos_siml(
                         self._get_forward_vector(self._target_body[arm_i]),
                         self._target_forward[arm_i],
                     )
