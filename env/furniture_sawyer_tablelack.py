@@ -46,7 +46,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
     def _reset_reward_variables(self):
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "done"]
         self._phase_i = 0
-        self._current_leg = "1_leg1"
+        self._current_leg = "0_part0"
         self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
         self._current_table_site = "table-leg,0,90,180,270,conn_site1"
 
@@ -83,11 +83,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             xquat: quaternion of the objects
         """
         pos_init = {
-            "1_leg1": [0.31343275, -0.2 + 0.35850108, 0.01831519],
-            "2_leg2": [-0.24890323, -0.2 + 0.43996071, 0.01830461],
-            "3_leg3": [-0.25975243, -0.2 + 0.35248785, 0.0183152],
-            "4_leg4": [0.31685774, -0.2 + 0.44853931, 0.0183046],
-            "5_tabletop": [0.03014604, -0.2 + 0.09554463, 0.01972958],
+            "0_part0": [0.31343275, -0.2 + 0.35850108, 0.01831519],
+            "1_part1": [-0.24890323, -0.2 + 0.43996071, 0.01830461],
+            "2_part2": [-0.25975243, -0.2 + 0.35248785, 0.0183152],
+            "3_part3": [0.31685774, -0.2 + 0.44853931, 0.0183046],
+            "4_part4": [0.03014604, -0.2 + 0.09554463, 0.01972958],
         }
         noise = self._init_random(3 * len(pos_init), "furniture")
         for i, name in enumerate(pos_init):
@@ -95,11 +95,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 pos_init[name][j] += noise[3 * i + j]
 
         quat_init = {
-            "1_leg1": [0.50863839, -0.50861836, 0.49112556, -0.4913146],
-            "2_leg2": [0.51725545, 0.51737851, 0.48189126, 0.48223137],
-            "3_leg3": [0.51481971, 0.51462992, 0.48482265, 0.4848337],
-            "4_leg4": [0.50010382, -0.50023869, 0.49966084, -0.49999646],
-            "5_tabletop": [0.00001242, -0.99988404, -0.0152285, 0.00000484],
+            "0_part0": [0.50863839, -0.50861836, 0.49112556, -0.4913146],
+            "1_part1": [0.51725545, 0.51737851, 0.48189126, 0.48223137],
+            "2_part2": [0.51481971, 0.51462992, 0.48482265, 0.4848337],
+            "3_part3": [0.50010382, -0.50023869, 0.49966084, -0.49999646],
+            "4_part4": [0.00001242, -0.99988404, -0.0152285, 0.00000484],
         }
         return pos_init, quat_init
 
