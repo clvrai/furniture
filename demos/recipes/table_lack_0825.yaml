@@ -2,7 +2,7 @@
 # xyz parameters
 fine_magnitude: 4
 z_finedist: 0.05              # distance between connsites at which to start fine adjustment
-z_conn_dist: -0.01                # distance between connsites at which to connect
+z_conn_dist: -0.007                # distance between connsites at which to connect
 lat_magnitude: 20             # keep movespeed constant at 0.025
 eps: 0.01                     # max acceptable x,y,z difference
 eps_fine: 0.001               # max acceptable x,y,z difference

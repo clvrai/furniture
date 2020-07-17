@@ -41,6 +41,19 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         'move_grip_safepos', 'xy_move_t', 'align_conn',
                         'xy_move_conn', 'z_move_conn', 'align_conn_fine',
                         'z_move_conn_fine', 'move_nogrip_safepos', 'part_done']
+
+        self._phase_noise = {
+            'xy_move_g': [-self._config.furn_xyz_rand, self._config.furn_xyz_rand],
+            'xy_move_t': [-self._config.furn_xyz_rand, self._config.furn_xyz_rand],
+            'move_grip_safepos': [0, 2*self._config.furn_xyz_rand],
+            'move_nogrip_safepos': [0, 2*self._config.furn_xyz_rand]
+        }
+        # self._phase_noise = {
+        #     'xy_move_g': [-self._config.furn_xyz_rand/2, self._config.furn_xyz_rand/2],
+        #     'xy_move_t': [-self._config.furn_xyz_rand/2, self._config.furn_xyz_rand/2],
+        #     'move_grip_safepos': [0, self._config.furn_xyz_rand],
+        #     'move_nogrip_safepos': [0, self._config.furn_xyz_rand]
+        # }
         """
         Abbreviations:
         grip ~ gripper
@@ -77,6 +90,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 set part_done = True, and part is connected
 
         """
+
+    def get_random_noise(self, phase, size):
+        minimum, maximum = self._phase_noise[phase]
+        return self._rng.uniform(low=minimum, high=maximum, size=size)
 
     def norm_rot_action(self, action, cap=1):
         if 'fine' in self._phase:
@@ -274,6 +291,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 gbody_name, tbody_name = recipe[j]
                 gconn_names, tconn_names = self.get_connsites(gbody_name, tbody_name)
                 grip_pos = self._get_pos(grip_site).copy()
+                noise = None
                 if p['use_closest']:
                     gconn = self.get_closest_connsite(gconn_names, grip_pos) #'leg-top,0,90,180,270,conn_site3' 
                 else:
@@ -295,10 +313,13 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
                 while not self._part_done:
                     action = np.zeros((8,))
+
                     if self._phase == 'xy_move_g':
-                        grip_pos = self._get_pos(grip_site).copy()
+                        grip_pos = self._get_pos(grip_site).copy() 
                         g_pos = (self._get_pos(g_l)+self._get_pos(g_r))/2
-                        d = (g_pos[0:2]-grip_pos[0:2])
+                        if noise is None:
+                            noise = self.get_random_noise(self._phase, 2)
+                        d = noise + (g_pos[0:2]-grip_pos[0:2]) 
                         if abs(d[0]) > p['eps'] or abs(d[1]) > p['eps']:
                             if abs(d[0]) > p['eps']:
                                 action[0] = d[0]
@@ -306,6 +327,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                                 action[1] = d[1]
                         else:
                             phase_num+=1
+                            noise = None
 
                     elif self._phase == 'align_g':
                         action[6] = -1
@@ -374,21 +396,26 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             d = np.zeros((3,))
                             gripbase_pos = self._get_pos(gripbase_site)
                             axis, val = grip_safepos[safepos_count]
+                            if noise is None:
+                                noise = self.get_random_noise(self._phase, 1)
                             if axis == 'z':
-                                d[2] = val - gripbase_pos[2]
+                                d[2] = noise + val - gripbase_pos[2]
                             elif axis == 'y':
-                                d[1] = val - gripbase_pos[1]
+                                d[1] = noise + val - gripbase_pos[1]
                             else:
-                                d[0] = val - gripbase_pos[0]
+                                d[0] = noise + val - gripbase_pos[0]
                             if np.sum(np.absolute(d)) > p['eps']:
                                 action[0:3] = d
                             else:
                                 safepos_count += 1
+                                noise = None
 
                     elif self._phase == 'xy_move_t':
                         action[6] = 1
                         grip_pos = self._get_pos(grip_site).copy()
-                        d = (tconn_pos[0:2] - grip_pos[0:2])
+                        if noise is None:
+                            noise = self.get_random_noise(self._phase, 2)                        
+                        d = noise + (tconn_pos[0:2] - grip_pos[0:2])
                         if abs(d[0]) > p['eps'] or abs(d[1]) > p['eps']:
                             if abs(d[0]) > p['eps']:
                                 action[0] = d[0]
@@ -396,6 +423,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                                 action[1] = d[1]
                         else:
                             phase_num+=1
+                            noise = None
 
                     elif self._phase == 'align_conn':
                         action[6] = 1
@@ -496,6 +524,9 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             d = np.zeros((3,))
                             gripbase_pos = self._get_pos(gripbase_site)
                             axis, val = nogrip_safepos[safepos_count]
+                            if noise is None:
+                                noise = self.get_random_noise(self._phase, 1)
+
                             if axis == 'z':
                                 d[2] = val - gripbase_pos[2]
                             elif axis == 'y':
@@ -506,6 +537,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                                 action[0:3] = d
                             else:
                                 safepos_count += 1
+                                noise = None
 
                     self._phase = self._phases[phase_num]
                     action[0:3] = p['lat_magnitude'] * action[0:3]
@@ -554,7 +586,7 @@ def main():
 
     env = FurnitureSawyerGenEnv(config)
     #env.run_manual(config)
-    env.generate_demos(5)
+    env.generate_demos(115)
     #env.run_demo(config)
 
 if __name__ == "__main__":
