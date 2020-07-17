@@ -138,7 +138,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         reward += opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
         reward += grip_penalty
-        info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info}
+        info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info, **grip_info}
         return reward, done, info
 
     def _move_eef_above_leg_reward(self) -> Tuple[float, dict]:
