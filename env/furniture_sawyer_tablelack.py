@@ -36,6 +36,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._eef_leg_rot_dist_coef = config.eef_leg_rot_dist_coef
         self._eef_leg_pos_dist_coef = config.eef_leg_pos_dist_coef
         self._above_leg_z = config.above_leg_z
+        self._gripper_penalty_coef = config.gripper_penalty_coef
         # self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
         # parts.
@@ -102,7 +103,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         }
         return pos_init, quat_init
 
-    def _compute_reward(self, action) -> Tuple[float, bool, dict]:
+    def _compute_reward(self, ac) -> Tuple[float, bool, dict]:
         """
         Multistage reward.
         While moving the leg, we need to make sure the grip is stable by measuring
@@ -123,8 +124,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         phase = self._phases[self._phase_i]
 
         opp_penalty, opp_info = self._other_parts_penalty()
-        ctrl_penalty, ctrl_info = self._ctrl_penalty(action)
+        ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
         stable_grip_rew, sg_info = self._stable_grip_reward()
+        grip_penalty, grip_info = self._gripper_penalty(ac, open=True)
         if phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info["move_eef_above_leg_succ"] and sg_info["stable_grip_succ"]:
@@ -134,7 +136,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info["lower_eef_to_leg_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
 
-        reward = opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
+        reward += opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
+        reward += grip_penalty
         info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info}
         return reward, done, info
 
@@ -150,7 +153,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_above_leg_distance * self._eef_leg_pos_dist_coef
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
-        info["move_eef_above_leg_succ"] = eef_above_leg_distance < self._pos_threshold
+        info["move_eef_above_leg_succ"] = eef_above_leg_distance < 0.03
+        # log last distance between gripper and target position
+        if self._episode_length == self._env_config["max_episode_steps"]:
+            info["last_eef_above_leg_dist"] = eef_above_leg_distance
         assert rew <= 0
         return rew, info
 
@@ -203,6 +209,18 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         )
         return rew, info
 
+    def _gripper_penalty(self, ac, open=False) -> Tuple[float, dict]:
+        """
+        Give penalty on status of gripper.
+
+        Returns 0 if gripper is in desired position, range is [-2, 0]
+        """
+        # ac[-2] is -1 for open, 1 for closed
+        rew = (-1 - ac[-2] if open else ac[-2] - 1) * self._gripper_penalty_coef
+        assert rew <= 0
+        info = {"gripper_penalty": rew}
+        return rew, info
+
     def _ctrl_penalty(self, action) -> Tuple[float, dict]:
         rew = np.linalg.norm(action[:6]) * -self._ctrl_penalty_coef
         info = {"ctrl_penalty": rew}
@@ -223,7 +241,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 def main():
     from config import create_parser
 
-    parser = create_parser(env="FurnitureSawyerTableLackEnv")
+    parser = create_parser(env="furniture-sawyer-tablelack-v0")
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
         logger.error("Unparsed argument is detected:\n%s", unparsed)
