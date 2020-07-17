@@ -155,6 +155,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
         info["move_eef_above_leg_succ"] = eef_above_leg_distance < 0.03
         # log last distance between gripper and target position
+        info["last_eef_above_leg_dist"] = 0
         if self._episode_length == self._env_config["max_episode_steps"]:
             info["last_eef_above_leg_dist"] = eef_above_leg_distance
         assert rew <= 0
