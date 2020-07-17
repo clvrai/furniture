@@ -185,8 +185,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # up vector of leg and up vector of grip site should be perpendicular
         eef_up = self._get_up_vector("grip_site")
         leg_up = self._get_up_vector(self._current_leg_site)
-        eef_leg_up_siml = T.cos_siml(eef_up, leg_up)
-        eef_leg_up_rew = self._eef_leg_rot_dist_coef * -np.abs(eef_leg_up_siml)
+        eef_leg_up_dist = T.cos_siml(eef_up, leg_up)
+        eef_leg_up_rew = self._eef_leg_rot_dist_coef * -np.abs(eef_leg_up_dist)
 
         # up vector of leg and left vector of grip site should be parallel (close to -1 or 1)
         eef_left = self._get_left_vector("grip_site")
@@ -195,7 +195,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             np.abs(eef_leg_left_dist) - 1
         ) * self._eef_leg_rot_dist_coef
         info = {
-            "eef_leg_up_siml": eef_leg_up_siml,
+            "eef_leg_up_dist": eef_leg_up_dist,
             "eef_leg_up_rew": eef_leg_up_rew,
             "eef_leg_left_dist": eef_leg_left_dist,
             "eef_leg_left_rew": eef_leg_left_rew,
@@ -205,7 +205,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # print(f"Close to 1 or -1; eef_leg_left_dist: {eef_leg_left_dist}")
         rew = eef_leg_up_rew + eef_leg_left_rew
         info["stable_grip_succ"] = (
-            eef_leg_up_siml < self._rot_threshold
+            eef_leg_up_dist < self._rot_threshold
             and eef_leg_left_dist < self._rot_threshold
         )
         return rew, info
