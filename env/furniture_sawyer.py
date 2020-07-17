@@ -38,7 +38,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
                     low=-np.inf, high=np.inf, shape=(32,),
                 )
-            elif self._control_type == "ik":
+            elif self._control_type in ["ik", "ik_quaternion"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
                     low=-np.inf,
                     high=np.inf,
