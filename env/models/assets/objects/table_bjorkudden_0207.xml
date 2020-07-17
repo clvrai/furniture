@@ -1,10 +1,10 @@
 <mujoco model="table_bjorkudden_0207">
   <custom>
-    <numeric name="0_part0_initpos" data="0.23904979 0.36 0.01584491 0.7 0 0.7 0"/>
-   <numeric name="4_part4_initpos" data="-0.08 0.0616954 0.01845491 0 1 0 0"/>
-   <numeric name="3_part3_initpos" data="-0.13323603 0.47 0.01584491 0.5 -0.5 0.5 -0.5"/>
-   <numeric name="2_part2_initpos" data="-0.14430278 0.36 0.01584491 0.5 -0.5 0.5 -0.5"/>
-   <numeric name="1_part1_initpos" data="0.24689381 0.47 0.01584491 0.7 0 0.7 0"/>
+    <numeric name="0_part0_initpos" data="0.23904979 0.29 0.01584491 0.7 0 0.7 0"/>
+   <numeric name="4_part4_initpos" data="-0.1 0 0.01845491 0 1 0 0"/>
+   <numeric name="3_part3_initpos" data="-0.13323603 0.38 0.01584491 0.5 -0.5 0.5 -0.5"/>
+   <numeric name="2_part2_initpos" data="-0.14430278 0.29 0.01584491 0.5 -0.5 0.5 -0.5"/>
+   <numeric name="1_part1_initpos" data="0.24689381 0.38 0.01584491 0.7 0 0.7 0"/>
   </custom>
   <asset>
     <mesh file="table_bjorkudden_0207/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
