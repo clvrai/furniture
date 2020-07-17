@@ -33,8 +33,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._ctrl_penalty_coef = config.ctrl_penalty_coef
         self._pos_threshold = config.pos_threshold
         self._rot_threshold = config.rot_threshold
-        self._eef_leg_rot_dist_coef = config.eef_leg_rot_dist_coef
-        self._eef_leg_pos_dist_coef = config.eef_leg_pos_dist_coef
+        self._rot_dist_coef = config.rot_dist_coef
+        self._pos_dist_coef = config.pos_dist_coef
         self._above_leg_z = config.above_leg_z
         self._gripper_penalty_coef = config.gripper_penalty_coef
         # self._gravity_compensation = 1
@@ -42,9 +42,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # parts.
         self._num_connect_steps = 0
         # self._discretize_grip = config.discretize_grip
+        self._grip_open_phases = ["move_eef_above_leg", "lower_eef_to_leg"]
+        self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "lift_leg"]
+        self._phases.extend(["move_eef_over_conn", "align_leg"])
 
     def _reset_reward_variables(self):
-        self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "done"]
         self._phase_i = 0
         self._current_leg = "0_part0"
         self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
@@ -113,20 +115,23 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Phases:
         move_eef_over_leg: move eef over table leg
         lower_eef_to_leg: lower eef onto the leg
-        grasp_leg: grasp the leg
-        lift_leg: lift the leg
-        move_leg_above_table: move the leg above the table site
-        align_leg_above_table:
+        lift_leg: grip and lift the leg
+        move_eef_over_conn: move the eef (holding leg) above the conn site
+        align_leg: coarsely align the leg with the conn site
+        lower_leg: lower the leg over the conn site
+        align_leg_fine: fine grain alignment of the up and forward vectors
+        lower_leg_fine:
+
         """
         reward = 0
         done = False
-        info = {"phase": self._phase_i}
+        info = {}
         phase = self._phases[self._phase_i]
 
         opp_penalty, opp_info = self._other_parts_penalty()
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
         stable_grip_rew, sg_info = self._stable_grip_reward()
-        grip_penalty, grip_info = self._gripper_penalty(ac, open=True)
+        grip_penalty, grip_info = self._gripper_penalty(ac)
         if phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info["move_eef_above_leg_succ"] and sg_info["stable_grip_succ"]:
@@ -135,10 +140,26 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info["lower_eef_to_leg_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
+        elif phase == "lift_leg":
+            phase_reward, phase_info = self._lift_leg_reward()
+            if phase_info["lift_leg_succ"] and sg_info["stable_grip_succ"]:
+                self._phase_i += 1
+        elif phase == "move_eef_over_conn":
+            phase_reward, phase_info = self._move_eef_over_conn_reward()
+            if phase_info["move_eef_over_conn_succ"] and sg_info["stable_grip_succ"]:
+                self._phase += 1
+        elif phase == "align_leg":
+            self._phase += 1
+        else:
+            phase_reward, phase_info = 0, {}
+            done = True
 
         reward += opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
         reward += grip_penalty
         info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info, **grip_info}
+        # log phase if last frame
+        if self._episode_length == self._env_config["max_episode_steps"] - 1:
+            info["phase"] = self._phase_i
         return reward, done, info
 
     def _move_eef_above_leg_reward(self) -> Tuple[float, dict]:
@@ -151,13 +172,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         eef_pos = self._get_cursor_pos()
         leg_pos = self._get_pos(self._current_leg) + [0, 0, self._above_leg_z]
         eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
-        rew = -eef_above_leg_distance * self._eef_leg_pos_dist_coef
+        rew = -eef_above_leg_distance * self._pos_dist_coef
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
         info["move_eef_above_leg_succ"] = eef_above_leg_distance < 0.03
-        # log last distance between gripper and target position
-        info["last_eef_above_leg_dist"] = 0
-        if self._episode_length == self._env_config["max_episode_steps"]:
-            info["last_eef_above_leg_dist"] = eef_above_leg_distance
         assert rew <= 0
         return rew, info
 
@@ -171,9 +188,40 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         eef_pos = self._get_cursor_pos()
         leg_pos = self._get_pos(self._current_leg)
         eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
-        rew = -eef_leg_distance * self._eef_leg_pos_dist_coef
+        rew = -eef_leg_distance * self._pos_dist_coef
         info = {"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew}
         info["lower_eef_to_leg_succ"] = eef_leg_distance < self._pos_threshold
+        assert rew <= 0
+        return rew, info
+
+    def _lift_leg_reward(self) -> Tuple[float, dict]:
+        """
+        Lift the leg to a target position
+        Return negative eucl distance
+        """
+        leg_pos = self._get_pos(self._current_leg)
+        lift_leg_pos = self._get_pos(self._current_leg)
+        lift_leg_pos[2] = 0.2
+        lift_leg_distance = np.linalg.norm(lift_leg_pos - leg_pos)
+        rew = -lift_leg_distance * self._pos_dist_coef
+        info = {"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew}
+        info["lift_leg_succ"] = lift_leg_distance < self._pos_threshold
+        assert rew <= 0
+        return rew, info
+
+    def _move_eef_over_conn_reward(self) -> Tuple[float, dict]:
+        """
+        Moves the eef holding leg over connection site
+        Negative euclidean distance between eef xy and conn xy.
+        Return negative eucl distance
+        """
+        over_conn_pos = self._get_pos(self._current_table_site)
+        over_conn_pos[2] = 0.2
+        eef_pos = self._get_cursor_pos()
+        eef_conn_distance = np.linalg.norm(eef_pos - over_conn_pos)
+        rew = -eef_conn_distance * self._pos_dist_coef
+        info = {"eef_conn_dist": eef_conn_distance, "eef_conn_rew": rew}
+        info["move_eef_over_conn_succ"] = eef_conn_distance < self._pos_threshold
         assert rew <= 0
         return rew, info
 
@@ -186,14 +234,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         eef_up = self._get_up_vector("grip_site")
         leg_up = self._get_up_vector(self._current_leg_site)
         eef_leg_up_dist = T.cos_siml(eef_up, leg_up)
-        eef_leg_up_rew = self._eef_leg_rot_dist_coef * -np.abs(eef_leg_up_dist)
+        eef_leg_up_rew = self._rot_dist_coef * -np.abs(eef_leg_up_dist)
 
         # up vector of leg and left vector of grip site should be parallel (close to -1 or 1)
         eef_left = self._get_left_vector("grip_site")
         eef_leg_left_dist = T.cos_siml(eef_left, leg_up)
-        eef_leg_left_rew = (
-            np.abs(eef_leg_left_dist) - 1
-        ) * self._eef_leg_rot_dist_coef
+        eef_leg_left_rew = (np.abs(eef_leg_left_dist) - 1) * self._rot_dist_coef
         info = {
             "eef_leg_up_dist": eef_leg_up_dist,
             "eef_leg_up_rew": eef_leg_up_rew,
@@ -210,14 +256,15 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         )
         return rew, info
 
-    def _gripper_penalty(self, ac, open=False) -> Tuple[float, dict]:
+    def _gripper_penalty(self, ac) -> Tuple[float, dict]:
         """
         Give penalty on status of gripper.
 
         Returns 0 if gripper is in desired position, range is [-2, 0]
         """
+        grip_open = self._phase in self._grip_open_phases
         # ac[-2] is -1 for open, 1 for closed
-        rew = (-1 - ac[-2] if open else ac[-2] - 1) * self._gripper_penalty_coef
+        rew = (-1 - ac[-2] if grip_open else ac[-2] - 1) * self._gripper_penalty_coef
         assert rew <= 0
         info = {"gripper_penalty": rew}
         return rew, info
@@ -237,6 +284,78 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {"opp_penalty": rew}
         assert rew <= 0
         return rew, info
+
+    def get_bodyiterator(self, bodyname):
+        for body in self.mujoco_objects[bodyname].root.find("worldbody"):
+            if "name" in body.attrib and bodyname == body.attrib["name"]:
+                return body.getiterator()
+        return None
+
+    def _get_groupname(self, bodyname):
+        bodyiterator = self.get_bodyiterator(bodyname)
+        for child in bodyiterator:
+            if child.tag == "site":
+                if "name" in child.attrib and "conn_site" in child.attrib["name"]:
+                    return child.attrib["name"].split("-")[0]
+        return None
+
+    def get_connsites(self, gbody_name, tbody_name):
+        gripbody_connsite, tbody_connsite = [], []
+        group1 = self._get_groupname(gbody_name)
+        group2 = self._get_groupname(tbody_name)
+        iter1 = self.get_bodyiterator(gbody_name)
+        iter2 = self.get_bodyiterator(tbody_name)
+        griptag = group1 + "-" + group2
+        tgttag = group2 + "-" + group1
+        for child in iter1:
+            if child.tag == "site":
+                if (
+                    "name" in child.attrib
+                    and "conn_site" in child.attrib["name"]
+                    and griptag in child.attrib["name"]
+                    and child.attrib["name"] not in self._used_connsites
+                ):
+                    gripbody_connsite.append(child.attrib["name"])
+        for child in iter2:
+            if child.tag == "site":
+                if (
+                    "name" in child.attrib
+                    and "conn_site" in child.attrib["name"]
+                    and tgttag in child.attrib["name"]
+                    and child.attrib["name"] not in self._used_connsites
+                ):
+                    tbody_connsite.append(child.attrib["name"])
+        return gripbody_connsite, tbody_connsite
+
+    def get_furthest_connsite(self, conn_sites, gripper_pos):
+        furthest = None
+        max_dist = None
+        for name in conn_sites:
+            pos = self.sim.data.get_site_xpos(name)
+            dist = T.l2_dist(gripper_pos, pos)
+            if furthest is None:
+                furthest = name
+                max_dist = dist
+            else:
+                if dist > max_dist:
+                    furthest = name
+                    max_dist = dist
+        return furthest
+
+    def get_closest_connsite(self, conn_sites, gripper_pos):
+        closest = None
+        min_dist = None
+        for name in conn_sites:
+            pos = self.sim.data.get_site_xpos(name)
+            dist = T.l2_dist(gripper_pos, pos)
+            if closest is None:
+                closest = name
+                min_dist = dist
+            else:
+                if dist < min_dist:
+                    closest = name
+                    min_dist = dist
+        return closest
 
 
 def main():

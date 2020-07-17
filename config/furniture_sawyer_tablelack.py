@@ -13,5 +13,5 @@ def add_argument(parser):
     # reward coefficients
     parser.add_argument("--ctrl_penalty_coef", type=float, default=0.1)
     parser.add_argument("--gripper_penalty_coef", type=float, default=0.1)
-    parser.add_argument("--eef_leg_rot_dist_coef", type=float, default=1)
-    parser.add_argument("--eef_leg_pos_dist_coef", type=float, default=1)
+    parser.add_argument("--rot_dist_coef", type=float, default=0.05)
+    parser.add_argument("--pos_dist_coef", type=float, default=1)
