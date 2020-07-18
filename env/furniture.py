@@ -464,7 +464,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         if not self._touched[body_id]:
                             self._touched[body_id] = True
                             touch_reward += self._env_config["touch_reward"]
-                        if not self._picked[body_id]:
+                        if not touch_floor[body_id] and not self._picked[body_id]:
                             self._picked[body_id] = True
                             pick_reward += self._env_config["pick_reward"]
 

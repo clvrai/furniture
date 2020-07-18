@@ -65,8 +65,6 @@ class FurnitureSawyerEnv(FurnitureEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
-        prev_reward, _, old_info = self._compute_reward()
-
         ob, _, done, _ = super()._step(a)
 
         reward, done, info = self._compute_reward()
@@ -74,13 +72,10 @@ class FurnitureSawyerEnv(FurnitureEnv):
         ctrl_reward = self._ctrl_reward(a)
         info["reward_ctrl"] = ctrl_reward
 
-        connect_reward = reward - prev_reward
-        info["reward_connect"] = connect_reward
-
         if self._success:
             logger.info("Success!")
 
-        reward = ctrl_reward + connect_reward
+        reward = ctrl_reward + reward
 
         return ob, reward, done, info
 
