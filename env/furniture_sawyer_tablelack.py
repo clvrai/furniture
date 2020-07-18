@@ -30,6 +30,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 "project_dist": -1,
             }
         )
+        self._phase_bonus = config.phase_bonus
         self._ctrl_penalty_coef = config.ctrl_penalty_coef
         self._pos_threshold = config.pos_threshold
         self._rot_threshold = config.rot_threshold
@@ -125,7 +126,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         align_leg_fine: fine grain alignment of the up and forward vectors
         lower_leg_fine: finely move the leg onto the conn site
         """
-        reward = 0
+        phase_bonus = reward = 0
         done = False
         info = {}
         phase = self._phases[self._phase_i]
@@ -138,40 +139,49 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
+                phase_bonus = self._phase_bonus
         elif phase == "lower_eef_to_leg":
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
+                phase_bonus = self._phase_bonus
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
+                phase_bonus = self._phase_bonus
         elif phase == "move_eef_over_conn":
             phase_reward, phase_info = self._move_eef_over_conn_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
-                self._phase += 1
+                self._phase_i += 1
+                phase_bonus = self._phase_bonus
         elif phase == "align_leg":
             phase_reward, phase_info = self._align_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase += 1
+                phase_bonus = self._phase_bonus
         elif phase == "lower_leg":
             phase_reward, phase_info = self._lower_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase += 1
+                phase_bonus = self._phase_bonus
         elif phase == "align_leg_fine":
             phase_reward, phase_info = self._align_leg_fine_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase += 1
+                phase_bonus = self._phase_bonus
         elif phase == "lower_leg_fine":
             phase_reward, phase_info = self._lower_leg_fine_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase += 1
+                phase_bonus = self._phase_bonus
         else:
             phase_reward, phase_info = 0, {}
             done = True
 
         reward += opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
-        reward += grip_penalty
+        reward += grip_penalty + phase_bonus
+        info["phase_bonus"] = phase_bonus
         info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info, **grip_info}
         # log phase if last frame
         if self._episode_length == self._env_config["max_episode_steps"] - 1:

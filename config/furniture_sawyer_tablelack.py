@@ -17,3 +17,5 @@ def add_argument(parser):
     parser.add_argument("--pos_dist_coef", type=float, default=1)
     parser.add_argument("--align_rot_dist_coef", type=float, default=0.2)
     parser.add_argument("--fine_align_rot_dist_coef", type=float, default=0.4)
+
+    parser.add_argument("--phase_bonus", type=float, default=5)
