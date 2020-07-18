@@ -40,6 +40,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._gripper_penalty_coef = config.gripper_penalty_coef
         self._align_rot_dist_coef = config.align_rot_dist_coef
         self._fine_align_rot_dist_coef = config.fine_align_rot_dist_coef
+        self._touch_coef = config.touch_coef
         # self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
         # parts.
@@ -218,7 +219,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         left, right = self._finger_contact(self._current_leg)
         leg_touched = int(left and right)
-        touch_rew = (leg_touched - 1) * 0.3
+        touch_rew = (leg_touched - 1) * self._touch_coef
         info = {"touch": leg_touched, "touch_rew": touch_rew}
 
         eef_pos = self._get_gripper_pos()
@@ -237,12 +238,17 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Lift the leg to a target position
         Return negative eucl distance
         """
+        left, right = self._finger_contact(self._current_leg)
+        leg_touched = int(left and right)
+        touch_rew = (leg_touched - 1) * self._touch_coef
+        info = {"touch": leg_touched, "touch_rew": touch_rew}
+
         leg_pos = self._get_pos(self._current_leg)
         lift_leg_pos = self._get_pos(self._current_leg)
         lift_leg_pos[2] = 0.2
         lift_leg_distance = np.linalg.norm(lift_leg_pos - leg_pos)
         rew = -lift_leg_distance * self._pos_dist_coef
-        info = {"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew}
+        info.update({"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew})
         info["lift_leg_succ"] = lift_leg_distance < self._pos_threshold
         assert rew <= 0
         return rew, info
