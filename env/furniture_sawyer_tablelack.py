@@ -38,8 +38,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._pos_dist_coef = config.pos_dist_coef
         self._above_leg_z = config.above_leg_z
         self._gripper_penalty_coef = config.gripper_penalty_coef
-        self._align_rot_coef = config.align_rot_coef
-        self._fine_align_rot_coef = config.fine_align_rot_coef
+        self._align_rot_dist_coef = config.align_rot_dist_coef
+        self._fine_align_rot_dist_coef = config.fine_align_rot_dist_coef
         # self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
         # parts.
@@ -260,7 +260,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_up = self._get_up_vector(self._current_leg_site)
         table_up = self._get_up_vector(self._current_table_site)
         align_leg_dist = T.cos_siml(leg_up, table_up)
-        rew = (align_leg_dist - 1) * self._align_rot_coef
+        rew = (align_leg_dist - 1) * self._align_rot_dist_coef
         info = {"align_leg_dist": align_leg_dist, "align_leg_rew": rew}
         info["align_leg_succ"] = align_leg_dist > 0.85
         assert rew <= 0
@@ -292,15 +292,15 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_up = self._get_up_vector(self._current_leg_site)
         table_up = self._get_up_vector(self._current_table_site)
         align_leg_dist = T.cos_siml(leg_up, table_up)
-        rew = (align_leg_dist - 1) * self._fine_align_rot_coef
+        rew = (align_leg_dist - 1) * self._fine_align_rot_dist_coef
         info = {"align_leg_fine_dist": align_leg_dist, "align_leg_fine_rew": rew}
 
         leg_site_pos = self._get_pos(self._current_leg_site)
         table_site_pos = self._get_pos(self._current_table_site)
         proj_t = T.cos_siml(table_up, leg_site_pos - table_site_pos)
         proj_l = T.cos_siml(-leg_up, table_site_pos - leg_site_pos)
-        proj_t_rew = (proj_t - 1) * self._fine_align_rot_coef
-        proj_l_rew = (proj_l - 1) * self._fine_align_rot_coef
+        proj_t_rew = (proj_t - 1) * self._fine_align_rot_dist_coef
+        proj_l_rew = (proj_l - 1) * self._fine_align_rot_dist_coef
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_tl": proj_l})
         rew += proj_t_rew + proj_l_rew
