@@ -313,13 +313,14 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
     def _stable_grip_reward(self) -> Tuple[float, dict]:
         """
         Makes sure the eef and object axes are aligned
+        Prioritize wrist alignment more than vertical alignment
         Returns negative angular distance
         """
         # up vector of leg and up vector of grip site should be perpendicular
         eef_up = self._get_up_vector("grip_site")
         leg_up = self._get_up_vector(self._current_leg_site)
         eef_leg_up_dist = T.cos_siml(eef_up, leg_up)
-        eef_leg_up_rew = self._rot_dist_coef * -np.abs(eef_leg_up_dist)
+        eef_leg_up_rew = self._rot_dist_coef / 3 * -np.abs(eef_leg_up_dist)
 
         # up vector of leg and left vector of grip site should be parallel (close to -1 or 1)
         eef_left = self._get_left_vector("grip_site")
