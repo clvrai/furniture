@@ -19,7 +19,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             config: configurations for the environment.
         """
         config.furniture_id = furniture_name2id["table_lack_0825"]
-
+        config.object_ob_all = False
         super().__init__(config)
         # default values for rew function
         self._env_config.update(
@@ -55,6 +55,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._current_leg = "0_part0"
         self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
         self._current_table_site = "table-leg,0,90,180,270,conn_site1"
+        self._subtask_part1 = self._object_name2id[self._current_leg]
+        self._subtask_part2 = self._object_name2id["4_part4"]
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -195,8 +197,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         Return negative eucl distance
         """
-        eef_pos = self._get_cursor_pos()
-        leg_pos = self._get_pos(self._current_leg) + [0, 0, self._above_leg_z]
+        eef_pos = self._get_gripper_pos()
+        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, self._above_leg_z]
+        leg_pos2 = leg_pos1 + [0, 0, 0.03]
+        leg_pos = np.concatenate([leg_pos1, leg_pos2])
         eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_above_leg_distance * self._pos_dist_coef
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
@@ -211,8 +215,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         Return negative eucl distance
         """
-        eef_pos = self._get_cursor_pos()
-        leg_pos = self._get_pos(self._current_leg)
+        eef_pos = self._get_gripper_pos()
+        leg_pos1 = self._get_pos(self._current_leg)
+        leg_pos2 = leg_pos1 + [0, 0, 0.03]
+        leg_pos = np.concatenate([leg_pos1, leg_pos2])
         eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_leg_distance * self._pos_dist_coef
         info = {"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew}
@@ -241,9 +247,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Negative euclidean distance between eef xy and conn xy.
         Return negative eucl distance
         """
-        above_conn_pos = self._get_pos(self._current_table_site)
-        above_conn_pos[2] = 0.2
-        eef_pos = self._get_cursor_pos()
+        above_conn_pos1 = self._get_pos(self._current_table_site)
+        above_conn_pos1[2] = 0.2
+        above_conn_pos2 = above_conn_pos1 + [0, 0, 0.03]
+        above_conn_pos = np.concatenate([above_conn_pos1, above_conn_pos2])
+        eef_pos = self._get_gripper_pos()
         eef_conn_distance = np.linalg.norm(eef_pos - above_conn_pos)
         rew = -eef_conn_distance * self._pos_dist_coef
         info = {"eef_conn_dist": eef_conn_distance, "eef_conn_rew": rew}
@@ -457,6 +465,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                     closest = name
                     min_dist = dist
         return closest
+
+    def _get_gripper_pos(self) -> list:
+        """return 6d pos [griptip, grip] """
+        return np.concatenate(
+            [self._get_pos("griptip_site"), self._get_pos("grip_site")]
+        )
 
 
 def main():
