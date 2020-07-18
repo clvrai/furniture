@@ -198,7 +198,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Return negative eucl distance
         """
         eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, self._above_leg_z]
+        leg_pos1 = self._get_pos(self._current_leg)
+        leg_pos1[2] = eef_pos[2]
         leg_pos2 = leg_pos1 + [0, 0, 0.03]
         leg_pos = np.concatenate([leg_pos1, leg_pos2])
         eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
@@ -212,16 +213,21 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         Moves the eef over the leg and rotates the wrist.
         Negative euclidean distance between eef xy and leg xy.
-
+        Give additional reward for contacting the leg
         Return negative eucl distance
         """
+        left, right = self._finger_contact(self._current_leg)
+        leg_touched = int(left and right)
+        touch_rew = (leg_touched - 1) * 0.3
+        info = {"touch": leg_touched, "touch_rew": touch_rew}
+
         eef_pos = self._get_gripper_pos()
         leg_pos1 = self._get_pos(self._current_leg)
         leg_pos2 = leg_pos1 + [0, 0, 0.03]
         leg_pos = np.concatenate([leg_pos1, leg_pos2])
         eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_leg_distance * self._pos_dist_coef
-        info = {"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew}
+        info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
         info["lower_eef_to_leg_succ"] = eef_leg_distance < self._pos_threshold
         assert rew <= 0
         return rew, info
@@ -470,6 +476,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """return 6d pos [griptip, grip] """
         return np.concatenate(
             [self._get_pos("griptip_site"), self._get_pos("grip_site")]
+        )
+
+    def _get_fingertip_pos(self) -> list:
+        """return 6d pos [left grip, right grip]"""
+        return np.concatenate(
+            [self._get_pos("lgriptip_site"), self._get_pos("rgriptip_site")]
         )
 
 
