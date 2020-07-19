@@ -91,12 +91,19 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             xpos: x,y,z position of the objects in world frame
             xquat: quaternion of the objects
         """
+        # pos_init = {
+        #     "0_part0": [0.31343275, -0.2 + 0.35850108, 0.01831519],
+        #     "1_part1": [-0.24890323, -0.2 + 0.43996071, 0.01830461],
+        #     "2_part2": [-0.25975243, -0.2 + 0.35248785, 0.0183152],
+        #     "3_part3": [0.31685774, -0.2 + 0.44853931, 0.0183046],
+        #     "4_part4": [0.03014604, -0.2 + 0.09554463, 0.01972958],
+        # }
         pos_init = {
-            "0_part0": [0.31343275, -0.2 + 0.35850108, 0.01831519],
-            "1_part1": [-0.24890323, -0.2 + 0.43996071, 0.01830461],
-            "2_part2": [-0.25975243, -0.2 + 0.35248785, 0.0183152],
-            "3_part3": [0.31685774, -0.2 + 0.44853931, 0.0183046],
-            "4_part4": [0.03014604, -0.2 + 0.09554463, 0.01972958],
+            "0_part0": [0.0055512, 0.09120562, 0.01831519],
+            "1_part1": [-0.24890323, -10.2 + 0.43996071, 0.01830461],
+            "2_part2": [-0.25975243, -10.2 + 0.35248785, 0.0183152],
+            "3_part3": [0.31685774, -10.2 + 0.44853931, 0.0183046],
+            "4_part4": [0.03014604, -0.3 + 0.09554463, 0.01972958],
         }
         noise = self._init_random(3 * len(pos_init), "furniture")
         for i, name in enumerate(pos_init):
@@ -200,7 +207,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         eef_pos = self._get_gripper_pos()
         leg_pos1 = self._get_pos(self._current_leg)
-        leg_pos1[2] = eef_pos[2]
+        leg_pos1[2] = self._above_leg_z
         leg_pos2 = leg_pos1 + [0, 0, 0.03]
         leg_pos = np.concatenate([leg_pos1, leg_pos2])
         eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
