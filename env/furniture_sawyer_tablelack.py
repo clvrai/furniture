@@ -52,7 +52,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._phases.extend(["align_leg_fine, lower_leg_fine"])
 
     def _reset_reward_variables(self):
-        self._phase_i = 0
+        self._phase_i = 1
         self._current_leg = "0_part0"
         self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
         self._current_table_site = "table-leg,0,90,180,270,conn_site1"
