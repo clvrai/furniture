@@ -41,11 +41,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._align_rot_dist_coef = config.align_rot_dist_coef
         self._fine_align_rot_dist_coef = config.fine_align_rot_dist_coef
         self._touch_coef = config.touch_coef
-        # self._gravity_compensation = 1
         # requires multiple connection actions to make connection between two
         # parts.
         self._num_connect_steps = 0
-        # self._discretize_grip = config.discretize_grip
+        self._discrete_grip = config.discrete_grip
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "lift_leg"]
         self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
@@ -68,18 +67,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Takes a simulation step with @a and computes reward.
         """
         # discretize gripper action
-        # if self._discretize_grip:
-        #     a = a.copy()
-        #     a[-2] = -1 if a[-2] < 0 else 1
+        if self._discrete_grip:
+            a = a.copy()
+            a[-2] = -1 if a[-2] < 0 else 1
 
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
-
-        # for i, body in enumerate(self._object_names):
-        #     pose = self._get_qpos(body)
-        #     logger.debug(f"{body} {pose[:3]} {pose[3:]}")
-
-        # info["ac"] = a
         return ob, reward, done, info
 
     def _place_objects(self):
@@ -111,7 +104,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 pos_init[name][j] += noise[3 * i + j]
 
         quat_init = {
-            "0_part0": [0.50863839, -0.50861836, 0.49112556, -0.4913146],
+            # "0_part0": [0.50863839, -0.50861836, 0.49112556, -0.4913146],
+            "0_part0": [0, 0, -0.707, -0.707],
             "1_part1": [0.51725545, 0.51737851, 0.48189126, 0.48223137],
             "2_part2": [0.51481971, 0.51462992, 0.48482265, 0.4848337],
             "3_part3": [0.50010382, -0.50023869, 0.49966084, -0.49999646],
@@ -153,37 +147,44 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         elif phase == "lower_eef_to_leg":
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
+                print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
-            if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
+            if phase_info[f"{phase}_succ"]:
+                print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
         elif phase == "move_eef_over_conn":
             phase_reward, phase_info = self._move_eef_over_conn_reward()
-            if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
+            if phase_info[f"{phase}_succ"]:
+                print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
         elif phase == "align_leg":
             phase_reward, phase_info = self._align_leg_reward()
-            if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
-                self._phase += 1
+            if phase_info[f"{phase}_succ"]:
+                print(f"DONE WITH PHASE {phase}")
+                self._phase_i += 1
                 phase_bonus = self._phase_bonus
         elif phase == "lower_leg":
             phase_reward, phase_info = self._lower_leg_reward()
-            if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
-                self._phase += 1
+            if phase_info[f"{phase}_succ"]:
+                print(f"DONE WITH PHASE {phase}")
+                self._phase_i += 1
                 phase_bonus = self._phase_bonus
         elif phase == "align_leg_fine":
             phase_reward, phase_info = self._align_leg_fine_reward()
-            if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
-                self._phase += 1
+            if phase_info[f"{phase}_succ"]:
+                print(f"DONE WITH PHASE {phase}")
+                self._phase_i += 1
                 phase_bonus = self._phase_bonus
         elif phase == "lower_leg_fine":
             phase_reward, phase_info = self._lower_leg_fine_reward()
-            if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
-                self._phase += 1
+            if phase_info[f"{phase}_succ"]:
+                print(f"DONE WITH PHASE {phase}")
+                self._phase_i += 1
                 phase_bonus = self._phase_bonus
         else:
             phase_reward, phase_info = 0, {}
@@ -230,13 +231,16 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {"touch": leg_touched, "touch_rew": touch_rew}
 
         eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._current_leg)
+        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
         leg_pos2 = leg_pos1 + [0, 0, 0.03]
         leg_pos = np.concatenate([leg_pos1, leg_pos2])
-        eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
+        xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+        z_distance = np.abs(eef_pos[2] - leg_pos[2])
+        eef_leg_distance = xy_distance + z_distance
+        # eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_leg_distance * self._pos_dist_coef
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
-        info["lower_eef_to_leg_succ"] = eef_leg_distance < self._pos_threshold
+        info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.005
         assert rew <= 0
         return rew, info
 
@@ -252,12 +256,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         leg_pos = self._get_pos(self._current_leg)
         lift_leg_pos = self._get_pos(self._current_leg)
-        lift_leg_pos[2] = 0.2
+        lift_leg_pos[2] = 0.15
         lift_leg_distance = np.linalg.norm(lift_leg_pos - leg_pos)
         rew = -lift_leg_distance * self._pos_dist_coef
         info.update({"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew})
         info["lift_leg_succ"] = lift_leg_distance < self._pos_threshold
         assert rew <= 0
+        # print(lift_leg_distance)
         return rew, info
 
     def _move_eef_over_conn_reward(self) -> Tuple[float, dict]:
@@ -266,16 +271,15 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Negative euclidean distance between eef xy and conn xy.
         Return negative eucl distance
         """
-        above_conn_pos1 = self._get_pos(self._current_table_site)
-        above_conn_pos1[2] = 0.2
-        above_conn_pos2 = above_conn_pos1 + [0, 0, 0.03]
-        above_conn_pos = np.concatenate([above_conn_pos1, above_conn_pos2])
-        eef_pos = self._get_gripper_pos()
+        above_conn_pos = self._get_pos(self._current_table_site)
+        above_conn_pos[2] = 0.15
+        eef_pos = self._get_cursor_pos()
         eef_conn_distance = np.linalg.norm(eef_pos - above_conn_pos)
         rew = -eef_conn_distance * self._pos_dist_coef
         info = {"eef_conn_dist": eef_conn_distance, "eef_conn_rew": rew}
         info["move_eef_over_conn_succ"] = eef_conn_distance < self._pos_threshold
         assert rew <= 0
+        # print(eef_conn_distance)
         return rew, info
 
     def _align_leg_reward(self) -> Tuple[float, dict]:
@@ -360,12 +364,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             "eef_leg_left_rew": eef_leg_left_rew,
         }
         assert eef_leg_up_rew <= 0 and eef_leg_left_rew <= 0
-        # print(f"Close to 0; eef_leg_up_siml: {eef_leg_up_siml}")
+        # print(f"Close to 0; eef_leg_up_siml: {eef_leg_up_dist}")
         # print(f"Close to 1 or -1; eef_leg_left_dist: {eef_leg_left_dist}")
         rew = eef_leg_up_rew + eef_leg_left_rew
         info["stable_grip_succ"] = (
-            eef_leg_up_dist < self._rot_threshold
-            and eef_leg_left_dist < self._rot_threshold
+            np.abs(eef_leg_up_dist) < self._rot_threshold
+            and np.abs(eef_leg_left_dist) > 1 - self._rot_threshold
         )
         return rew, info
 
