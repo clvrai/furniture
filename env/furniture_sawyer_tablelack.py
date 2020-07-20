@@ -225,10 +225,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Give additional reward for contacting the leg
         Return negative eucl distance
         """
-        left, right = self._finger_contact(self._current_leg)
-        leg_touched = int(left and right)
-        touch_rew = (leg_touched - 1) * self._touch_coef
-        info = {"touch": leg_touched, "touch_rew": touch_rew}
+        # left, right = self._finger_contact(self._current_leg)
+        # leg_touched = int(left and right)
+        # touch_rew = (leg_touched - 1) * self._touch_coef
+        # info = {"touch": leg_touched, "touch_rew": touch_rew}
+        info = {}
 
         eef_pos = self._get_gripper_pos()
         leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
