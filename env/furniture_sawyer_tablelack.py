@@ -250,10 +250,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Lift the leg to a target position
         Return negative eucl distance
         """
-        left, right = self._finger_contact(self._current_leg)
-        leg_touched = int(left and right)
-        touch_rew = (leg_touched - 1) * self._touch_coef
-        info = {"touch": leg_touched, "touch_rew": touch_rew}
+        # left, right = self._finger_contact(self._current_leg)
+        # leg_touched = int(left and right)
+        # touch_rew = (leg_touched - 1) * self._touch_coef
+        # info = {"touch": leg_touched, "touch_rew": touch_rew}
+        info = {}
 
         leg_pos = self._get_pos(self._current_leg)
         lift_leg_pos = self._get_pos(self._current_leg)
