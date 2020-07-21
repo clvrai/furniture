@@ -46,9 +46,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # parts.
         self._num_connect_steps = 0
         self._discrete_grip = config.discrete_grip
-        self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"])
-        self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "lift_leg"]
-        self._phases.extend(["move_leg", "move_leg_fine"])
+        self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
+        self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg" ]
+        self._phases.extend(["lift_leg", "move_leg", "move_leg_fine"])
         # self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
         # self._phases.extend(["align_leg_fine, lower_leg_fine"])
 
