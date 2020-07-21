@@ -50,7 +50,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "lift_leg"]
         self._phases.extend(["move_leg", "move_leg_fine"])
         # self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
-        self._phases.extend(["align_leg_fine, lower_leg_fine"])
+        # self._phases.extend(["align_leg_fine, lower_leg_fine"])
 
     def _reset_reward_variables(self):
         self._phase_i = 1
@@ -280,11 +280,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Lift the leg to a target position
         Return negative eucl distance
         """
-        # left, right = self._finger_contact(self._current_leg)
-        # leg_touched = int(left and right)
-        # touch_rew = (leg_touched - 1) * self._touch_coef
-        # info = {"touch": leg_touched, "touch_rew": touch_rew}
-        info = {}
+        left, right = self._finger_contact(self._current_leg)
+        leg_touched = int(left and right)
+        touch_rew = (leg_touched - 1) * self._touch_coef
+        info = {"touch": leg_touched, "touch_rew": touch_rew}
 
         leg_pos = self._get_pos(self._current_leg)
         lift_leg_distance = np.linalg.norm(self._lift_leg_pos - leg_pos)
