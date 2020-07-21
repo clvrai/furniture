@@ -40,6 +40,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._gripper_penalty_coef = config.gripper_penalty_coef
         self._align_rot_dist_coef = config.align_rot_dist_coef
         self._fine_align_rot_dist_coef = config.fine_align_rot_dist_coef
+        self._fine_pos_dist_coef = config.fine_pos_dist_coef
         self._touch_coef = config.touch_coef
         # requires multiple connection actions to make connection between two
         # parts.
@@ -47,7 +48,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._discrete_grip = config.discrete_grip
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "lift_leg"]
-        self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
+        self._phases.extend(["move_leg", "move_leg_fine"])
+        # self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
         self._phases.extend(["align_leg_fine, lower_leg_fine"])
 
     def _reset_reward_variables(self):
@@ -150,42 +152,60 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
+                self._lift_leg_pos = self._get_pos(self._current_leg)
+                self._lift_leg_pos[2] = 0.1
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
-        elif phase == "move_eef_over_conn":
-            phase_reward, phase_info = self._move_eef_over_conn_reward()
+        elif phase == "move_leg":
+            phase_reward, phase_info = self._move_leg_reward()
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
-        elif phase == "align_leg":
-            phase_reward, phase_info = self._align_leg_reward()
+        elif phase == "move_leg_fine":
+            phase_reward, phase_info = self._move_leg_fine_reward(ac)
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
-        elif phase == "lower_leg":
-            phase_reward, phase_info = self._lower_leg_reward()
-            if phase_info[f"{phase}_succ"]:
-                print(f"DONE WITH PHASE {phase}")
-                self._phase_i += 1
-                phase_bonus = self._phase_bonus
-        elif phase == "align_leg_fine":
-            phase_reward, phase_info = self._align_leg_fine_reward()
-            if phase_info[f"{phase}_succ"]:
-                print(f"DONE WITH PHASE {phase}")
-                self._phase_i += 1
-                phase_bonus = self._phase_bonus
-        elif phase == "lower_leg_fine":
-            phase_reward, phase_info = self._lower_leg_fine_reward()
-            if phase_info[f"{phase}_succ"]:
-                print(f"DONE WITH PHASE {phase}")
-                self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                if phase_info["connect_succ"]:
+                    done = True
+                    phase_bonus = 1000
+                    self._success = True
+        # elif phase == "move_eef_over_conn":
+        #     phase_reward, phase_info = self._move_eef_over_conn_reward()
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus
+        # elif phase == "align_leg":
+        #     phase_reward, phase_info = self._align_leg_reward()
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus
+        # elif phase == "lower_leg":
+        #     phase_reward, phase_info = self._lower_leg_reward()
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus
+        # elif phase == "align_leg_fine":
+        #     phase_reward, phase_info = self._align_leg_fine_reward()
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus
+        # elif phase == "lower_leg_fine":
+        #     phase_reward, phase_info = self._lower_leg_fine_reward()
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus
         else:
             phase_reward, phase_info = 0, {}
             done = True
@@ -194,9 +214,19 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         reward += grip_penalty + phase_bonus
         info["phase_bonus"] = phase_bonus
         info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info, **grip_info}
+
         # log phase if last frame
         if self._episode_length == self._env_config["max_episode_steps"] - 1:
             info["phase"] = self._phase_i
+        # record eucl distance and angular distance between sites over time
+        leg_pos = self._get_pos(self._current_leg_site)
+        table_pos = self._get_pos(self._current_table_site)
+        info["attach_eucl_dist"] = np.linalg.norm(leg_pos - table_pos)
+        leg_up = self._get_up_vector(self._current_leg_site)
+        table_up = self._get_up_vector(self._current_table_site)
+        # normalize cos dist to [0, 1]
+        info["attach_up_dist"] = (T.cos_siml(leg_up, table_up) + 1) / 2
+
         return reward, done, info
 
     def _move_eef_above_leg_reward(self) -> Tuple[float, dict]:
@@ -257,14 +287,94 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {}
 
         leg_pos = self._get_pos(self._current_leg)
-        lift_leg_pos = self._get_pos(self._current_leg)
-        lift_leg_pos[2] = 0.15
-        lift_leg_distance = np.linalg.norm(lift_leg_pos - leg_pos)
+        lift_leg_distance = np.linalg.norm(self._lift_leg_pos - leg_pos)
         rew = -lift_leg_distance * self._pos_dist_coef
         info.update({"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew})
         info["lift_leg_succ"] = lift_leg_distance < self._pos_threshold
         assert rew <= 0
         # print(lift_leg_distance)
+        return rew, info
+
+    def _move_leg_reward(self) -> Tuple[float, dict]:
+        """
+        Coarsely move the leg site over the connsite
+        Also give reward for angular alignment
+        """
+        left, right = self._finger_contact(self._current_leg)
+        leg_touched = int(left and right)
+        touch_rew = (leg_touched - 1) * self._touch_coef
+        info = {"touch": leg_touched, "touch_rew": touch_rew}
+
+        # calculate position rew
+        above_table_site = self._get_pos(self._current_table_site) + [0, 0, 0.05]
+        leg_site = self._get_pos(self._current_leg_site)
+        move_pos_distance = np.linalg.norm(above_table_site - leg_site)
+        pos_rew = -move_pos_distance * self._pos_dist_coef
+        info.update({"move_pos_dist": move_pos_distance, "move_pos_rew": pos_rew})
+        # calculate angular rew
+        leg_up = self._get_up_vector(self._current_leg_site)
+        table_up = self._get_up_vector(self._current_table_site)
+        move_ang_dist = T.cos_siml(leg_up, table_up)
+        ang_rew = (move_ang_dist - 1) * self._align_rot_dist_coef
+        info.update({"move_ang_dist": move_ang_dist, "move_ang_rew": ang_rew})
+        info["move_leg_succ"] = (
+            move_pos_distance < 0.03 and move_ang_dist > 0.85
+        )
+        rew = pos_rew + ang_rew
+        # print("-" * 80)
+        # print(above_table_site, leg_site)
+        # print(move_pos_distance)
+        assert rew <= 0
+        return rew, info
+
+    def _move_leg_fine_reward(self, ac) -> Tuple[float, dict]:
+        """
+        Finely move the leg site over the connsite
+        Also give reward for angular alignment
+        Also check for connected pieces
+        """
+        left, right = self._finger_contact(self._current_leg)
+        leg_touched = int(left and right)
+        touch_rew = (leg_touched - 1) * self._touch_coef
+        info = {"touch": leg_touched, "touch_rew": touch_rew}
+
+        # calculate position rew
+        table_site = self._get_pos(self._current_table_site)
+        leg_site = self._get_pos(self._current_leg_site)
+        move_pos_distance = np.linalg.norm(table_site - leg_site)
+        pos_rew = -move_pos_distance * self._fine_pos_dist_coef
+        info.update(
+            {"move_fine_pos_dist": move_pos_distance, "move_fine_pos_rew": pos_rew}
+        )
+        # calculate angular rew
+        leg_up = self._get_up_vector(self._current_leg_site)
+        table_up = self._get_up_vector(self._current_table_site)
+        align_leg_dist = T.cos_siml(leg_up, table_up)
+        ang_rew = (align_leg_dist - 1) * self._fine_align_rot_dist_coef
+        info["move_fine_ang_dist"] = align_leg_dist
+
+        proj_t = T.cos_siml(table_up, leg_site - table_site)
+        proj_l = T.cos_siml(-leg_up, table_site - leg_site)
+        proj_t_rew = (proj_t - 1) * self._fine_align_rot_dist_coef
+        proj_l_rew = (proj_l - 1) * self._fine_align_rot_dist_coef
+        info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
+        info.update({"proj_l_rew": proj_l_rew, "proj_tl": proj_l})
+        ang_rew += proj_t_rew + proj_l_rew
+        info["move_fine_succ"] = (
+            move_pos_distance < 0.015
+            and align_leg_dist > 0.95
+            and proj_t > 0.9
+            and proj_l > 0.9
+        )
+        info["move_fine_ang_rew"] = ang_rew
+        rew = pos_rew + ang_rew
+        assert rew <= 0
+        info["connect_succ"] = info["move_fine_succ"] and ac[-1] > 0
+        return rew, info
+
+    def _connect_reward(self, ac) -> Tuple[float, dict]:
+        rew = 0
+        info = {"connect_succ": ac[-1] > 0}
         return rew, info
 
     def _move_eef_over_conn_reward(self) -> Tuple[float, dict]:
