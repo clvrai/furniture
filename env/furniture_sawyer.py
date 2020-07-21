@@ -2,8 +2,8 @@
 
 from collections import OrderedDict
 
-import numpy as np
 import gym.spaces
+import numpy as np
 
 import env.transform_utils as T
 from env.furniture import FurnitureEnv
@@ -36,7 +36,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         if self._robot_ob:
             if self._control_type == "impedance":
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(32,),
+                    low=-np.inf, high=np.inf, shape=(16,),
                 )
             elif self._control_type in ["ik", "ik_quaternion"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
@@ -124,33 +124,33 @@ class FurnitureSawyerEnv(FurnitureEnv):
                         for x in self._ref_gripper_joint_pos_indexes["right"]
                     ]
                 )
-                robot_states["gripper_qvel"] = np.array(
-                    [
-                        self.sim.data.qvel[x]
-                        for x in self._ref_gripper_joint_vel_indexes["right"]
-                    ]
+                # robot_states["gripper_qvel"] = np.array(
+                #     [
+                #         self.sim.data.qvel[x]
+                #         for x in self._ref_gripper_joint_vel_indexes["right"]
+                #     ]
+                # )
+            else:
+                gripper_qpos = [
+                    self.sim.data.qpos[x]
+                    for x in self._ref_gripper_joint_pos_indexes["right"]
+                ]
+                robot_states["gripper_dis"] = np.array(
+                    [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
+                )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
+                robot_states["eef_pos"] = np.array(
+                    self.sim.data.site_xpos[self.eef_site_id["right"]]
                 )
+                robot_states["eef_velp"] = np.array(
+                    self.sim.data.site_xvelp[self.eef_site_id["right"]]
+                )  # 3-dim
+                robot_states["eef_velr"] = self.sim.data.site_xvelr[
+                    self.eef_site_id["right"]
+                ]  # 3-dim
 
-            gripper_qpos = [
-                self.sim.data.qpos[x]
-                for x in self._ref_gripper_joint_pos_indexes["right"]
-            ]
-            robot_states["gripper_dis"] = np.array(
-                [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
-            )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
-            robot_states["eef_pos"] = np.array(
-                self.sim.data.site_xpos[self.eef_site_id["right"]]
-            )
-            robot_states["eef_velp"] = np.array(
-                self.sim.data.site_xvelp[self.eef_site_id["right"]]
-            )  # 3-dim
-            robot_states["eef_velr"] = self.sim.data.site_xvelr[
-                self.eef_site_id["right"]
-            ]  # 3-dim
-
-            robot_states["eef_quat"] = T.convert_quat(
-                self.sim.data.get_body_xquat("right_hand"), to="xyzw"
-            )
+                robot_states["eef_quat"] = T.convert_quat(
+                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
+                )
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
