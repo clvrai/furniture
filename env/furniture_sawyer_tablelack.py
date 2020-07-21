@@ -46,7 +46,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # parts.
         self._num_connect_steps = 0
         self._discrete_grip = config.discrete_grip
-        self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
+        self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"])
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "lift_leg"]
         self._phases.extend(["move_leg", "move_leg_fine"])
         # self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
@@ -149,6 +149,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         elif phase == "lower_eef_to_leg":
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
+                print(f"DONE WITH PHASE {phase}")
+                self._phase_i += 1
+                phase_bonus = self._phase_bonus
+        elif phase == "grasp_leg":
+            phase_reward, phase_info = self._grasp_leg_reward(ac)
+            if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
@@ -273,6 +279,17 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
         info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.01
         assert rew <= 0
+        return rew, info
+
+    def _grasp_leg_reward(self, ac) -> Tuple[float, dict]:
+        """
+        Grasp the leg
+        """
+        left, right = self._finger_contact(self._current_leg)
+        leg_touched = int(left and right)
+        rew = (leg_touched - 1) * self._touch_coef
+        info = {"touch": leg_touched, "touch_rew": rew}
+        info["grasp_leg_succ"] = leg_touched and ac[-2] > 0.9
         return rew, info
 
     def _lift_leg_reward(self) -> Tuple[float, dict]:
