@@ -262,7 +262,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {}
 
         eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.014]
+        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
         leg_pos2 = leg_pos1 + [0, 0, 0.03]
         leg_pos = np.concatenate([leg_pos1, leg_pos2])
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
@@ -271,7 +271,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         rew = -eef_leg_distance * self._pos_dist_coef
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
-        info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.005
+        info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.01
         assert rew <= 0
         return rew, info
 
