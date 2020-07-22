@@ -590,15 +590,18 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         
                     elif self._success:
                         print('assembled', self._config.furniture_name, 'in', self._episode_length, 'steps!')
-                        demo_count = self._config.start_count + n_successful_demos
-                        fname = self.file_prefix + "{:04d}.pkl".format(demo_count)
-                        self._demo.save(self.file_prefix, count=demo_count)
+                        if self._config.start_count:
+                            demo_count = self._config.start_count + n_successful_demos
+                            fname = self.file_prefix + "{:04d}.pkl".format(demo_count)
+                            self._demo.save(self.file_prefix, count=demo_count)
+                        else:
+                            self._demo.save(self.file_prefix)
                         n_successful_demos += 1
                         pbar.update(1)
                         if self._config.record_vid:
                             self.vid_rec.close()
                         break
-    print('n_failed_demos', n_failed_demos)
+        print('n_failed_demos', n_failed_demos)
 
 
 def main():
