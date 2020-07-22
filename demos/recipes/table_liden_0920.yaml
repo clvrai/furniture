@@ -1,6 +1,6 @@
 # xyz parameters
 fine_magnitude: 4
-z_finedist: 0.05              # distance between connsites at which to start fine adjustment
+z_finedist: 0.1              # distance between connsites at which to start fine adjustment
 z_conn_dist: -0.005                # distance between connsites at which to connect
 lat_magnitude: 20             # keep movespeed constant at 0.025
 eps: 0.01                     # max acceptable x,y,z difference
@@ -12,33 +12,34 @@ rot_eps_fine: 0.005
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 #general parameters
+max_success_steps: 2000
 use_closest: False
 recipe: 
         - !!python/tuple ["0_part0", "4_part4"]
         - !!python/tuple ["1_part1", "5_part5"]
         - !!python/tuple ["3_part3", "5_part5"]
-        - !!python/tuple ["2_part2", "4_part4"]
+        - !!python/tuple ["2_part2", "5_part5"]
 
 grip_safepos: 
       - 
-        - !!python/tuple ["z", 0.5] 
+        - !!python/tuple ["z", 0.2]
       - 
-        - !!python/tuple ["z", 0.5] 
+        - !!python/tuple ["z", 0.2]
       - 
-        - !!python/tuple ["z", 0.5] 
+        - !!python/tuple ["z", 0.5]
       - 
-        - !!python/tuple ["z", 0.5] 
+        - !!python/tuple ["z", 0.5]
 
 nogrip_safepos:
       - 
-        - !!python/tuple ["z", 0.4] 
+        - !!python/tuple ["z", 0.2]
       - 
-        - !!python/tuple ["z", 0.4] 
+        - !!python/tuple ["z", 0.5]
       - 
-        - !!python/tuple ["z", 0.4] 
+        - !!python/tuple ["z", 0.5]
       - 
-        - !!python/tuple ["z", 0.4] 
-grip_angles: 
+        - !!python/tuple ["z", 0.4]
+grip_angles:
         - 
           -  0
           -  0
@@ -55,3 +56,9 @@ grip_angles:
           -  0
           -  0
           - -1
+# specify # of active welds for special furniture, defaults to num_parts-1 
+num_connects: 6
+# indices of recipe steps to connect twice
+connect_twice:
+  - 2
+  - 3

@@ -7,30 +7,30 @@ eps: 0.01                     # max acceptable x,y,z difference
 eps_fine: 0.001               # max acceptable x,y,z difference
 # rot parameters
 rot_magnitude: 0.2
-rot_eps: 0.05
-rot_eps_fine: 0.05
+rot_eps: 0.04
+rot_eps_fine: 0.04
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 #general parameters
 use_closest: False
-max_success_steps: 2000            # max # of steps a successful demo will take
+max_success_steps: 1000            # max # of steps a successful demo will take
 recipe: 
         - !!python/tuple ["0_part0", "2_part2"]
         - !!python/tuple ["1_part1", "0_part0"]
 
 grip_safepos: 
       - 
-        - !!python/tuple ["z", 0.8] 
+        - !!python/tuple ["z", 0.55]
       - 
-        - !!python/tuple ["z", 0.8] 
+        - !!python/tuple ["z", 0.55]
 
 nogrip_safepos:
       - 
-        - !!python/tuple ["z", 0.6] 
+        - !!python/tuple ["z", 0.5]
       - 
-        - !!python/tuple ["z", 0.6] 
+        - !!python/tuple ["z", 0.5]
 
-grip_angles: 
+grip_angles:
         - 
           -  0
           -  0
@@ -38,4 +38,4 @@ grip_angles:
         -
           -  0
           -  0
-          - -1  
+          - -1

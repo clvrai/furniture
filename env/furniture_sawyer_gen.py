@@ -124,6 +124,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             self._num_connected_prev = self._num_connected
 
         self._part_done = self._phase == 'part_done'
+        if (
+            self._num_connected == self._success_num_conn
+            and len(self._object_names) > 1
+        ):
+            self._success = True
+
         # info["ac"] = a
         return ob, reward, done, info
 
@@ -228,7 +234,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     min_angle = abs(xy_angle)
                     min_tfwd = tfwd_rotated.copy()
                     min_all_angle = angle
-            #print('before', gfwd, min_tfwd)
             return min_tfwd
 
     def align2D(self, vec, targetvec):
@@ -257,6 +262,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         with open('demos/recipes/' + self._config.furniture_name +'.yaml', 'r') as stream:
             p = yaml.load(stream, Loader=PrettySafeLoader)
 
+        self._success_num_conn = None
 
         self.min_rot_act = p['min_rot_act']
         self.min_rot_act_fine = p['min_rot_act_fine']
@@ -279,6 +285,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
         for demo_num in tqdm(range(n_demos)):
             ob = self.reset()
+            if 'num_connects' in p.keys():
+                self._success_num_conn = p['num_connects']
+            else:
+                self._success_num_conn = len(self._object_names) - 1
+
             self._used_connsites = set()
             for j in range(len(recipe)):
                 grip_safepos = p['grip_safepos'][j]
@@ -286,6 +297,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 safepos_count = 0
                 t_fwd = None
                 phase_num = 0
+                twice = False
                 self._phase = self._phases[phase_num]
                 self._part_done = False
                 gbody_name, tbody_name = recipe[j]
@@ -381,11 +393,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         action[6] = 1
                         if safepos_count >= len(grip_safepos):
                             safepos_count = 0
-                            phase_num+=1
+                            if len(grip_safepos) >= 3:
+                            # skip xy_move_t if specified movements > 3
+                                phase_num += 2
+                            else:
+                                phase_num+=1
                             gconn_pos = self.sim.data.get_site_xpos(gconn)
-                            # if j == 1:
-                            #     tconn = 'toppane-leg,0,90,180,270,conn_site4'
-                            # else:
                             if p['use_closest']:
                                 tconn = self.get_closest_connsite(tconn_names, gconn_pos) 
                             else:                            
@@ -512,7 +525,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             action[2] = action[2] / p['fine_magnitude']
                         else:
                             action[7] = 1 
-                            phase_num+=1
+                            if 'connect_twice' in p.keys() and j in p['connect_twice'] and twice is False:
+                                twice = True
+                            else:
+                                twice = False
+                                phase_num+=1
 
                     elif self._phase == 'move_nogrip_safepos':
                         action[6] = -1
@@ -526,7 +543,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             axis, val = nogrip_safepos[safepos_count]
                             if noise is None:
                                 noise = self.get_random_noise(self._phase, 1)
-
                             if axis == 'z':
                                 d[2] = val - gripbase_pos[2]
                             elif axis == 'y':
@@ -538,13 +554,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             else:
                                 safepos_count += 1
                                 noise = None
-
                     self._phase = self._phases[phase_num]
                     action[0:3] = p['lat_magnitude'] * action[0:3]
                     action[3:6] = p['rot_magnitude'] * action[3:6]
                     action = self.norm_rot_action(action)
                     action = self._cap_action(action)
-                    ob, reward, done, info = self.step(action)
+                    ob, reward, _, info = self.step(action)
                     if self._config.render:
                         self.render()
                     if self._config.record_vid:
@@ -553,7 +568,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     # if demo generation fails
                         failed = True
                         break
-                    if done and self._num_connected == len(recipe):
+                    if self._success:
                     # if assembly finished
                         break
 
@@ -569,8 +584,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     failed = False
                     break
                     
-                elif done:
-                    print('num connected', self._num_connected)
+                elif self._success:
                     print('assembled', self._config.furniture_name, 'in', self._episode_length, 'steps!')
                     self._demo.save(self.file_prefix)
                     if self._config.record_vid:

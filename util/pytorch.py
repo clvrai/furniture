@@ -47,30 +47,19 @@ def get_recent_ckpt_path(base_dir):
         raise Exception("Multiple most recent ckpts %s" % paths)
 
 
-def save_grid(tensor, nrow: int=8, padding: int=2, pad_value: int=0):
-
-
-
-    tensor = torch.from_numpy(tensor)
-    if tensor.dim() == 2:  # single image H x W
-        tensor = tensor.unsqueeze(0)
-    if tensor.dim() == 3:  # single image
-        if tensor.size(0) == 1:  # if single-channel, convert to 3-channel
-            tensor = torch.cat((tensor, tensor, tensor), 0)
-        tensor = tensor.unsqueeze(0)
-    if tensor.dim() == 4 and tensor.size(1) == 1:  # single-channel images
-        tensor = torch.cat((tensor, tensor, tensor), 1)
-
-    if tensor.size(0) == 1:
-        return tensor.squeeze(0)
-
+def save_distribution_imgs(grid_arr, blended_arr, grid_img_path: str='grid.jpg', blended_img_path: str='blended.jpg', nrow: int=8, padding: int=2, pad_value: int=0):
+    '''
+    grid_arr: a 4 dimensional (n_img, channel, height, width) np array of images
+    blended_arr: a 3 dimensional (channel, height, width) np array of one blended image
+    '''
+    grid_tensor = torch.from_numpy(grid_arr)
     # make the mini-batch of images into a grid
-    nmaps = tensor.size(0)
+    nmaps = grid_tensor.size(0)
     xmaps = min(nrow, nmaps)
     ymaps = int(math.ceil(float(nmaps) / xmaps))
-    height, width = int(tensor.size(2) + padding), int(tensor.size(3) + padding)
-    num_channels = tensor.size(1)
-    grid = tensor.new_full((num_channels, height * ymaps + padding, width * xmaps + padding), pad_value)
+    height, width = int(grid_tensor.size(2) + padding), int(grid_tensor.size(3) + padding)
+    num_channels = grid_tensor.size(1)
+    grid = grid_tensor.new_full((num_channels, height * ymaps + padding, width * xmaps + padding), pad_value)
     k = 0
     for y in range(ymaps):
         for x in range(xmaps):
@@ -78,12 +67,15 @@ def save_grid(tensor, nrow: int=8, padding: int=2, pad_value: int=0):
                 break
             grid.narrow(1, y * height + padding, height - padding)\
                 .narrow(2, x * width + padding, width - padding)\
-                .copy_(tensor[k])
+                .copy_(grid_tensor[k])
             k = k + 1
 
-    img = (grid.numpy() * 255).astype('uint8')
-    img = np.transpose(img, (1,2,0))
-    PIL.Image.fromarray(img).save('grid.jpg')
+    grid_img = (grid.numpy() * 255).astype('uint8')
+    grid_img = np.transpose(grid_img, (1,2,0))
+    PIL.Image.fromarray(grid_img).save(grid_img_path)
+    blended_img = (blended_arr * 255).astype('uint8')
+    blended_img = np.transpose(blended_img, (1,2,0))
+    PIL.Image.fromarray(blended_img).save(blended_img_path)
 
 
 def numpy_to_img(arr, name):

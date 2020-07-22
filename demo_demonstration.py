@@ -44,82 +44,92 @@ def main(args):
     Shows the user how to record and playback demonstrations
     """
 
-    background_name = background_names[1]
-    print("In this demo, we'll show you how to record and playback demonstrations\n")
-    print("Choice 1: Playback existing demo")
-    print("Choice 2: Record your own demonstration")
-    print("Choice 3: Playback your own recording")
-    print()
-
-    choice = int(input("Press 1, 2, or 3:  "))
-    print()
-
-    if choice == 1:
-        print()
-        print("Let's begin by playing back an existing demonstration.")
-        print(
-            "We'll use the run_demo function to run a demo passed through --load_demo"
-        )
+    if args.load_demo:
         agent_name, furniture_name = parse_demo_file_name(args.load_demo)
-        furniture_id = furniture_name2id[furniture_name]
-
         # set parameters for the environment (env, furniture_id, background)
+        args.furniture_name = furniture_name
+        args.furniture_id = furniture_name2id[furniture_name]
         env_name = "Furniture{}Env".format(agent_name)
-        args.env = env_name
-        args.furniture_id = furniture_id
-        args.background = background_name
-
-        print()
-        print(
-            "Creating environment (robot: {}, furniture: {}, background: {})".format(
-                env_name, furniture_name, background_name
-            )
-        )
         env = make_env(env_name, args)
         env.run_demo(args)
         env.close()
-
-        print(
-            'Check out the video "test.mp4"! Pretty cool right? You can look at the run_demo function for more details.'
-        )
-        print()
-
-    elif choice == 2:
-        print("Now you can try recording your own demonstrations.")
-        print(
-            'Run "python -m demo_manual --record_demo True" to record your own demonstration. Add "--record True" to include .mp4 video recording'
-        )
-        print("Move stuff around and then press Y to save the demo.")
-        print("It will be saved to demos/test.pkl.")
-
-    elif choice == 3:
-        demo_path = input("Enter the path to your demo (e.g. demos/test.pkl):  ")
-
-        agent_name = input("What was the agent " + str(agent_names) + "?: ")
-        assert agent_name in agent_names
-
-        furniture_name = input("What was the furniture name?: ")
-        furniture_id = furniture_name2id[furniture_name]
-
-        # set parameters for the environment (env, furniture_id, background)
-        env_name = "Furniture{}Env".format(agent_name)
-        args.load_demo = demo_path
-        args.env = env_name
-        args.furniture_id = furniture_id
-        args.background = background_name
-
-        print()
-        print(
-            "Creating environment (robot: {}, furniture: {}, background: {})".format(
-                env_name, furniture_name, background_name
-            )
-        )
-        env = make_env(env_name, args)
-        env.run_demo(args)
-        env.close()
-
     else:
-        print("You entered wrong input %d" % choice)
+        background_name = background_names[1]
+        print("In this demo, we'll show you how to record and playback demonstrations\n")
+        print("Choice 1: Playback existing demo")
+        print("Choice 2: Record your own demonstration")
+        print("Choice 3: Playback your own recording")
+        print()
+
+        choice = int(input("Press 1, 2, or 3:  "))
+        print()
+
+        if choice == 1:
+            print()
+            print("Let's begin by playing back an existing demonstration.")
+            print(
+                "We'll use the run_demo function to run a demo passed through --load_demo"
+            )
+            agent_name, furniture_name = parse_demo_file_name(args.load_demo)
+            furniture_id = furniture_name2id[furniture_name]
+
+            # set parameters for the environment (env, furniture_id, background)
+            env_name = "Furniture{}Env".format(agent_name)
+            args.env = env_name
+            args.furniture_id = furniture_id
+            args.background = background_name
+
+            print()
+            print(
+                "Creating environment (robot: {}, furniture: {}, background: {})".format(
+                    env_name, furniture_name, background_name
+                )
+            )
+            env = make_env(env_name, args)
+            env.run_demo(args)
+            env.close()
+
+            print(
+                'Check out the video "test.mp4"! Pretty cool right? You can look at the run_demo function for more details.'
+            )
+            print()
+
+        elif choice == 2:
+            print("Now you can try recording your own demonstrations.")
+            print(
+                'Run "python -m demo_manual --record_demo True" to record your own demonstration. Add "--record True" to include .mp4 video recording'
+            )
+            print("Move stuff around and then press Y to save the demo.")
+            print("It will be saved to demos/test.pkl.")
+
+        elif choice == 3:
+            demo_path = input("Enter the path to your demo (e.g. demos/test.pkl):  ")
+
+            agent_name = input("What was the agent " + str(agent_names) + "?: ")
+            assert agent_name in agent_names
+
+            furniture_name = input("What was the furniture name?: ")
+            furniture_id = furniture_name2id[furniture_name]
+
+            # set parameters for the environment (env, furniture_id, background)
+            env_name = "Furniture{}Env".format(agent_name)
+            args.load_demo = demo_path
+            args.env = env_name
+            args.furniture_id = furniture_id
+            args.background = background_name
+
+            print()
+            print(
+                "Creating environment (robot: {}, furniture: {}, background: {})".format(
+                    env_name, furniture_name, background_name
+                )
+            )
+            env = make_env(env_name, args)
+            env.run_demo(args)
+            env.close()
+
+        else:
+            print("You entered wrong input %d" % choice)
 
 
 if __name__ == "__main__":
