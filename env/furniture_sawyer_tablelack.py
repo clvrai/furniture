@@ -522,6 +522,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         Returns 0 if gripper is in desired position, range is [-2, 0]
         """
+        if self._discrete_grip:
+            ac = ac.copy()
+            ac[-2] = -1 if ac[-2] < 0 else 1
         grip_open = self._phases[self._phase_i] in self._grip_open_phases
         # ac[-2] is -1 for open, 1 for closed
         rew = (-1 - ac[-2] if grip_open else ac[-2] - 1) * self._gripper_penalty_coef
