@@ -1,12 +1,11 @@
 <mujoco model="chair_bertil_0148">
-  <custom>
-
-    <numeric name="1_backlegs_initpos" data="0.03568495 0.10738156 0.03772704 0.00832119 -0.00821371 0.70246967 -0.71161764"/>
-    <numeric name="2_lsidesupport_initpos" data="-0.28940368 0.20647947 0.00707811 -0.50423614 0.49572763 0.50423637 0.49572746"/>
-    <numeric name="3_rsidesupport_initpos" data="0.34281427 0.14555803 0.00927656 0.51652819 0.48329471 -0.51515086 0.48398807"/>
-    <numeric name="4_frontlegs_initpos" data="-0.29353534 0.25613864 0.01196755 0.0050965 -0.00509667 -0.70709997 0.70707686"/>
-    <numeric name="5_seat_initpos" data="-0.29709885 0.0 0.00408679 -0.00000704 0.02153262 -0.99976814 -0.00011983"/>
-  </custom>
+<custom>
+<numeric name="1_part1_initpos" data="-0.4999937020643947 0.18509776535923184 0.037727043909900414 2.802444308381258e-06 -3.2710677401494617e-06 -0.7025176859859963 0.7116662847559434"/>
+<numeric name="2_part2_initpos" data="-0.16440102588362895 0.2564832686196156 0.0068922445798451784 0.5038603442752314 -0.4961095434215035 -0.5038603120362711 -0.4961097261167777"/>
+<numeric name="3_part3_initpos" data="-0.1571539600622582 0.09579667445513032 0.009277859921728561 -0.48234817809533476 0.5166819473434472 0.4816919263205158 0.5180278838973105"/>
+<numeric name="4_part4_initpos" data="0.1607468346487386 -0.2000065398701586 0.011955494566065697 0.005528919612878212 -0.005529074084001612 0.707095554237939 -0.707074775087211"/>
+<numeric name="5_part5_initpos" data="0.17814160674566037 0.34470907994924527 0.0036425431306489502 0.00023096727650465226 0.0009841634863727174 -0.9999994885616648 -3.086678489616467e-05"/>
+</custom>
   <asset>
     <mesh file="chair_bertil_0148/backlleg.stl" name="backlleg" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/backrleg.stl" name="backrleg" scale="0.0156 0.0156 0.0156" />
@@ -14,7 +13,7 @@
     <mesh file="chair_bertil_0148/back_support2.stl" name="backmidpanel" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/frontleg1.stl" name="frontlleg" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/frontleg2.stl" name="frontrleg" scale="0.0156 0.0156 0.0156" />
-    <mesh file="chair_bertil_0148/seat.stl" name="seat" scale="0.0156 0.0156 0.0156" />
+    <mesh file="chair_bertil_0148/seat.stl" name="seat" scale="0.015 0.015 0.015"/> <!-- scale="0.0156 0.0156 0.0156" -->
     <mesh file="chair_bertil_0148/seat_support1.stl" name="backbotpanel" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support2.stl" name="rsidesupport" scale="0.0256 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support3.stl" name="frontsupport" scale="0.0156 0.0156 0.0156" />
@@ -23,14 +22,14 @@
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
-    <weld active="false" body1="1_backlegs" body2="2_lsidesupport" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="1_backlegs" body2="3_rsidesupport" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="4_frontlegs" body2="2_lsidesupport" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="4_frontlegs" body2="3_rsidesupport" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="4_frontlegs" body2="5_seat" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_part1" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_part1" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="4_part4" body2="5_part5" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="4_part4" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="4_part4" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />
   </equality>
   <worldbody>
-    <body name="1_backlegs" pos="0 0.1622 0" quat="1 0 0 0">
+    <body name="1_part1" pos="0 0.1622 0" quat="1 0 0 0">
       <geom density="100" material="light-wood" mesh="backlleg" name="1_backleg_1_geom" pos="0.13 0. 0.0312" rgba="0.82 0.71 0.55 1" type="mesh" />
       <geom density="100" material="light-wood" mesh="backrleg" name="1_backleg_2_geom" pos="-0.13 0. 0.0312" rgba="0.82 0.71 0.55 1" type="mesh" />
       <geom density="100" material="light-wood" mesh="backtoppanel" name="3_backtoppanel_geom" pos="0.0 0.025 0.3432" rgba="0.82 0.71 0.55 1" type="mesh" />
@@ -38,51 +37,61 @@
       <geom density="100" material="light-wood" mesh="backbotpanel" name="6_backbotpanel_geom" pos="0.0 -0.0062 -0.023" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="backlegs-lsidesupport,0,180,conn_site" pos="0.135 -0.0322 -0.02" quat="0.707 -0.707 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="backlegs-rsidesupport,0,180,conn_site" pos="-0.135 -0.0322 -0.02" quat="0.707 -0.707 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
-      <site name="1_backlegs_bottom_site" pos="0.1294 0.0178 -0.31" rgba="0 0 1 0" size="0.0093" />
-      <site name="1_backlegs_top_site" pos="0.1294 0.0178 0.345" rgba="0 0 1 0" size="0.0093" />
-      <site name="1_backlegs_horizontal_radius_site" pos="0.0 0.0168 0.0" rgba="0 0 1 0" size="0.0312" />
+      <site name="1_part1_bottom_site" pos="0.1294 0.0178 -0.31" rgba="0 0 1 0" size="0.0093" />
+      <site name="1_part1_top_site" pos="0.1294 0.0178 0.345" rgba="0 0 1 0" size="0.0093" />
+      <site name="1_part1_horizontal_radius_site" pos="0.0 0.0168 0.0" rgba="0 0 1 0" size="0.0312" />
     </body>
-    <body name="2_lsidesupport" pos="0.1353 0.0 -0.023" quat="1 0 0 0">
-      <geom density="100" material="light-wood" mesh="lsidesupport" name="2_lsidesupport_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_2_lsidesupport_0" pos="0 0 0" size="0.007 0.129 0.02" type="box" />
+    <body name="2_part2" pos="0.1353 0.0 -0.023" quat="1 0 0 0">
+      <geom density="100" material="light-wood" mesh="lsidesupport" name="2_part2_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_2_part2_0" pos="0 0 0" size="0.007 0.129 0.02" type="box" />
+      <site name="2_part2_ltgt_site0" pos="0 0 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="2_part2_rtgt_site0" pos="0 0 -0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="lsidesupport-backlegs,0,180,conn_site" pos="0.0 0.13 0.0" quat="0.707 -0.707 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.0093" />
       <site name="lsidesupport-frontlegs,0,180,conn_site" pos="0.0 -0.126 0.0" quat="0.707 -0.707 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.0093" />
-      <site name="2_lsidesupport_bottom_site" pos="0.0 -0.136 0.0" rgba="0 0 1 0" size="0.0093" />
-      <site name="2_lsidesupport_top_site" pos="0.0 0.1372 0.0" rgba="0 0 1 0" size="0.0093" />
-      <site name="2_lsidesupport_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="2_part2_bottom_site" pos="0.0 -0.136 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="2_part2_top_site" pos="0.0 0.1372 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="2_part2_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.0093" />
     </body>
-    <body name="3_rsidesupport" pos="-0.133 0.0 -0.023" quat="1 0 0 0">
-      <geom density="100" material="light-wood" mesh="rsidesupport" name="3_rsidesupport_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_3_rsidesupport_0" pos="0 0 0" size="0.007 0.129 0.02" type="box" />
+    <body name="3_part3" pos="-0.133 0.0 -0.023" quat="1 0 0 0">
+      <geom density="100" material="light-wood" mesh="rsidesupport" name="3_part3_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_3_part3_0" pos="0 0 0" size="0.009 0.129 0.02" type="box" />
+      <site name="3_part3_ltgt_site0" pos="0 0 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="3_part3_rtgt_site0" pos="0 0 -0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="rsidesupport-backlegs,0,180,conn_site" pos="0.0 0.13 0.0" quat="0.707 -0.707 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.0093" />
       <site name="rsidesupport-frontlegs,0,180,conn_site" pos="0.0 -0.126 0.0" quat="0.707 -0.707 0 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.0093" />
-      <site name="3_rsidesupport_bottom_site" pos="0.0 -0.136 0.0" rgba="0 0 1 0" size="0.0093" />
-      <site name="3_rsidesupport_top_site" pos="0.0 0.1372 0.0" rgba="0 0 1 0" size="0.0093" />
-      <site name="3_rsidesupport_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="3_part3_bottom_site" pos="0.0 -0.136 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="3_part3_top_site" pos="0.0 0.1372 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="3_part3_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.0093" />
     </body>
-    <body name="4_frontlegs" pos="0 -0.141 0" quat="1 0 0 0">
-      <geom density="100" material="light-wood" mesh="frontlleg" name="4_frontlegs_1_mesh" pos="0.1248 0 -0.156" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" material="light-wood" mesh="frontrleg" name="4_frontlegs_2_mesh" pos="-0.124 0 -0.156" rgba="0.82 0.71 0.55 1" type="mesh" />
+    <body name="4_part4" pos="0 -0.141 0" quat="1 0 0 0">
+      <geom density="100" material="light-wood" mesh="frontlleg" name="4_part4_1_mesh" pos="0.1248 0 -0.156" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" material="light-wood" mesh="frontrleg" name="4_part4_2_mesh" pos="-0.124 0 -0.156" rgba="0.82 0.71 0.55 1" type="mesh" />
       <geom density="100" material="light-wood" mesh="frontsupport" name="8_frontsupport_mesh" pos="0.0 -0.005 -0.023" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_4_frontlegs_0" pos="0.119 0 -0.156" size="0.012 0.012 0.15" type="box" />
-      <geom density="100" name="noviz_collision_4_frontlegs_1" pos="0.126 0 -0.156" euler="0 0.0471 0" size="0.012 0.012 0.15" type="box" />
-      <geom density="100" name="noviz_collision_4_frontlegs_2" pos="-0.118 0 -0.156" size="0.012 0.012 0.15" type="box" />
-      <geom density="100" name="noviz_collision_4_frontlegs_3" pos="-0.126 0 -0.156" euler="0 -0.0471 0" size="0.012 0.012 0.15" type="box" />
-      <geom density="100" name="noviz_collision_4_frontlegs_4" pos="0.0 -0.005 -0.023" size="0.107 0.007 0.02" type="box" />
+      <geom density="100" name="noviz_collision_4_part4_0" pos="0.119 0 -0.156" size="0.012 0.012 0.15" type="box" />
+      <geom density="100" name="noviz_collision_4_part4_1" pos="0.126 0 -0.156" euler="0 0.0471 0" size="0.012 0.012 0.15" type="box" />
+      <geom density="100" name="noviz_collision_4_part4_2" pos="-0.118 0 -0.156" size="0.012 0.012 0.15" type="box" />
+      <geom density="100" name="noviz_collision_4_part4_3" pos="-0.126 0 -0.156" euler="0 -0.0471 0" size="0.012 0.012 0.15" type="box" />
+      <geom density="100" name="noviz_collision_4_part4_4" pos="0.0 -0.005 -0.023" size="0.107 0.007 0.02" type="box" />
+      <site name="4_part4_ltgt_site0" pos="-0.14 0 -0.14" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="4_part4_rtgt_site0" pos="-0.10 0 -0.14" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="4_part4_ltgt_site1" pos="-0.14 0 -0.14" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="4_part4_rtgt_site1" pos="-0.10 0 -0.14" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="frontlegs-seat,0,conn_site" pos="0 0 0.0" rgba="0.9607 0.5098 0.1921 0.3" size="0.01" />
       <site name="frontlegs-lsidesupport,0,180,conn_site" pos="0.13 0.020 -0.022" quat="0.707 -0.707 00 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
       <site name="frontlegs-rsidesupport,0,180,conn_site" pos="-0.13 0.020 -0.022" quat="0.707 -0.707 0 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.01" />
-      <site name="4_frontlegs_corner_site1" pos="0.0 0 0.0" rgba="0 0 1 0" size="0.0093" />
-      <site name="4_frontlegs_bottom_site" pos="0.0 0 -0.32" rgba="0 0 1 0" size="0.0093" />
-      <site name="4_frontlegs_top_site" pos="0.0 0 0.01" rgba="0 0 1 0" size="0.0093" />
-      <site name="4_frontlegs_horizontal_radius_site" pos="0.0 0 0.0" rgba="0 0 1 0" size="0.02" />
+      <site name="4_part4_corner_site1" pos="0.0 0 0.0" rgba="0 0 1 0" size="0.0093" />
+      <site name="4_part4_bottom_site" pos="0.0 0 -0.32" rgba="0 0 1 0" size="0.0093" />
+      <site name="4_part4_top_site" pos="0.0 0 0.01" rgba="0 0 1 0" size="0.0093" />
+      <site name="4_part4_horizontal_radius_site" pos="0.0 0 0.0" rgba="0 0 1 0" size="0.02" />
     </body>
-    <body name="5_seat" pos="0.0 0.0 0.0" quat="1 0 0 0">
-      <geom density="100" material="light-wood" mesh="seat" name="5_seat_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <site name="seat-frontlegs,0,conn_site" pos="0 -0.139 -0.005" rgba="0.9607 0.5098 0.1921 0.3" size="0.01" />
-      <site name="5_seat_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.0093" />
-      <site name="5_seat_top_site" pos="0.0 0.0 0.0062" rgba="0 0 1 0" size="0.0093" />
-      <site name="5_seat_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.0093" />
+    <body name="5_part5" pos="0.0 0.0 0.0" quat="1 0 0 0">
+      <geom density="100" material="light-wood" mesh="seat" name="5_part5_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh"/>
+<!--       <geom density="100" name="noviz_collision_5_part5_0" pos="0 -0.015 0" size="0.15 0.143 0.008" type="box" />
+      <geom density="100" name="noviz_collision_5_part5_1" pos="0 0 0" size="0.115 0.16 0.008" type="box" />
+ -->      <site name="seat-frontlegs,0,conn_site" pos="0 -0.139 0.005" rgba="0.9607 0.5098 0.1921 0.3" size="0.01" />
+      <site name="5_part5_bottom_site" pos="0.0 0.0 -0.005" rgba="0 0 1 0" size="0.0093" />
+      <site name="5_part5_top_site" pos="0.0 0.0 0.0062" rgba="0 0 1 0" size="0.0093" />
+      <site name="5_part5_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.0093" />
     </body>
   </worldbody>
 </mujoco>

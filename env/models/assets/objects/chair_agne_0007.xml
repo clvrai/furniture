@@ -6,15 +6,15 @@
 <!--        0 -0.5 -0.87 0
  -->  </custom>
   <asset>
-    <mesh file="chair_agne_0007/leg1.stl" name="leg1" scale="0.0005 0.0005 0.0005" />
-    <mesh file="chair_agne_0007/leg2.stl" name="leg2" scale="0.0005 0.0005 0.0005" />
+    <mesh file="chair_agne_0007/leg1L.stl" name="leg1" scale="0.0005 0.0005 0.0005" />
+    <mesh file="chair_agne_0007/leg2L.stl" name="leg2" scale="0.0005 0.0005 0.0005" />
     <mesh file="chair_agne_0007/seat.stl" name="seat" scale="0.0005 0.0005 0.0005" />
     <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
-    <weld active="false" body1="1_part1" body2="0_part0" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_part1" body2="0_part0" solimp="1 1 0.5" solref="0.01 0.3" />
   </equality>
   <worldbody>
     <body name="0_part0" pos="0 0 0" quat="1 0 0 0">
@@ -24,9 +24,7 @@
       <geom density="100" euler="-0.11 0 0" name="noviz_collision_0_part0_3" pos="0 -0.1315 0" rgba="1 0 1 1" size="0.009 0.195" solref="0.001 1" type="cylinder" />
       <site name="0_part0_ltgt_site0" pos="0 0.13 -0.174" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
       <site name="0_part0_rtgt_site0" pos="0 0.17 -0.17" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
-<!--       <site name="0_part0_ltgt_site0" pos="0 0.13 -0.1" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
-      <site name="0_part0_rtgt_site0" pos="0 0.17 -0.1" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
- -->      <site name="leg1-leg2,0,180,conn_site" pos="0.0 0.0 0.18" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="leg1-leg2,0,180,conn_site" pos="0.0 0.0 0.18" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="leg1-seat,0,180,conn_site" pos="0.0 0.0 0.2" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
       <site name="0_part0_bottom_site" pos="0 0 -0.18" rgba="0 0 1 0.3" size="0.01" />
       <site name="0_part0_top_site" pos="0.0 0.0 0.2" rgba="0 0 1 0.3" size="0.01" />

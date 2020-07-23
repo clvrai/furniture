@@ -22,6 +22,12 @@ def str2intlist(value):
     else:
         return [int(num) for num in value.split(",")]
 
+def str2set(value):
+    if not value:
+        return value
+    else:
+        return set(value.split(","))
+
 
 def str2list(value):
     if not value:

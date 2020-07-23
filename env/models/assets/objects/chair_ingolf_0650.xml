@@ -1,11 +1,17 @@
 <mujoco model="chair_ingolf_0650">
   <custom>
-    <numeric name="0_part0_initpos" data="0.06498851 0.33906813 0.00727275 0 0 0.7 -0.7"/>
+    <numeric name="0_part0_initpos" data="-0.06001148999999988 0.3136874969315841 0.007273537053101983 -2.2451437247528256e-14 2.245063584393319e-14 -0.7071143750072235 0.7070991872843185"/>
+    <numeric name="4_part4_initpos" data="-0.04037525071424267 -0.14457436862226983 0.024596003771166348 5.7690246408426543e-08 3.185493859854315e-08 -0.6980833023626561 0.7160165521567529"/>
+    <numeric name="3_part3_initpos" data="-0.3612966500000001 0.007137615733883295 0.002981004143996653 -1.8172361701418728e-19 -5.974831026340022e-15 0.9999999992895222 3.7695564946904725e-05"/>
+    <numeric name="2_part2_initpos" data="-0.26658232 0.2944327699991937 0.01566752676101763 6.123233995736766e-17 1.0 0.0 0.0"/>
+    <numeric name="1_part1_initpos" data="-0.48373607000000013 0.2913768799991937 0.01566752676101763 6.123233995736766e-17 1.0 0.0 0.0"/>
+
+<!--     <numeric name="0_part0_initpos" data="0.06498851 0.33906813 0.00727275 0 0 0.7 -0.7"/>
     <numeric name="4_part4_initpos" data="0.05962474 -0.09468883 0.024596 0 0 -0.7 0.7"/>
     <numeric name="3_part3_initpos" data="-0.21129665 0.03213753 0.002981 0 0 -1 0"/>
     <numeric name="2_part2_initpos" data="-0.11658232 0.26943277 0.01566753 0 1 0 0"/>
     <numeric name="1_part1_initpos" data="-0.33373607 0.26637688 0.01566753 0 1 0 0"/>
-  </custom>
+ -->  </custom>
   <asset>
     <mesh file="chair_ingolf_0650/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
     <mesh file="chair_ingolf_0650/4.stl" name="part4" scale="0.0005 0.0005 0.0005" />
@@ -14,12 +20,12 @@
     <mesh file="chair_ingolf_0650/1.stl" name="part1" scale="0.0008 0.0005 0.0005" />
   </asset>
   <equality>
-    <weld active="false" body1="1_part1" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="2_part2" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="3_part3" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="3_part3" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="3_part3" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_part1" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="2_part2" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="4_part4" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="4_part4" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
     <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
@@ -29,7 +35,11 @@
   </equality>
   <worldbody>
     <body name="0_part0" pos="-1.5e-09 0.0 -0.0" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="0" mesh="part0" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <site name="0_part0_ltgt_site0" pos="0.1 0 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="0_part0_rtgt_site0" pos="0.12 0 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>      
+<!--   <site name="0_part0_ltgt_site0" pos="0.0 0 0.09" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="0_part0_rtgt_site0" pos="0.0 0 0.13" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>      
+ --><geom conaffinity="0" contype="0" density="0" mesh="part0" name="0_part0_mesh" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <site name="0_part0_horizontal_radius_site" pos="-1.5e-09 0.0 -0.0" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="0_part0_top_site" pos="-1.5e-09 0.0 0.123825" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
       <site name="0_part0_bottom_site" pos="-1.5e-09 0.0 -0.123825" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.0005" />
@@ -137,7 +147,7 @@
       <site name="1_part1_corner_site3" pos="0.0047625003 0.09842501215 -0.01587500285" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_corner_site2" pos="0.0047625003 -0.09842501070000001 -0.01587500285" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
       <site name="1_part1_corner_site1" pos="-0.0047625003 -0.09842501070000001 -0.01587500285" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.01" />
-      <site name="side-front,0,conn_site2" pos="0.00365625 0.09654875 0.0010500050000000001" quat="0.7071067 0.7071068 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="side-front,0,conn_site2" pos="0.00365625 0.09654875 0.0010500050000000001" quat="0 0 0.7071067 -0.7071068" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="side-back,0,conn_site1" pos="0.00365625 -0.10145125 0.0010500050000000001" quat="0.7071067 -0.7071068 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="side-seat,0,180,conn_site2" pos="0.00215625 -0.003174995 0.015050005" quat="1 0 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_1_part1_0" pos="0.0 3.65e-05 -8.869e-05" quat="1 0 0 0" rgba="1 0 0 1" size="0.008 0.09846150000000001 0.01578631" solref="0.001 1" type="box" />

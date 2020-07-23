@@ -42,6 +42,9 @@ def get_env_specific_argument(env):
     if env == "FurnitureCursorToyTableEnv":
         import config.furniture_cursor_toytable as f
 
+    elif env == "FurnitureSawyerGenEnv":
+        import config.furniture_sawyer_gen as f
+        
     elif env == "FurnitureSawyerToyTableEnv":
         import config.furniture_sawyer_toytable as f
 
