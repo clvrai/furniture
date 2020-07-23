@@ -12,6 +12,7 @@ def add_argument(parser):
     parser.add_argument("--above_leg_z", type=float, default=0.05)
 
     # reward coefficients
+    parser.add_argument("--diff_rew", type=str2bool, default=False)
     parser.add_argument("--ctrl_penalty_coef", type=float, default=0.1)
     parser.add_argument("--touch_coef", type=float, default=0.3)
     parser.add_argument("--gripper_penalty_coef", type=float, default=0.1)
