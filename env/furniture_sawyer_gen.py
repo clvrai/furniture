@@ -516,6 +516,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                                     action[3] = -xy_ac
                             else:
                                 action[3:6] = rot_action
+                            # print(action)
 
                         elif self._phase == 'z_move_conn_fine':
                             action[6] = 1
@@ -557,6 +558,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                                 else:
                                     safepos_count += 1
                                     noise = None
+                        # print(self._phase)
                         self._phase = self._phases[phase_num]
                         action[0:3] = p['lat_magnitude'] * action[0:3]
                         action[3:6] = p['rot_magnitude'] * action[3:6]
@@ -590,7 +592,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         
                     elif self._success:
                         print('assembled', self._config.furniture_name, 'in', self._episode_length, 'steps!')
-                        if self._config.start_count:
+                        if self._config.start_count is not None:
                             demo_count = self._config.start_count + n_successful_demos
                             fname = self.file_prefix + "{:04d}.pkl".format(demo_count)
                             self._demo.save(self.file_prefix, count=demo_count)
@@ -611,7 +613,7 @@ def main():
 
     env = FurnitureSawyerGenEnv(config)
     #env.run_manual(config)
-    env.generate_demos(100)
+    env.generate_demos(3)
     #env.run_demo(config)
 
 if __name__ == "__main__":

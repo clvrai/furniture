@@ -1,6 +1,6 @@
 import argparse
 
-from util import str2bool, str2intlist
+from util import str2bool, str2intlist, str2set
 from env.models import furniture_names, furniture_ids, background_names
 
 
@@ -103,6 +103,12 @@ def add_argument(parser):
         type=str2bool,
         default=False,
         help="fixed furniture initialization across episode",
+    )
+    parser.add_argument(
+        "--fix_init_parts",
+        type=str2set,
+        default=None,
+        help="fixed furniture initialization across episode for specific partnames",
     )
     parser.add_argument(
         "--load_demo",
