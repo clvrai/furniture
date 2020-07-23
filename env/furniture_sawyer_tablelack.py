@@ -62,13 +62,16 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._subtask_part2 = self._object_name2id["4_part4"]
 
         if self._diff_rew:
-            eef_pos = self._get_gripper_pos()
-            leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
-            leg_pos2 = leg_pos1 + [0, 0, 0.03]
-            leg_pos = np.concatenate([leg_pos1, leg_pos2])
-            xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-            z_distance = np.abs(eef_pos[2] - leg_pos[2])
-            self._prev_eef_leg_distance = xy_distance + z_distance
+            # eef_pos = self._get_gripper_pos()
+            # leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
+            # leg_pos2 = leg_pos1 + [0, 0, 0.03]
+            # leg_pos = np.concatenate([leg_pos1, leg_pos2])
+            # xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+            # z_distance = np.abs(eef_pos[2] - leg_pos[2])
+            # self._prev_eef_leg_distance = xy_distance + z_distance
+            eef_pos = self._get_pos("griptip_site")
+            leg_pos = self._get_pos(self._current_leg) + [0, 0, -0.015]
+            self._prev_eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -296,13 +299,16 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # info = {"touch": leg_touched, "touch_rew": touch_rew}
         info = {}
 
-        eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
-        leg_pos2 = leg_pos1 + [0, 0, 0.03]
-        leg_pos = np.concatenate([leg_pos1, leg_pos2])
-        xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-        z_distance = np.abs(eef_pos[2] - leg_pos[2])
-        eef_leg_distance = xy_distance + z_distance
+        # eef_pos = self._get_gripper_pos()
+        # leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
+        # leg_pos2 = leg_pos1 + [0, 0, 0.03]
+        # leg_pos = np.concatenate([leg_pos1, leg_pos2])
+        # xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+        # z_distance = np.abs(eef_pos[2] - leg_pos[2])
+        # eef_leg_distance = xy_distance + z_distance
+        eef_pos = self._get_pos("griptip_site")
+        leg_pos = self._get_pos(self._current_leg) + [0, 0, -0.015]
+        eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
             offset = self._prev_eef_leg_distance - eef_leg_distance
             rew = offset * self._pos_dist_coef
@@ -311,7 +317,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             # eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
             rew = -eef_leg_distance * self._pos_dist_coef
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
-        info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.01
+        # info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.01
+        info["lower_eef_to_leg_succ"] = eef_leg_distance < 0.015
         return rew, info
 
     def _grasp_leg_reward(self, ac) -> Tuple[float, dict]:
