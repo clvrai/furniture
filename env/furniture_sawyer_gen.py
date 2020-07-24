@@ -143,8 +143,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             and len(self._object_names) > 1
         ):
             self._success = True
-
-        # info["ac"] = a
         return ob, reward, done, info
 
     def get_bodyiterator(self, bodyname):
@@ -225,13 +223,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         xyaction = T.angle_between2D(gripvec, gbodyvec)
         return xyaction
 
-        # if abs(T.angle_between2D(-gripvec, gbodyvec)) < abs(T.angle_between2D(gripvec, gbodyvec)):
-        #     gripvec = -gripvec
-        # if T.angle_between(-gripvec, gbodyvec) < T.angle_between(gripvec, gbodyvec):
-        #     gripvec = -gripvec
-        # xyaction = self.align2D(gripvec, gbodyvec)
-        return xyaction
-
     def get_closest_xy_fwd(self, allowed_angles, gconn, tconn):
         if len(allowed_angles) == 0:
             # no need for xy-alignment, all angles are acceptable
@@ -260,7 +251,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
     def align2D(self, vec, targetvec):
         if abs(vec[0]) + abs(vec[1]) < 0.5:
-            return 0  # unlikely current orientation allows for helpful rotation action
+        # unlikely current orientation allows for helpful rotation action due to gimbal lock
+            return 0
         angle = T.angle_between2D(vec, targetvec)
         # move in direction that gets closer to closest of (-2pi, 0, or 2pi)
         if -(2 * np.pi) < angle <= -np.pi:
@@ -278,8 +270,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         """
         Issues:
             1. Only works for furniture with vertical connections sites
-            2. Once any collision occurs, impossible to recover
-            3. Sawyer arm sometimes hits table and rotates awkwardly
+            2. Once any collision occurs, unlikely to recover
+            3. fine adjustment phase sometimes very challenging
         """
         with open(
             "demos/recipes/" + self._config.furniture_name + ".yaml", "r"
@@ -694,7 +686,7 @@ def main():
     config, unparsed = parser.parse_known_args()
 
     env = FurnitureSawyerGenEnv(config)
-    env.generate_demos(3)
+    env.generate_demos(config.n_demos)
 
 
 if __name__ == "__main__":
