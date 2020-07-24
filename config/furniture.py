@@ -127,6 +127,13 @@ def add_argument(parser):
     )
     parser.add_argument("--record_caption", type=str2bool, default=True)
     parser.add_argument(
+        "--record_mode",
+        type=str,
+        default="ram",
+        help="use RAM or FILE to store video frames",
+        choices=["ram", "file"],
+    )
+    parser.add_argument(
         "--preassembled",
         type=str2intlist,
         default=[],
@@ -135,7 +142,7 @@ def add_argument(parser):
     parser.add_argument(
         "--max_episode_steps",
         type=int,
-        default=100,
+        default=2000,
         help="max number of steps for an episode",
     )
 
@@ -149,7 +156,7 @@ def add_argument(parser):
     parser.add_argument(
         "--furn_rot_rand",
         type=float,
-        default=5,
+        default=3,
         help="initial rotational (in degrees) randomness of furniture part placement at episode start",
     )
     parser.add_argument(

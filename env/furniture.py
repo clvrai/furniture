@@ -65,8 +65,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._env_config = {
             "max_episode_steps": config.max_episode_steps,
             "success_reward": 100,
-            "touch_reward": 1,
-            "pick_reward": 1,
+            "touch_reward": 10,
+            "pick_reward": 100,
             "ctrl_reward": 1e-3,
             "furn_xyz_rand": config.furn_xyz_rand,
             "agent_xyz_rand": config.agent_xyz_rand,
@@ -154,10 +154,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._record_vid:
             if self._record_demo:
                 self.vid_rec = VideoRecorder(
-                    prefix=self.file_prefix, demo_dir=config.demo_dir
+                    record_mode=config.record_mode,
+                    prefix=self.file_prefix,
+                    demo_dir=config.demo_dir,
                 )
             else:
-                self.vid_rec = VideoRecorder(prefix=self.file_prefix)
+                self.vid_rec = VideoRecorder(
+                    record_mode=config.record_mode, prefix=self.file_prefix
+                )
 
         self._num_connect_steps = 0
         self._gravity_compensation = 0
@@ -281,6 +285,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         ob = self._get_obs()
         if self._record_demo:
+            self._demo.reset()
             self._demo.add(ob=ob)
 
         return ob

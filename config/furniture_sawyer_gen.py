@@ -8,5 +8,12 @@ def add_argument(parser):
         "--start_count",
         type=int,
         default=None,
-        help="specific demo count for overwriting automatic demo count",
+        help="specific demo prefix to use instead of default demo prefix",
+    )
+    
+    parser.add_argument(
+        "--n_demos",
+        type=int,
+        default=20,
+        help="number of demos to generate",
     )
