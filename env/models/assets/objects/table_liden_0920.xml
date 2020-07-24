@@ -8,12 +8,12 @@
     <numeric data="0.40 0.14 0 0 -1 0 0" name="1_part1_initpos" />
   </custom>
   <asset>
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0920/0.stl" name="part0" scale="0.00054 0.00054 0.00054" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0920/5.stl" name="part5" scale="0.00054 0.00054 0.00054" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0920/4.stl" name="part4" scale="0.00054 0.00054 0.00054" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0920/3.stl" name="part3" scale="0.00054 0.00054 0.00054" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0920/2.stl" name="part2" scale="0.00054 0.00054 0.00054" />
-    <mesh file="/home/alex/furniture/env/models/assets/objects/table_liden_0920/1.stl" name="part1" scale="0.00054 0.00054 0.00054" />
+    <mesh file="table_liden_0920/0.stl" name="part0" scale="0.00054 0.00054 0.00054" />
+    <mesh file="table_liden_0920/5.stl" name="part5" scale="0.00054 0.00054 0.00054" />
+    <mesh file="table_liden_0920/4.stl" name="part4" scale="0.00054 0.00054 0.00054" />
+    <mesh file="table_liden_0920/3.stl" name="part3" scale="0.00054 0.00054 0.00054" />
+    <mesh file="table_liden_0920/2.stl" name="part2" scale="0.00054 0.00054 0.00054" />
+    <mesh file="table_liden_0920/1.stl" name="part1" scale="0.00054 0.00054 0.00054" />
   </asset>
   <equality>
     <weld active="false" body1="0_part0" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
