@@ -2,9 +2,9 @@
   <custom>
     <numeric data="0.40 0.30 0.008 0 1 0 0" name="0_part0_initpos" />
     <numeric data="-0.17 0.125 0.008 0 1 0 0" name="5_part5_initpos" />
-    <numeric data="-0.17 0.32 0.008 0 1 0 0" name="4_part4_initpos" />
+    <numeric data="-0.186 0.314 0.008 0 1 0 0" name="4_part4_initpos" />
     <numeric data="-0.45 -0.1 0.18 0 -0.71 -0.71 0" name="3_part3_initpos" />
-    <numeric data="-0.05 -0.25 0.18 0 -0.71 -0.71 0" name="2_part2_initpos" />
+    <numeric data="-0.1 -0.27 0.18 0 -0.71 -0.71 0" name="2_part2_initpos" />
     <numeric data="0.40 0.14 0 0 -1 0 0" name="1_part1_initpos" />
   </custom>
   <asset>

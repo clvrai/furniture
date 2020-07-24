@@ -12,7 +12,7 @@ rot_eps_fine: 0.005
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 #general parameters
-max_success_steps: 2000
+max_success_steps: 2200
 use_closest: False
 recipe: 
         - !!python/tuple ["0_part0", "4_part4"]
