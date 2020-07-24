@@ -17,7 +17,7 @@ class VideoRecorder(object):
 
     def __init__(
         self,
-        record_mode="RAM",  # ram or file
+        record_mode="ram",  # ram or file
         video_dir="./videos",
         prefix="default",
         demo_dir=None,
@@ -52,13 +52,13 @@ class VideoRecorder(object):
         return len(glob.glob(os.path.join(self._video_dir, prefix) + "*"))
 
     def capture_frame(self, frame, render_mode="from_env_render"):
-        """``
+        """
         Render the given `env` and add the resulting frame to the video.
         render_mode: from_env_render or rgb_array
         if data is from env.render(), we will need to convert it to 0-255
         if data is rgb array, then no need to convert
         """
-        if self._record_mode == "RAM":
+        if self._record_mode == "ram":
             if render_mode == "rgb_array":
                 self._frames.append(frame)
             elif render_mode == "from_env_render":
@@ -91,7 +91,7 @@ class VideoRecorder(object):
         if name is not None:
             self.outfile = os.path.join(self._video_dir, name)
 
-        if self._record_mode == "RAM":
+        if self._record_mode == "ram":
             if success:
                 fps = self.output_frames_per_sec
 
@@ -112,9 +112,10 @@ class VideoRecorder(object):
             else:
                 # No frames captured. Set metadata, and remove the empty output file.
                 os.remove(self.outfile)
-    
+
         if success:
             print("closed vr, video at", self.outfile)
+
 
 class ImageEncoder(object):
     def __init__(self, outfile, frame_shape, frames_per_sec, output_frames_per_sec):
@@ -140,7 +141,6 @@ class ImageEncoder(object):
             raise ImportError(
                 "Could not find ffmpeg executable. On OS X, you can install ffmpeg via `brew install ffmpeg`. On most Ubuntu variants, `sudo apt-get install ffmpeg` should do it."
             )
-        print("starting")
         self.start()
 
     def start(self):
@@ -183,25 +183,18 @@ class ImageEncoder(object):
 
     def capture_frame(self, frame):
         if not isinstance(frame, (np.ndarray, np.generic)):
-            print("type error")
             raise TypeError(
                 "Wrong type {} for {} (must be np.ndarray or np.generic)".format(
                     type(frame), frame
                 )
             )
         if frame.shape != self.frame_shape:
-            print("shape error")
             raise Exception(
                 "Your frame has shape {}, but the VideoRecorder is configured for shape {}.".format(
                     frame.shape, self.frame_shape
                 )
             )
         if frame.dtype != np.uint8:
-            print(
-                "Your frame has data type {}, but we require uint8 (i.e. RGB values from 0-255).".format(
-                    frame.dtype
-                )
-            )
             raise TypeError(
                 "Your frame has data type {}, but we require uint8 (i.e. RGB values from 0-255).".format(
                     frame.dtype
@@ -210,7 +203,6 @@ class ImageEncoder(object):
         if distutils.version.LooseVersion(
             np.__version__
         ) >= distutils.version.LooseVersion("1.9.0"):
-            # print('writing')
             self.proc.stdin.write(frame.tobytes())
         else:
             self.proc.stdin.write(frame.tostring())

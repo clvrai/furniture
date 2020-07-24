@@ -127,6 +127,13 @@ def add_argument(parser):
     )
     parser.add_argument("--record_caption", type=str2bool, default=True)
     parser.add_argument(
+        "--record_mode",
+        type=str,
+        default="ram",
+        help="use RAM or FILE to store video frames",
+        choices=["ram", "file"],
+    )
+    parser.add_argument(
         "--preassembled",
         type=str2intlist,
         default=[],

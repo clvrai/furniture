@@ -154,10 +154,14 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._record_vid:
             if self._record_demo:
                 self.vid_rec = VideoRecorder(
-                    prefix=self.file_prefix, demo_dir=config.demo_dir
+                    record_mode=config.record_mode,
+                    prefix=self.file_prefix,
+                    demo_dir=config.demo_dir,
                 )
             else:
-                self.vid_rec = VideoRecorder(prefix=self.file_prefix)
+                self.vid_rec = VideoRecorder(
+                    record_mode=config.record_mode, prefix=self.file_prefix
+                )
 
         self._num_connect_steps = 0
         self._gravity_compensation = 0
