@@ -299,16 +299,16 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # info = {"touch": leg_touched, "touch_rew": touch_rew}
         info = {}
 
-        # eef_pos = self._get_gripper_pos()
-        # leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
-        # leg_pos2 = leg_pos1 + [0, 0, 0.03]
-        # leg_pos = np.concatenate([leg_pos1, leg_pos2])
-        # xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-        # z_distance = np.abs(eef_pos[2] - leg_pos[2])
-        # eef_leg_distance = xy_distance + z_distance
-        eef_pos = self._get_pos("griptip_site")
-        leg_pos = self._get_pos(self._current_leg) + [0, 0, -0.015]
-        eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
+        eef_pos = self._get_gripper_pos()
+        leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
+        leg_pos2 = leg_pos1 + [0, 0, 0.03]
+        leg_pos = np.concatenate([leg_pos1, leg_pos2])
+        xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+        z_distance = np.abs(eef_pos[2] - leg_pos[2])
+        eef_leg_distance = xy_distance + z_distance
+        # eef_pos = self._get_pos("griptip_site")
+        # leg_pos = self._get_pos(self._current_leg) + [0, 0, -0.015]
+        # eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
             offset = self._prev_eef_leg_distance - eef_leg_distance
             rew = offset * self._pos_dist_coef
