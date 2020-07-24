@@ -67,7 +67,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         """
         ob, _, done, _ = super()._step(a)
 
-        reward, done, info = self._compute_reward()
+        reward, _, info = self._compute_reward()
 
         ctrl_reward = self._ctrl_reward(a)
         info["reward_ctrl"] = ctrl_reward

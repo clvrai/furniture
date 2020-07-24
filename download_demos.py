@@ -13,9 +13,9 @@ demos = {
     'Sawyer_toy_table_01XX.zip': '16gRRYaLLJwrWLhUuI0v8y_9FW7nbqqCs',
     'Sawyer_table_dockstra_0279_00XX.zip': '1UOkgSBgIa34cRKySCpwstxJ0IpDcYnGQ',
     'Sawyer_table_dockstra_0279_01XX.zip': '1wusFZLDsq9DCRf_U9DEPnjSdmWvrgY3U',
-    'Sawyer_chair_agne_0007_00XX.zip': '1a7E8QH4BRTHCwJ_0qfNKcoGOzdrH8qgR',
-    'Sawyer_chair_agne_0007_01XX.zip': '1YfnoxhZbqxZciQ6-CnPhHM_v43-m6xzQ',
-    'Sawyer_chair_ingolf_0650_00XX.zip': '1dnXBiWVKVJK_uhUxHC4ecxnyWqv-HvRi',
+    'Sawyer_chair_agne_0007_00XX.zip': '1DCmpI0_5n65UOzGC6-86D-BAyvyxXX8u',
+    'Sawyer_chair_agne_0007_01XX.zip': '1Au3TXYXbJt-_3fhYQpEYg9kk6SpJgTcE',
+    'Sawyer_chair_ingolf_0650_00XX.zip': '1tHaucRmqBIwDqi0DnUikDxM2WQEA3l3c',
     'Sawyer_chair_ingolf_0650_01XX.zip': '1Pw65zAF78ZoGLR0WpkcygfuoIO9a_xrL',
     'Sawyer_table_liden_0920_00XX.zip': '1SAgycZb0A6SBaufXv7gHiJ2Cm98eUPbi',
     'Sawyer_table_liden_0920_01XX.zip': '16ZvJyJiU5hmZQ_iy8ZPF4xZQXv3cuV0x'

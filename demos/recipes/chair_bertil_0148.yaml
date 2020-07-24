@@ -1,6 +1,6 @@
 # xyz parameters
 fine_magnitude: 4
-z_finedist: 0.02              # distance between connsites at which to start fine adjustment
+z_finedist: 0.04              # distance between connsites at which to start fine adjustment
 z_conn_dist: 0                # distance between connsites at which to connect
 lat_magnitude: 20             # keep movespeed constant at 0.025
 eps: 0.01                     # max acceptable x,y,z difference
@@ -8,18 +8,46 @@ eps_fine: 0.001               # max acceptable x,y,z difference
 # rot parameters
 rot_magnitude: 0.2
 rot_eps: 0.05
-rot_eps_fine: 0.01
+rot_eps_fine: 0.05
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 #general parameters
 use_closest: True            
-max_success_steps: 2500            # max # of steps a successful demo will take
+max_success_steps: 2100            # max # of steps a successful demo will take
+
+# recipe: 
+#         - !!python/tuple ["3_part3", "4_part4"]
+#         - !!python/tuple ["3_part3", "1_part1"]
+# #note: absolute coordinates
+# grip_safepos: 
+#       - 
+#         - !!python/tuple ["z", 0.2] 
+#       - 
+#         - !!python/tuple ["z", 0.5]
+#         - !!python/tuple ["y", 0]  
+#         - !!python/tuple ["x", 0]  
+
+# nogrip_safepos:
+#       - []
+#       - 
+#         - !!python/tuple ["z", 0.5] 
+
+# grip_angles: 
+#         -
+#           -  0
+#           -  0
+#           - -1        
+#         -
+# num_connects: 3
+# # indices of recipe steps to connect twice
+# connect_twice:
+#   - 1
 
 recipe: 
-        - !!python/tuple ["2_part2", "1_part1"]
+        - !!python/tuple ["1_part1", "0_part0"]
+        - !!python/tuple ["2_part2", "0_part0"]
+        - !!python/tuple ["3_part3", "4_part4"]
         - !!python/tuple ["3_part3", "1_part1"]
-        - !!python/tuple ["4_part4", "5_part5"]
-        - !!python/tuple ["4_part4", "2_part2"]
 #note: absolute coordinates
 grip_safepos: 
       - 
@@ -40,7 +68,7 @@ nogrip_safepos:
         - !!python/tuple ["x", 0]        
       - []
       - 
-        - !!python/tuple ["z", 0.2] 
+        - !!python/tuple ["z", 0.5] 
 
 grip_angles: 
         - 
@@ -56,3 +84,7 @@ grip_angles:
           -  0
           - -1        
         -
+num_connects: 5
+# indices of recipe steps to connect twice
+connect_twice:
+  - 3
