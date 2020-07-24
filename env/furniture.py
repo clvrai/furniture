@@ -325,6 +325,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Returns observation dict, reward float, done bool, and info dict.
         """
         self._before_step()
+        _action = action
         if isinstance(action, list):
             action = {key: val for ac_i in action for key, val in ac_i.items()}
         if isinstance(action, dict):
@@ -336,7 +337,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         reward += penalty
         if self._record_demo:
             self._store_qpos()
-            self._demo.add(ob=ob, action=action, reward=reward)
+            self._demo.add(ob=ob, action=_action, reward=reward)
         return ob, reward, done, info
 
     def _before_step(self):
