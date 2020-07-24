@@ -285,6 +285,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         ob = self._get_obs()
         if self._record_demo:
+            self._demo.reset()
             self._demo.add(ob=ob)
 
         return ob
