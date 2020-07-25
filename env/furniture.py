@@ -277,6 +277,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         Resets the environment, viewer, and internal variables.
         Returns the initial observation.
         """
+        if self._record_demo:
+            self._demo.reset()
         self._reset(furniture_id=furniture_id, background=background)
         # reset mujoco viewer
         if self._render_mode == "human" and not self._unity:
@@ -285,7 +287,6 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         ob = self._get_obs()
         if self._record_demo:
-            self._demo.reset()
             self._demo.add(ob=ob)
 
         return ob
@@ -1275,44 +1276,17 @@ class FurnitureEnv(metaclass=EnvMeta):
         pos_init, quat_init = self.mujoco_model.place_objects()
         return pos_init, quat_init
 
-    def set_env_qpos(self, given_qpos, set_furn=True):
-        # set furniture part positions
-        if set_furn == True:
-            for i, body in enumerate(self._object_names):
-                pos = given_qpos[body][:3]
-                quat = given_qpos[body][3:]
-                self._set_qpos(body, pos, quat)
-                self._stop_object(body, gravity=0)
-        # set robot positions
-        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-            if (
-                "l_gripper" in given_qpos
-                and "r_gripper" not in given_qpos
-                and "qpos" in given_qpos
-            ):
-                self.sim.data.qpos[self._ref_joint_pos_indexes["right"]] = given_qpos[
-                    "qpos"
-                ]
-                self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes["right"]
-                ] = given_qpos["l_gripper"]
-        elif self._agent_type == "Baxter":
-            if (
-                "l_gripper" in given_qpos
-                and "r_gripper" in given_qpos
-                and "qpos" in given_qpos
-            ):
-                self.sim.data.qpos[self._ref_joint_pos_indexes_all] = given_qpos["qpos"]
-                self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes["right"]
-                ] = given_qpos["r_gripper"]
-                self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes["left"]
-                ] = given_qpos["l_gripper"]
-        elif self._agent_type == "Cursor":
-            if "cursor0" in given_qpos and "cursor1" in given_qpos:
-                self._set_pos("cursor0", given_qpos["cursor0"])
-                self._set_pos("cursor1", given_qpos["cursor1"])
+    def set_env_qpos(self, given_qpos):
+        for i, body in enumerate(self._object_names):
+            self._stop_object(body, gravity=0)
+        self.sim.data.qpos[:] = given_qpos["qpos"]
+        self.sim.data.qvel[:] = given_qpos["qvel"]
+        self.sim.data.ctrl[:] = 0
+
+        if "cursor0" in given_qpos:
+            self._set_pos("cursor0", given_qpos["cursor0"])
+        if "cursor1" in given_qpos:
+            self._set_pos("cursor1", given_qpos["cursor1"])
 
     def _reset(self, furniture_id=None, background=None):
         """
@@ -1417,12 +1391,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
         if self._load_demo or self._eval_on_train_set:
-            pos_init = {}
-            quat_init = {}
-            for body in self._object_names:
-                qpos = self._init_qpos[body]
-                pos_init[body] = qpos[:3]
-                quat_init[body] = qpos[3:]
             self.set_env_qpos(self._init_qpos)
             # enable robot collision
             for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
@@ -1444,13 +1412,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._pos_init = pos_init
             self._quat_init = quat_init
 
-        # set furniture positions
-        for i, body in enumerate(self._object_names):
-            logger.debug(f"{body} {pos_init[body]} {quat_init[body]}")
-            if self._config.assembled:
-                self._object_group[i] = 0
-            else:
-                self._set_qpos(body, pos_init[body], quat_init[body])
+            # set furniture positions
+            for i, body in enumerate(self._object_names):
+                logger.debug(f"{body} {pos_init[body]} {quat_init[body]}")
+                if self._config.assembled:
+                    self._object_group[i] = 0
+                else:
+                    self._set_qpos(body, pos_init[body], quat_init[body])
 
         if self._load_demo or self._eval_on_train_set:
             self.sim.forward()
@@ -1508,6 +1476,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         # store qpos of furniture and robot
         if self._record_demo:
             self._store_qpos()
+
+        if self._load_demo:
+            self.set_env_qpos(self._init_qpos)
+
+        self.sim.forward()
+        self.sim.step()
 
         if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
             self._initial_right_hand_quat = self._right_hand_quat
@@ -1655,29 +1629,17 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Stores current qposition for demonstration
         """
-        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
-            qpos = {
-                "qpos": self.sim.data.qpos[self._ref_joint_pos_indexes["right"]],
-                "l_gripper": self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes["right"]
-                ],
-            }
-        elif self._agent_type == "Baxter":
-            qpos = {
-                "r_gripper": self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes["right"]
-                ],
-                "l_gripper": self.sim.data.qpos[
-                    self._ref_gripper_joint_pos_indexes["left"]
-                ],
-                "qpos": self.sim.data.qpos[self._ref_joint_pos_indexes_all],
-            }
-        elif self._agent_type == "Cursor":
+        qpos = {
+            "qpos": self.sim.data.qpos.copy(),
+            "qvel": self.sim.data.qvel.copy(),
+        }
+        if self._agent_type == "Cursor":
             qpos = {
                 "cursor0": self._get_pos("cursor0"),
                 "cursor1": self._get_pos("cursor1"),
             }
         qpos.update({x: self._get_qpos(x) for x in self._object_names})
+        qpos.update({(x + "_qvel"): self._get_qpos(x) for x in self._object_names})
         self._demo.add(qpos=qpos)
 
     def _reset_internal(self):
@@ -2408,6 +2370,48 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self.vid_rec.capture_frame(self.render("rgb_array")[0])
                     else:
                         self.render()
+        finally:
+            if self._record_vid:
+                self.vid_rec.close()
+
+    def run_demo_actions(self, config):
+        """
+        Play the stored actions in demonstration
+        """
+        if config.furniture_name is not None:
+            config.furniture_id = furniture_name2id[config.furniture_name]
+        self.reset(config.furniture_id, config.background)
+        if self._record_vid:
+            self.vid_rec.capture_frame(self.render("rgb_array")[0])
+        else:
+            self.render()
+
+        # Load demo
+        with open(self._load_demo, "rb") as f:
+            demo = pickle.load(f)
+            all_qpos = demo["qpos"]
+            all_actions = demo["actions"]
+            all_obs = demo["obs"]
+
+        # Set initial state from demonstration
+        # self.set_env_qpos(all_qpos[0])
+        # self.sim.forward()
+        # self.sim.step()
+        # if self._unity:
+        #     self._update_unity()
+
+        self.render()
+
+        try:
+            for action in all_actions:
+                logger.info("Action: %s", str(action))
+                ob, _, _, _ = self.step(action)
+                if self._record_vid:
+                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                else:
+                    self.render()
+                time.sleep(0.1)
+
         finally:
             if self._record_vid:
                 self.vid_rec.close()
