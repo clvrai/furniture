@@ -84,6 +84,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             logger.setLevel(logging.INFO)
         if self._debug:
             logger.setLevel(logging.DEBUG)
+
         self._rng = np.random.RandomState(config.seed)
 
         if config.render and not config.unity:
@@ -280,9 +281,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._record_demo:
             self._demo.reset()
         self._reset(furniture_id=furniture_id, background=background)
-        # reset mujoco viewer
-        if self._render_mode == "human" and not self._unity:
-            self._viewer = self._get_viewer()
         self._after_reset()
 
         ob = self._get_obs()
@@ -532,7 +530,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Callback for rendering
         """
-        self.sim.forward()
+        pass
 
     def render(self, mode="human"):
         """
@@ -1157,10 +1155,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._do_ik_step(action)
 
         elif self._control_type == "torque":
-            self._do_simulation(action)
+            if self._record_demo:
+                self._demo.add(low_level_action=action[:-1], connect_action=connect)
+            self._do_simulation(action[:-1])
 
         elif self._control_type == "impedance":
-            a = self._setup_action(action)
+            if self._record_demo:
+                self._demo.add(low_level_action=action[:-1], connect_action=connect)
+            a = self._setup_action(action[:-1])
             self._do_simulation(a)
 
         elif self._control_type in NEW_CONTROLLERS:
@@ -1317,6 +1319,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
             self.mujoco_model.resize_objects(resize_factor)
+
         # reset simulation data and clear buffers
         self.sim.reset()
 
@@ -1477,9 +1480,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._record_demo:
             self._store_qpos()
 
-        if self._load_demo:
+        if self._load_demo or self._eval_on_train_set:
             self.set_env_qpos(self._init_qpos)
 
+        # sync mujoco sim state
+        self.sim.data.ctrl[:] = 0
+        self.sim.data.qfrc_applied[:] = 0
+        self.sim.data.xfrc_applied[:] = 0
+        self.sim.data.qacc_warmstart[:] = 0
+        self.sim.data.time = 0
         self.sim.forward()
         self.sim.step()
 
@@ -1518,7 +1527,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             with open(controller_file) as f:
                 params = hjson.load(f)
         except FileNotFoundError:
-            print(
+            logger.warn(
                 "Controller config file '{}' not found. Please check filepath and try again.".format(
                     controller_file
                 )
@@ -1599,10 +1608,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             # Now, control both gripper and joints
             self.sim.data.ctrl[self._ref_joint_vel_indexes[arm]] = (
                 self.sim.data.qfrc_bias[self._ref_joint_vel_indexes[arm]] + torques
-            )
-            print(
-                "force: ",
-                self.sim.data.qfrc_bias[self._ref_joint_vel_indexes[arm]] + torques,
             )
 
     def _initialize_robot_pos(self):
@@ -1996,7 +2001,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             all_qpos = demo["qpos"]
             if config.debug:
                 for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
-                    print("action", i, action)
+                    logger.debug("action", i, action)
         try:
             for qpos in all_qpos:
                 self.set_env_qpos(qpos)
@@ -2015,7 +2020,7 @@ class FurnitureEnv(metaclass=EnvMeta):
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
         if controller not in self.vr.devices:
-            print("Lost track of ", controller)
+            logger.warn("Lost track of ", controller)
             return None, None
         # pose = c.get_pose_euler()
         pose = c.get_pose_quaternion()
@@ -2026,7 +2031,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             pose[3:] = T.euler_to_quat([0, 0, 180], pose[3:])
         state = c.get_controller_inputs()
         if pose is None or state is None or np.linalg.norm(pose[:3]) < 0.001:
-            print("Lost track of pose ", controller)
+            logger.warn("Lost track of pose ", controller)
             return None, None
         return np.asarray(pose), state
 
@@ -2185,7 +2190,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.hstack(action_items)
             action = np.clip(action, -1.0, 1.0)
 
-            print(str(t) + " Take action: " + str(action))
+            logger.info(str(t) + " Take action: " + str(action))
             ob, reward, done, info = self.step(action)
 
             if self._record_vid:
@@ -2383,34 +2388,39 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.reset(config.furniture_id, config.background)
         if self._record_vid:
             self.vid_rec.capture_frame(self.render("rgb_array")[0])
-        else:
+        elif self._config.render:
             self.render()
 
         # Load demo
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
-            all_qpos = demo["qpos"]
-            all_actions = demo["actions"]
-            all_obs = demo["obs"]
-
-        # Set initial state from demonstration
-        # self.set_env_qpos(all_qpos[0])
-        # self.sim.forward()
-        # self.sim.step()
-        # if self._unity:
-        #     self._update_unity()
-
-        self.render()
+            qpos = demo["qpos"]
+            actions = demo["actions"]
+            low_level_actions = demo["low_level_actions"]
+            connect_actions = demo["connect_actions"]
+            obs = demo["obs"]
 
         try:
-            for action in all_actions:
-                logger.info("Action: %s", str(action))
-                ob, _, _, _ = self.step(action)
-                if self._record_vid:
-                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
-                else:
-                    self.render()
-                time.sleep(0.1)
+            i = 0
+            if self._control_type == "impedance":
+                for ac, connect in zip(low_level_actions, connect_actions):
+                    action = np.append(ac, [connect])
+                    logger.info("Action: %s", str(action))
+                    ob, _, _, _ = self.step(action)
+                    if self._record_vid:
+                        self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                    elif self._config.render:
+                        self.render()
+                        time.sleep(0.03)
+            else:
+                for action in actions:
+                    # logger.info("Action: %s", str(action))
+                    ob, _, _, _ = self.step(action)
+                    if self._record_vid:
+                        self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                    elif self._config.render:
+                        self.render()
+                        time.sleep(0.03)
 
         finally:
             if self._record_vid:
@@ -2458,7 +2468,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.zeros((15,))
             ob, reward, done, info = self.step(action)
             self.render("rgb_array")
-            print("current_scale", 1 + self._manual_resize)
+            logger.info("current_scale", 1 + self._manual_resize)
             self.reset(config.furniture_id, config.background)
             self._action_on = False
 
@@ -2638,8 +2648,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         Take multiple physics simulation steps, bounded by self._control_timestep
         """
         try:
-            self.sim.forward()
-
             if self.sim.data.ctrl is not None:
                 self.sim.data.ctrl[:] = 0 if a is None else a
 
@@ -2679,10 +2687,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Take multiple physics simulation steps, bounded by self._control_timestep
         """
-        for arm in self._arms:
-            for qvel_addr in self._ref_joint_vel_indexes[arm]:
-                self.sim.data.qvel[qvel_addr] = 0.0
-        self.sim.forward()
+        connect = action[-1]
 
         if self._control_type == "ik":
             if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
@@ -2753,6 +2758,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             # keep trying to reach the target in a closed-loop
             ctrl = self._setup_action(low_action)
             for i in range(self._action_repeat):
+                if self._record_demo:
+                    self._demo.add(
+                        low_level_action=low_action,
+                        connect_action=connect if i == self._action_repeat - 1 else 0,
+                    )
                 self._do_simulation(ctrl)
 
                 if i + 1 < self._action_repeat:
@@ -2814,6 +2824,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             # keep trying to reach the target in a closed-loop
             ctrl = self._setup_action(low_action)
             for i in range(self._action_repeat):
+                if self._record_demo:
+                    self._demo.add(
+                        low_level_action=low_action,
+                        connect_action=connect if i == self._action_repeat - 1 else 0,
+                    )
                 self._do_simulation(ctrl)
 
                 if i + 1 < self._action_repeat:
