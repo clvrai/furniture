@@ -18,7 +18,9 @@ demos = {
     'Sawyer_chair_ingolf_0650_00XX.zip': '1tHaucRmqBIwDqi0DnUikDxM2WQEA3l3c',
     'Sawyer_chair_ingolf_0650_01XX.zip': '1Pw65zAF78ZoGLR0WpkcygfuoIO9a_xrL',
     'Sawyer_table_liden_0920_00XX.zip': '1SAgycZb0A6SBaufXv7gHiJ2Cm98eUPbi',
-    'Sawyer_table_liden_0920_01XX.zip': '16ZvJyJiU5hmZQ_iy8ZPF4xZQXv3cuV0x'
+    'Sawyer_table_liden_0920_01XX.zip': '16ZvJyJiU5hmZQ_iy8ZPF4xZQXv3cuV0x',
+    'Sawyer_chair_bernhard_0146_01XX.zip': '1K9Op9aHfoAFLaA1pTAHfAtiCTlMz1IIX',
+    'Sawyer_chair_bernhard_0146_00XX.zip': '1GG_oZbIKTQotIxutTC8a9J3UDyfzkBfs'
 }
 
 # url = 'https://drive.google.com/uc?id=' + unique google drive ID
