@@ -30,6 +30,7 @@ from env.controllers.arm_controller import *
 from util.demo_recorder import DemoRecorder
 from util.video_recorder import VideoRecorder
 from util.logger import logger
+from util import Qpos
 
 try:
     import mujoco_py
@@ -126,8 +127,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._is_render = False
         self._furniture_id = None
         self._background = None
-        self._pos_init = None
-        self._quat_init = None
+        self.init_pos = None
+        self.init_quat = None
+        self.fixed_parts = []
 
         self._manual_resize = None
         self._action_on = False
@@ -1275,8 +1277,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             xpos((float * 3) * n_obj): x,y,z position of the objects in world frame
             xquat((float * 4) * n_obj): quaternion of the objects
         """
-        pos_init, quat_init = self.mujoco_model.place_objects()
-        return pos_init, quat_init
+        if self._config.fix_init_parts and len(self.fixed_parts) == 0 and self.init_pos:
+            mjcf_obj = next(iter(self.mujoco_objects.values()))
+            for part in self._config.fix_init_parts:
+                pos = self.init_pos[part]
+                quat = Quaternion(self.init_quat[part])
+                rad = mjcf_obj.get_horizontal_radius(part)
+                self.fixed_parts.append((part, rad, Qpos(pos[0], pos[1], pos[2], quat)))
+        return self.mujoco_model.place_objects(fixed_parts=self.fixed_parts)
 
     def set_env_qpos(self, given_qpos):
         for i, body in enumerate(self._object_names):
@@ -1407,21 +1415,20 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self.sim.model.geom_contype[geom_id] = contype
                     self.sim.model.geom_conaffinity[geom_id] = conaffinity
         else:
-            if self._config.fix_init and self._pos_init is not None:
-                pos_init = self._pos_init
-                quat_init = self._quat_init
-            else:
-                pos_init, quat_init = self._place_objects()
-            self._pos_init = pos_init
-            self._quat_init = quat_init
+            if self.init_pos is None:
+                self.init_pos, self.init_quat = self._place_objects()
+            elif not self._config.fix_init:
+                init_pos, init_quat = self._place_objects()
+                self.init_pos.update(init_pos)
+                self.init_quat.update(init_quat)
 
             # set furniture positions
             for i, body in enumerate(self._object_names):
-                logger.debug(f"{body} {pos_init[body]} {quat_init[body]}")
+                logger.debug(f"{body} {self.init_pos[body]} {self.init_quat[body]}")
                 if self._config.assembled:
                     self._object_group[i] = 0
                 else:
-                    self._set_qpos(body, pos_init[body], quat_init[body])
+                    self._set_qpos(body, self.init_pos[body], self.init_quat[body])
 
         if self._load_demo or self._eval_on_train_set:
             self.sim.forward()

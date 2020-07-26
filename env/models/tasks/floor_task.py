@@ -74,7 +74,7 @@ class FloorTask(Task):
         for one_equality in equality:
             self.equality.append(one_equality)
 
-    def place_objects(self):
+    def place_objects(self, fixed_parts=None):
         """Places objects randomly until no collisions or max iterations hit."""
-        return self.initializer.sample()
+        return self.initializer.sample(placed_objects_orig=fixed_parts)
 

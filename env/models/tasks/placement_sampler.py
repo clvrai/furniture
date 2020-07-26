@@ -1,6 +1,7 @@
 import collections
 import numpy as np
 from pyquaternion import Quaternion
+import copy
 
 from env.models.base import RandomizationError
 from util import Qpos
@@ -92,11 +93,11 @@ class UniformRandomSampler(ObjectPositionSampler):
                 r = obj_mjcf.get_horizontal_radius(obj_name)
                 preset_objects.append((obj_name, r, self.init_qpos[obj_name]))
                 remaining_objects.pop(obj_name)
-        # use random init qpos for remaining parts
-        #print('remaining_objects', remaining_objects)
         if len(remaining_objects) > 0:
             spec_x_range, spec_y_range = self.x_range, self.y_range
             self.x_range, self.y_range = None, None
+            # randomnly place remaining parts anywhere on table 
+            # and use that pos as starting pos for future samples
             remaining_xpos, remaining_quat = self.sample(objects=remaining_objects, placed_objects=preset_objects)
             for obj_name in remaining_xpos.keys():
                 xpos = remaining_xpos[obj_name]
@@ -137,15 +138,17 @@ class UniformRandomSampler(ObjectPositionSampler):
 
     # def _collision_check(obj_x, obj_y, r, placed_objects):
 
-#    def _initialize_qpos(self, ):
-    def sample(self, objects=None, placed_objects=None):
+    def sample(self, objects=None, placed_objects_orig=None):
         pos_arr = {}
         quat_arr = {}
         index = 0
-        if objects is None:
-            objects = self.mujoco_objects
-        if placed_objects is None:
+        if placed_objects_orig is None:
             placed_objects = []
+        placed_objects = copy.copy(placed_objects_orig)
+        if objects is None:
+            objects = copy.deepcopy(self.mujoco_objects)
+            for part_name in placed_objects:
+                objects.pop(part_name[0])
         for obj_name, obj_mjcf in objects.items():
             obj_r = obj_mjcf.get_horizontal_radius(obj_name)
             # bottom_offset = obj_mjcf.get_bottom_offset(obj_name)
@@ -159,9 +162,6 @@ class UniformRandomSampler(ObjectPositionSampler):
                 for po_name, po_r, qpos in placed_objects:
                     po_x = qpos.x
                     po_y = qpos.y
-                    # print(obj_name, po_name, np.linalg.norm([obj_x - po_x, obj_y - po_y], 2), po_r + obj_r)
-                    # print(obj_name, obj_x, obj_y, obj_r)
-                    # print(po_name, po_x, po_y, po_r)
                     if (
                         np.linalg.norm([obj_x - po_x, obj_y - po_y], 2)
                         <= po_r + obj_r
