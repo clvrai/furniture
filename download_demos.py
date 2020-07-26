@@ -2,7 +2,7 @@ import gdown
 import os
 from zipfile import ZipFile
 
-demos = {
+qpos_demos = {
     'Sawyer_bench_bjursta_0210_00XX.zip': '1uGeamzI5VkNNjCITSpitg-BivcIiQ0iB',
     'Sawyer_bench_bjursta_0210_01XX.zip': '1RwzSFn1dRDkWfd9dWmKRZNav8B43H6tP',
     'Sawyer_table_bjorkudden_0207_00XX.zip': '1tUyLxpUo_IFakgXtRFPNjI3u6ISTMIQz',
@@ -23,8 +23,22 @@ demos = {
     'Sawyer_chair_bernhard_0146_00XX.zip': '1GG_oZbIKTQotIxutTC8a9J3UDyfzkBfs'
 }
 
+qvel_demos = {
+    'Sawyer_chair_agne_0007_00XX.zip': '1-m4Isy4EFcpOO0IV42VqdzsZTEqbr6y4',
+    'Sawyer_chair_agne_0007_01XX.zip': '1gqBhLlZCvn0Xpb7h4E_U316E9kHz60j8',
+}
+
 # url = 'https://drive.google.com/uc?id=' + unique google drive ID
 # compression format = '.zip'
+
+demo_type = int(input("Enter (1) for qpos only demos\n" \
+                      "      (2) for qpos and qvel demos"))
+
+if demo_type == 1:
+    demos = qpos_demos
+else:
+    demos= qvel_demos
+
 
 for key, value in demos.items():
     url = 'https://drive.google.com/uc?id=' + value
