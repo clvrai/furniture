@@ -14,7 +14,7 @@ qpos_demos = {
     'Sawyer_table_dockstra_0279_00XX.zip': '1UOkgSBgIa34cRKySCpwstxJ0IpDcYnGQ',
     'Sawyer_table_dockstra_0279_01XX.zip': '1wusFZLDsq9DCRf_U9DEPnjSdmWvrgY3U',
     'Sawyer_chair_agne_0007_00XX.zip': '1DCmpI0_5n65UOzGC6-86D-BAyvyxXX8u',
-    'Sawyer_chair_agne_0007_01XX.zip': '1Au3TXYXbJt-_3fhYQpEYg9kk6SpJgTcE',
+    'Sawyer_chair_agne_0007_01XX.zip': '1D3tY0ISSyQ8VdIP9fko93WMHLe3SLmyN',
     'Sawyer_chair_ingolf_0650_00XX.zip': '1tHaucRmqBIwDqi0DnUikDxM2WQEA3l3c',
     'Sawyer_chair_ingolf_0650_01XX.zip': '1Pw65zAF78ZoGLR0WpkcygfuoIO9a_xrL',
     'Sawyer_table_liden_0920_00XX.zip': '1SAgycZb0A6SBaufXv7gHiJ2Cm98eUPbi',
