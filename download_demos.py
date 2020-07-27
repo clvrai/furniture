@@ -24,8 +24,7 @@ qpos_demos = {
 }
 
 qvel_demos = {
-    "Sawyer_chair_agne_0007_00XX.zip": "1-m4Isy4EFcpOO0IV42VqdzsZTEqbr6y4",
-    "Sawyer_chair_agne_0007_01XX.zip": "1gqBhLlZCvn0Xpb7h4E_U316E9kHz60j8",
+    'Sawyer_table_dockstra_0279_00XX.zip': '1KZcN67Ef62JND9q1dPf7aESrOP2TmtMC'
 }
 
 # url = 'https://drive.google.com/uc?id=' + unique google drive ID

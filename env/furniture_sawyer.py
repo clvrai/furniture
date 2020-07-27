@@ -128,7 +128,6 @@ class FurnitureSawyerEnv(FurnitureEnv):
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
-            print(len(state["robot_ob"]))
 
         return state
 
