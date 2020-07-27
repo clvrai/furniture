@@ -15,9 +15,9 @@ help=''
 print_usage() {
   	printf "usage: ./gen_all_demos.sh -a agent_name -n number_demos
   	Optional arguments:
-	-s: start_num, ie the 'ABCD' in sawyer_toy_table_ABCD
+	-s: start_num, ie the 'ABCD' in Sawyer_toy_table_ABCD
 	-z: move and zip demos in batches of 100 after generation finishes
-	-d: demo_dir to zip demos from, defaults to demos/\n"
+	-d: directory to save demos to, defaults to demos/\n"
 }
 
 while getopts 'a:n:s:d:hz' opt
@@ -57,9 +57,12 @@ while (( ${#furniture_names[@]} > i )); do
 	n_demos=${1:-200}
 	eval "./gen_demos.sh -a ${agent_name} -f ${furniture_names[i]} -n ${n_demos}"
 	#zip into bunches of 100
+	wait
 	for j in $( eval echo {0..$((n_demos/100 -1))}); do
+		eval "cd demos"
 		zip_range=$((start_num+j))
-		eval "zip ${demo_dir}/${agent_name}_${furniture_names[i]}_0${zip_range}XX ${demo_dir}/${agent_name}_${furniture_names[i]}_0${zip_range}*"
+		eval "zip ${agent_name}_${furniture_names[i]}_0${zip_range}XX ${agent_name}_${furniture_names[i]}_0${zip_range}*"
+		eval "cd .."
 	done
 	#move generated demos to new dir
 	eval "mkdir -p ${demo_dir}/${agent_name}/${furniture_names[i]}/"

@@ -61,7 +61,7 @@ echo "running $n_proc instances"
 
 for i in $( eval echo {1..$n_proc})
 do
- seed=$((i + 250))
+ seed=$((i + 50))
  start_count=$((start_num+(demos_per_proc)*(i-1)))
 eval "python -m env.furniture_sawyer_gen --render False --furniture_name $furniture_name\
  --record_vid False --furn_xyz_rand 0.02 --furn_rot_rand 3 --seed $seed --unity False \
@@ -75,7 +75,7 @@ start_count=$((start_num+(demos_per_proc)*(n_proc)))
 if [ "$rem" -ne "0" ]; then
 	eval "python -m env.furniture_sawyer_gen --render False --furniture_name $furniture_name\
 	 --record_vid False --furn_xyz_rand 0.02 --furn_rot_rand 3 --seed $seed --unity False \
-	 --start_count $start_count --n_demos=$rem&"
+	 --start_count $start_count --n_demos=$rem"
 fi
 
 
