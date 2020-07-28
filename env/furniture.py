@@ -1158,12 +1158,20 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         elif self._control_type == "torque":
             if self._record_demo:
-                self._demo.add(low_level_action=action[:-1], connect_action=connect)
+                self._demo.add(
+                    low_level_ob=self._get_obs(),
+                    low_level_action=action[:-1],
+                    connect_action=connect,
+                )
             self._do_simulation(action[:-1])
 
         elif self._control_type == "impedance":
             if self._record_demo:
-                self._demo.add(low_level_action=action[:-1], connect_action=connect)
+                self._demo.add(
+                    low_level_ob=self._get_obs(),
+                    low_level_action=action[:-1],
+                    connect_action=connect,
+                )
             a = self._setup_action(action[:-1])
             self._do_simulation(a)
 
@@ -2767,6 +2775,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             for i in range(self._action_repeat):
                 if self._record_demo:
                     self._demo.add(
+                        low_level_ob=self._get_obs(),
                         low_level_action=low_action,
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
@@ -2833,6 +2842,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             for i in range(self._action_repeat):
                 if self._record_demo:
                     self._demo.add(
+                        low_level_ob=self._get_obs(),
                         low_level_action=low_action,
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
