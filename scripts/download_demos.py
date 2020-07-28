@@ -25,9 +25,24 @@ qpos_demos = {
 
 qvel_demos = {
     "Sawyer_chair_agne_0007_00XX.zip": "1vATmqa3AbVKPUDDVnJ7nFAXB4eZXxM8Z",
-    "Sawyer_chair_agne_0007_01XX.zip": "10074coTxr425wekRQ1ACGHcIwdxT3mXZ",
+    # "Sawyer_chair_agne_0007_01XX.zip": "10074coTxr425wekRQ1ACGHcIwdxT3mXZ",
     'Sawyer_table_dockstra_0279_00XX': '1KZcN67Ef62JND9q1dPf7aESrOP2TmtMC',
-    'Sawyer_table_dockstra_0279_01XX': '1KkaNoqwHx-CQdj6BctKlp0r3jHmSTc14'
+    # 'Sawyer_table_dockstra_0279_01XX': '1KkaNoqwHx-CQdj6BctKlp0r3jHmSTc14',
+    "Sawyer_bench_bjursta_0210_00XX.zip": "1XT6LynP2oX_wm52veYSzMVRXAqmln6Ai",
+    # "Sawyer_bench_bjursta_0210_01XX.zip": "",
+    "Sawyer_table_bjorkudden_0207_00XX.zip": "1oVJu2syNRLRVjUxA2HXYMrGAU4aZ0oO4",
+    # "Sawyer_table_bjorkudden_0207_01XX.zip": "1KZJnMlAkfiL3afBGuh2YBz6Q5NFAz_yl",
+    "Sawyer_table_lack_0825_00XX.zip": "172u8T9dnWv_3AnYtGX8VNZRykgJAcATn",
+    # "Sawyer_table_lack_0825_01XX.zip": "1TQz8avJpgP2N6njJyIcyfyspz6HS0pA-",
+    "Sawyer_toy_table_00XX.zip": "17d6jGJpi27bYP0QOWHX9c9yFpru9hqwq",
+    # "Sawyer_toy_table_01XX.zip": "195gPqeO0qDjaCg2zpjUlxCKZBt54V86l",
+    "Sawyer_chair_ingolf_0650_00XX.zip": "1JQl24JvH2AKPPJNNQSgW4asozbziTKwC",
+    # "Sawyer_chair_ingolf_0650_01XX.zip": "1_SZKESFsFSTTY7pQ-OjUUuNcpaIlJewm",
+    "Sawyer_table_liden_0920_00XX.zip": "1mxs1a7Eob_C3puZyw1lJDxkigzYzzd48",
+    # "Sawyer_table_liden_0920_01XX.zip": "",
+    "Sawyer_chair_bernhard_0146_01XX.zip": "1AZKgd_3-JTkYAAZ5KE8CMI0V3ajyOST3",
+    # "Sawyer_chair_bernhard_0146_00XX.zip": "1nWnHDSQq33INXdOmIAL_28wrd6BKEUr-",
+
 }
 
 # url = 'https://drive.google.com/uc?id=' + unique google drive ID
