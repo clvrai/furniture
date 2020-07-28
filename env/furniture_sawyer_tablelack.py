@@ -188,6 +188,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._prev_lift_leg_distance = 0.1
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
+            if not phase_info["touch"]:
+                print("Dropped leg")
+                phase_bonus = -100
+                done = True
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
@@ -269,13 +273,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         if self._episode_length == self._env_config["max_episode_steps"] - 1:
             info["phase"] = self._phase_i
         # record eucl distance and angular distance between sites over time
-        leg_pos = self._get_pos(self._current_leg_site)
-        table_pos = self._get_pos(self._current_table_site)
-        info["attach_eucl_dist"] = np.linalg.norm(leg_pos - table_pos)
-        leg_up = self._get_up_vector(self._current_leg_site)
-        table_up = self._get_up_vector(self._current_table_site)
-        # normalize cos dist to [0, 1]
-        info["attach_up_dist"] = (T.cos_siml(leg_up, table_up) + 1) / 2
+        # leg_pos = self._get_pos(self._current_leg_site)
+        # table_pos = self._get_pos(self._current_table_site)
+        # info["attach_eucl_dist"] = np.linalg.norm(leg_pos - table_pos)
+        # leg_up = self._get_up_vector(self._current_leg_site)
+        # table_up = self._get_up_vector(self._current_table_site)
+        # # normalize cos dist to [0, 1]
+        # info["attach_up_dist"] = (T.cos_siml(leg_up, table_up) + 1) / 2
 
         return reward, done, info
 
