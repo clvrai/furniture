@@ -190,12 +190,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._lift_leg_reward()
             if not phase_info["touch"]:
                 print("Dropped leg")
-                phase_bonus = -100
+                phase_bonus = -75
                 done = True
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                phase_bonus = self._phase_bonus * 2
                 above_table_site = self._get_pos(self._current_table_site)
                 above_table_site[2] += 0.05
                 leg_site = self._get_pos(self._current_leg_site)
@@ -207,6 +207,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
         elif phase == "move_leg":
             phase_reward, phase_info = self._move_leg_reward()
+            if not phase_info["touch"]:
+                print("Dropped leg")
+                phase_bonus = -100
+                done = True
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
@@ -222,6 +226,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._prev_proj_l = T.cos_siml(-leg_up, table_site - leg_site)
         elif phase == "move_leg_fine":
             phase_reward, phase_info = self._move_leg_fine_reward(ac)
+            if not phase_info["touch"]:
+                print("Dropped leg")
+                phase_bonus = -125
+                done = True
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
@@ -363,10 +371,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         lift_leg_distance = np.linalg.norm(self._lift_leg_pos - leg_pos)
         if self._diff_rew:
             offset = self._prev_lift_leg_distance - lift_leg_distance
-            rew = offset * self._pos_dist_coef
+            rew = offset * self._pos_dist_coef * 10
             self._prev_lift_leg_distance = lift_leg_distance
         else:
-            rew = -lift_leg_distance * self._pos_dist_coef
+            rew = -lift_leg_distance * self._pos_dist_coef * 10
         info.update({"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew})
         info["lift_leg_succ"] = lift_leg_distance < self._pos_threshold
         # print(lift_leg_distance)
@@ -388,7 +396,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         move_pos_distance = np.linalg.norm(above_table_site - leg_site)
         if self._diff_rew:
             offset = self._prev_move_pos_distance - move_pos_distance
-            pos_rew = offset * self._pos_dist_coef
+            pos_rew = offset * self._pos_dist_coef * 10
             self._prev_move_pos_distance = move_pos_distance
         else:
             pos_rew = -move_pos_distance * self._pos_dist_coef
@@ -428,7 +436,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         move_pos_distance = np.linalg.norm(table_site - leg_site)
         if self._diff_rew:
             offset = self._prev_move_pos_distance - move_pos_distance
-            pos_rew = offset * self._fine_pos_dist_coef
+            pos_rew = offset * self._fine_pos_dist_coef * 10
             self._prev_move_pos_distance = move_pos_distance
         else:
             pos_rew = -move_pos_distance * self._fine_pos_dist_coef
