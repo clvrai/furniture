@@ -90,6 +90,18 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         reward, done, info = self._compute_reward(a)
         return ob, reward, done, info
 
+    def _load_model_robot(self):
+        super()._load_model_robot()
+        self.mujoco_robot.init_qpos = np.array([
+            -0.42712737,
+            -0.43924895,
+            0.28867949,
+            1.67995968,
+            -0.68637055,
+            0.41797763,
+            2.18509774,
+        ])
+
     def _place_objects(self):
         """
         Returns fixed initial position and rotations of the toy table.
