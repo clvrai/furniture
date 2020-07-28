@@ -184,8 +184,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
                 self._lift_leg_pos = self._get_pos(self._current_leg)
-                self._lift_leg_pos[2] = 0.1
-                self._prev_lift_leg_distance = 0.1
+                self._lift_leg_pos[2] = 0.05
+                self._prev_lift_leg_distance = 0.05
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
             if not phase_info["touch"]:
@@ -236,7 +236,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 phase_bonus = self._phase_bonus
                 if phase_info["connect_succ"]:
                     done = True
-                    phase_bonus = 1000
+                    phase_bonus = 500
                     self._success = True
         # elif phase == "move_eef_over_conn":
         #     phase_reward, phase_info = self._move_eef_over_conn_reward()
