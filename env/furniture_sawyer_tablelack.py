@@ -49,7 +49,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._discrete_grip = config.discrete_grip
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"]
-        self._phases.extend(["lift_leg", "move_leg", "move_leg_fine"])
+        self._phases.extend(["move_leg", "move_leg_fine"])
         # self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
         # self._phases.extend(["align_leg_fine, lower_leg_fine"])
 
@@ -186,16 +186,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._lift_leg_pos = self._get_pos(self._current_leg)
                 self._lift_leg_pos[2] = 0.05
                 self._prev_lift_leg_distance = 0.05
-        elif phase == "lift_leg":
-            phase_reward, phase_info = self._lift_leg_reward()
-            if not phase_info["touch"]:
-                print("Dropped leg")
-                phase_bonus = -75
-                done = True
-            if phase_info[f"{phase}_succ"]:
-                print(f"DONE WITH PHASE {phase}")
-                self._phase_i += 1
-                phase_bonus = self._phase_bonus * 2
                 above_table_site = self._get_pos(self._current_table_site)
                 above_table_site[2] += 0.05
                 leg_site = self._get_pos(self._current_leg_site)
@@ -205,6 +195,25 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 leg_up = self._get_up_vector(self._current_leg_site)
                 table_up = self._get_up_vector(self._current_table_site)
                 self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
+        # elif phase == "lift_leg":
+        #     phase_reward, phase_info = self._lift_leg_reward()
+        #     if not phase_info["touch"]:
+        #         print("Dropped leg")
+        #         phase_bonus = -75
+        #         done = True
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus * 2
+        #         above_table_site = self._get_pos(self._current_table_site)
+        #         above_table_site[2] += 0.05
+        #         leg_site = self._get_pos(self._current_leg_site)
+        #         self._prev_move_pos_distance = np.linalg.norm(
+        #             above_table_site - leg_site
+        #         )
+        #         leg_up = self._get_up_vector(self._current_leg_site)
+        #         table_up = self._get_up_vector(self._current_table_site)
+        #         self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
         elif phase == "move_leg":
             phase_reward, phase_info = self._move_leg_reward()
             if not phase_info["touch"]:
@@ -214,7 +223,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                phase_bonus = self._phase_bonus * 2
                 table_site = self._get_pos(self._current_table_site)
                 leg_site = self._get_pos(self._current_leg_site)
                 self._prev_move_pos_distance = np.linalg.norm(table_site - leg_site)
@@ -233,10 +242,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                phase_bonus = self._phase_bonus * 4
                 if phase_info["connect_succ"]:
                     done = True
-                    phase_bonus = 500
+                    phase_bonus = 1000
                     self._success = True
         # elif phase == "move_eef_over_conn":
         #     phase_reward, phase_info = self._move_eef_over_conn_reward()
@@ -470,7 +479,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_tl": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
-        info["move_fine_succ"] = (
+        info["move_leg_fine_succ"] = (
             move_pos_distance < 0.015
             and move_ang_dist > 0.95
             and proj_t > 0.9
@@ -478,7 +487,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         )
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
-        info["connect_succ"] = info["move_fine_succ"] and ac[-1] > 0
+        info["connect_succ"] = info["move_leg_fine_succ"] and ac[-1] > 0
         return rew, info
 
     def _connect_reward(self, ac) -> Tuple[float, dict]:
