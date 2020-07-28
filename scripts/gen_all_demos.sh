@@ -50,12 +50,13 @@ fi
 
 declare -a furniture_names
 readarray -t furniture_names < sawyer_demo_gen_candidates.txt
+echo "$furniture_names"
 
 let i=0
 while (( ${#furniture_names[@]} > i )); do
-    printf "${furniture_names[i]}\n"
-	n_demos=${1:-200}
-	eval "./gen_demos.sh -a ${agent_name} -f ${furniture_names[i]} -n ${n_demos}"
+    # printf "${furniture_names[i]}\n"
+    echo "./scripts/gen_demos.sh -a ${agent_name} -f ${furniture_names[i]} -n ${n_demos}"
+	eval "./scripts/gen_demos.sh -a ${agent_name} -f ${furniture_names[i]} -n ${n_demos}"
 	#zip into bunches of 100
 	wait
 	for j in $( eval echo {0..$((n_demos/100 -1))}); do
