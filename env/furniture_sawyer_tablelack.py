@@ -223,7 +223,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus * 2
+                phase_bonus = self._phase_bonus * 4
                 table_site = self._get_pos(self._current_table_site)
                 leg_site = self._get_pos(self._current_leg_site)
                 self._prev_move_pos_distance = np.linalg.norm(table_site - leg_site)
@@ -242,7 +242,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus * 4
+                phase_bonus = self._phase_bonus * 8
                 if phase_info["connect_succ"]:
                     done = True
                     phase_bonus = 1000
