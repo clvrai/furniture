@@ -24,7 +24,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # default values for rew function
         self._env_config.update(
             {
-                "pos_dist": 0.04,
+                "pos_dist": 0.015,
                 "rot_dist_up": 0.95,
                 "rot_dist_forward": 0.9,
                 "project_dist": -1,
@@ -50,8 +50,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"]
         self._phases.extend(["move_leg", "move_leg_fine"])
-        # self._phases.extend(["move_eef_over_conn", "align_leg", "lower_leg"])
-        # self._phases.extend(["align_leg_fine, lower_leg_fine"])
 
     def _reset_reward_variables(self):
         self._phase_i = 1
@@ -162,7 +160,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {}
         phase = self._phases[self._phase_i]
 
-        opp_penalty, opp_info = self._other_parts_penalty()
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
         stable_grip_rew, sg_info = self._stable_grip_reward()
         grip_penalty, grip_info = self._gripper_penalty(ac)
@@ -183,9 +180,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
-                self._lift_leg_pos = self._get_pos(self._current_leg)
-                self._lift_leg_pos[2] = 0.05
-                self._prev_lift_leg_distance = 0.05
                 above_table_site = self._get_pos(self._current_table_site)
                 above_table_site[2] += 0.05
                 leg_site = self._get_pos(self._current_leg_site)
@@ -195,25 +189,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 leg_up = self._get_up_vector(self._current_leg_site)
                 table_up = self._get_up_vector(self._current_table_site)
                 self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
-        # elif phase == "lift_leg":
-        #     phase_reward, phase_info = self._lift_leg_reward()
-        #     if not phase_info["touch"]:
-        #         print("Dropped leg")
-        #         phase_bonus = -75
-        #         done = True
-        #     if phase_info[f"{phase}_succ"]:
-        #         print(f"DONE WITH PHASE {phase}")
-        #         self._phase_i += 1
-        #         phase_bonus = self._phase_bonus * 2
-        #         above_table_site = self._get_pos(self._current_table_site)
-        #         above_table_site[2] += 0.05
-        #         leg_site = self._get_pos(self._current_leg_site)
-        #         self._prev_move_pos_distance = np.linalg.norm(
-        #             above_table_site - leg_site
-        #         )
-        #         leg_up = self._get_up_vector(self._current_leg_site)
-        #         table_up = self._get_up_vector(self._current_table_site)
-        #         self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
         elif phase == "move_leg":
             phase_reward, phase_info = self._move_leg_reward()
             if not phase_info["touch"]:
@@ -231,8 +206,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 leg_up = self._get_up_vector(self._current_leg_site)
                 table_up = self._get_up_vector(self._current_table_site)
                 self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
-                self._prev_proj_t = T.cos_siml(table_up, leg_site - table_site)
-                self._prev_proj_l = T.cos_siml(-leg_up, table_site - leg_site)
         elif phase == "move_leg_fine":
             phase_reward, phase_info = self._move_leg_fine_reward(ac)
             if not phase_info["touch"]:
@@ -241,63 +214,22 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 done = True
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
-                self._phase_i += 1
                 phase_bonus = self._phase_bonus * 8
                 if phase_info["connect_succ"]:
                     done = True
                     phase_bonus = 1000
                     self._success = True
-        # elif phase == "move_eef_over_conn":
-        #     phase_reward, phase_info = self._move_eef_over_conn_reward()
-        #     if phase_info[f"{phase}_succ"]:
-        #         print(f"DONE WITH PHASE {phase}")
-        #         self._phase_i += 1
-        #         phase_bonus = self._phase_bonus
-        # elif phase == "align_leg":
-        #     phase_reward, phase_info = self._align_leg_reward()
-        #     if phase_info[f"{phase}_succ"]:
-        #         print(f"DONE WITH PHASE {phase}")
-        #         self._phase_i += 1
-        #         phase_bonus = self._phase_bonus
-        # elif phase == "lower_leg":
-        #     phase_reward, phase_info = self._lower_leg_reward()
-        #     if phase_info[f"{phase}_succ"]:
-        #         print(f"DONE WITH PHASE {phase}")
-        #         self._phase_i += 1
-        #         phase_bonus = self._phase_bonus
-        # elif phase == "align_leg_fine":
-        #     phase_reward, phase_info = self._align_leg_fine_reward()
-        #     if phase_info[f"{phase}_succ"]:
-        #         print(f"DONE WITH PHASE {phase}")
-        #         self._phase_i += 1
-        #         phase_bonus = self._phase_bonus
-        # elif phase == "lower_leg_fine":
-        #     phase_reward, phase_info = self._lower_leg_fine_reward()
-        #     if phase_info[f"{phase}_succ"]:
-        #         print(f"DONE WITH PHASE {phase}")
-        #         self._phase_i += 1
-        #         phase_bonus = self._phase_bonus
         else:
             phase_reward, phase_info = 0, {}
             done = True
 
-        reward += opp_penalty + ctrl_penalty + phase_reward + stable_grip_rew
+        reward += ctrl_penalty + phase_reward + stable_grip_rew
         reward += grip_penalty + phase_bonus
         info["phase_bonus"] = phase_bonus
-        info = {**info, **opp_info, **ctrl_info, **phase_info, **sg_info, **grip_info}
-
+        info = {**info, **ctrl_info, **phase_info, **sg_info, **grip_info}
         # log phase if last frame
         if self._episode_length == self._env_config["max_episode_steps"] - 1:
             info["phase"] = self._phase_i
-        # record eucl distance and angular distance between sites over time
-        # leg_pos = self._get_pos(self._current_leg_site)
-        # table_pos = self._get_pos(self._current_table_site)
-        # info["attach_eucl_dist"] = np.linalg.norm(leg_pos - table_pos)
-        # leg_up = self._get_up_vector(self._current_leg_site)
-        # table_up = self._get_up_vector(self._current_table_site)
-        # # normalize cos dist to [0, 1]
-        # info["attach_up_dist"] = (T.cos_siml(leg_up, table_up) + 1) / 2
-
         return reward, done, info
 
     def _move_eef_above_leg_reward(self) -> Tuple[float, dict]:
@@ -326,12 +258,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Give additional reward for contacting the leg
         Return negative eucl distance
         """
-        # left, right = self._finger_contact(self._current_leg)
-        # leg_touched = int(left and right)
-        # touch_rew = (leg_touched - 1) * self._touch_coef
-        # info = {"touch": leg_touched, "touch_rew": touch_rew}
         info = {}
-
         eef_pos = self._get_gripper_pos()
         leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
         leg_pos2 = leg_pos1 + [0, 0, 0.03]
@@ -339,19 +266,14 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_distance = xy_distance + z_distance
-        # eef_pos = self._get_pos("griptip_site")
-        # leg_pos = self._get_pos(self._current_leg) + [0, 0, -0.015]
-        # eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
             offset = self._prev_eef_leg_distance - eef_leg_distance
             rew = offset * self._pos_dist_coef
             self._prev_eef_leg_distance = eef_leg_distance
         else:
-            # eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
             rew = -eef_leg_distance * self._pos_dist_coef
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
         info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.01
-        # info["lower_eef_to_leg_succ"] = eef_leg_distance < 0.015
         return rew, info
 
     def _grasp_leg_reward(self, ac) -> Tuple[float, dict]:
@@ -364,29 +286,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {"touch": leg_touched, "touch_rew": rew}
         grasp = ac[-2] > (0 if self._discrete_grip else 0.9)
         info["grasp_leg_succ"] = leg_touched and grasp
-        return rew, info
-
-    def _lift_leg_reward(self) -> Tuple[float, dict]:
-        """
-        Lift the leg to a target position
-        Return negative eucl distance
-        """
-        left, right = self._finger_contact(self._current_leg)
-        leg_touched = int(left and right)
-        touch_rew = (leg_touched - 1) * self._touch_coef
-        info = {"touch": leg_touched, "touch_rew": touch_rew}
-
-        leg_pos = self._get_pos(self._current_leg)
-        lift_leg_distance = np.linalg.norm(self._lift_leg_pos - leg_pos)
-        if self._diff_rew:
-            offset = self._prev_lift_leg_distance - lift_leg_distance
-            rew = offset * self._pos_dist_coef * 10
-            self._prev_lift_leg_distance = lift_leg_distance
-        else:
-            rew = -lift_leg_distance * self._pos_dist_coef * 10
-        info.update({"lift_leg_dist": lift_leg_distance, "lift_leg_rew": rew})
-        info["lift_leg_succ"] = lift_leg_distance < self._pos_threshold
-        # print(lift_leg_distance)
         return rew, info
 
     def _move_leg_reward(self) -> Tuple[float, dict]:
@@ -414,18 +313,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_up = self._get_up_vector(self._current_leg_site)
         table_up = self._get_up_vector(self._current_table_site)
         move_ang_dist = T.cos_siml(leg_up, table_up)
-        # if self._diff_rew:
-        #     offset = move_ang_dist - self._prev_move_ang_dist
-        #     ang_rew = offset * self._align_rot_dist_coef
-        #     self._prev_move_ang_dist = move_ang_dist
-        # else:
         ang_rew = (move_ang_dist - 1) * self._align_rot_dist_coef
         info.update({"move_ang_dist": move_ang_dist, "move_ang_rew": ang_rew})
         info["move_leg_succ"] = move_pos_distance < 0.06 and move_ang_dist > 0.85
         rew = pos_rew + ang_rew
-        # print("-" * 80)
-        # print(above_table_site, leg_site)
-        # print(move_pos_distance)
         return rew, info
 
     def _move_leg_fine_reward(self, ac) -> Tuple[float, dict]:
@@ -456,34 +347,22 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_up = self._get_up_vector(self._current_leg_site)
         table_up = self._get_up_vector(self._current_table_site)
         move_ang_dist = T.cos_siml(leg_up, table_up)
-        # if self._diff_rew:
-        #     offset = move_ang_dist - self._prev_move_ang_dist
-        #     ang_rew = offset * self._fine_align_rot_dist_coef
-        #     self._prev_move_ang_dist = move_ang_dist
-        # else:
         ang_rew = (move_ang_dist - 1) * self._fine_align_rot_dist_coef
         info["move_fine_ang_dist"] = move_ang_dist
 
+        # proj will approach -1 if aligned correctly
         proj_t = T.cos_siml(table_up, leg_site - table_site)
         proj_l = T.cos_siml(-leg_up, table_site - leg_site)
-        # if self._diff_rew:
-        #     proj_t_offset = proj_t - self._prev_proj_t
-        #     proj_l_offset = proj_l - self._prev_proj_l
-        #     proj_t_rew = proj_t_offset * self._fine_align_rot_dist_coef
-        #     proj_l_rew = proj_l_offset * self._fine_align_rot_dist_coef
-        #     self._prev_proj_t = proj_t
-        #     self._prev_proj_l = proj_l
-        # else:
-        proj_t_rew = (proj_t - 1) * self._fine_align_rot_dist_coef
-        proj_l_rew = (proj_l - 1) * self._fine_align_rot_dist_coef
+        proj_t_rew = (-proj_t - 1) * self._fine_align_rot_dist_coef
+        proj_l_rew = (-proj_l - 1) * self._fine_align_rot_dist_coef
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_tl": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
         info["move_leg_fine_succ"] = (
             move_pos_distance < 0.015
             and move_ang_dist > 0.95
-            and proj_t > 0.9
-            and proj_l > 0.9
+            and proj_t < -0.9
+            and proj_l < -0.9
         )
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
@@ -493,82 +372,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
     def _connect_reward(self, ac) -> Tuple[float, dict]:
         rew = 0
         info = {"connect_succ": ac[-1] > 0}
-        return rew, info
-
-    def _move_eef_over_conn_reward(self) -> Tuple[float, dict]:
-        """
-        Moves the eef holding leg over connection site
-        Negative euclidean distance between eef xy and conn xy.
-        Return negative eucl distance
-        """
-        above_conn_pos = self._get_pos(self._current_table_site)
-        above_conn_pos[2] = 0.15
-        eef_pos = self._get_cursor_pos()
-        eef_conn_distance = np.linalg.norm(eef_pos - above_conn_pos)
-        rew = -eef_conn_distance * self._pos_dist_coef
-        info = {"eef_conn_dist": eef_conn_distance, "eef_conn_rew": rew}
-        info["move_eef_over_conn_succ"] = eef_conn_distance < self._pos_threshold
-        assert rew <= 0
-        # print(eef_conn_distance)
-        return rew, info
-
-    def _align_leg_reward(self) -> Tuple[float, dict]:
-        """
-        Align the leg over the connection site
-        Up vectors of leg conn and table conn should be parallel (cos dist 1)
-        Return negative angular distance
-        """
-        leg_up = self._get_up_vector(self._current_leg_site)
-        table_up = self._get_up_vector(self._current_table_site)
-        align_leg_dist = T.cos_siml(leg_up, table_up)
-        rew = (align_leg_dist - 1) * self._align_rot_dist_coef
-        info = {"align_leg_dist": align_leg_dist, "align_leg_rew": rew}
-        info["align_leg_succ"] = align_leg_dist > 0.85
-        assert rew <= 0
-        return rew, info
-
-    def _lower_leg_reward(self) -> Tuple[float, dict]:
-        """
-        Move the leg conn site to a point above the table conn sit
-        Negative euclidean distance between eef xy and conn xy.
-        Return negative eucl distance
-        """
-        above_conn_pos = self._get_pos(self._current_table_site)
-        above_conn_pos[2] += 0.05
-        leg_conn_pos = self._get_pos(self._current_leg_site)
-        dist = np.linalg.norm(above_conn_pos - leg_conn_pos)
-        rew = -dist * self._pos_dist_coef
-        info = {"lower_leg_dist": dist, "lower_leg_rew": rew}
-        info["lower_leg_succ"] = dist < 0.03
-        assert rew <= 0
-        return rew, info
-
-    def _align_leg_fine_reward(self) -> Tuple[float, dict]:
-        """
-        Finely align the leg over the connection site
-        Up vectors of leg conn and table conn should be parallel (cos dist 1)
-        Projection vectors should be parallel as well
-        Return negative angular distance
-        """
-        leg_up = self._get_up_vector(self._current_leg_site)
-        table_up = self._get_up_vector(self._current_table_site)
-        align_leg_dist = T.cos_siml(leg_up, table_up)
-        rew = (align_leg_dist - 1) * self._fine_align_rot_dist_coef
-        info = {"align_leg_fine_dist": align_leg_dist, "align_leg_fine_rew": rew}
-
-        leg_site_pos = self._get_pos(self._current_leg_site)
-        table_site_pos = self._get_pos(self._current_table_site)
-        proj_t = T.cos_siml(table_up, leg_site_pos - table_site_pos)
-        proj_l = T.cos_siml(-leg_up, table_site_pos - leg_site_pos)
-        proj_t_rew = (proj_t - 1) * self._fine_align_rot_dist_coef
-        proj_l_rew = (proj_l - 1) * self._fine_align_rot_dist_coef
-        info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
-        info.update({"proj_l_rew": proj_l_rew, "proj_tl": proj_l})
-        rew += proj_t_rew + proj_l_rew
-        info["align_leg_fine_succ"] = (
-            align_leg_dist > 0.95 and proj_t > 0.9 and proj_l > 0.9
-        )
-        assert rew <= 0
         return rew, info
 
     def _stable_grip_reward(self) -> Tuple[float, dict]:
@@ -635,7 +438,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         return rew, info
 
     def _ctrl_penalty(self, action) -> Tuple[float, dict]:
-        rew = np.linalg.norm(action[:6]) * -self._ctrl_penalty_coef
+        rew = np.linalg.norm(action[:-2]) * -self._ctrl_penalty_coef
         info = {"ctrl_penalty": rew}
         assert rew <= 0
         return rew, info
