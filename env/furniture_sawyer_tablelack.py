@@ -1,10 +1,12 @@
 from typing import Tuple
 
 import numpy as np
+import yaml
 
 import env.transform_utils as T
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import furniture_name2id
+from util import PrettySafeLoader
 from util.logger import logger
 
 
@@ -18,7 +20,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Args:
             config: configurations for the environment.
         """
-        config.furniture_id = furniture_name2id["table_lack_0825"]
+        config.furniture_name = "table_lack_0825"
+        config.furniture_id = furniture_name2id[config.furniture_name]
         config.object_ob_all = False
         super().__init__(config)
         # default values for rew function
@@ -50,17 +53,28 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"]
         self._phases.extend(["move_leg", "move_leg_fine"])
+        # Load the furniture recipe
+        with open("demos/recipes/" + config.furniture_name + ".yaml", "r") as stream:
+            self._recipe = yaml.load(stream, Loader=PrettySafeLoader)["recipe"]
+        self._used_connsites = set()
 
     def _reset_reward_variables(self):
         self._phase_i = 1
-        self._current_leg = "0_part0"
-        self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
-        self._current_table_site = "table-leg,0,90,180,270,conn_site1"
+        self._current_leg, self._current_table = self._recipe[0]
+        leg_sites, table_sites = self.get_connsites(
+            self._current_leg, self._current_table
+        )
+        eef_pos = self._get_gripper_pos()
+        # get the closest leg to eef, and closest table site to leg site
+        self._current_leg_site = self.get_closest_connsite(leg_sites, eef_pos[:3])
+        leg_site_pos = self._get_pos(self._current_leg_site)
+        self._current_table_site = self.get_closest_connsite(table_sites, leg_site_pos)
+        # self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
+        # self._current_table_site = "table-leg,0,90,180,270,conn_site1"
         self._subtask_part1 = self._object_name2id[self._current_leg]
-        self._subtask_part2 = self._object_name2id["4_part4"]
+        self._subtask_part2 = self._object_name2id[self._current_table]
 
         if self._diff_rew:
-            eef_pos = self._get_gripper_pos()
             leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
             leg_pos2 = leg_pos1 + [0, 0, 0.03]
             leg_pos = np.concatenate([leg_pos1, leg_pos2])
@@ -87,15 +101,17 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
     def _load_model_robot(self):
         super()._load_model_robot()
-        self.mujoco_robot.init_qpos = np.array([
-            -0.42712737,
-            -0.43924895,
-            0.28867949,
-            1.67995968,
-            -0.68637055,
-            0.41797763,
-            2.18509774,
-        ])
+        self.mujoco_robot.init_qpos = np.array(
+            [
+                -0.42712737,
+                -0.43924895,
+                0.28867949,
+                1.67995968,
+                -0.68637055,
+                0.41797763,
+                2.18509774,
+            ]
+        )
 
     def _place_objects(self):
         """

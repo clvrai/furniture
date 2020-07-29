@@ -1,28 +1,19 @@
-import time
 import math
-import yaml
+import time
 
 import numpy as np
-from tqdm import tqdm
-from mpl_toolkits.mplot3d import Axes3D
+import yaml
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from tqdm import tqdm
 
+import env.transform_utils as T
 from config import create_parser
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
+from util import PrettySafeLoader
 from util.logger import logger
 from util.video_recorder import VideoRecorder
-import env.transform_utils as T
-
-
-class PrettySafeLoader(yaml.SafeLoader):
-    def construct_python_tuple(self, node):
-        return tuple(self.construct_sequence(node))
-
-
-PrettySafeLoader.add_constructor(
-    u"tag:yaml.org,2002:python/tuple", PrettySafeLoader.construct_python_tuple
-)
 
 
 class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
