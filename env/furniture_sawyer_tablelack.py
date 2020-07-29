@@ -60,16 +60,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._subtask_part2 = self._object_name2id["4_part4"]
 
         if self._diff_rew:
-            # eef_pos = self._get_gripper_pos()
-            # leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
-            # leg_pos2 = leg_pos1 + [0, 0, 0.03]
-            # leg_pos = np.concatenate([leg_pos1, leg_pos2])
-            # xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-            # z_distance = np.abs(eef_pos[2] - leg_pos[2])
-            # self._prev_eef_leg_distance = xy_distance + z_distance
-            eef_pos = self._get_pos("griptip_site")
-            leg_pos = self._get_pos(self._current_leg) + [0, 0, -0.015]
-            self._prev_eef_leg_distance = np.linalg.norm(eef_pos - leg_pos)
+            eef_pos = self._get_gripper_pos()
+            leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
+            leg_pos2 = leg_pos1 + [0, 0, 0.03]
+            leg_pos = np.concatenate([leg_pos1, leg_pos2])
+            xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+            z_distance = np.abs(eef_pos[2] - leg_pos[2])
+            self._prev_eef_leg_distance = xy_distance + z_distance
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -213,12 +210,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 phase_bonus = -125
                 done = True
             if phase_info[f"{phase}_succ"]:
-                print(f"DONE WITH PHASE {phase}")
-                phase_bonus = self._phase_bonus * 8
-                if phase_info["connect_succ"]:
-                    done = True
-                    phase_bonus = 1000
-                    self._success = True
+                phase_bonus = self._phase_bonus * 2
+            if phase_info["connect_succ"]:
+                done = True
+                phase_bonus = 1000
+                self._success = True
         else:
             phase_reward, phase_info = 0, {}
             done = True
@@ -366,12 +362,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         )
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
+        # add additional reward for connection
+        if info["move_leg_fine_succ"]:
+            info["connect_rew"] = ac[-1] * 50
+            rew += info["connect_rew"]
         info["connect_succ"] = info["move_leg_fine_succ"] and ac[-1] > 0
-        return rew, info
-
-    def _connect_reward(self, ac) -> Tuple[float, dict]:
-        rew = 0
-        info = {"connect_succ": ac[-1] > 0}
         return rew, info
 
     def _stable_grip_reward(self) -> Tuple[float, dict]:
