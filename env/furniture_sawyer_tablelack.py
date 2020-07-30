@@ -230,6 +230,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info["connect_succ"]:
                 done = True
                 phase_bonus = 1000
+                self._phase += 1
                 self._success = True
         else:
             phase_reward, phase_info = 0, {}
@@ -345,7 +346,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # calculate position rew
         table_site = self._get_pos(self._current_table_site)
         leg_site = self._get_pos(self._current_leg_site)
-        move_pos_distance = np.linalg.norm(table_site - leg_site)
+        xy_distance = np.linalg.norm(table_site[:2] - leg_site[:2])
+        z_distance = np.linalg.norm(table_site[2] - leg_site[2])
+        move_pos_distance = xy_distance + z_distance
+
         if self._diff_rew:
             offset = self._prev_move_pos_distance - move_pos_distance
             pos_rew = offset * self._fine_pos_dist_coef * 10
@@ -368,13 +372,14 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         proj_t_rew = (-proj_t - 1) * self._fine_align_rot_dist_coef
         proj_l_rew = (-proj_l - 1) * self._fine_align_rot_dist_coef
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
-        info.update({"proj_l_rew": proj_l_rew, "proj_tl": proj_l})
+        info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
         info["move_leg_fine_succ"] = (
-            move_pos_distance < 0.015
-            and move_ang_dist > 0.95
-            and proj_t < -0.9
-            and proj_l < -0.9
+            xy_distance <= 0.005
+            and z_distance < 0.01
+            and move_ang_dist > 0.97
+            and proj_t < -0.95
+            and proj_l < -0.95
         )
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
