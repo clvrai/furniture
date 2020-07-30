@@ -66,11 +66,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         )
         eef_pos = self._get_gripper_pos()
         # get the closest leg to eef, and closest table site to leg site
-        self._current_leg_site = self.get_closest_connsite(leg_sites, eef_pos[:3])
-        leg_site_pos = self._get_pos(self._current_leg_site)
-        self._current_table_site = self.get_closest_connsite(table_sites, leg_site_pos)
-        # self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
-        # self._current_table_site = "table-leg,0,90,180,270,conn_site1"
+        # self._current_leg_site = self.get_closest_connsite(leg_sites, eef_pos[:3])
+        self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
+        # leg_site_pos = self._get_pos(self._current_leg_site)
+        # self._current_table_site = self.get_closest_connsite(table_sites, leg_site_pos)
+        self._current_table_site = "table-leg,0,90,180,270,conn_site1"
         self._subtask_part1 = self._object_name2id[self._current_leg]
         self._subtask_part2 = self._object_name2id[self._current_table]
 
@@ -136,10 +136,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             "3_part3": [0.31685774, -10.2 + 0.44853931, 0.0183046],
             "4_part4": [0.03014604, -0.3 + 0.09554463, 0.01972958],
         }
-        noise = self._init_random(3 * len(pos_init), "furniture")
-        for i, name in enumerate(pos_init):
-            for j in range(3):
-                pos_init[name][j] += noise[3 * i + j]
+        # noise = self._init_random(3 * len(pos_init), "furniture")
+        # for i, name in enumerate(pos_init):
+        #     for j in range(3):
+        #         pos_init[name][j] += noise[3 * i + j]
 
         quat_init = {
             # "0_part0": [0.50863839, -0.50861836, 0.49112556, -0.4913146],
@@ -523,17 +523,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
     def get_closest_connsite(self, conn_sites, gripper_pos):
         closest = None
-        min_dist = None
+        min_dist = float("inf")
         for name in conn_sites:
             pos = self.sim.data.get_site_xpos(name)
             dist = T.l2_dist(gripper_pos, pos)
-            if closest is None:
+            if dist < min_dist:
                 closest = name
                 min_dist = dist
-            else:
-                if dist < min_dist:
-                    closest = name
-                    min_dist = dist
         return closest
 
     def _get_gripper_pos(self) -> list:
@@ -560,7 +556,9 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerTableLackEnv(config)
-    env.run_manual(config)
+    for i in range(100):
+        env.reset()
+    # env.run_manual(config)
 
 
 if __name__ == "__main__":
