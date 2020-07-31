@@ -1,3 +1,4 @@
+#todo: reduce speed?
 # xyz parameters
 fine_magnitude: 4
 z_finedist: 0.04              # distance between connsites at which to start fine adjustment
@@ -16,17 +17,22 @@ use_closest: True
 max_success_steps: 1100            # max # of steps a successful demo will take
 
 recipe: 
-        - !!python/tuple ["0_part0", "2_part2"]
         - !!python/tuple ["1_part1", "2_part2"]
+        - !!python/tuple ["0_part0", "2_part2"]
+
+site_recipe:
+        - !!python/tuple ["part1-part3,0,conn_site1", "part3-part1,0,conn_site1"]
+        # - !!python/tuple ["part2-part3,0,conn_site2", "part3-part2,0,conn_site2"]
+
 #note: absolute coordinates
 grip_safepos: 
       - 
         - !!python/tuple ["z", 0.35] 
-        - !!python/tuple ["x", 0.15] 
+        - !!python/tuple ["x", -0.15] 
         - !!python/tuple ["y", 0.14] 
       - 
         - !!python/tuple ["z", 0.35] 
-        - !!python/tuple ["x", -0.15] 
+        - !!python/tuple ["x", 0.15] 
         - !!python/tuple ["y", 0.14] 
 
 nogrip_safepos:
@@ -44,3 +50,4 @@ grip_angles:
           -  0
           -  0
           - -1
+

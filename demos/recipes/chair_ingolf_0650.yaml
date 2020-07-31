@@ -20,6 +20,9 @@ recipe:
         - !!python/tuple ["1_part1", "4_part4"]
         - !!python/tuple ["0_part0", "1_part1"]
 
+site_recipe:
+        - !!python/tuple ["side-seat,0,180,conn_site1","seat-side,0,180,conn_site2"]
+        
 grip_safepos: 
       - 
         - !!python/tuple ["z", 0.16]
