@@ -105,6 +105,7 @@ trainer = ppo.PPOTrainer(
         "num_workers": max(1, parsed.num_workers - 1),
         "callbacks": MyCallbacks,
         "env_config": env_config,
+        "observation_filter": "MeanStdFilter",
         # "train_batch_size": 200,
         # "sgd_minibatch_size": 32,
         # "num_sgd_iter": 1,
