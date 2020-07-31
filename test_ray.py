@@ -1,5 +1,6 @@
 import argparse
 from typing import Dict
+import os
 
 import gym
 import numpy as np
@@ -85,17 +86,23 @@ class MyCallbacks(DefaultCallbacks):
 
 parser = create_parser(env="furniture-sawyer-tablelack-v0")
 parser.add_argument("--num_workers", type=int, default=0)
+parser.add_argument("--gpu", type=int, default=None)
+
 parsed, unparsed = parser.parse_known_args()
 env_config = parsed.__dict__
 env_config["name"] = "FurnitureSawyerTableLackEnv"
 
+if parsed.gpu is not None:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = f"{parsed.gpu}"
+
 register_env("furniture-sawyer-tablelack-v0", env_creator)
-ray.init(num_cpus=1)
+ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
 trainer = ppo.PPOTrainer(
     env="furniture-sawyer-tablelack-v0",
     config={
         "framework": "torch",
-        "num_workers": parsed.num_workers,
+        "num_workers": parsed.num_workers - 1,
         "callbacks": MyCallbacks,
         "env_config": env_config,
         # "train_batch_size": 200,
