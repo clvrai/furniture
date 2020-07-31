@@ -186,6 +186,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
+                eef_pos = self._get_gripper_pos()
+                leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
+                leg_pos2 = leg_pos1 + [0, 0, 0.03]
+                leg_pos = np.concatenate([leg_pos1, leg_pos2])
+                xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+                z_distance = np.abs(eef_pos[2] - leg_pos[2])
+                self._prev_eef_leg_distance = xy_distance + z_distance
         elif phase == "lower_eef_to_leg":
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
