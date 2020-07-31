@@ -102,7 +102,7 @@ trainer = ppo.PPOTrainer(
     env="furniture-sawyer-tablelack-v0",
     config={
         "framework": "torch",
-        "num_workers": parsed.num_workers - 1,
+        "num_workers": max(1, parsed.num_workers - 1),
         "callbacks": MyCallbacks,
         "env_config": env_config,
         # "train_batch_size": 200,
