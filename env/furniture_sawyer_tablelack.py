@@ -231,7 +231,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 phase_bonus = -125
                 done = True
             if phase_info[f"{phase}_succ"]:
-                phase_bonus = self._phase_bonus * 2
+                phase_bonus = self._phase_bonus * 8
             if phase_info["connect_succ"]:
                 done = True
                 phase_bonus = 1000
@@ -269,7 +269,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         else:
             rew = -eef_above_leg_distance * self._pos_dist_coef
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
-        info["move_eef_above_leg_succ"] = xy_distance < 0.015 and z_distance < 0.02
+        info["move_eef_above_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.02)
         return rew, info
 
     def _lower_eef_to_leg_reward(self) -> Tuple[float, dict]:
@@ -294,7 +294,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         else:
             rew = -eef_leg_distance * self._pos_dist_coef
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
-        info["lower_eef_to_leg_succ"] = xy_distance < 0.015 and z_distance < 0.01
+        info["lower_eef_to_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.01)
         return rew, info
 
     def _grasp_leg_reward(self, ac) -> Tuple[float, dict]:
@@ -306,7 +306,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         rew = (leg_touched - 1) * self._touch_coef
         info = {"touch": leg_touched, "touch_rew": rew}
         grasp = ac[-2] > (0 if self._discrete_grip else 0.9)
-        info["grasp_leg_succ"] = leg_touched and grasp
+        info["grasp_leg_succ"] = int(leg_touched and grasp)
         return rew, info
 
     def _move_leg_reward(self) -> Tuple[float, dict]:
@@ -336,7 +336,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         move_ang_dist = T.cos_siml(leg_up, table_up)
         ang_rew = (move_ang_dist - 1) * self._align_rot_dist_coef
         info.update({"move_ang_dist": move_ang_dist, "move_ang_rew": ang_rew})
-        info["move_leg_succ"] = move_pos_distance < 0.06 and move_ang_dist > 0.85
+        info["move_leg_succ"] = int(move_pos_distance < 0.06 and move_ang_dist > 0.85)
         rew = pos_rew + ang_rew
         return rew, info
 
@@ -382,7 +382,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
-        info["move_leg_fine_succ"] = (
+        info["move_leg_fine_succ"] = int(
             xy_distance <= 0.005
             and z_distance < 0.01
             and move_ang_dist > 0.97
@@ -395,7 +395,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         if info["move_leg_fine_succ"]:
             info["connect_rew"] = ac[-1] * 50
             rew += info["connect_rew"]
-        info["connect_succ"] = info["move_leg_fine_succ"] and ac[-1] > 0
+        info["connect_succ"] = int(info["move_leg_fine_succ"] and ac[-1] > 0)
         return rew, info
 
     def _stable_grip_reward(self) -> Tuple[float, dict]:
@@ -424,7 +424,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # print(f"Close to 0; eef_leg_up_siml: {eef_leg_up_dist}")
         # print(f"Close to 1 or -1; eef_leg_left_dist: {eef_leg_left_dist}")
         rew = eef_leg_up_rew + eef_leg_left_rew
-        info["stable_grip_succ"] = (
+        info["stable_grip_succ"] = int(
             np.abs(eef_leg_up_dist) < self._rot_threshold
             and np.abs(eef_leg_left_dist) > 1 - self._rot_threshold
         )
@@ -441,7 +441,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         dist = np.linalg.norm(above_conn_pos - leg_conn_pos)
         rew = -dist * self._pos_dist_coef
         info = {"lower_leg_fine_dist": dist, "lower_leg_fine_rew": rew}
-        info["lower_leg_fine_succ"] = dist < 0.01
+        info["lower_leg_fine_succ"] = int(dist < 0.01)
         assert rew <= 0
         return rew, info
 
