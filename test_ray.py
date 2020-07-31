@@ -38,7 +38,7 @@ class FurnitureGym(gym.Env):
         # create an environment
         self.env = make_env(name, config)
         self.observation_space = self.env.observation_space
-        self.action_space = self.env.action_space
+        self.action_space = self.env.action_space["default"]
         self._max_episode_steps = config.max_episode_steps
 
     def reset(self):
@@ -46,7 +46,8 @@ class FurnitureGym(gym.Env):
         return obs
 
     def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+        ac = gym.spaces.Dict({"default": action})
+        obs, reward, done, info = self.env.step(ac)
         return obs, reward, done, info
 
     def render(self, mode="human"):
