@@ -7,6 +7,7 @@ def add_argument(parser):
     parser.add_argument("--pos_threshold", type=float, default=0.015)
     parser.add_argument("--rot_threshold", type=float, default=0.05)
     parser.add_argument("--discrete_grip", type=str2bool, default=True)
+    parser.add_argument("--easy_init", type=str2bool, default=True)
 
     # environment offsets
     parser.add_argument("--above_leg_z", type=float, default=0.05)

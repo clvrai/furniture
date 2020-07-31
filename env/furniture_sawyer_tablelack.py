@@ -40,14 +40,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._rot_threshold = config.rot_threshold
         self._rot_dist_coef = config.rot_dist_coef
         self._pos_dist_coef = config.pos_dist_coef
-        self._above_leg_z = config.above_leg_z
         self._gripper_penalty_coef = config.gripper_penalty_coef
         self._align_rot_dist_coef = config.align_rot_dist_coef
         self._fine_align_rot_dist_coef = config.fine_align_rot_dist_coef
         self._fine_pos_dist_coef = config.fine_pos_dist_coef
         self._touch_coef = config.touch_coef
-        # requires multiple connection actions to make connection between two
-        # parts.
+
         self._num_connect_steps = 0
         self._discrete_grip = config.discrete_grip
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
@@ -55,32 +53,43 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._phases.extend(["move_leg", "move_leg_fine"])
         # Load the furniture recipe
         with open("demos/recipes/" + config.furniture_name + ".yaml", "r") as stream:
-            self._recipe = yaml.load(stream, Loader=PrettySafeLoader)["recipe"]
+            data = yaml.load(stream, Loader=PrettySafeLoader)
+            self._recipe = data["recipe"]
+            self._site_recipe = data["site_recipe"]
         self._used_connsites = set()
+        self._easy_init = config.easy_init
 
     def _reset_reward_variables(self):
-        self._phase_i = 1
-        self._current_leg, self._current_table = self._recipe[0]
-        leg_sites, table_sites = self.get_connsites(
-            self._current_leg, self._current_table
-        )
-        eef_pos = self._get_gripper_pos()
-        # get the closest leg to eef, and closest table site to leg site
-        # self._current_leg_site = self.get_closest_connsite(leg_sites, eef_pos[:3])
-        self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
-        # leg_site_pos = self._get_pos(self._current_leg_site)
-        # self._current_table_site = self.get_closest_connsite(table_sites, leg_site_pos)
-        self._current_table_site = "table-leg,0,90,180,270,conn_site1"
+
+        if self._easy_init:
+            self._phase_i = 1
+            self._current_leg = "0_part0"
+            self._current_table = "4_part4"
+            self._current_leg_site = "leg-table,0,90,180,270,conn_site1"
+            self._current_table_site = "table-leg,0,90,180,270,conn_site1"
+        else:
+            self._phase_i = 0
+            self._current_leg, self._current_table = self._recipe[0]
+            self._current_leg_site = self._site_recipe[0][0]
+            self._current_table_site = self._site_recipe[0][1]
         self._subtask_part1 = self._object_name2id[self._current_leg]
         self._subtask_part2 = self._object_name2id[self._current_table]
 
         if self._diff_rew:
-            leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
-            leg_pos2 = leg_pos1 + [0, 0, 0.03]
-            leg_pos = np.concatenate([leg_pos1, leg_pos2])
-            xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-            z_distance = np.abs(eef_pos[2] - leg_pos[2])
-            self._prev_eef_leg_distance = xy_distance + z_distance
+            if self._easy_init:  # start from lowering leg
+                eef_pos = self._get_gripper_pos()
+                leg_pos1 = self._get_pos(self._current_leg) + [0, 0, -0.015]
+                leg_pos2 = leg_pos1 + [0, 0, 0.03]
+                leg_pos = np.concatenate([leg_pos1, leg_pos2])
+                xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+                z_distance = np.abs(eef_pos[2] - leg_pos[2])
+                self._prev_eef_leg_distance = xy_distance + z_distance
+            else:
+                eef_pos = self._get_pos("griptip_site")
+                leg_pos = self._get_pos(self._current_leg) + [0, 0, 0.05]
+                xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+                z_distance = np.abs(eef_pos[2] - leg_pos[2])
+                self._prev_eef_above_leg_distance = xy_distance + z_distance
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -101,17 +110,18 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
     def _load_model_robot(self):
         super()._load_model_robot()
-        self.mujoco_robot.init_qpos = np.array(
-            [
-                -0.42712737,
-                -0.43924895,
-                0.28867949,
-                1.67995968,
-                -0.68637055,
-                0.41797763,
-                2.18509774,
-            ]
-        )
+        if self._easy_init:
+            self.mujoco_robot.init_qpos = np.array(
+                [
+                    -0.42712737,
+                    -0.43924895,
+                    0.28867949,
+                    1.67995968,
+                    -0.68637055,
+                    0.41797763,
+                    2.18509774,
+                ]
+            )
 
     def _place_objects(self):
         """
@@ -122,13 +132,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             xpos: x,y,z position of the objects in world frame
             xquat: quaternion of the objects
         """
-        # pos_init = {
-        #     "0_part0": [0.31343275, -0.2 + 0.35850108, 0.01831519],
-        #     "1_part1": [-0.24890323, -0.2 + 0.43996071, 0.01830461],
-        #     "2_part2": [-0.25975243, -0.2 + 0.35248785, 0.0183152],
-        #     "3_part3": [0.31685774, -0.2 + 0.44853931, 0.0183046],
-        #     "4_part4": [0.03014604, -0.2 + 0.09554463, 0.01972958],
-        # }
+        if not self._easy_init:
+            return super()._place_objects()
         pos_init = {
             "0_part0": [0.0055512, 0.09120562, 0.01831519],
             "1_part1": [-0.24890323, -10.2 + 0.43996071, 0.01830461],
@@ -252,16 +257,19 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         Return negative eucl distance
         """
-        eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._current_leg)
-        leg_pos1[2] = self._above_leg_z
-        leg_pos2 = leg_pos1 + [0, 0, 0.03]
-        leg_pos = np.concatenate([leg_pos1, leg_pos2])
-        eef_above_leg_distance = np.linalg.norm(eef_pos - leg_pos)
-        rew = -eef_above_leg_distance * self._pos_dist_coef
+        eef_pos = self._get_pos("griptip_site")
+        leg_pos = self._get_pos(self._current_leg) + [0, 0, 0.05]
+        xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+        z_distance = np.abs(eef_pos[2] - leg_pos[2])
+        eef_above_leg_distance = xy_distance + z_distance
+        if self._diff_rew:
+            offset = self._prev_eef_above_leg_distance - eef_above_leg_distance
+            rew = offset * self._pos_dist_coef
+            self._prev_eef_above_leg_distance = eef_above_leg_distance
+        else:
+            rew = -eef_above_leg_distance * self._pos_dist_coef
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
-        info["move_eef_above_leg_succ"] = eef_above_leg_distance < 0.03
-        assert rew <= 0
+        info["move_eef_above_leg_succ"] = xy_distance < 0.015 and z_distance < 0.02
         return rew, info
 
     def _lower_eef_to_leg_reward(self) -> Tuple[float, dict]:
@@ -561,9 +569,11 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerTableLackEnv(config)
-    for i in range(100):
-        env.reset()
-    # env.run_manual(config)
+    # for i in range(100):
+    #     env.reset()
+    #     env.render()
+    #     print("resetting", i)
+    env.run_manual(config)
 
 
 if __name__ == "__main__":
