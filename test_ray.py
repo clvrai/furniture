@@ -6,7 +6,7 @@ import gym
 import numpy as np
 import ray
 from ray import tune
-from ray.rllib.agents import ppo
+from ray.rllib.agents import ppo, sac
 from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.env import BaseEnv
 from ray.rllib.evaluation import MultiAgentEpisode, RolloutWorker
@@ -98,16 +98,25 @@ if parsed.gpu is not None:
 
 register_env("furniture-sawyer-tablelack-v0", env_creator)
 ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
-trainer = ppo.PPOTrainer(
+# trainer = ppo.PPOTrainer(
+#     env="furniture-sawyer-tablelack-v0",
+#     config={
+#         "framework": "torch",
+#         "num_workers": max(1, parsed.num_workers - 1),
+#         "callbacks": MyCallbacks,
+#         "env_config": env_config,
+#         "observation_filter": "MeanStdFilter",
+#         "train_batch_size": 8000,
+#         "rollout_fragment_length": 200
+#     },
+# )
+trainer = sac.SACTrainer(
     env="furniture-sawyer-tablelack-v0",
     config={
         "framework": "torch",
-        "num_workers": max(1, parsed.num_workers - 1),
         "callbacks": MyCallbacks,
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
-        "train_batch_size": 8000,
-        "rollout_fragment_length": 200
     },
 )
 
