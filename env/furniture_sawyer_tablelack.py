@@ -188,8 +188,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         if phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
+                print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                phase_bonus = 5
                 eef_pos = self._get_gripper_pos()
                 leg_pos1 = self._get_pos(self._leg) + [0, 0, -0.015]
                 leg_pos2 = leg_pos1 + [0, 0, 0.03]
@@ -201,11 +202,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 print(f"DONE WITH PHASE {phase}")
+                phase_bonus = 50
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
         elif phase == "grasp_leg":
             phase_reward, phase_info = self._grasp_leg_reward(ac)
-            if phase_info[f"{phase}_succ"]:
+            if phase_info[f"grasp_leg_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
@@ -279,7 +280,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             self._prev_eef_above_leg_distance = eef_above_leg_distance
         else:
             rew = -eef_above_leg_distance * self._pos_dist_coef
-        info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_leg_rew": rew}
+        info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_above_leg_rew": rew}
         info["move_eef_above_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.02)
         return rew, info
 
@@ -292,9 +293,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         info = {}
         eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._leg) + [0, 0, -0.015]
-        leg_pos2 = leg_pos1 + [0, 0, 0.03]
-        leg_pos = np.concatenate([leg_pos1, leg_pos2])
+        leg_pos = self._get_pos(self._leg) + [0, 0, -0.015]
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_distance = xy_distance + z_distance
@@ -310,14 +309,22 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
     def _grasp_leg_reward(self, ac) -> Tuple[float, dict]:
         """
-        Grasp the leg
+        Grasp the leg, making sure it is in position
         """
+        rew, info = self._lower_eef_to_leg_reward()
+        # if eef in correct position, add additional grasping success
+        info.update({"grasp_leg_succ": 0, "grasp_leg_rew": 0})
+
         left, right = self._finger_contact(self._leg)
         leg_touched = int(left and right)
-        rew = (leg_touched - 1) * self._touch_coef
-        info = {"touch": leg_touched, "touch_rew": rew}
-        grasp = ac[-2] > (0 if self._discrete_grip else 0.9)
-        info["grasp_leg_succ"] = int(leg_touched and grasp)
+        info["touch"] = leg_touched
+        grasp = ac[-2] > 0.5
+        info["grasp_leg_succ"] = int(
+            leg_touched and grasp and info["lower_eef_to_leg_succ"]
+        )
+        info["grasp_leg_rew"] = (ac[-2] - 1) * self._gripper_penalty_coef
+        # gripper rew, 1 if closed
+        rew += info["grasp_leg_rew"]
         return rew, info
 
     def _move_leg_reward(self) -> Tuple[float, dict]:
@@ -452,8 +459,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
     def _gripper_penalty(self, ac) -> Tuple[float, dict]:
         """
-        Give penalty on status of gripper.
-
+        Give penalty on status of gripper. Only give it on phases where
+        gripper should close
         Returns 0 if gripper is in desired position, range is [-2, 0]
         """
         if self._discrete_grip:
@@ -461,7 +468,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             ac[-2] = -1 if ac[-2] < 0 else 1
         grip_open = self._phases[self._phase_i] in self._grip_open_phases
         # ac[-2] is -1 for open, 1 for closed
-        rew = (-1 - ac[-2] if grip_open else ac[-2] - 1) * self._gripper_penalty_coef
+        rew = 0
+        if not grip_open:
+            rew = (
+                -1 - ac[-2] if grip_open else ac[-2] - 1
+            ) * self._gripper_penalty_coef
         assert rew <= 0
         info = {"gripper_penalty": rew}
         return rew, info
