@@ -2,6 +2,7 @@ from typing import Tuple
 
 import numpy as np
 import yaml
+import os
 
 import env.transform_utils as T
 from env.furniture_sawyer import FurnitureSawyerEnv
@@ -52,7 +53,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"]
         self._phases.extend(["move_leg", "move_leg_fine"])
         # Load the furniture recipe
-        with open("demos/recipes/" + config.furniture_name + ".yaml", "r") as stream:
+        fullpath = os.path.join(
+            os.path.dirname(__file__), f"../demos/recipes/{config.furniture_name}.yaml"
+        )
+        with open(fullpath, "r") as stream:
             data = yaml.load(stream, Loader=PrettySafeLoader)
             self._recipe = data["recipe"]
             self._site_recipe = data["site_recipe"]
