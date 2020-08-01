@@ -116,7 +116,7 @@ if parsed.gpu is not None:
     # os.environ["CUDA_VISIBLE_DEVICES"] = f"{parsed.gpu}"
 
 register_env("furniture-sawyer-tablelack-v0", env_creator)
-ray.init(num_cpus=72, num_gpus=4)
+ray.init(num_cpus=66, num_gpus=4)
 
 env_grid_search = {
     "reward_scale": tune.grid_search([10, 100]),
@@ -127,17 +127,22 @@ env_grid_search = {
     "fine_pos_dist_coef": tune.grid_search([5, 10, 20]),
     "phase_bonus": tune.grid_search([50, 100])
 }
+
+def stopper(trial_id, result):
+    success = result["custom_metrics"]["phase_mean"] >= 5
+    earlystop = result["timesteps_total"] > 1000000 and result["custom_metrics"]["phase_max"] < 1
+    return success or earlystop
+
 tune.run(
     "SAC",
-    stop={"timesteps_total": 5e6},
+    stop=stopper,
     config={
         "env": "furniture-sawyer-tablelack-v0",
         "framework": "torch",
         "callbacks": MyCallbacks,
         "env_config": {**env_config, **env_grid_search},
         "observation_filter": "MeanStdFilter",
-        "num_workers": 1,
-        "timesteps_per_iteration": tune.grid_search([10, 50, 100]),
+        "num_workers": 0,
+        "num_gpus": 0.08,
     },
-    resources_per_trial={"cpu": 1, "gpu": 0.1}
 )
