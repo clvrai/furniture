@@ -202,7 +202,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 print(f"DONE WITH PHASE {phase}")
-                phase_bonus = 25
+                phase_bonus = 50
                 self._phase_i += 1
         elif phase == "grasp_leg":
             phase_reward, phase_info = self._grasp_leg_reward(ac)
