@@ -1,4 +1,3 @@
-import argparse
 from typing import Dict
 import os
 
@@ -6,14 +5,10 @@ import gym
 import numpy as np
 import ray
 from ray import tune
-from ray.rllib.agents import ppo
-from ray.rllib.agents.sac import SACTorchPolicy, SACTrainer
-from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.env import BaseEnv
 from ray.rllib.evaluation import MultiAgentEpisode, RolloutWorker
 from ray.rllib.policy import Policy
-from ray.rllib.policy.sample_batch import SampleBatch
 from ray.tune.registry import register_env
 
 from config import create_parser
@@ -107,6 +102,8 @@ parser = create_parser(env="furniture-sawyer-tablelack-v0")
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--gpu", type=int, default=None)
 parser.add_argument("--reward_scale", type=float, default=50)
+parser.add_argument("--run_prefix", type=str)
+
 
 parsed, unparsed = parser.parse_known_args()
 env_config = parsed.__dict__
@@ -119,16 +116,25 @@ if parsed.gpu is not None:
 register_env("furniture-sawyer-tablelack-v0", env_creator)
 ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
 
-trainer = SACTrainer(
-    env="furniture-sawyer-tablelack-v0",
+
+def stopper(trial_id, result):
+    success = result["custom_metrics"]["phase_mean"] >= 5
+    earlystop = (
+        result["timesteps_total"] > 1000000
+        and result["custom_metrics"]["phase_max"] < 1
+    )
+    return success or earlystop
+
+
+tune.run(
+    "SAC",
     config={
+        "env": "furniture-sawyer-tablelack-v0",
         "framework": "torch",
         "callbacks": MyCallbacks,
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
         "num_workers": max(parsed.num_workers - 1, 0),
     },
+    name=parsed.run_prefix
 )
-
-while True:
-    info = trainer.train()
