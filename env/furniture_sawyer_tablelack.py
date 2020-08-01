@@ -50,7 +50,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._num_connect_steps = 0
         self._discrete_grip = config.discrete_grip
         self._grip_open_phases = set(["move_eef_above_leg", "lower_eef_to_leg"])
-        self._phases = ["move_eef_above_leg", "lower_eef_to_leg", "grasp_leg"]
+        self._phases = ["move_eef_above_leg", "lower_eef_to_leg"]
         self._phases.extend(["move_leg", "move_leg_fine"])
         # Load the furniture recipe
         fullpath = os.path.join(
@@ -188,6 +188,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         if phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
+                print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus = 5
                 eef_pos = self._get_gripper_pos()
@@ -198,15 +199,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 z_distance = np.abs(eef_pos[2] - leg_pos[2])
                 self._prev_eef_leg_distance = xy_distance + z_distance
         elif phase == "lower_eef_to_leg":
-            phase_reward, phase_info = self._lower_eef_to_leg_reward()
+            phase_reward, phase_info = self._lower_eef_to_leg_reward(ac)
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 print(f"DONE WITH PHASE {phase}")
-                self._phase_i += 1
-                phase_bonus = self._phase_bonus
-        elif phase == "grasp_leg":
-            phase_reward, phase_info = self._grasp_leg_reward(ac)
-            if phase_info[f"{phase}_succ"]:
-                print(f"DONE WITH PHASE {phase}")
+                phase_bonus = 25
+            if phase_info[f"grasp_leg_succ"] and sg_info["stable_grip_succ"]:
+                print("DONE WITH PHASE grasp_leg")
                 self._phase_i += 1
                 phase_bonus = self._phase_bonus
                 above_table_site = self._get_pos(self._table_site)
@@ -218,6 +216,21 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 leg_up = self._get_up_vector(self._leg_site)
                 table_up = self._get_up_vector(self._table_site)
                 self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
+        # elif phase == "grasp_leg":
+        #     phase_reward, phase_info = self._grasp_leg_reward(ac)
+        #     if phase_info[f"{phase}_succ"]:
+        #         print(f"DONE WITH PHASE {phase}")
+        #         self._phase_i += 1
+        #         phase_bonus = self._phase_bonus
+        #         above_table_site = self._get_pos(self._table_site)
+        #         above_table_site[2] += 0.05
+        #         leg_site = self._get_pos(self._leg_site)
+        #         self._prev_move_pos_distance = np.linalg.norm(
+        #             above_table_site - leg_site
+        #         )
+        #         leg_up = self._get_up_vector(self._leg_site)
+        #         table_up = self._get_up_vector(self._table_site)
+        #         self._prev_move_ang_dist = T.cos_siml(leg_up, table_up)
         elif phase == "move_leg":
             phase_reward, phase_info = self._move_leg_reward()
             if not phase_info["touch"]:
@@ -283,7 +296,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["move_eef_above_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.02)
         return rew, info
 
-    def _lower_eef_to_leg_reward(self) -> Tuple[float, dict]:
+    def _lower_eef_to_leg_reward(self, ac) -> Tuple[float, dict]:
         """
         Moves the eef over the leg and rotates the wrist.
         Negative euclidean distance between eef xy and leg xy.
@@ -292,9 +305,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         info = {}
         eef_pos = self._get_gripper_pos()
-        leg_pos1 = self._get_pos(self._leg) + [0, 0, -0.015]
-        leg_pos2 = leg_pos1 + [0, 0, 0.03]
-        leg_pos = np.concatenate([leg_pos1, leg_pos2])
+        leg_pos = self._get_pos(self._leg) + [0, 0, -0.015]
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_distance = xy_distance + z_distance
@@ -306,6 +317,18 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             rew = -eef_leg_distance * self._pos_dist_coef
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
         info["lower_eef_to_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.01)
+
+        # if eef in correct position, add additional grasping success
+        info.update({"grasp_leg_succ": 0, "grasp_leg_rew": 0})
+        if info["lower_eef_to_leg_succ"]:
+            left, right = self._finger_contact(self._leg)
+            leg_touched = int(left and right)
+            info["touch"] = leg_touched
+            grasp = ac[-2] > 0.5
+            info["grasp_leg_succ"] = int(leg_touched and grasp)
+            info["grasp_rew"] = (ac[-2] - 1)
+            # gripper rew, 1 if closed
+            rew += info["grasp_rew"]
         return rew, info
 
     def _grasp_leg_reward(self, ac) -> Tuple[float, dict]:
@@ -452,8 +475,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
     def _gripper_penalty(self, ac) -> Tuple[float, dict]:
         """
-        Give penalty on status of gripper.
-
+        Give penalty on status of gripper. Only give it on phases where
+        gripper should close
         Returns 0 if gripper is in desired position, range is [-2, 0]
         """
         if self._discrete_grip:
@@ -461,7 +484,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             ac[-2] = -1 if ac[-2] < 0 else 1
         grip_open = self._phases[self._phase_i] in self._grip_open_phases
         # ac[-2] is -1 for open, 1 for closed
-        rew = (-1 - ac[-2] if grip_open else ac[-2] - 1) * self._gripper_penalty_coef
+        if not grip_open:
+            rew = (-1 - ac[-2] if grip_open else ac[-2] - 1) * self._gripper_penalty_coef
         assert rew <= 0
         info = {"gripper_penalty": rew}
         return rew, info
