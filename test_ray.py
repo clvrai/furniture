@@ -6,7 +6,9 @@ import gym
 import numpy as np
 import ray
 from ray import tune
-from ray.rllib.agents import ppo, sac
+from ray.rllib.agents import ppo
+from ray.rllib.agents.sac import SACTorchPolicy, SACTrainer
+from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.env import BaseEnv
 from ray.rllib.evaluation import MultiAgentEpisode, RolloutWorker
@@ -46,9 +48,8 @@ class FurnitureGym(gym.Env):
         return obs
 
     def step(self, action):
-        ac = gym.spaces.Dict({"default": action})
-        obs, reward, done, info = self.env.step(ac)
-        return obs, reward, done, info
+        ac = {"default": action}
+        return self.env.step(ac)
 
     def render(self, mode="human"):
         return self.env.render(mode)
@@ -62,14 +63,24 @@ def env_creator(env_config: dict):
 
 
 class MyCallbacks(DefaultCallbacks):
-    def on_episode_start(self, worker: RolloutWorker, base_env: BaseEnv,
-                         policies: Dict[str, Policy],
-                         episode: MultiAgentEpisode, **kwargs):
+    def on_episode_start(
+        self,
+        worker: RolloutWorker,
+        base_env: BaseEnv,
+        policies: Dict[str, Policy],
+        episode: MultiAgentEpisode,
+        **kwargs,
+    ):
         print("episode {} started".format(episode.episode_id))
         assert len(episode.user_data) == 0
 
-    def on_episode_step(self, worker: RolloutWorker, base_env: BaseEnv,
-                        episode: MultiAgentEpisode, **kwargs):
+    def on_episode_step(
+        self,
+        worker: RolloutWorker,
+        base_env: BaseEnv,
+        episode: MultiAgentEpisode,
+        **kwargs,
+    ):
         info = episode.last_info_for()
         if info:
             for k, v in info.items():
@@ -77,9 +88,14 @@ class MyCallbacks(DefaultCallbacks):
                     episode.user_data[k] = []
                 episode.user_data[k].append(v)
 
-    def on_episode_end(self, worker: RolloutWorker, base_env: BaseEnv,
-                       policies: Dict[str, Policy], episode: MultiAgentEpisode,
-                       **kwargs):
+    def on_episode_end(
+        self,
+        worker: RolloutWorker,
+        base_env: BaseEnv,
+        policies: Dict[str, Policy],
+        episode: MultiAgentEpisode,
+        **kwargs,
+    ):
         for k, v in episode.user_data.items():
             episode.custom_metrics[k] = np.sum(v)
             episode.hist_data[k] = v
@@ -111,13 +127,34 @@ ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
 #         "rollout_fragment_length": 200
 #     },
 # )
-trainer = sac.SACTrainer(
+
+
+def scale_reward(policy, sample_batch, other_agent_batches=None, episode=None):
+    assert isinstance(sample_batch[SampleBatch.REWARDS], np.ndarray)
+    sample_batch[SampleBatch.REWARDS] = (
+        sample_batch[SampleBatch.REWARDS] * policy.config["reward_scale"]
+    )
+    print("scaling reward!")
+    return sample_batch
+
+
+RewardScaledSACTorchPolicy = SACTorchPolicy.with_updates(
+    name="RewardScalePolicy", postprocess_fn=scale_reward
+)
+
+RewardScaledSACTrainer = SACTrainer.with_updates(
+    default_policy=RewardScaledSACTorchPolicy
+)
+
+trainer = RewardScaledSACTrainer(
     env="furniture-sawyer-tablelack-v0",
     config={
         "framework": "torch",
         "callbacks": MyCallbacks,
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
+        "num_workers": 0,
+        "learning_starts": 0
     },
 )
 
