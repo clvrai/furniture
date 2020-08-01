@@ -484,6 +484,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             ac[-2] = -1 if ac[-2] < 0 else 1
         grip_open = self._phases[self._phase_i] in self._grip_open_phases
         # ac[-2] is -1 for open, 1 for closed
+        rew = 0
         if not grip_open:
             rew = (-1 - ac[-2] if grip_open else ac[-2] - 1) * self._gripper_penalty_coef
         assert rew <= 0
