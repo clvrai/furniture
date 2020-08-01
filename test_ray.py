@@ -128,6 +128,7 @@ def stopper(trial_id, result):
 
 tune.run(
     "SAC",
+    stop=stopper,
     config={
         "env": "furniture-sawyer-tablelack-v0",
         "framework": "torch",
