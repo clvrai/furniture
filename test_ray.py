@@ -126,6 +126,17 @@ def stopper(trial_id, result):
     return success or earlystop
 
 
+def create_trial_fn(parsed):
+    name = parsed.run_prefix
+
+    def trial_str_creator(trial):
+        return name
+
+    return trial_str_creator
+
+
+trial_str_creator = create_trial_fn(parsed)
+
 tune.run(
     "SAC",
     stop=stopper,
@@ -136,6 +147,7 @@ tune.run(
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
         "num_workers": max(parsed.num_workers - 1, 0),
+        "num_gpus": 1
     },
-    name=parsed.run_prefix
+    trial_name_creator=tune.function(trial_str_creator),
 )
