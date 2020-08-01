@@ -106,6 +106,8 @@ class MyCallbacks(DefaultCallbacks):
 parser = create_parser(env="furniture-sawyer-tablelack-v0")
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--gpu", type=int, default=None)
+parser.add_argument("--reward_scale", type=float, default=5)
+parser.add_argument("--timesteps_per_iteration", type=float, default=100)
 
 parsed, unparsed = parser.parse_known_args()
 env_config = parsed.__dict__
@@ -139,6 +141,7 @@ trainer = SACTrainer(
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
         "num_workers": max(parsed.num_workers - 1, 0),
+        "timesteps_per_iteration": parsed.timesteps_per_iteration,
     },
 )
 
