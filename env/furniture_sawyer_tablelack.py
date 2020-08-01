@@ -322,9 +322,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["grasp_leg_succ"] = int(
             leg_touched and grasp and info["lower_eef_to_leg_succ"]
         )
-        info["grasp_rew"] = ac[-2] - 1
+        info["grasp_leg_rew"] = (ac[-2] - 1) * self._gripper_penalty_coef
         # gripper rew, 1 if closed
-        rew += info["grasp_rew"]
+        rew += info["grasp_leg_rew"]
         return rew, info
 
     def _move_leg_reward(self) -> Tuple[float, dict]:
