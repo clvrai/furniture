@@ -106,8 +106,7 @@ class MyCallbacks(DefaultCallbacks):
 parser = create_parser(env="furniture-sawyer-tablelack-v0")
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--gpu", type=int, default=None)
-parser.add_argument("--reward_scale", type=float, default=5)
-parser.add_argument("--timesteps_per_iteration", type=float, default=100)
+parser.add_argument("--reward_scale", type=float, default=50)
 
 parsed, unparsed = parser.parse_known_args()
 env_config = parsed.__dict__
@@ -119,19 +118,6 @@ if parsed.gpu is not None:
 
 register_env("furniture-sawyer-tablelack-v0", env_creator)
 ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
-# trainer = ppo.PPOTrainer(
-#     env="furniture-sawyer-tablelack-v0",
-#     config={
-#         "framework": "torch",
-#         "num_workers": max(1, parsed.num_workers - 1),
-#         "callbacks": MyCallbacks,
-#         "env_config": env_config,
-#         "observation_filter": "MeanStdFilter",
-#         "train_batch_size": 8000,
-#         "rollout_fragment_length": 200
-#     },
-# )
-
 
 trainer = SACTrainer(
     env="furniture-sawyer-tablelack-v0",
@@ -141,7 +127,6 @@ trainer = SACTrainer(
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
         "num_workers": max(parsed.num_workers - 1, 0),
-        "timesteps_per_iteration": parsed.timesteps_per_iteration,
     },
 )
 
