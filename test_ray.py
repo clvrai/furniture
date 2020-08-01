@@ -42,6 +42,7 @@ class FurnitureGym(gym.Env):
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space["default"]
         self._max_episode_steps = config.max_episode_steps
+        self._reward_scale = config.reward_scale
 
     def reset(self):
         obs = self.env.reset()
@@ -49,7 +50,8 @@ class FurnitureGym(gym.Env):
 
     def step(self, action):
         ac = {"default": action}
-        return self.env.step(ac)
+        obs, rew, done, info = self.env.step(ac)
+        return obs, rew * self._reward_scale, done, info
 
     def render(self, mode="human"):
         return self.env.render(mode)
@@ -129,32 +131,14 @@ ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
 # )
 
 
-def scale_reward(policy, sample_batch, other_agent_batches=None, episode=None):
-    assert isinstance(sample_batch[SampleBatch.REWARDS], np.ndarray)
-    sample_batch[SampleBatch.REWARDS] = (
-        sample_batch[SampleBatch.REWARDS] * policy.config["reward_scale"]
-    )
-    print("scaling reward!")
-    return sample_batch
-
-
-RewardScaledSACTorchPolicy = SACTorchPolicy.with_updates(
-    name="RewardScalePolicy", postprocess_fn=scale_reward
-)
-
-RewardScaledSACTrainer = SACTrainer.with_updates(
-    default_policy=RewardScaledSACTorchPolicy
-)
-
-trainer = RewardScaledSACTrainer(
+trainer = SACTrainer(
     env="furniture-sawyer-tablelack-v0",
     config={
         "framework": "torch",
         "callbacks": MyCallbacks,
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
-        "num_workers": 0,
-        "learning_starts": 0
+        "num_workers": max(parsed.num_workers - 1, 0),
     },
 )
 
