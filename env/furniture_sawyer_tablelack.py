@@ -205,6 +205,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 print(f"DONE WITH PHASE {phase}")
                 phase_bonus = 50
                 self._phase_i += 1
+                self._prev_grasp_leg_rew = ac[-2]
         elif phase == "grasp_leg":
             phase_reward, phase_info = self._grasp_leg_reward(ac)
             if phase_info[f"grasp_leg_succ"]:
@@ -323,7 +324,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["grasp_leg_succ"] = int(
             leg_touched and grasp
         )
-        info["grasp_leg_rew"] = (ac[-2] - 1) * self._gripper_penalty_coef * 40
+        # closed gripper is 1, want to maximize gripper
+        offset = ac[-2] - self._prev_grasp_leg_rew
+        grasp_leg_rew = offset * self._gripper_penalty_coef * 40
+        self._prev_grasp_leg_rew = ac[-2]
+        info["grasp_leg_rew"] = grasp_leg_rew
 
         touch_rew = (leg_touched - 1) * self._touch_coef
         info.update({"touch": leg_touched, "touch_rew": touch_rew})
