@@ -374,6 +374,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # give one time reward for lifting the leg
         leg_lift = leg_site[2] > (self._init_leg_pos[2] + 0.002)
         if leg_lift and not self._leg_lift:
+            print("lift leg")
             self._leg_lift = True
             rew += 10
         return rew, info
