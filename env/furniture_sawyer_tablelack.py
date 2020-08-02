@@ -78,6 +78,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             self._table_site = self._site_recipe[0][1]
         self._subtask_part1 = self._object_name2id[self._leg]
         self._subtask_part2 = self._object_name2id[self._table]
+        self._touched = False
 
         if self._diff_rew:
             if self._easy_init:  # start from lowering leg
@@ -327,7 +328,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         touch_rew = (leg_touched - 1) * self._touch_coef
         info.update({"touch": leg_touched, "touch_rew": touch_rew})
         # gripper rew, 1 if closed
+        # further bonus for touch
+        if leg_touched and not self._touched:
+            touch_rew += 10
+            self._touched = True
         rew += (info["grasp_leg_rew"] + touch_rew)
+
         return rew, info
 
     def _move_leg_reward(self) -> Tuple[float, dict]:
