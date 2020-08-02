@@ -81,6 +81,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._touched = False
         self._leg_lift = False
         self._init_leg_pos = self._get_pos(self._leg)
+        self._leg_fine_aligned = False
 
         if self._diff_rew:
             if self._easy_init:  # start from lowering leg
@@ -246,8 +247,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 print("Dropped leg")
                 phase_bonus = -125
                 done = True
-            if phase_info[f"{phase}_succ"]:
-                phase_bonus = self._phase_bonus * 8
             if phase_info["connect_succ"]:
                 done = True
                 phase_bonus = 1000
@@ -424,6 +423,10 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["move_leg_fine_succ"] = self._is_aligned(self._leg_site, self._table_site)
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
+        # 1 time bonus for finely aligning the leg
+        if info["move_leg_fine_succ"] and not self._leg_fine_aligned:
+            self._leg_fine_aligned = True
+            rew += 500
         # add additional reward for connection
         if info["move_leg_fine_succ"]:
             info["connect_rew"] = ac[-1] * 50
