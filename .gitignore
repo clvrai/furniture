@@ -2,9 +2,11 @@
 .DS_Store
 *~
 .python-version
+
 # Log
 checkpoint
-log
+/log*
+/result*
 furniture-unity/Assets/StreamingAssets
 
 # Vim

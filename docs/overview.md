@@ -15,7 +15,7 @@ parts together. This process is repeated until the furniture is assembled. You c
 <img src="img/agents/cursor.gif" width="250">
 
 ```bash
-$ python -m demo_manual 
+$ python -m demo_manual
 ```
 We recommend trying the Cursor agent first to get a sense of the furniture and physics.
 The Cursor, Sawyer, and Baxter share a common control scheme. In general, the control is over the movement and rotation of the hand.
@@ -95,17 +95,6 @@ To configure the observations, use the following flags.
 '--depth_ob': bool, whether to include depth map in ob
 '--segmentation_ob': bool, whether to include object segmentation in ob
 ```
-## RL Training
-
-Train block picking up with the provided a SAC implementation. It requires 300k steps to pick up a block.
-```bash
-# gpu: gpu number
-python -m rl.main --env FurnitureBaxterBlockEnv --prefix demo --gpu 0 --reward_scale 3
-```
-See the [`furniture/rl`](../rl) folder for a full SAC implementation that uses the IKEA furniture assembly environment.
-* [`furniture/rl/main.py`](../rl/main.py): sets up log directories and launches a trainer.
-* [`furniture/rl/trainer.py`](../rl/trainer.py): creates IKEA furniture assembly environment and trains an agent.
-* [`furniture/rl/rollouts.py`](../rl/rollouts.py): collects rollouts given an environment and an agent.
 
 ### Gym interface
 Gym interface for the IKEA Furniture Assembly environment is also provided in [`furniture/env/furniture_gym.py`](../env/furniture_gym.py), but the furniture model and background should be predefined when registered (see [`furniture/env/__init__.py`](../env/__init__.py).
@@ -133,8 +122,7 @@ The structure of the repository:
 * `furniture-unity`: Unity project
 * `config`: Argument parser
 * `util`: Utility functions including logger
-* `rl`: Code for RL (SAC and PPO)
-* `docs`: Project website and docs
+* `method`: Code for IL/RL (BC, SAC, and PPO)
 
 ### env folder
 This folder contains the python code for environment scripting. We use many files and functions from the [Robosuite environment](https://github.com/StanfordVL/robosuite). The main files and folders are:
@@ -152,6 +140,8 @@ The next files all extend [`furniture/env/furniture.py`](../env/furniture.py) wi
 - [`furniture/env/furniture_cursor.py`](../env/furniture_cursor.py)
 - [`furniture/env/furniture_sawyer.py`](../env/furniture_sawyer.py)
 - [`furniture/env/furniture_baxter.py`](../env/furniture_baxter.py)
+- [`furniture/env/furniture_panda.py`](../env/furniture_panda.py)
+- [`furniture/env/furniture_jaco.py`](../env/furniture_jaco.py)
 
 These agents override `observation_space`, `dof`, `get_obs`, and `_step`.
 
@@ -167,5 +157,5 @@ This folder is a Unity3d project. You can open it using the Unity Editor to chan
 The code is implemented on top of [DoorGym-Unity](tttps://github.com/PSVL/DoorGym-Unity).
 
 
-### rl folder
-This folder contains an SAC implementation that learns to pick up a furniture part.
+### method folder
+This folder contains BC, SAC, PPO implementation.
