@@ -2702,6 +2702,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Take multiple physics simulation steps, bounded by self._control_timestep
         """
+        # stop moving arm for IK control, critical for BC with IK
+        for arm in self._arms:
+            for qvel_addr in self._ref_joint_vel_indexes[arm]:
+                self.sim.data.qvel[qvel_addr] = 0.0
+        self.sim.forward()
+
         connect = action[-1]
 
         if self._control_type == "ik":
