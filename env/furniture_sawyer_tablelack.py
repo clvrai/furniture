@@ -79,11 +79,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._subtask_part1 = self._object_name2id[self._leg]
         self._subtask_part2 = self._object_name2id[self._table]
         self._touched = False
+        self._leg_lift = False
+        self._init_leg_pos = self._get_pos(self._leg)
 
         if self._diff_rew:
             if self._easy_init:  # start from lowering leg
                 eef_pos = self._get_gripper_pos()
-                leg_pos1 = self._get_pos(self._leg) + [0, 0, -0.015]
+                leg_pos1 = self._init_leg_pos + [0, 0, -0.015]
                 leg_pos2 = leg_pos1 + [0, 0, 0.03]
                 leg_pos = np.concatenate([leg_pos1, leg_pos2])
                 xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
@@ -91,7 +93,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._prev_eef_leg_distance = xy_distance + z_distance
             else:
                 eef_pos = self._get_pos("griptip_site")
-                leg_pos = self._get_pos(self._leg) + [0, 0, 0.05]
+                leg_pos = self._init_leg_pos + [0, 0, 0.05]
                 xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
                 z_distance = np.abs(eef_pos[2] - leg_pos[2])
                 self._prev_eef_above_leg_distance = xy_distance + z_distance
@@ -370,6 +372,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"move_ang_dist": move_ang_dist, "move_ang_rew": ang_rew})
         info["move_leg_succ"] = int(move_pos_distance < 0.06 and move_ang_dist > 0.85)
         rew = pos_rew + ang_rew
+        # give one time reward for lifting the leg
+        leg_lift = leg_site[2] > (self._init_leg_pos[2] + 0.002)
+        if leg_lift and not self._leg_lift:
+            self._leg_lift = True
+            rew += 10
         return rew, info
 
     def _move_leg_fine_reward(self, ac) -> Tuple[float, dict]:
