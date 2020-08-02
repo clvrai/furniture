@@ -250,7 +250,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             if phase_info["connect_succ"]:
                 done = True
                 phase_bonus = 1000
-                self._phase += 1
+                self._phase_i += 1
                 self._success = True
         else:
             phase_reward, phase_info = 0, {}
