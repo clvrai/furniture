@@ -101,8 +101,10 @@ class MyCallbacks(DefaultCallbacks):
 parser = create_parser(env="furniture-sawyer-tablelack-v0")
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--gpu", type=int, default=None)
-parser.add_argument("--reward_scale", type=float, default=50)
+parser.add_argument("--reward_scale", type=float, default=1)
 parser.add_argument("--run_prefix", type=str)
+parser.add_argument("--entropy_coeff", type=float, default=1e-4)
+parser.add_argument("--clip_param", type=float, default=0.3)
 
 
 parsed, unparsed = parser.parse_known_args()
@@ -119,10 +121,13 @@ ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
 
 def stopper(trial_id, result):
     success = result["custom_metrics"]["phase_mean"] >= 5
-    earlystop = (
-        result["timesteps_total"] > 500000
-        and result["custom_metrics"]["phase_max"] < 1
-    )
+    phase_max = result["custom_metrics"]["phase_max"]
+    timesteps = result["timesteps_total"]
+    earlystop = phase_max < 1 and timesteps > 5e5
+    earlystop |= phase_max < 2 and timesteps > 1e6
+    earlystop |= phase_max < 3 and timesteps > 3e6
+    earlystop |= phase_max < 4 and timesteps > 5e6
+
     return success or earlystop
 
 
@@ -138,7 +143,7 @@ def create_trial_fn(parsed):
 trial_str_creator = create_trial_fn(parsed)
 
 tune.run(
-    "SAC",
+    "PPO",
     stop=stopper,
     config={
         "env": "furniture-sawyer-tablelack-v0",
@@ -147,7 +152,9 @@ tune.run(
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
         "num_workers": max(parsed.num_workers - 1, 0),
-        "num_gpus": 1
+        "vf_clip_param": 2000,
+        "entropy_coeff": parsed.entropy_coeff
+        "clip_param": parsed.clip_param,
     },
     trial_name_creator=tune.function(trial_str_creator),
 )
