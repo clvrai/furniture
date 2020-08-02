@@ -261,7 +261,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["phase_bonus"] = phase_bonus
         info = {**info, **ctrl_info, **phase_info, **sg_info, **grip_info}
         # log phase if last frame
-        if self._episode_length == self._env_config["max_episode_steps"] - 1:
+        if self._episode_length == self._env_config["max_episode_steps"] - 1 or done:
             info["phase"] = self._phase_i
         return reward, done, info
 
