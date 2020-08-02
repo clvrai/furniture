@@ -420,7 +420,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
-        info["move_leg_fine_succ"] = self._is_aligned(self._leg_site, self._table_site)
+        info["move_leg_fine_succ"] = int(self._is_aligned(self._leg_site, self._table_site))
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
         # 1 time bonus for finely aligning the leg
