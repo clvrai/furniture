@@ -21,6 +21,12 @@ recipe:
         - !!python/tuple ["3_part3", "4_part4"]
         - !!python/tuple ["1_part1", "4_part4"]
 
+site_recipe:
+        - !!python/tuple ["leg-top,0,90,180,270,conn_site4", "top-leg,0,90,180,270,conn_site4"]
+        # - !!python/tuple ["leg-top,0,90,180,270,conn_site2", "top-leg,0,90,180,270,conn_site4"]
+        # - !!python/tuple ["leg-top,0,90,180,270,conn_site1", "top-leg,0,90,180,270,conn_site1"]
+        # - !!python/tuple ["leg-top,0,90,180,270,conn_site3", "top-leg,0,90,180,270,conn_site3"]
+
 grip_safepos: 
       - 
         - !!python/tuple ["z", 0.25] 

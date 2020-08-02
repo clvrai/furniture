@@ -21,6 +21,11 @@ recipe:
         - !!python/tuple ["1_part1", "3_part3"]
         - !!python/tuple ["3_part3", "2_part2"]
 
+site_recipe:
+        - !!python/tuple ["column-base,conn_site1", base-column,conn_site1"]
+        # - !!python/tuple ["column-topsupp,conn_site2", topsupp-column,conn_site2"]
+        # - !!python/tuple ["topsupp-topplane,conn_site1", topplane-topsupp,conn_site1"]
+
 grip_angles: 
         - 
           -  0
@@ -31,11 +36,11 @@ grip_angles:
 
 grip_safepos: 
       - 
-        - !!python/tuple ["z", 0.38] 
+        - !!python/tuple ["z", 0.34] 
       - 
         - !!python/tuple ["z", 0.38] 
       - 
-        - !!python/tuple ["z", 0.38] 
+        - !!python/tuple ["z", 0.32] 
 
 nogrip_safepos:
       - 

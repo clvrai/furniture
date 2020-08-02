@@ -47,11 +47,11 @@ class UnityInterface(object):
                 time.sleep(0.5)
                 break
             except Exception as e:
-                print("now connecting to {}".format(port))
-                print(e)
+                logger.info("now connecting to {}".format(port))
+                logger.info(e)
                 time.sleep(1)
 
-        print("Unity remote connected to {}".format(port))
+        logger.info("Unity remote connected to {}".format(port))
 
     def change_model(self, xml, camera_id, screen_width, screen_height):
         """

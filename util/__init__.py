@@ -1,4 +1,6 @@
+import yaml
 from pyquaternion import Quaternion
+
 
 class Qpos:
     def __init__(self, x: float, y: float, z: float, quat: Quaternion):
@@ -47,3 +49,13 @@ def parse_demo_file_name(file_path):
 
 def clamp(num, low, high):
     return max(low, min(num, high))
+
+
+class PrettySafeLoader(yaml.SafeLoader):
+    def construct_python_tuple(self, node):
+        return tuple(self.construct_sequence(node))
+
+
+PrettySafeLoader.add_constructor(
+    u"tag:yaml.org,2002:python/tuple", PrettySafeLoader.construct_python_tuple
+)

@@ -74,9 +74,9 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
             xquat((float * 4) * n_obj): quaternion of the objects
         """
         pos_init = {
-            '4_part4': [-0.1968, -0.0288, 0.03878],
-            '2_part2': [0.2, 0.16578, 0.02379]
-            }
+            "4_part4": [-0.1968, -0.0288, 0.03878],
+            "2_part2": [0.2, 0.16578, 0.02379],
+        }
 
         noise = self._init_random(3 * len(pos_init), "furniture")
         for i, name in enumerate(pos_init):
@@ -84,9 +84,9 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
                 pos_init[name][j] += noise[3 * i + j]
 
         quat_init = {
-            '4_part4': [0.099711762, 0.00028753, 0.00037843, 0.07586979],
-            '2_part2': [-0.6725, 0.6417, -0.2970, -0.2186]
-            }
+            "4_part4": [0.099711762, 0.00028753, 0.00037843, 0.07586979],
+            "2_part2": [-0.6725, 0.6417, -0.2970, -0.2186],
+        }
 
         return pos_init, quat_init
 
@@ -136,7 +136,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
 
         # maximum height = 0.46
         if rot_dist_up < 0:
-            lift_rew = (r_table_pos[2] - l_table_pos[2])
+            lift_rew = r_table_pos[2] - l_table_pos[2]
         else:
             lift_rew = 0
             if table_dist < 0.4:
@@ -174,6 +174,9 @@ def main():
 
     parser = create_parser(env="FurnitureBaxterToyTableEnv")
     parser.set_defaults(max_episode_steps=1000)
+    parser.add_argument(
+        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
+    )
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
         logger.error("Unparsed argument is detected:\n%s", unparsed)
@@ -181,8 +184,12 @@ def main():
 
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterToyTableEnv(config)
-    # env.run_manual(config)
-    env.run_vr(config)
+    if config.run_mode == "manual":
+        env.run_manual(config)
+    elif config.run_mode == "vr":
+        env.run_vr(config)
+    elif config.run_mode == "demo":
+        env.run_demo_actions(config)
 
 
 if __name__ == "__main__":

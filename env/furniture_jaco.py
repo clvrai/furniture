@@ -34,16 +34,9 @@ class FurnitureJacoEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            if self._control_type == "impedance":
-                ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(32,),  # FIX
-                )
-            elif self._control_type == ["ik", "ik_quaternion"]:
-                ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=(3 + 4 + 3 + 3 + 1,),  # pos, quat, vel, rot_vel, gripper
-                )
+            ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                low=-np.inf, high=np.inf, shape=(22,),
+            )
 
         return ob_space
 
@@ -109,52 +102,32 @@ class FurnitureJacoEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            if self._control_type == "impedance":
-                robot_states["joint_pos"] = np.array(
-                    [
-                        self.sim.data.qpos[x]
-                        for x in self._ref_joint_pos_indexes["right"]
-                    ]
-                )
-                robot_states["joint_vel"] = np.array(
-                    [
-                        self.sim.data.qvel[x]
-                        for x in self._ref_joint_vel_indexes["right"]
-                    ]
-                )
-                robot_states["gripper_qpos"] = np.array(
-                    [
-                        self.sim.data.qpos[x]
-                        for x in self._ref_gripper_joint_pos_indexes["right"]
-                    ]
-                )
-                robot_states["gripper_qvel"] = np.array(
-                    [
-                        self.sim.data.qvel[x]
-                        for x in self._ref_gripper_joint_vel_indexes["right"]
-                    ]
-                )
-
-            gripper_qpos = [
-                self.sim.data.qpos[x]
-                for x in self._ref_gripper_joint_pos_indexes["right"]
-            ]
-            robot_states["gripper_dis"] = np.array(
-                [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
-            )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
+            robot_states["joint_pos"] = np.array(
+                [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes["right"]]
+            )
+            robot_states["joint_vel"] = np.array(
+                [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes["right"]]
+            )
+            robot_states["gripper_qpos"] = np.array(
+                [
+                    self.sim.data.qpos[x]
+                    for x in self._ref_gripper_joint_pos_indexes["right"]
+                ]
+            )
             robot_states["eef_pos"] = np.array(
                 self.sim.data.site_xpos[self.eef_site_id["right"]]
             )
-            robot_states["eef_velp"] = np.array(
-                self.sim.data.site_xvelp[self.eef_site_id["right"]]
-            )  # 3-dim
-            robot_states["eef_velr"] = self.sim.data.site_xvelr[
-                self.eef_site_id["right"]
-            ]  # 3-dim
-
             robot_states["eef_quat"] = T.convert_quat(
                 self.sim.data.get_body_xquat("right_hand"), to="xyzw"
             )
+
+            # gripper_qpos = [
+            #     self.sim.data.qpos[x]
+            #     for x in self._ref_gripper_joint_pos_indexes["right"]
+            # ]
+            # robot_states["gripper_dis"] = np.array(
+            #     [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
+            # )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
@@ -170,12 +143,14 @@ class FurnitureJacoEnv(FurnitureEnv):
 
         self.l_finger_geom_ids = {
             "right": [
-                self.sim.model.geom_name2id(x) for x in self.gripper["right"].left_finger_geoms
+                self.sim.model.geom_name2id(x)
+                for x in self.gripper["right"].left_finger_geoms
             ]
         }
         self.r_finger_geom_ids = {
             "right": [
-                self.sim.model.geom_name2id(x) for x in self.gripper["right"].right_finger_geoms
+                self.sim.model.geom_name2id(x)
+                for x in self.gripper["right"].right_finger_geoms
             ]
         }
 
@@ -195,7 +170,6 @@ class FurnitureJacoEnv(FurnitureEnv):
             "right": self._ref_joint_vel_indexes_all,
             "left": [],
         }
-
 
         # indices for grippers in qpos, qvel
         self.gripper_joints = list(self.gripper["right"].joints)
@@ -224,24 +198,23 @@ class FurnitureJacoEnv(FurnitureEnv):
 
 
 def main():
-    import argparse
-    import config.furniture as furniture_config
-    from util import str2bool
+    from config import create_parser
 
-    parser = argparse.ArgumentParser()
-    furniture_config.add_argument(parser)
-
-    # change default config for Jaco
-    parser.add_argument("--seed", type=int, default=123)
-    parser.add_argument("--debug", type=str2bool, default=False)
-
-    parser.set_defaults(render=True)
-
+    parser = create_parser(env="FurnitureJacoEnv")
+    parser.set_defaults(max_episode_steps=2000)
+    parser.add_argument(
+        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
+    )
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Jaco environment
     env = FurnitureJacoEnv(config)
-    env.run_manual(config)
+    if config.run_mode == "manual":
+        env.run_manual(config)
+    elif config.run_mode == "vr":
+        env.run_vr(config)
+    elif config.run_mode == "demo":
+        env.run_demo_actions(config)
 
 
 if __name__ == "__main__":

@@ -15,39 +15,18 @@ min_rot_act_fine: 0.01
 use_closest: True            
 max_success_steps: 2100            # max # of steps a successful demo will take
 
-# recipe: 
-#         - !!python/tuple ["3_part3", "4_part4"]
-#         - !!python/tuple ["3_part3", "1_part1"]
-# #note: absolute coordinates
-# grip_safepos: 
-#       - 
-#         - !!python/tuple ["z", 0.2] 
-#       - 
-#         - !!python/tuple ["z", 0.5]
-#         - !!python/tuple ["y", 0]  
-#         - !!python/tuple ["x", 0]  
-
-# nogrip_safepos:
-#       - []
-#       - 
-#         - !!python/tuple ["z", 0.5] 
-
-# grip_angles: 
-#         -
-#           -  0
-#           -  0
-#           - -1        
-#         -
-# num_connects: 3
-# # indices of recipe steps to connect twice
-# connect_twice:
-#   - 1
-
 recipe: 
         - !!python/tuple ["1_part1", "0_part0"]
         - !!python/tuple ["2_part2", "0_part0"]
         - !!python/tuple ["3_part3", "4_part4"]
         - !!python/tuple ["3_part3", "1_part1"]
+
+site_recipe:
+        - !!python/tuple ["desupport-backlegs,0,180,conn_site",  "backlegs-lsidesupport,0,180,conn_site"]
+        # - !!python/tuple ["rsidesupport-backlegs,0,180,conn_site", "backlegs-rsidesupport,0,180,conn_site"]
+        # - !!python/tuple ["frontlegs-seat,0,conn_site", "seat-frontlegs,0,conn_site"]
+        # - !!python/tuple ["frontlegs-lsidesupport,0,180,conn_site", "lsidesupport-frontlegs,0,180,conn_site"]
+
 #note: absolute coordinates
 grip_safepos: 
       - 

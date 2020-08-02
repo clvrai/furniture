@@ -34,14 +34,9 @@ class FurnitureBaxterEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            if self._control_type == "impedance":
-                ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(64,),
-                )
-            elif self._control_type in ["ik", "ik_quaternion"]:
-                ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4 + 3 + 3 + 1) * 2,),
-                )
+            ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                low=-np.inf, high=np.inf, shape=(46,),
+            )
 
         return ob_space
 
@@ -104,63 +99,43 @@ class FurnitureBaxterEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            if self._control_type == "impedance":
-                for arm in self._arms:
-                    robot_states[arm + "_joint_pos"] = np.array(
-                        [
-                            self.sim.data.qpos[x]
-                            for x in self._ref_joint_pos_indexes[arm]
-                        ]
-                    )
-                for arm in self._arms:
-                    robot_states[arm + "_joint_vel"] = np.array(
-                        [
-                            self.sim.data.qvel[x]
-                            for x in self._ref_joint_vel_indexes[arm]
-                        ]
-                    )
-                for arm in self._arms:
-                    robot_states[arm + "_gripper_qpos"] = np.array(
-                        [
-                            self.sim.data.qpos[x]
-                            for x in self._ref_gripper_joint_pos_indexes[arm]
-                        ]
-                    )
-                    robot_states[arm + "_gripper_qvel"] = np.array(
-                        [
-                            self.sim.data.qvel[x]
-                            for x in self._ref_gripper_joint_vel_indexes[arm]
-                        ]
-                    )
-
             for arm in self._arms:
-                gripper_qpos = [
-                    self.sim.data.qpos[x]
-                    for x in self._ref_gripper_joint_pos_indexes[arm]
-                ]
-                robot_states[arm + "_gripper_dis"] = np.array(
-                    [abs(gripper_qpos[0] - gripper_qpos[1])]
+                robot_states[arm + "_joint_pos"] = np.array(
+                    [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes[arm]]
                 )
-
-            for arm in self._arms:
+                robot_states[arm + "_joint_vel"] = np.array(
+                    [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes[arm]]
+                )
+                robot_states[arm + "_gripper_qpos"] = np.array(
+                    [
+                        self.sim.data.qpos[x]
+                        for x in self._ref_gripper_joint_pos_indexes[arm]
+                    ]
+                )
+                # gripper_qpos = [
+                #     self.sim.data.qpos[x]
+                #     for x in self._ref_gripper_joint_pos_indexes[arm]
+                # ]
+                # robot_states[arm + "_gripper_dis"] = np.array(
+                #     [abs(gripper_qpos[0] - gripper_qpos[1])]
+                # )
                 robot_states[arm + "_eef_pos"] = np.array(
                     self.sim.data.site_xpos[self.eef_site_id[arm]]
                 )
-                robot_states[arm + "_eef_velp"] = np.array(
-                    self.sim.data.site_xvelp[self.eef_site_id[arm]]
-                )  # 3-dim
-                robot_states[arm + "_eef_velr"] = self.sim.data.site_xvelr[
-                    self.eef_site_id[arm]
-                ]  # 3-dim
-
-            for arm in self._arms:
                 robot_states[arm + "_eef_quat"] = T.convert_quat(
                     self.sim.data.get_body_xquat(arm + "_hand"), to="xyzw"
                 )
+                # robot_states[arm + "_eef_velp"] = np.array(
+                #     self.sim.data.site_xvelp[self.eef_site_id[arm]]
+                # )  # 3-dim
+                # robot_states[arm + "_eef_velr"] = self.sim.data.site_xvelr[
+                #     self.eef_site_id[arm]
+                # ]  # 3-dim
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
+            print(len(state["robot_ob"]))
 
         return state
 
@@ -256,15 +231,19 @@ def main():
     parser.set_defaults(alignment_project_dist=0.2)
     parser.set_defaults(control_type="ik_quaternion")
     parser.set_defaults(move_speed=0.05)
+    parser.add_argument(
+        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
+    )
     config, unparsed = parser.parse_known_args()
 
     # create an environment and run manual control of Baxter environment
     env = FurnitureBaxterEnv(config)
-    if config.load_demo:
-        env.run_demo(config)
-    else:
+    if config.run_mode == "manual":
+        env.run_manual(config)
+    elif config.run_mode == "vr":
         env.run_vr(config)
-        # env.run_manual(config)
+    elif config.run_mode == "demo":
+        env.run_demo_actions(config)
 
 
 if __name__ == "__main__":

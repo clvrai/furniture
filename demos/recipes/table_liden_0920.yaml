@@ -20,6 +20,12 @@ recipe:
         - !!python/tuple ["3_part3", "5_part5"]
         - !!python/tuple ["2_part2", "5_part5"]
 
+site_recipe:
+        - !!python/tuple ["support-toppanel,0,180,conn_site1", "toppanel-support,0,180,conn_site1"]
+        # - !!python/tuple ["support-toppanel,0,180,conn_site2", "toppanel-support,0,180,conn_site2"]
+        # - !!python/tuple ["leg-toppanel,0,180,conn_site1", "toppanel-leg,0,180,conn_site3"]
+        # - !!python/tuple ["leg-toppanel,0,180,conn_site4", "toppanel-leg,0,180,conn_site2"]
+
 grip_safepos: 
       - 
         - !!python/tuple ["z", 0.2]

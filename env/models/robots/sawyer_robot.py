@@ -1,6 +1,7 @@
 import numpy as np
+
+from env.mjcf_utils import array_to_string, xml_path_completion
 from env.models.robots.robot import Robot
-from env.mjcf_utils import xml_path_completion, array_to_string
 
 
 class Sawyer(Robot):
@@ -67,6 +68,10 @@ class Sawyer(Robot):
         # return np.array([0, -1.18, 0.00, 2.18, 0.00, 0.57, 3.3161])
         # 0: base, 1: 1st elbow, 3: 2nd elbow 5: 3rd elbow
         return self._init_qpos
+
+    @init_qpos.setter
+    def init_qpos(self, init_qpos):
+        self._init_qpos = init_qpos
 
     @property
     def contact_geoms(self):
