@@ -321,7 +321,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["touch"] = leg_touched
         grasp = ac[-2] > 0.5
         info["grasp_leg_succ"] = int(
-            leg_touched and grasp and info["lower_eef_to_leg_succ"]
+            leg_touched and grasp
         )
         info["grasp_leg_rew"] = (ac[-2] - 1) * self._gripper_penalty_coef * 40
 
