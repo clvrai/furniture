@@ -249,7 +249,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 done = True
             if phase_info["connect_succ"]:
                 done = True
-                phase_bonus = 1000
+                phase_bonus = 10000
                 self._phase_i += 1
                 self._success = True
         else:
@@ -424,13 +424,13 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["move_leg_fine_succ"] = int(self._is_aligned(self._leg_site, self._table_site))
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
-        # 1 time bonus for finely aligning the leg
-        if info["move_leg_fine_succ"] and not self._leg_fine_aligned:
+        # 1 time? bonus for finely aligning the leg
+        if info["move_leg_fine_succ"]:  # and not self._leg_fine_aligned:
             self._leg_fine_aligned = True
             rew += 500
         # add additional reward for connection
         if info["move_leg_fine_succ"]:
-            info["connect_rew"] = ac[-1] * 50
+            info["connect_rew"] = ac[-1] * 500
             rew += info["connect_rew"]
         info["connect_succ"] = int(info["move_leg_fine_succ"] and ac[-1] > 0)
         return rew, info
