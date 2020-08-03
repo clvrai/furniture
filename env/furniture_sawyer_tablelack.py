@@ -21,7 +21,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Args:
             config: configurations for the environment.
         """
-        config.furniture_name = "table_lack_0825"
+        # config.furniture_name = "table_lack_0825"
         config.furniture_id = furniture_name2id[config.furniture_name]
         config.object_ob_all = False
         super().__init__(config)
