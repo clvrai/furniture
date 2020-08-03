@@ -34,9 +34,20 @@ class FurnitureJacoEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                low=-np.inf, high=np.inf, shape=(22,),
-            )
+            if self._control_type in ["impedance", "torque"]:
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(
+                        6 + 6 + 3 + 3 + 4 + 3 + 3,
+                    ),  # qpos, qvel, gripper, eefp, eefq, velp, velr
+                )
+            elif self._control_type in ["ik", "ik_quaternion"]:
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(3 + 4 + 3 + 3 + 3,),  # pos, quat, velp, velr, gripper
+                )
 
         return ob_space
 
@@ -46,8 +57,8 @@ class FurnitureJacoEnv(FurnitureEnv):
         Returns the DoF of the robot.
         """
         dof = 0  # 'No' Agent
-        if self._control_type == "impedance":
-            dof = 6 + 3
+        if self._control_type == ["impedance", "torque"]:
+            dof = 6 + 3 + 1
         elif self._control_type == "ik":
             dof = 3 + 3 + 1 + 1  # move, rotate, select, connect
         elif self._control_type == "ik_quaternion":
@@ -102,32 +113,57 @@ class FurnitureJacoEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            robot_states["joint_pos"] = np.array(
-                [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes["right"]]
-            )
-            robot_states["joint_vel"] = np.array(
-                [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes["right"]]
-            )
-            robot_states["gripper_qpos"] = np.array(
-                [
-                    self.sim.data.qpos[x]
-                    for x in self._ref_gripper_joint_pos_indexes["right"]
-                ]
-            )
-            robot_states["eef_pos"] = np.array(
-                self.sim.data.site_xpos[self.eef_site_id["right"]]
-            )
-            robot_states["eef_quat"] = T.convert_quat(
-                self.sim.data.get_body_xquat("right_hand"), to="xyzw"
-            )
+            if self._control_type == "impedance":
+                robot_states["joint_pos"] = np.array(
+                    [
+                        self.sim.data.qpos[x]
+                        for x in self._ref_joint_pos_indexes["right"]
+                    ]
+                )
+                robot_states["joint_vel"] = np.array(
+                    [
+                        self.sim.data.qvel[x]
+                        for x in self._ref_joint_vel_indexes["right"]
+                    ]
+                )
+                robot_states["gripper_qpos"] = np.array(
+                    [
+                        self.sim.data.qpos[x]
+                        for x in self._ref_gripper_joint_pos_indexes["right"]
+                    ]
+                )
+                robot_states["eef_pos"] = np.array(
+                    self.sim.data.site_xpos[self.eef_site_id["right"]]
+                )
+                robot_states["eef_quat"] = T.convert_quat(
+                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
+                )
+                robot_states["eef_velp"] = np.array(
+                    self.sim.data.site_xvelp[self.eef_site_id["right"]]
+                )  # 3-dim
+                robot_states["eef_velr"] = self.sim.data.site_xvelr[
+                    self.eef_site_id["right"]
+                ]  # 3-dim
 
-            # gripper_qpos = [
-            #     self.sim.data.qpos[x]
-            #     for x in self._ref_gripper_joint_pos_indexes["right"]
-            # ]
-            # robot_states["gripper_dis"] = np.array(
-            #     [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
-            # )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
+            else:
+                robot_states["gripper_qpos"] = np.array(
+                    [
+                        self.sim.data.qpos[x]
+                        for x in self._ref_gripper_joint_pos_indexes["right"]
+                    ]
+                )
+                robot_states["eef_pos"] = np.array(
+                    self.sim.data.site_xpos[self.eef_site_id["right"]]
+                )
+                robot_states["eef_quat"] = T.convert_quat(
+                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
+                )
+                robot_states["eef_velp"] = np.array(
+                    self.sim.data.site_xvelp[self.eef_site_id["right"]]
+                )  # 3-dim
+                robot_states["eef_velr"] = self.sim.data.site_xvelr[
+                    self.eef_site_id["right"]
+                ]  # 3-dim
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]

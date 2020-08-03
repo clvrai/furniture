@@ -2345,8 +2345,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                                 [action[:6], np.zeros(6), [flag[0], flag[1], action[7]]]
                             )
 
-                ob, reward, done, info = self.step(action)
                 logger.info(f"Action: {action}")
+                ob, reward, done, info = self.step(action)
 
                 if self._record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])

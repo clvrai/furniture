@@ -34,9 +34,20 @@ class FurnitureBaxterEnv(FurnitureEnv):
         ob_space = super().observation_space
 
         if self._robot_ob:
-            ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                low=-np.inf, high=np.inf, shape=(46,),
-            )
+            if self._control_type in ["impedance", "torque"]:
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(
+                        (7 + 7 + 2 + 3 + 4 + 3 + 3) * 2,
+                    ),  # qpos, qvel, gripper, eefp, eefq, velp, velr
+                )
+            elif self._control_type in ["ik", "ik_quaternion"]:
+                ob_space.spaces["robot_ob"] = gym.spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4 + 3 + 3 + 2) * 2,),  # pos, quat, velp, velr, gripper
+                )
 
         return ob_space
 
@@ -46,8 +57,8 @@ class FurnitureBaxterEnv(FurnitureEnv):
         Returns the DoF of the robot.
         """
         dof = 0  # 'No' Agent
-        if self._control_type == "impedance":
-            dof = (7 + 2) * 2
+        if self._control_type in ["impedance", "torque"]:
+            dof = (7 + 1) * 2 + 1
         elif self._control_type == "ik":
             dof = (3 + 3 + 1) * 2 + 1  # (move, rotate, select) * 2 + connect
         elif self._control_type == "ik_quaternion":
@@ -99,43 +110,63 @@ class FurnitureBaxterEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            for arm in self._arms:
-                robot_states[arm + "_joint_pos"] = np.array(
-                    [self.sim.data.qpos[x] for x in self._ref_joint_pos_indexes[arm]]
-                )
-                robot_states[arm + "_joint_vel"] = np.array(
-                    [self.sim.data.qvel[x] for x in self._ref_joint_vel_indexes[arm]]
-                )
-                robot_states[arm + "_gripper_qpos"] = np.array(
-                    [
-                        self.sim.data.qpos[x]
-                        for x in self._ref_gripper_joint_pos_indexes[arm]
-                    ]
-                )
-                # gripper_qpos = [
-                #     self.sim.data.qpos[x]
-                #     for x in self._ref_gripper_joint_pos_indexes[arm]
-                # ]
-                # robot_states[arm + "_gripper_dis"] = np.array(
-                #     [abs(gripper_qpos[0] - gripper_qpos[1])]
-                # )
-                robot_states[arm + "_eef_pos"] = np.array(
-                    self.sim.data.site_xpos[self.eef_site_id[arm]]
-                )
-                robot_states[arm + "_eef_quat"] = T.convert_quat(
-                    self.sim.data.get_body_xquat(arm + "_hand"), to="xyzw"
-                )
-                # robot_states[arm + "_eef_velp"] = np.array(
-                #     self.sim.data.site_xvelp[self.eef_site_id[arm]]
-                # )  # 3-dim
-                # robot_states[arm + "_eef_velr"] = self.sim.data.site_xvelr[
-                #     self.eef_site_id[arm]
-                # ]  # 3-dim
+            if self._control_type in ["impedance", "torque"]:
+                for arm in self._arms:
+                    robot_states[arm + "_joint_pos"] = np.array(
+                        [
+                            self.sim.data.qpos[x]
+                            for x in self._ref_joint_pos_indexes[arm]
+                        ]
+                    )
+                    robot_states[arm + "_joint_vel"] = np.array(
+                        [
+                            self.sim.data.qvel[x]
+                            for x in self._ref_joint_vel_indexes[arm]
+                        ]
+                    )
+                    robot_states[arm + "_gripper_qpos"] = np.array(
+                        [
+                            self.sim.data.qpos[x]
+                            for x in self._ref_gripper_joint_pos_indexes[arm]
+                        ]
+                    )
+                    robot_states[arm + "_eef_pos"] = np.array(
+                        self.sim.data.site_xpos[self.eef_site_id[arm]]
+                    )
+                    robot_states[arm + "_eef_quat"] = T.convert_quat(
+                        self.sim.data.get_body_xquat(arm + "_hand"), to="xyzw"
+                    )
+                    robot_states[arm + "_eef_velp"] = np.array(
+                        self.sim.data.site_xvelp[self.eef_site_id[arm]]
+                    )  # 3-dim
+                    robot_states[arm + "_eef_velr"] = self.sim.data.site_xvelr[
+                        self.eef_site_id[arm]
+                    ]  # 3-dim
+
+            else:
+                for arm in self._arms:
+                    robot_states[arm + "_gripper_qpos"] = np.array(
+                        [
+                            self.sim.data.qpos[x]
+                            for x in self._ref_gripper_joint_pos_indexes[arm]
+                        ]
+                    )
+                    robot_states[arm + "_eef_pos"] = np.array(
+                        self.sim.data.site_xpos[self.eef_site_id[arm]]
+                    )
+                    robot_states[arm + "_eef_quat"] = T.convert_quat(
+                        self.sim.data.get_body_xquat(arm + "_hand"), to="xyzw"
+                    )
+                    robot_states[arm + "_eef_velp"] = np.array(
+                        self.sim.data.site_xvelp[self.eef_site_id[arm]]
+                    )  # 3-dim
+                    robot_states[arm + "_eef_velr"] = self.sim.data.site_xvelr[
+                        self.eef_site_id[arm]
+                    ]  # 3-dim
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
             )
-            print(len(state["robot_ob"]))
 
         return state
 
@@ -229,7 +260,7 @@ def main():
     parser.set_defaults(alignment_rot_dist_up=0.8)
     parser.set_defaults(alignment_rot_dist_forward=0.8)
     parser.set_defaults(alignment_project_dist=0.2)
-    parser.set_defaults(control_type="ik_quaternion")
+    parser.set_defaults(control_type="ik")
     parser.set_defaults(move_speed=0.05)
     parser.add_argument(
         "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
