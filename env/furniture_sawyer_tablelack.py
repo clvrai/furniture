@@ -273,7 +273,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Return negative eucl distance
         """
         eef_pos = self._get_pos("griptip_site")
-        leg_pos = self._get_pos(self._leg) + [0, 0, 0.05]
+        leg_pos = self._get_pos(self._leg) + [0, 0, 0.035]
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_above_leg_distance = xy_distance + z_distance
