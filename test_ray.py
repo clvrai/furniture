@@ -101,7 +101,7 @@ class MyCallbacks(DefaultCallbacks):
 parser = create_parser(env="furniture-sawyer-tablelack-v0")
 parser.add_argument("--num_workers", type=int, default=0)
 parser.add_argument("--gpu", type=int, default=None)
-parser.add_argument("--reward_scale", type=float, default=50)
+parser.add_argument("--reward_scale", type=float, default=100)
 parser.add_argument("--run_prefix", type=str)
 
 
@@ -118,12 +118,13 @@ ray.init(num_cpus=parsed.num_workers, num_gpus=int(parsed.gpu is not None))
 
 
 def stopper(trial_id, result):
-    success = result["custom_metrics"]["phase_mean"] >= 5
-    earlystop = (
-        result["timesteps_total"] > 500000
-        and result["custom_metrics"]["phase_max"] < 1
-    )
-    return success or earlystop
+    # success = result["custom_metrics"]["phase_mean"] >= 5
+    # earlystop = (
+    #     result["timesteps_total"] > 500000
+    #     and result["custom_metrics"]["phase_max"] < 1
+    # )
+    # return success or earlystop
+    return False
 
 
 def create_trial_fn(parsed):
@@ -147,7 +148,8 @@ tune.run(
         "env_config": env_config,
         "observation_filter": "MeanStdFilter",
         "num_workers": max(parsed.num_workers - 1, 0),
-        "num_gpus": 1
+        "num_gpus": 1,
     },
     trial_name_creator=tune.function(trial_str_creator),
+    checkpoint_freq=5000,
 )
