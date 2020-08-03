@@ -302,7 +302,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         eef_leg_distance = xy_distance + z_distance
         if self._diff_rew:
             offset = self._prev_eef_leg_distance - eef_leg_distance
-            rew = offset * self._pos_dist_coef
+            rew = offset * self._pos_dist_coef * 10
             self._prev_eef_leg_distance = eef_leg_distance
         else:
             rew = -eef_leg_distance * self._pos_dist_coef
