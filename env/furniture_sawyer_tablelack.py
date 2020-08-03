@@ -202,7 +202,22 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
         stable_grip_rew, sg_info = self._stable_grip_reward()
         grip_penalty, grip_info = self._gripper_penalty(ac)
-        if phase == "move_eef_above_leg":
+
+        # detect early success
+        info["is_aligned"] = int(self._is_aligned(self._leg_site, self._table_site))
+        if phase != "move_leg_fine" and info["is_aligned"]:
+            self._leg_fine_aligned = True
+            reward += 300
+            info["connect_rew"] = ac[-1] * 300
+            reward += info["connect_rew"]
+            info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
+            if info["connect_succ"]:
+                done = True
+                phase_bonus = 20000
+                self._phase_i = 5
+                self._success = True
+                print(f"Early Connected!!!")
+        elif phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 print(f"DONE WITH PHASE {phase}")
@@ -483,20 +498,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         )
         return rew, info
 
-    def _lower_leg_fine_reward(self) -> Tuple[float, dict]:
-        """
-        Move the leg conn site to table conn site
-        Negative euclidean distance between eef xy and conn xy.
-        Return negative eucl distance
-        """
-        above_conn_pos = self._get_pos(self._table_site)
-        leg_conn_pos = self._get_pos(self._leg_site)
-        dist = np.linalg.norm(above_conn_pos - leg_conn_pos)
-        rew = -dist * self._pos_dist_coef
-        info = {"lower_leg_fine_dist": dist, "lower_leg_fine_rew": rew}
-        info["lower_leg_fine_succ"] = int(dist < 0.01)
-        assert rew <= 0
-        return rew, info
 
     def _gripper_penalty(self, ac) -> Tuple[float, dict]:
         """
