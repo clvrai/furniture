@@ -14,42 +14,40 @@ min_rot_act_fine: 0.01
 #general parameters
 max_success_steps: 2200
 use_closest: False
-recipe: 
+recipe:
         - !!python/tuple ["0_part0", "4_part4"]
         - !!python/tuple ["1_part1", "5_part5"]
         - !!python/tuple ["3_part3", "5_part5"]
         - !!python/tuple ["2_part2", "5_part5"]
 
+# for determining wrist rotation reward
+leg_axis: left
 site_recipe:
         - !!python/tuple ["support-toppanel,0,180,conn_site1", "toppanel-support,0,180,conn_site1"]
         # - !!python/tuple ["support-toppanel,0,180,conn_site2", "toppanel-support,0,180,conn_site2"]
         # - !!python/tuple ["leg-toppanel,0,180,conn_site1", "toppanel-leg,0,180,conn_site3"]
         # - !!python/tuple ["leg-toppanel,0,180,conn_site4", "toppanel-leg,0,180,conn_site2"]
 
-grip_safepos: 
-      - 
+grip_safepos:
+      -
         - !!python/tuple ["z", 0.2]
-      - 
+      -
         - !!python/tuple ["z", 0.2]
-      - 
+      -
         - !!python/tuple ["z", 0.5]
-      - 
+      -
         - !!python/tuple ["z", 0.5]
 
 nogrip_safepos:
-      - 
+      -
         - !!python/tuple ["z", 0.2]
-      - 
+      -
         - !!python/tuple ["z", 0.5]
-      - 
+      -
         - !!python/tuple ["z", 0.5]
-      - 
+      -
         - !!python/tuple ["z", 0.4]
 grip_angles:
-        - 
-          -  0
-          -  0
-          - -1
         -
           -  0
           -  0
@@ -62,7 +60,11 @@ grip_angles:
           -  0
           -  0
           - -1
-# specify # of active welds for special furniture, defaults to num_parts-1 
+        -
+          -  0
+          -  0
+          - -1
+# specify # of active welds for special furniture, defaults to num_parts-1
 num_connects: 6
 # indices of recipe steps to connect twice
 connect_twice:

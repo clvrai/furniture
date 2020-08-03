@@ -60,6 +60,19 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             data = yaml.load(stream, Loader=PrettySafeLoader)
             self._recipe = data["recipe"]
             self._site_recipe = data["site_recipe"]
+
+            self._get_length_vector = self._get_up_vector
+            if "leg_axis" in data:
+                self._get_length_vector = getattr(
+                    self, f"_get_{data['leg_axis']}_vector"
+                )
+            self._get_leg_grasp_pos = self._get_pos
+            if "grip_site_recipe" in data:
+                g1, g2 = data["grip_site_recipe"][0]
+                self._get_leg_grasp_pos = (
+                    lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
+                )
+
         self._used_connsites = set()
         self._easy_init = config.easy_init
 
@@ -274,7 +287,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Return negative eucl distance
         """
         eef_pos = self._get_pos("griptip_site")
-        leg_pos = self._get_pos(self._leg) + [0, 0, 0.05]
+        leg_pos = self._get_leg_grasp_pos(self._leg) + [0, 0, 0.05]
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_above_leg_distance = xy_distance + z_distance
@@ -286,6 +299,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             rew = -eef_above_leg_distance * self._pos_dist_coef
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_above_leg_rew": rew}
         info["move_eef_above_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.02)
+        # print("-" * 80)
+        # print(eef_pos, leg_pos)
         return rew, info
 
     def _lower_eef_to_leg_reward(self) -> Tuple[float, dict]:
@@ -297,7 +312,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         info = {}
         eef_pos = self._get_gripper_pos()
-        leg_pos = self._get_pos(self._leg) + [0, 0, -0.015]
+        leg_pos = self._get_leg_grasp_pos(self._leg) + [0, 0, -0.015]
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_distance = xy_distance + z_distance
@@ -323,9 +338,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         leg_touched = int(left and right)
         info["touch"] = leg_touched
         grasp = ac[-2] > 0.5
-        info["grasp_leg_succ"] = int(
-            leg_touched and grasp
-        )
+        info["grasp_leg_succ"] = int(leg_touched and grasp)
         # closed gripper is 1, want to maximize gripper
         offset = ac[-2] - self._prev_grasp_leg_rew
         grasp_leg_rew = offset * self._gripper_penalty_coef * 40
@@ -339,7 +352,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         if leg_touched and not self._touched:
             touch_rew += 10
             self._touched = True
-        rew += (info["grasp_leg_rew"] + touch_rew)
+        rew += info["grasp_leg_rew"] + touch_rew
 
         return rew, info
 
@@ -422,7 +435,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
-        info["move_leg_fine_succ"] = int(self._is_aligned(self._leg_site, self._table_site))
+        info["move_leg_fine_succ"] = int(
+            self._is_aligned(self._leg_site, self._table_site)
+        )
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
         # 1 time? bonus for finely aligning the leg
@@ -444,7 +459,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         # up vector of leg and up vector of grip site should be perpendicular
         eef_up = self._get_up_vector("grip_site")
-        leg_up = self._get_up_vector(self._leg_site)
+        leg_up = self._get_length_vector(self._leg_site)
         eef_leg_up_dist = T.cos_siml(eef_up, leg_up)
         eef_leg_up_rew = self._rot_dist_coef / 3 * -np.abs(eef_leg_up_dist)
 
@@ -518,74 +533,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {"opp_penalty": rew}
         assert rew <= 0
         return rew, info
-
-    def get_bodyiterator(self, bodyname):
-        for body in self.mujoco_objects[bodyname].root.find("worldbody"):
-            if "name" in body.attrib and bodyname == body.attrib["name"]:
-                return body.getiterator()
-        return None
-
-    def _get_groupname(self, bodyname):
-        bodyiterator = self.get_bodyiterator(bodyname)
-        for child in bodyiterator:
-            if child.tag == "site":
-                if "name" in child.attrib and "conn_site" in child.attrib["name"]:
-                    return child.attrib["name"].split("-")[0]
-        return None
-
-    def get_connsites(self, gbody_name, tbody_name):
-        gripbody_connsite, tbody_connsite = [], []
-        group1 = self._get_groupname(gbody_name)
-        group2 = self._get_groupname(tbody_name)
-        iter1 = self.get_bodyiterator(gbody_name)
-        iter2 = self.get_bodyiterator(tbody_name)
-        griptag = group1 + "-" + group2
-        tgttag = group2 + "-" + group1
-        for child in iter1:
-            if child.tag == "site":
-                if (
-                    "name" in child.attrib
-                    and "conn_site" in child.attrib["name"]
-                    and griptag in child.attrib["name"]
-                    and child.attrib["name"] not in self._used_connsites
-                ):
-                    gripbody_connsite.append(child.attrib["name"])
-        for child in iter2:
-            if child.tag == "site":
-                if (
-                    "name" in child.attrib
-                    and "conn_site" in child.attrib["name"]
-                    and tgttag in child.attrib["name"]
-                    and child.attrib["name"] not in self._used_connsites
-                ):
-                    tbody_connsite.append(child.attrib["name"])
-        return gripbody_connsite, tbody_connsite
-
-    def get_furthest_connsite(self, conn_sites, gripper_pos):
-        furthest = None
-        max_dist = None
-        for name in conn_sites:
-            pos = self.sim.data.get_site_xpos(name)
-            dist = T.l2_dist(gripper_pos, pos)
-            if furthest is None:
-                furthest = name
-                max_dist = dist
-            else:
-                if dist > max_dist:
-                    furthest = name
-                    max_dist = dist
-        return furthest
-
-    def get_closest_connsite(self, conn_sites, gripper_pos):
-        closest = None
-        min_dist = float("inf")
-        for name in conn_sites:
-            pos = self.sim.data.get_site_xpos(name)
-            dist = T.l2_dist(gripper_pos, pos)
-            if dist < min_dist:
-                closest = name
-                min_dist = dist
-        return closest
 
     def _get_gripper_pos(self) -> list:
         """return 6d pos [griptip, grip] """
