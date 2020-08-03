@@ -96,16 +96,15 @@ class UniformRandomSampler(ObjectPositionSampler):
         if len(remaining_objects) > 0:
             spec_x_range, spec_y_range = self.x_range, self.y_range
             self.x_range, self.y_range = None, None
-            # randomnly place remaining parts anywhere on table 
+            # randomnly place remaining parts anywhere on table
             # and use that pos as starting pos for future samples
-            remaining_xpos, remaining_quat = self.sample(objects=remaining_objects, placed_objects=preset_objects)
+            remaining_xpos, remaining_quat = self.sample(objects=remaining_objects, placed_objects_orig=preset_objects)
             for obj_name in remaining_xpos.keys():
                 xpos = remaining_xpos[obj_name]
                 quat = remaining_quat[obj_name]
                 self.init_qpos[obj_name] = Qpos(xpos[0], xpos[1], xpos[2],
                     Quaternion(quat[0], quat[1], quat[2], quat[3]))
             self.x_range, self.y_range = spec_x_range, spec_y_range
-
 
     def sample_x(self, obj_r):
         x_range = self.x_range
@@ -123,7 +122,6 @@ class UniformRandomSampler(ObjectPositionSampler):
         maximum = max(y_range)
         return self.rng.uniform(high=maximum, low=minimum)
 
-
     def sample_quat(self, quaternion):
         rot_range = self.rot_range
         minimum = min(rot_range)
@@ -135,8 +133,6 @@ class UniformRandomSampler(ObjectPositionSampler):
         euler = [euler_x, euler_y, euler_z]
         rotated_quat = T.euler_to_quat(euler)
         return rotated_quat
-
-    # def _collision_check(obj_x, obj_y, r, placed_objects):
 
     def sample(self, objects=None, placed_objects_orig=None):
         pos_arr = {}
