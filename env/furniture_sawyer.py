@@ -36,7 +36,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         if self._robot_ob:
             if self._control_type in ["impedance", "torque"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(23,),
+                    low=-np.inf, high=np.inf, shape=(26,),
                 )
             elif self._control_type in ["ik", "ik_quaternion"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
@@ -130,6 +130,9 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 robot_states["eef_quat"] = T.convert_quat(
                     self.sim.data.get_body_xquat("right_hand"), to="xyzw"
                 )
+                robot_states["eef_velp"] = np.array(
+                    self.sim.data.site_xvelp[self.eef_site_id["right"]]
+                )  # 3-dim
 
             else:
                 gripper_qpos = [

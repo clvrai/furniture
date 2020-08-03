@@ -79,11 +79,14 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._subtask_part1 = self._object_name2id[self._leg]
         self._subtask_part2 = self._object_name2id[self._table]
         self._touched = False
+        self._leg_lift = False
+        self._init_leg_pos = self._get_pos(self._leg)
+        self._leg_fine_aligned = False
 
         if self._diff_rew:
             if self._easy_init:  # start from lowering leg
                 eef_pos = self._get_gripper_pos()
-                leg_pos1 = self._get_pos(self._leg) + [0, 0, -0.015]
+                leg_pos1 = self._init_leg_pos + [0, 0, -0.015]
                 leg_pos2 = leg_pos1 + [0, 0, 0.03]
                 leg_pos = np.concatenate([leg_pos1, leg_pos2])
                 xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
@@ -91,7 +94,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 self._prev_eef_leg_distance = xy_distance + z_distance
             else:
                 eef_pos = self._get_pos("griptip_site")
-                leg_pos = self._get_pos(self._leg) + [0, 0, 0.05]
+                leg_pos = self._init_leg_pos + [0, 0, 0.05]
                 xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
                 z_distance = np.abs(eef_pos[2] - leg_pos[2])
                 self._prev_eef_above_leg_distance = xy_distance + z_distance
@@ -244,13 +247,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 print("Dropped leg")
                 phase_bonus = -125
                 done = True
-            if phase_info[f"{phase}_succ"]:
-                phase_bonus = self._phase_bonus * 8
             if phase_info["connect_succ"]:
                 done = True
-                phase_bonus = 1000
-                self._phase += 1
+                phase_bonus = 20000
+                self._phase_i += 1
                 self._success = True
+                print(f"CONNECTED!!!!!!!!!!!!!!!!!!!!!!")
         else:
             phase_reward, phase_info = 0, {}
             done = True
@@ -260,7 +262,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info["phase_bonus"] = phase_bonus
         info = {**info, **ctrl_info, **phase_info, **sg_info, **grip_info}
         # log phase if last frame
-        if self._episode_length == self._env_config["max_episode_steps"] - 1:
+        if self._episode_length == self._env_config["max_episode_steps"] - 1 or done:
             info["phase"] = self._phase_i
         return reward, done, info
 
@@ -370,6 +372,12 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"move_ang_dist": move_ang_dist, "move_ang_rew": ang_rew})
         info["move_leg_succ"] = int(move_pos_distance < 0.06 and move_ang_dist > 0.85)
         rew = pos_rew + ang_rew
+        # give one time reward for lifting the leg
+        leg_lift = leg_site[2] > (self._init_leg_pos[2] + 0.002)
+        if leg_lift and not self._leg_lift:
+            print("lift leg")
+            self._leg_lift = True
+            rew += 10
         return rew, info
 
     def _move_leg_fine_reward(self, ac) -> Tuple[float, dict]:
@@ -414,12 +422,16 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         ang_rew += proj_t_rew + proj_l_rew
-        info["move_leg_fine_succ"] = self._is_aligned(self._leg_site, self._table_site)
+        info["move_leg_fine_succ"] = int(self._is_aligned(self._leg_site, self._table_site))
         info["move_fine_ang_rew"] = ang_rew
         rew = pos_rew + ang_rew
+        # 1 time? bonus for finely aligning the leg
+        if info["move_leg_fine_succ"]:  # and not self._leg_fine_aligned:
+            self._leg_fine_aligned = True
+            rew += 300
         # add additional reward for connection
         if info["move_leg_fine_succ"]:
-            info["connect_rew"] = ac[-1] * 50
+            info["connect_rew"] = ac[-1] * 300
             rew += info["connect_rew"]
         info["connect_succ"] = int(info["move_leg_fine_succ"] and ac[-1] > 0)
         return rew, info
