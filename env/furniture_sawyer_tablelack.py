@@ -252,6 +252,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 phase_bonus = 20000
                 self._phase_i += 1
                 self._success = True
+                print(f"CONNECTED!!!!!!!!!!!!!!!!!!!!!!")
         else:
             phase_reward, phase_info = 0, {}
             done = True
