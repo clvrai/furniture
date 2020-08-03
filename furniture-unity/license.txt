@@ -1,4 +1,4 @@
-Modified work Copyright 2019 Youngwoon Lee
+Modified work for CoRL 2020
 
 Original work Copyright 2019 Panasonic Beta, a division of Panasonic Corporation of North America,
 unless otherwise noted in the source file

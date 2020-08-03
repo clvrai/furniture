@@ -9,7 +9,9 @@ The connectors on a part is defined through the site tag. There can be multiple 
 Given two parts A and B, we want to connect A to B:
 The site tag for A should be named “A-B,conn_site” and the site tag for B should be “B-A,conn_site”.
 Look at the XMLs in [`furniture/env/models/assets/objects`](../env/models/assets/objects) for more examples.
+
 <img src="img/readme/conn_sites.png">
+
 ## Example
 
 ```xml

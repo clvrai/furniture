@@ -36,13 +36,17 @@ class FurnitureSawyerEnv(FurnitureEnv):
         if self._robot_ob:
             if self._control_type in ["impedance", "torque"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(26,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(
+                        7 + 7 + 2 + 3 + 4 + 3 + 3,
+                    ),  # qpos, qvel, gripper, eefp, eefq, velp, velr
                 )
             elif self._control_type in ["ik", "ik_quaternion"]:
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
                     low=-np.inf,
                     high=np.inf,
-                    shape=(3 + 4 + 3 + 3 + 1,),  # pos, quat, vel, rot_vel, gripper
+                    shape=(3 + 4 + 3 + 3 + 1,),  # pos, quat, velp, velr, gripper
                 )
 
         return ob_space
@@ -105,7 +109,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            if self._control_type == "impedance":
+            if self._control_type in ["impedance", "torque"]:
                 robot_states["joint_pos"] = np.array(
                     [
                         self.sim.data.qpos[x]
@@ -133,6 +137,9 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 robot_states["eef_velp"] = np.array(
                     self.sim.data.site_xvelp[self.eef_site_id["right"]]
                 )  # 3-dim
+                robot_states["eef_velr"] = self.sim.data.site_xvelr[
+                    self.eef_site_id["right"]
+                ]  # 3-dim
 
             else:
                 gripper_qpos = [
@@ -145,16 +152,15 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 robot_states["eef_pos"] = np.array(
                     self.sim.data.site_xpos[self.eef_site_id["right"]]
                 )
+                robot_states["eef_quat"] = T.convert_quat(
+                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
+                )
                 robot_states["eef_velp"] = np.array(
                     self.sim.data.site_xvelp[self.eef_site_id["right"]]
                 )  # 3-dim
                 robot_states["eef_velr"] = self.sim.data.site_xvelr[
                     self.eef_site_id["right"]
                 ]  # 3-dim
-
-                robot_states["eef_quat"] = T.convert_quat(
-                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
-                )
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]

@@ -1,10 +1,5 @@
 # IKEA Furniture Assembly Environment Documentation
 
-## Installation
-
-* [Installation](installation.md)
-* [Test Installation](test_installation.md)
-
 ## Getting Started
 
 * [Overview](overview.md)
@@ -23,8 +18,7 @@
 * [Assembly Configuration](configurations.md#assembly-configuration)
 
 ## XML Schema and Furniture Details
-* [Weld Constraints and Meshes](furniture_details.md)
-* [Converting a New Furniture Model](converting_furniture_model.md)
+* [Furniture Model Representation (Meshes and Weld Constraints)](furniture_details.md)
 * [Furniture Database](furniture_database.md)
 
 ## Creating an RL Task
@@ -35,5 +29,4 @@
 * [FPS](more_info.md#fps)
 
 ## Others
-* [Troubleshooting](more_info.md#troubleshooting)
 * [HTC Vive Controller](vr_control.md)
