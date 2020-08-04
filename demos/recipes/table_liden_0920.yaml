@@ -24,7 +24,7 @@ recipe:
 leg_axis: left
 site_recipe:
         - !!python/tuple ["support-toppanel,0,180,conn_site1", "toppanel-support,0,180,conn_site1"]
-        # - !!python/tuple ["support-toppanel,0,180,conn_site2", "toppanel-support,0,180,conn_site2"]
+        - !!python/tuple ["support-toppanel,0,180,conn_site2", "toppanel-support,0,180,conn_site2"]
         # - !!python/tuple ["leg-toppanel,0,180,conn_site1", "toppanel-leg,0,180,conn_site3"]
         # - !!python/tuple ["leg-toppanel,0,180,conn_site4", "toppanel-leg,0,180,conn_site2"]
 

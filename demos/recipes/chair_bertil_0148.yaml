@@ -9,7 +9,7 @@ eps_fine: 0.001               # max acceptable x,y,z difference
 rot_magnitude: 0.2
 rot_eps: 0.05
 rot_eps_fine: 0.05
-min_rot_act: 0.05
+min_rot_act: 0.04
 min_rot_act_fine: 0.01
 #general parameters
 use_closest: True            
@@ -22,17 +22,17 @@ recipe:
         - !!python/tuple ["3_part3", "1_part1"]
 
 site_recipe:
-        - !!python/tuple ["desupport-backlegs,0,180,conn_site",  "backlegs-lsidesupport,0,180,conn_site"]
-        # - !!python/tuple ["rsidesupport-backlegs,0,180,conn_site", "backlegs-rsidesupport,0,180,conn_site"]
-        # - !!python/tuple ["frontlegs-seat,0,conn_site", "seat-frontlegs,0,conn_site"]
-        # - !!python/tuple ["frontlegs-lsidesupport,0,180,conn_site", "lsidesupport-frontlegs,0,180,conn_site"]
+        - !!python/tuple ["lsidesupport-backlegs,0,180",  "backlegs-lsidesupport,0,180,conn_site"]
+        - !!python/tuple ["rsidesupport-backlegs,0,180,conn_site", "backlegs-rsidesupport,0,180,conn_site"]
+        - !!python/tuple ["frontlegs-seat,0,conn_site", "seat-frontlegs,0,conn_site"]
+        - !!python/tuple ["frontlegs-lsidesupport,0,180,conn_site", "lsidesupport-frontlegs,0,180,conn_site"]
 
 #note: absolute coordinates
 grip_safepos: 
       - 
-        - !!python/tuple ["z", 0.3] 
+        - !!python/tuple ["z", 0.26] 
       - 
-        - !!python/tuple ["z", 0.3] 
+        - !!python/tuple ["z", 0.5] 
       - 
         - !!python/tuple ["z", 0.2] 
       - 
@@ -42,9 +42,9 @@ grip_safepos:
 
 nogrip_safepos:
       - 
-        - !!python/tuple ["x", -0.15] 
+        - !!python/tuple ["z", 0.44] 
       - 
-        - !!python/tuple ["x", 0]        
+        - !!python/tuple ["z", 0.44]        
       - []
       - 
         - !!python/tuple ["z", 0.5] 

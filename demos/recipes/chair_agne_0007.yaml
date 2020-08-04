@@ -20,7 +20,7 @@ recipe:
 
 site_recipe:
         - !!python/tuple ["leg1-seat,0,180,conn_site", seat-leg1,0,180,conn_site"]
-        # - !!python/tuple ["leg2-leg1,0,180,conn_site", leg1-leg2,0,180,conn_site"]
+        - !!python/tuple ["leg2-leg1,0,180,conn_site", leg1-leg2,0,180,conn_site"]
 
 grip_safepos: 
       - 
