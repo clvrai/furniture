@@ -22,24 +22,24 @@ recipe:
 
 site_recipe:
         - !!python/tuple ["part1-part3,0,conn_site1", "part3-part1,0,conn_site1"]
-        # - !!python/tuple ["part2-part3,0,conn_site2", "part3-part2,0,conn_site2"]
+        - !!python/tuple ["part2-part3,0,conn_site2", "part3-part2,0,conn_site2"]
 
 #note: absolute coordinates
 grip_safepos: 
       - 
         - !!python/tuple ["z", 0.35] 
-        - !!python/tuple ["x", -0.15] 
+        - !!python/tuple ["x", -0.45] 
         - !!python/tuple ["y", 0.14] 
       - 
         - !!python/tuple ["z", 0.35] 
-        - !!python/tuple ["x", 0.15] 
+        - !!python/tuple ["x", 0] 
         - !!python/tuple ["y", 0.14] 
 
 nogrip_safepos:
       - 
-        - !!python/tuple ["z", 0.3] 
+        - !!python/tuple ["z", 0.34] 
       - 
-        - !!python/tuple ["z", 0.3]        
+        - !!python/tuple ["z", 0.34]        
 
 grip_angles: 
         - 

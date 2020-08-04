@@ -1,5 +1,13 @@
 <mujoco model="table_liden_0920">
   <custom>
+<!-- demo-gen optimized -->
+<!--      <numeric data="0.40 0.30 0.008 0 1 0 0" name="0_part0_initpos" />
+    <numeric data="-0.17 0.125 0.008 0 1 0 0" name="5_part5_initpos" />
+    <numeric data="-0.186 0.314 0.008 0 1 0 0" name="4_part4_initpos" />
+    <numeric data="-0.45 -0.1 0.18 0 -0.71 -0.71 0" name="3_part3_initpos" />
+    <numeric data="-0.1 -0.27 0.18 0 -0.71 -0.71 0" name="2_part2_initpos" />
+    <numeric data="0.40 0.14 0 0 -1 0 0" name="1_part1_initpos" /> -->
+<!-- rl optimized -->
     <numeric data="0.000366 0.082002 0.027405 0.0 0.999998 0.002015 0.0" name="0_part0_initpos" />
     <numeric data="-0.195047 -0.099854 0.006726 0.0 1.0 -7.9e-05 -0.0" name="5_part5_initpos" />
     <numeric data="-0.010874 0.240075 0.006726 0.0 1.0 0.000497 -0.0" name="4_part4_initpos" />

@@ -60,4 +60,6 @@ grip_angles:
 
 site_recipe:
         - !!python/tuple ["leg-table,0,90,180,270,conn_site1", "table-leg,0,90,180,270,conn_site3"]
+        - !!python/tuple ["leg-table,0,90,180,270,conn_site4", "table-leg,0,90,180,270,conn_site4"]
         - !!python/tuple ["leg-table,0,90,180,270,conn_site3", "table-leg,0,90,180,270,conn_site1"]
+        - !!python/tuple ["leg-table,0,90,180,270,conn_site2", "table-leg,0,90,180,270,conn_site2"]

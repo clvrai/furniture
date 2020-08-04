@@ -1,7 +1,7 @@
 <mujoco model="chair_agne_0007">
   <custom>
-    <numeric data="0.25565 0.205458 0.012372 0.527678 -0.460383 0.535744 0.471785" name="0_part0_initpos" />
-    <numeric data="-0.129462 0.274199 0.012537 0.706077 -0.705228 0.037829 -0.051746" name="1_part1_initpos" />
+    <numeric data="0.18065 0.230458 0.012372 0.527671 -0.460391 0.535738 0.471793" name="0_part0_initpos" />
+    <numeric data="-0.204463 0.274204 0.012372 0.705936 -0.705369 0.037809 -0.051764" name="1_part1_initpos" />
     <numeric data="-0.040463 -0.081508 0.00896 0.0 0.327939 0.944699 0.0" name="2_part2_initpos" />
   </custom>
   <asset>
