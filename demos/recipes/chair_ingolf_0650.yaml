@@ -34,7 +34,9 @@ grip_safepos:
       -
         - !!python/tuple ["z", 0.35]
       -
-        - !!python/tuple ["z", 0.45]
+        - !!python/tuple ["z", 0.36]
+        - !!python/tuple ["z", 0.36]
+        - !!python/tuple ["z", 0.36]
 
 nogrip_safepos:
       -
@@ -46,6 +48,8 @@ nogrip_safepos:
         - !!python/tuple ["z", 0.3]
       -
         - !!python/tuple ["z", 0.2]
+
+
 
 grip_angles:
         -
