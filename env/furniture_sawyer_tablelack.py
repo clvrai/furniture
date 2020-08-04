@@ -57,38 +57,36 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             os.path.dirname(__file__), f"../demos/recipes/{config.furniture_name}.yaml"
         )
         with open(fullpath, "r") as stream:
-            data = yaml.load(stream, Loader=PrettySafeLoader)
+            self._data = data = yaml.load(stream, Loader=PrettySafeLoader)
             self._recipe = data["recipe"]
             self._site_recipe = data["site_recipe"]
-
-            self._get_length_vector = self._get_up_vector
-            if "leg_axis" in data:
-                self._get_length_vector = getattr(
-                    self, f"_get_{data['leg_axis']}_vector"
-                )
-            self._get_leg_grasp_pos = self._get_pos
+            part = self._recipe[0][0]
+            g1, g2 = f"{part}_ltgt_site0", f"{part}_rtgt_site0"
             if "grip_site_recipe" in data:
                 g1, g2 = data["grip_site_recipe"][0]
-                self._get_leg_grasp_pos = (
-                    lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
-                )
-
-        self._used_connsites = set()
-        self._easy_init = config.easy_init
+            self._get_leg_grasp_pos = (
+                lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
+            )
+            self._get_leg_grasp_vector = lambda x: self._get_pos(g1) - self._get_pos(g2)
 
     def _reset_reward_variables(self):
+        self._subtask_step = 0
+        self._update_reward_variables(self._subtask_step)
 
-        if self._easy_init:
-            self._phase_i = 1
-            self._leg = "0_part0"
-            self._table = "4_part4"
-            self._leg_site = "leg-table,0,90,180,270,conn_site1"
-            self._table_site = "table-leg,0,90,180,270,conn_site1"
-        else:
-            self._phase_i = 0
-            self._leg, self._table = self._recipe[0]
-            self._leg_site = self._site_recipe[0][0]
-            self._table_site = self._site_recipe[0][1]
+    def _set_next_subtask(self) -> bool:
+        """Returns True if we are done with all attaching steps"""
+        self._subtask_step += 1
+        if self._subtask_step == len(self._site_recipe):
+            return True
+        self._update_reward_variables(self._subtask_step)
+        return False
+
+    def _update_reward_variables(self, subtask_step):
+        """Update the reward variables wrt subtask step"""
+        self._phase_i = 0
+        self._leg, self._table = self._recipe[subtask_step]
+        self._leg_site, self._table_site = self._site_recipe[subtask_step]
+        # updates the observation to the current objects of interest
         self._subtask_part1 = self._object_name2id[self._leg]
         self._subtask_part2 = self._object_name2id[self._table]
         self._touched = False
@@ -97,20 +95,23 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         self._leg_fine_aligned = False
 
         if self._diff_rew:
-            if self._easy_init:  # start from lowering leg
-                eef_pos = self._get_gripper_pos()
-                leg_pos1 = self._init_leg_pos + [0, 0, -0.015]
-                leg_pos2 = leg_pos1 + [0, 0, 0.03]
-                leg_pos = np.concatenate([leg_pos1, leg_pos2])
-                xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-                z_distance = np.abs(eef_pos[2] - leg_pos[2])
-                self._prev_eef_leg_distance = xy_distance + z_distance
-            else:
-                eef_pos = self._get_pos("griptip_site")
-                leg_pos = self._init_leg_pos + [0, 0, 0.05]
-                xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-                z_distance = np.abs(eef_pos[2] - leg_pos[2])
-                self._prev_eef_above_leg_distance = xy_distance + z_distance
+            eef_pos = self._get_pos("griptip_site")
+            leg_pos = self._init_leg_pos + [0, 0, 0.05]
+            xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+            z_distance = np.abs(eef_pos[2] - leg_pos[2])
+            self._prev_eef_above_leg_distance = xy_distance + z_distance
+
+        if subtask_step == 0:  # don't need to update getters
+            return
+        self._recipe = self._data["recipe"]
+        self._site_recipe = self._data["site_recipe"]
+        g1, g2 = f"{self._leg}_ltgt_site0", f"{self._leg}_rtgt_site0"
+        if "grip_site_recipe" in self._data and self._subtask_step < len(
+            self._data["grip_site_recipe"]
+        ):
+            g1, g2 = self._data["grip_site_recipe"][self._subtask_step]
+        self._get_leg_grasp_pos = lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
+        self._get_leg_grasp_vector = lambda x: self._get_pos(g1) - self._get_pos(g2)
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -128,54 +129,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
         reward, done, info = self._compute_reward(a)
         return ob, reward, done, info
-
-    def _load_model_robot(self):
-        super()._load_model_robot()
-        if self._easy_init:
-            self.mujoco_robot.init_qpos = np.array(
-                [
-                    -0.42712737,
-                    -0.43924895,
-                    0.28867949,
-                    1.67995968,
-                    -0.68637055,
-                    0.41797763,
-                    2.18509774,
-                ]
-            )
-
-    def _place_objects(self):
-        """
-        Returns fixed initial position and rotations of the toy table.
-        The first case has the table top on the left and legs on the right.
-
-        Returns:
-            xpos: x,y,z position of the objects in world frame
-            xquat: quaternion of the objects
-        """
-        if not self._easy_init:
-            return super()._place_objects()
-        pos_init = {
-            "0_part0": [0.0055512, 0.09120562, 0.01831519],
-            "1_part1": [-0.24890323, -10.2 + 0.43996071, 0.01830461],
-            "2_part2": [-0.25975243, -10.2 + 0.35248785, 0.0183152],
-            "3_part3": [0.31685774, -10.2 + 0.44853931, 0.0183046],
-            "4_part4": [0.03014604, -0.3 + 0.09554463, 0.01972958],
-        }
-        # noise = self._init_random(3 * len(pos_init), "furniture")
-        # for i, name in enumerate(pos_init):
-        #     for j in range(3):
-        #         pos_init[name][j] += noise[3 * i + j]
-
-        quat_init = {
-            # "0_part0": [0.50863839, -0.50861836, 0.49112556, -0.4913146],
-            "0_part0": [0, 0, -0.707, -0.707],
-            "1_part1": [0.51725545, 0.51737851, 0.48189126, 0.48223137],
-            "2_part2": [0.51481971, 0.51462992, 0.48482265, 0.4848337],
-            "3_part3": [0.50010382, -0.50023869, 0.49966084, -0.49999646],
-            "4_part4": [0.00001242, -0.99988404, -0.0152285, 0.00000484],
-        }
-        return pos_init, quat_init
 
     def _compute_reward(self, ac) -> Tuple[float, bool, dict]:
         """
@@ -196,7 +149,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         """
         phase_bonus = reward = 0
         done = False
-        info = {}
+        info = {"subtask": self._subtask_step}
         phase = self._phases[self._phase_i]
 
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
@@ -206,17 +159,18 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         # detect early success
         info["is_aligned"] = int(self._is_aligned(self._leg_site, self._table_site))
         if phase != "move_leg_fine" and info["is_aligned"]:
+            phase_info = {}
             self._leg_fine_aligned = True
-            reward += 300
-            info["connect_rew"] = ac[-1] * 300
+            phase_reward = 300
+            phase_info["connect_rew"] = ac[-1] * 300
             reward += info["connect_rew"]
             info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
             if info["connect_succ"]:
-                done = True
-                phase_bonus = 20000
+                phase_reward = 20000
                 self._phase_i = 5
-                self._success = True
                 print(f"Early Connected!!!")
+                # update reward variables for next attachment
+                done = self._success = self._set_next_subtask()
         elif phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
@@ -276,11 +230,11 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
                 phase_bonus = -125
                 done = True
             if phase_info["connect_succ"]:
-                done = True
                 phase_bonus = 20000
                 self._phase_i += 1
-                self._success = True
                 print(f"CONNECTED!!!!!!!!!!!!!!!!!!!!!!")
+                # update reward variables for next attachment
+                done = self._success = self._set_next_subtask()
         else:
             phase_reward, phase_info = 0, {}
             done = True
@@ -315,7 +269,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_above_leg_rew": rew}
         info["move_eef_above_leg_succ"] = int(xy_distance < 0.015 and z_distance < 0.02)
         # print("-" * 80)
-        # print(eef_pos, leg_pos)
+        # print(eef_pos, leg_pos, eef_above_leg_distance)
         return rew, info
 
     def _lower_eef_to_leg_reward(self) -> Tuple[float, dict]:
@@ -472,32 +426,33 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
         Prioritize wrist alignment more than vertical alignment
         Returns negative angular distance
         """
-        # up vector of leg and up vector of grip site should be perpendicular
+        # up vector of leg and world up vector should be aligned
         eef_up = self._get_up_vector("grip_site")
-        leg_up = self._get_length_vector(self._leg_site)
-        eef_leg_up_dist = T.cos_siml(eef_up, leg_up)
-        eef_leg_up_rew = self._rot_dist_coef / 3 * -np.abs(eef_leg_up_dist)
+        eef_up_grasp_dist = T.cos_siml(eef_up, [0, 0, -1])
+        eef_up_grasp_rew = self._rot_dist_coef / 3 * (eef_up_grasp_dist - 1)
 
-        # up vector of leg and left vector of grip site should be parallel (close to -1 or 1)
-        eef_left = self._get_left_vector("grip_site")
-        eef_leg_left_dist = T.cos_siml(eef_left, leg_up)
-        eef_leg_left_rew = (np.abs(eef_leg_left_dist) - 1) * self._rot_dist_coef
+        grasp_vec = self._get_leg_grasp_vector(self._leg_site)
+        # up vector of leg and forward vector of grip site should be parallel (close to -1 or 1)
+        eef_forward = self._get_forward_vector("grip_site")
+        eef_forward_grasp_dist = T.cos_siml(eef_forward[:2], grasp_vec[:2])
+        eef_forward_grasp_rew = (
+            np.abs(eef_forward_grasp_dist) - 1
+        ) * self._rot_dist_coef
         info = {
-            "eef_leg_up_dist": eef_leg_up_dist,
-            "eef_leg_up_rew": eef_leg_up_rew,
-            "eef_leg_left_dist": eef_leg_left_dist,
-            "eef_leg_left_rew": eef_leg_left_rew,
+            "eef_up_grasp_dist": eef_up_grasp_dist,
+            "eef_up_grasp_rew": eef_up_grasp_rew,
+            "eef_forward_grasp_dist": eef_forward_grasp_dist,
+            "eef_forward_grasp_rew": eef_forward_grasp_rew,
         }
-        assert eef_leg_up_rew <= 0 and eef_leg_left_rew <= 0
-        # print(f"Close to 0; eef_leg_up_siml: {eef_leg_up_dist}")
-        # print(f"Close to 1 or -1; eef_leg_left_dist: {eef_leg_left_dist}")
-        rew = eef_leg_up_rew + eef_leg_left_rew
+        assert eef_up_grasp_rew <= 0 and eef_forward_grasp_rew <= 0
+        # print(f"Close to 1; eef_up_grasp_siml: {eef_up_grasp_dist}")
+        # print(f"Close to 1/-1; eef_forward_grasp_dist: {eef_forward_grasp_dist}")
+        rew = eef_up_grasp_rew + eef_forward_grasp_rew
         info["stable_grip_succ"] = int(
-            np.abs(eef_leg_up_dist) < self._rot_threshold
-            and np.abs(eef_leg_left_dist) > 1 - self._rot_threshold
+            eef_up_grasp_dist > 1 - self._rot_threshold
+            and np.abs(eef_forward_grasp_dist) > 1 - self._rot_threshold
         )
         return rew, info
-
 
     def _gripper_penalty(self, ac) -> Tuple[float, dict]:
         """
