@@ -158,9 +158,9 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 
         # detect early success
         info["is_aligned"] = int(self._is_aligned(self._leg_site, self._table_site))
-        if phase != "move_leg_fine" and info["is_aligned"]:
+        left, right = self._finger_contact(self._leg)
+        if phase != "move_leg_fine" and info["is_aligned"] and left and right:
             phase_info = {}
-            self._leg_fine_aligned = True
             phase_reward = 300
             phase_info["connect_rew"] = ac[-1] * 300
             reward += phase_info["connect_rew"]
