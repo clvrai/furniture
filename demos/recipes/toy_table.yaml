@@ -15,36 +15,37 @@ min_rot_act_fine: 0.01
 #general parameters
 use_closest: False
 max_success_steps: 2400            # max # of steps a successful demo will take
-recipe: 
+recipe:
         - !!python/tuple ["0_part0", "4_part4"]
         - !!python/tuple ["1_part1", "4_part4"]
         - !!python/tuple ["2_part2", "4_part4"]
         - !!python/tuple ["3_part3", "4_part4"]
-grip_safepos: 
-      - 
-        - !!python/tuple ["z", 0.4] 
-      - 
-        - !!python/tuple ["z", 0.4] 
-      - 
-        - !!python/tuple ["z", 0.4] 
-      - 
-        - !!python/tuple ["z", 0.4] 
+
+site_recipe:
+        - !!python/tuple ["leg-top,,conn_site3", "top-leg,,conn_site3"]
+        - !!python/tuple ["leg-top,,conn_site1", "top-leg,,conn_site1"]
+
+grip_safepos:
+      -
+        - !!python/tuple ["z", 0.4]
+      -
+        - !!python/tuple ["z", 0.4]
+      -
+        - !!python/tuple ["z", 0.4]
+      -
+        - !!python/tuple ["z", 0.4]
 
 nogrip_safepos:
-      - 
-        - !!python/tuple ["z", 0.44] 
-      - 
-        - !!python/tuple ["z", 0.44] 
-      - 
-        - !!python/tuple ["z", 0.44] 
-      - 
-        - !!python/tuple ["z", 0.44] 
+      -
+        - !!python/tuple ["z", 0.44]
+      -
+        - !!python/tuple ["z", 0.44]
+      -
+        - !!python/tuple ["z", 0.44]
+      -
+        - !!python/tuple ["z", 0.44]
 
-grip_angles: 
-        - 
-          -  0
-          -  0
-          - -1
+grip_angles:
         -
           -  0
           -  0
@@ -56,4 +57,8 @@ grip_angles:
         -
           -  0
           -  0
-          - -1          
+          - -1
+        -
+          -  0
+          -  0
+          - -1
