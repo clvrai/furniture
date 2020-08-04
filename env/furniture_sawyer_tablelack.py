@@ -444,7 +444,6 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             "eef_forward_grasp_dist": eef_forward_grasp_dist,
             "eef_forward_grasp_rew": eef_forward_grasp_rew,
         }
-        assert eef_up_grasp_rew <= 0 and eef_forward_grasp_rew <= 0
         # print(f"Close to 1; eef_up_grasp_siml: {eef_up_grasp_dist}")
         # print(f"Close to 1/-1; eef_forward_grasp_dist: {eef_forward_grasp_dist}")
         rew = eef_up_grasp_rew + eef_forward_grasp_rew
