@@ -14,7 +14,7 @@ min_rot_act_fine: 0.01
 #general parameters
 use_closest: True
 max_success_steps: 2000       # max # of steps a successful demo will take
-recipe: 
+recipe:
         - !!python/tuple ["2_part2", "3_part3"]
         - !!python/tuple ["1_part1", "3_part3"]
         - !!python/tuple ["1_part1", "4_part4"]
@@ -22,34 +22,34 @@ recipe:
 
 site_recipe:
         - !!python/tuple ["side-seat,0,180,conn_site1","seat-side,0,180,conn_site2"]
-        - !!python/tuple ["side-seat,0,180,conn_site1, seat-side,0,180,conn_site2"]
-        - !!python/tuple ["side-seat,0,180,conn_site2, seat-side,0,180,conn_site1"]
-        - !!python/tuple ["side-back,0,conn_site1, back-side,0,conn_site3"]
-        - !!python/tuple ["front-side,0,conn_site2, side-front,0,conn_site2"]
+        - !!python/tuple ["side-seat,0,180,conn_site1", "seat-side,0,180,conn_site2"]
+        - !!python/tuple ["side-seat,0,180,conn_site2", "seat-side,0,180,conn_site1"]
+        - !!python/tuple ["side-back,0,conn_site1", "back-side,0,conn_site3"]
+        - !!python/tuple ["front-side,0,conn_site2", "side-front,0,conn_site2"]
 
-grip_safepos: 
-      - 
+grip_safepos:
+      -
         - !!python/tuple ["z", 0.16]
-      - 
+      -
         - !!python/tuple ["z", 0.16]
-      - 
+      -
         - !!python/tuple ["z", 0.35]
-      - 
+      -
         - !!python/tuple ["z", 0.45]
 
 nogrip_safepos:
-      - 
+      -
         - !!python/tuple ["z", 0.18]
-      - 
+      -
         - !!python/tuple ["z", 0.18]
-      - 
+      -
         - !!python/tuple ["y", 0.1]
         - !!python/tuple ["z", 0.3]
-      - 
-        - !!python/tuple ["z", 0.2] 
+      -
+        - !!python/tuple ["z", 0.2]
 
 grip_angles:
-        - 
+        -
           -  0
           -  0
           - -1

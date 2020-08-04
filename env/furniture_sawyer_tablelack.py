@@ -163,8 +163,8 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             self._leg_fine_aligned = True
             phase_reward = 300
             phase_info["connect_rew"] = ac[-1] * 300
-            reward += info["connect_rew"]
-            info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
+            reward += phase_info["connect_rew"]
+            phase_info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
             if info["connect_succ"]:
                 phase_reward = 20000
                 self._phase_i = 5

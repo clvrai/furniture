@@ -23,8 +23,8 @@ recipe:
 
 site_recipe:
         - !!python/tuple ["column-base,conn_site1", "base-column,conn_site1"]
-        - !!python/tuple ["column-topsupp,conn_site2", topsupp-column,conn_site2"]
-        - !!python/tuple ["topsupp-topplane,conn_site1", topplane-topsupp,conn_site1"]
+        - !!python/tuple ["column-topsupp,conn_site2", "topsupp-column,conn_site2"]
+        - !!python/tuple ["topsupp-topplane,conn_site1", "topplane-topsupp,conn_site1"]
 
 grip_site_recipe:
         - !!python/tuple ["1_part1_ltgt_site0", "1_part1_rtgt_site0"]
