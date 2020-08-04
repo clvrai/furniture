@@ -12,7 +12,7 @@
     <mesh file="table_lack_0825/leg3.stl" name="part3" scale="0.02 0.02 0.02" />
     <mesh file="table_lack_0825/leg4.stl" name="part4" scale="0.02 0.02 0.02" />
     <mesh file="table_lack_0825/table.stl" name="part5" scale="0.02 0.02 0.02" />
-    <texture file="/home/alex/furniture/env/models/assets/objects/../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
