@@ -165,7 +165,7 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
             phase_info["connect_rew"] = ac[-1] * 300
             reward += phase_info["connect_rew"]
             phase_info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
-            if info["connect_succ"]:
+            if phase_info["connect_succ"]:
                 phase_reward = 20000
                 self._phase_i = 5
                 print(f"Early Connected!!!")
