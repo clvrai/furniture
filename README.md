@@ -87,6 +87,10 @@ Inside `furniture/binary` there should be `Furniture.app` for macOS, and `Furnit
 4. Download demonstrations for imitation learning
 Download generated demonstrations `demos.zip` from [this link](https://drive.google.com/drive/folders/1w0RHRYNG8P5nIDXq0Ko5ZshQ2EYS47Zc?usp=sharing) and extract files to `furniture` directory.
 The demonstration pickle files can be found in `furniture/demos/Sawyer_[furniture name]/`.
+The following python script downloads and unzip the demonstrations.
+```bash
+$ python scripts/download_demos.py
+```
 
 5. Use virtual display for headless servers (optional)
 On servers, you don’t have a monitor. Use this to get a virtual monitor for rendering. Set the `--virtual_display` flag to
@@ -113,6 +117,13 @@ $ python demo_manual.py
 ```
 
 ## IL Training
+
+### Demonstration generation
+``` bash
+$ python -m env.furniture_sawyer_gen --furniture_name table_dockstra_0279 --start_count 0 --n_demos 100
+```
+
+### BC
 We provide behavioral cloning (BC) benchmark. You can simply change the furniture name to test on other furniture models.
 
 ```bash

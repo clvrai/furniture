@@ -674,6 +674,9 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
 def main():
     parser = create_parser(env="FurnitureSawyerGenEnv")
+    parser.set_defaults(render=False)
+    parser.set_defaults(record_vid=False)
+    parser.set_defaults(unity=False)
     config, unparsed = parser.parse_known_args()
 
     env = FurnitureSawyerGenEnv(config)
