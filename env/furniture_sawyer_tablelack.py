@@ -11,7 +11,7 @@ from util import PrettySafeLoader
 from util.logger import logger
 
 
-class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
+class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
     """
     Sawyer environment.
     """
@@ -505,14 +505,14 @@ class FurnitureSawyerTableLackEnv(FurnitureSawyerEnv):
 def main():
     from config import create_parser
 
-    parser = create_parser(env="furniture-sawyer-tablelack-v0")
+    parser = create_parser(env="furniture-sawyer-densereward-v0")
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
         logger.error("Unparsed argument is detected:\n%s", unparsed)
         return
 
     # create an environment and run manual control of Sawyer environment
-    env = FurnitureSawyerTableLackEnv(config)
+    env = FurnitureSawyerDenseRewardEnv(config)
     # for i in range(100):
     #     env.reset()
     #     env.render()

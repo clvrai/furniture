@@ -14,7 +14,7 @@ from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
 from env.furniture_jaco import FurnitureJacoEnv
 from env.furniture_panda import FurniturePandaEnv
 from env.furniture_sawyer import FurnitureSawyerEnv
-from env.furniture_sawyer_tablelack import FurnitureSawyerTableLackEnv
+from env.furniture_sawyer_tablelack import FurnitureSawyerDenseRewardEnv
 from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
 
 
@@ -97,7 +97,7 @@ register(
 
 
 register(
-    id="furniture-sawyer-tablelack-v0",
+    id="furniture-sawyer-densereward-v0",
     entry_point="env.furniture_gym:FurnitureGym",
-    kwargs={"name": "FurnitureSawyerTableLackEnv", "unity": False},
+    kwargs={"name": "FurnitureSawyerDenseRewardEnv", "unity": False},
 )
