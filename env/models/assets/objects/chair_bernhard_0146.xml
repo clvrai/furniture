@@ -9,7 +9,7 @@
     <mesh file="chair_bernhard_0146/left_leg.stl" name="0_part0" scale="0.576 0.576 0.576" />
     <mesh file="chair_bernhard_0146/right_leg.stl" name="1_part1" scale="0.576 0.576 0.576" />
     <mesh file="chair_bernhard_0146/seat.stl" name="2_part2" scale="0.576 0.576 0.576" />
-    <texture file="/home/alex/furniture/env/models/assets/objects/../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>

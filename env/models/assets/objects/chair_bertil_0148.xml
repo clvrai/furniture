@@ -19,7 +19,7 @@
     <mesh file="chair_bertil_0148/seat_support2nopeg.stl" name="rsidesupport" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support3.stl" name="frontsupport" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support4nopeg.stl" name="lsidesupport" scale="0.0156 0.0156 0.0156" />
-    <texture file="/home/alex/furniture/env/models/assets/objects/../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
