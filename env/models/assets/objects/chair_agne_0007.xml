@@ -1,14 +1,14 @@
 <mujoco model="chair_agne_0007">
   <custom>
-    <numeric data="0.18065 0.230458 0.012372 0.527671 -0.460391 0.535738 0.471793" name="0_part0_initpos" />
-    <numeric data="-0.204463 0.274204 0.012372 0.705936 -0.705369 0.037809 -0.051764" name="1_part1_initpos" />
-    <numeric data="-0.040463 -0.081508 0.00896 0.0 0.327939 0.944699 0.0" name="2_part2_initpos" />
+    <numeric data="0.164893 0.240276 0.012372 0.528869 -0.459028 0.536906 0.47045" name="0_part0_initpos" />
+    <numeric data="-0.231087 0.269313 0.012537 0.706067 -0.705221 0.037962 -0.051879" name="1_part1_initpos" />
+    <numeric data="-0.033647 -0.085565 0.00896 0.0 0.327939 0.944699 0.0" name="2_part2_initpos" />
   </custom>
   <asset>
     <mesh file="chair_agne_0007/leg1L.stl" name="leg1" scale="0.0005 0.0005 0.0005" />
     <mesh file="chair_agne_0007/leg2L.stl" name="leg2" scale="0.0005 0.0005 0.0005" />
     <mesh file="chair_agne_0007/seat.stl" name="seat" scale="0.0005 0.0005 0.0005" />
-    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <texture file="/home/alex/furniture/env/models/assets/objects/../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
