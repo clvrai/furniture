@@ -71,7 +71,8 @@ class FurnitureSawyerEnv(FurnitureEnv):
         """
         ob, _, done, _ = super()._step(a)
 
-        reward, _, info = self._compute_reward(a)
+        reward, _done, info = self._compute_reward(a)
+        done = done or _done
 
         if self._success:
             logger.info("Success!")
