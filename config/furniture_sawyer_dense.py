@@ -3,10 +3,12 @@ from util import str2bool
 
 def add_argument(parser):
     parser.set_defaults(max_episode_steps=200)
+    parser.set_defaults(object_ob_all=True)
+    parser.set_defaults(control_type="impedance")
 
     parser.add_argument("--pos_threshold", type=float, default=0.015)
     parser.add_argument("--rot_threshold", type=float, default=0.05)
-    parser.add_argument("--discrete_grip", type=str2bool, default=False)
+    parser.add_argument("--discrete_grip", type=str2bool, default=True)
     parser.add_argument("--easy_init", type=str2bool, default=False)
 
     # environment offsets

@@ -46,7 +46,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 ob_space.spaces["robot_ob"] = gym.spaces.Box(
                     low=-np.inf,
                     high=np.inf,
-                    shape=(3 + 4 + 3 + 3 + 1,),  # pos, quat, velp, velr, gripper
+                    shape=(3 + 4 + 3 + 3 + 2,),  # pos, quat, velp, velr, gripper
                 )
 
         return ob_space

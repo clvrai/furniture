@@ -36,6 +36,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             "xy_move_g",
             "align_g",
             "z_move_g",
+            "grip",
             "move_grip_safepos",
             "xy_move_t",
             "align_conn",
@@ -50,15 +51,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         self._phase_noise = {
             "xy_move_g": [-self._config.furn_xyz_rand, self._config.furn_xyz_rand],
             "xy_move_t": [-self._config.furn_xyz_rand, self._config.furn_xyz_rand],
-            "move_grip_safepos": [0, 2 * self._config.furn_xyz_rand],
-            "move_nogrip_safepos": [0, 2 * self._config.furn_xyz_rand],
+            "move_grip_safepos": [0, self._config.furn_xyz_rand],
+            "move_nogrip_safepos": [0, self._config.furn_xyz_rand],
         }
-        # self._phase_noise = {
-        #     'xy_move_g': [-self._config.furn_xyz_rand/2, self._config.furn_xyz_rand/2],
-        #     'xy_move_t': [-self._config.furn_xyz_rand/2, self._config.furn_xyz_rand/2],
-        #     'move_grip_safepos': [0, self._config.furn_xyz_rand],
-        #     'move_nogrip_safepos': [0, self._config.furn_xyz_rand]
-        # }
+
         """
         Abbreviations:
         grip ~ gripper
@@ -112,12 +108,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         return action
 
     def _cap_action(self, action, cap=1):
-        for a in range(len(action)):
-            if action[a] > cap:
-                action[a] = cap
-            elif action[a] < -cap:
-                action[a] = -cap
-        return action
+        return np.clip(action, -cap, cap)
 
     def _step(self, a):
         """
@@ -305,6 +296,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     grip_safepos = p["grip_safepos"][j]
                     nogrip_safepos = p["nogrip_safepos"][j]
                     safepos_count = 0
+                    grip_count = 0
                     t_fwd = None
                     phase_num = 0
                     twice = False
@@ -419,6 +411,15 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             else:
                                 phase_num += 1
                                 z_down_prev = None
+
+                        elif self._phase == "grip":
+                            grip_count += 1
+                            if grip_count < 2:
+                                action[6] = -1
+                            if grip_count >= 4:
+                                action[6] = 1
+                            if grip_count >= 12:
+                                phase_num += 1
 
                         elif self._phase == "move_grip_safepos":
                             action[6] = 1
@@ -619,12 +620,13 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                                 else:
                                     safepos_count += 1
                                     noise = None
-                        # print(self._phase)
+
                         self._phase = self._phases[phase_num]
                         action[0:3] = p["lat_magnitude"] * action[0:3]
                         action[3:6] = p["rot_magnitude"] * action[3:6]
                         action = self.norm_rot_action(action)
                         action = self._cap_action(action)
+                        # print(self._phase, action)
                         ob, reward, _, info = self.step(action)
                         if self._config.render:
                             self.render()
@@ -678,6 +680,9 @@ def main():
     parser.set_defaults(record_vid=False)
     parser.set_defaults(unity=False)
     config, unparsed = parser.parse_known_args()
+    if len(unparsed):
+        logger.error("Unparsed argument is detected:\n%s", unparsed)
+        return
 
     env = FurnitureSawyerGenEnv(config)
     env.generate_demos(config.n_demos)

@@ -1,19 +1,19 @@
 # xyz parameters
-fine_magnitude: 4
+fine_magnitude: 1.5
 z_finedist: 0.05              # distance between connsites at which to start fine adjustment
-z_conn_dist: 0                # distance between connsites at which to connect
+z_conn_dist: 0.002            # distance between connsites at which to connect
 lat_magnitude: 20             # keep movespeed constant at 0.025
 eps: 0.01                     # max acceptable x,y,z difference
-eps_fine: 0.001               # max acceptable x,y,z difference
+eps_fine: 0.002               # max acceptable x,y,z difference
 # rot parameters
 rot_magnitude: 0.2
 rot_eps: 0.04
-rot_eps_fine: 0.04
-min_rot_act: 0.05
+rot_eps_fine: 0.05
+min_rot_act: 0.3
 min_rot_act_fine: 0.01
-#general parameters
+# general parameters
 use_closest: False
-max_success_steps: 1000            # max # of steps a successful demo will take
+max_success_steps: 650            # max # of steps a successful demo will take
 recipe:
         - !!python/tuple ["0_part0", "2_part2"]
         - !!python/tuple ["1_part1", "0_part0"]
