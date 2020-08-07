@@ -288,6 +288,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         ob = self._get_obs()
         if self._record_demo:
             self._demo.add(ob=ob)
+            self._demo.add(low_level_ob=self._get_obs(include_qpos=True))
 
         return ob
 
@@ -1157,23 +1158,23 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._do_ik_step(action)
 
         elif self._control_type == "torque":
+            self._do_simulation(action[:-1])
             if self._record_demo:
                 self._demo.add(
-                    low_level_ob=self._get_obs(),
+                    low_level_ob=self._get_obs(include_qpos=True),
                     low_level_action=action[:-1],
                     connect_action=connect,
                 )
-            self._do_simulation(action[:-1])
 
         elif self._control_type == "impedance":
+            a = self._setup_action(action[:-1])
+            self._do_simulation(a)
             if self._record_demo:
                 self._demo.add(
-                    low_level_ob=self._get_obs(),
+                    low_level_ob=self._get_obs(include_qpos=True),
                     low_level_action=action[:-1],
                     connect_action=connect,
                 )
-            a = self._setup_action(action[:-1])
-            self._do_simulation(a)
 
         elif self._control_type in NEW_CONTROLLERS:
             self._do_controller_step(action)
@@ -2779,13 +2780,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             # keep trying to reach the target in a closed-loop
             ctrl = self._setup_action(low_action)
             for i in range(self._action_repeat):
+                self._do_simulation(ctrl)
                 if self._record_demo:
                     self._demo.add(
-                        low_level_ob=self._get_obs(),
+                        low_level_ob=self._get_obs(include_qpos=True),
                         low_level_action=low_action,
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
-                self._do_simulation(ctrl)
 
                 if i + 1 < self._action_repeat:
                     velocities = self._controller.get_control()
@@ -2846,13 +2847,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             # keep trying to reach the target in a closed-loop
             ctrl = self._setup_action(low_action)
             for i in range(self._action_repeat):
+                self._do_simulation(ctrl)
                 if self._record_demo:
                     self._demo.add(
-                        low_level_ob=self._get_obs(),
+                        low_level_ob=self._get_obs(include_qpos=True),
                         low_level_action=low_action,
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
-                self._do_simulation(ctrl)
 
                 if i + 1 < self._action_repeat:
                     velocities = self._controller.get_control()
