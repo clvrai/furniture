@@ -23,7 +23,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         """
         # config.furniture_name = "table_lack_0825"
         config.furniture_id = furniture_name2id[config.furniture_name]
-        config.object_ob_all = False
         super().__init__(config)
         # default values for rew function
         self._env_config.update(
@@ -89,7 +88,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # updates the observation to the current objects of interest
         self._subtask_part1 = self._object_name2id[self._leg]
         self._subtask_part2 = self._object_name2id[self._table]
-        self._touched = False
+        self._leg_touched = False
         self._leg_lift = False
         self._init_leg_pos = self._get_pos(self._leg)
         self._leg_fine_aligned = False
@@ -126,8 +125,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             a = a.copy()
             a[-2] = -1 if a[-2] < 0 else 1
 
-        ob, _, done, _ = super(FurnitureSawyerEnv, self)._step(a)
-        reward, done, info = self._compute_reward(a)
+        ob, reward, done, info = super()._step(a)
         return ob, reward, done, info
 
     def _compute_reward(self, ac) -> Tuple[float, bool, dict]:
@@ -148,8 +146,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         lower_leg_fine: finely move the leg onto the conn site
         """
         phase_bonus = reward = 0
-        done = False
-        info = {"subtask": self._subtask_step}
+        _, done, info = super()._compute_reward(ac)
+        info["subtask"] = self._subtask_step
         phase = self._phases[self._phase_i]
 
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
@@ -318,9 +316,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info.update({"touch": leg_touched, "touch_rew": touch_rew})
         # gripper rew, 1 if closed
         # further bonus for touch
-        if leg_touched and not self._touched:
+        if leg_touched and not self._leg_touched:
             touch_rew += 10
-            self._touched = True
+            self._leg_touched = True
         rew += info["grasp_leg_rew"] + touch_rew
 
         return rew, info
@@ -506,6 +504,9 @@ def main():
     from config import create_parser
 
     parser = create_parser(env="furniture-sawyer-densereward-v0")
+    parser.add_argument(
+        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
+    )
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
         logger.error("Unparsed argument is detected:\n%s", unparsed)
@@ -513,11 +514,12 @@ def main():
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerDenseRewardEnv(config)
-    # for i in range(100):
-    #     env.reset()
-    #     env.render()
-    #     print("resetting", i)
-    env.run_manual(config)
+    if config.run_mode == "manual":
+        env.run_manual(config)
+    elif config.run_mode == "vr":
+        env.run_vr(config)
+    elif config.run_mode == "demo":
+        env.run_demo_actions(config)
 
 
 if __name__ == "__main__":

@@ -71,15 +71,10 @@ class FurnitureSawyerEnv(FurnitureEnv):
         """
         ob, _, done, _ = super()._step(a)
 
-        reward, _, info = self._compute_reward()
-
-        ctrl_reward = self._ctrl_reward(a)
-        info["reward_ctrl"] = ctrl_reward
+        reward, _, info = self._compute_reward(a)
 
         if self._success:
             logger.info("Success!")
-
-        reward = ctrl_reward + reward
 
         return ob, reward, done, info
 
@@ -100,7 +95,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
             self._target_body1 = self.sim.model.body_id2name(id1)
             self._target_body2 = self.sim.model.body_id2name(id2)
 
-    def _get_obs(self):
+    def _get_obs(self, include_qpos=False):
         """
         Returns the current observation.
         """
@@ -109,7 +104,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
         # proprioceptive features
         if self._robot_ob:
             robot_states = OrderedDict()
-            if self._control_type in ["impedance", "torque"]:
+            if self._control_type in ["impedance", "torque"] or include_qpos:
                 robot_states["joint_pos"] = np.array(
                     [
                         self.sim.data.qpos[x]
@@ -122,45 +117,31 @@ class FurnitureSawyerEnv(FurnitureEnv):
                         for x in self._ref_joint_vel_indexes["right"]
                     ]
                 )
-                robot_states["gripper_qpos"] = np.array(
-                    [
-                        self.sim.data.qpos[x]
-                        for x in self._ref_gripper_joint_pos_indexes["right"]
-                    ]
-                )
-                robot_states["eef_pos"] = np.array(
-                    self.sim.data.site_xpos[self.eef_site_id["right"]]
-                )
-                robot_states["eef_quat"] = T.convert_quat(
-                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
-                )
-                robot_states["eef_velp"] = np.array(
-                    self.sim.data.site_xvelp[self.eef_site_id["right"]]
-                )  # 3-dim
-                robot_states["eef_velr"] = self.sim.data.site_xvelr[
-                    self.eef_site_id["right"]
-                ]  # 3-dim
-
-            else:
-                gripper_qpos = [
+            # gripper_qpos = [
+            #     self.sim.data.qpos[x]
+            #     for x in self._ref_gripper_joint_pos_indexes["right"]
+            # ]
+            # robot_states["gripper_dis"] = np.array(
+            #     [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
+            # )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
+            robot_states["gripper_qpos"] = np.array(
+                [
                     self.sim.data.qpos[x]
                     for x in self._ref_gripper_joint_pos_indexes["right"]
                 ]
-                robot_states["gripper_dis"] = np.array(
-                    [(gripper_qpos[0] + 0.0115) - (gripper_qpos[1] - 0.0115)]
-                )  # range of grippers are [-0.0115, 0.0208] and [-0.0208, 0.0115]
-                robot_states["eef_pos"] = np.array(
-                    self.sim.data.site_xpos[self.eef_site_id["right"]]
-                )
-                robot_states["eef_quat"] = T.convert_quat(
-                    self.sim.data.get_body_xquat("right_hand"), to="xyzw"
-                )
-                robot_states["eef_velp"] = np.array(
-                    self.sim.data.site_xvelp[self.eef_site_id["right"]]
-                )  # 3-dim
-                robot_states["eef_velr"] = self.sim.data.site_xvelr[
-                    self.eef_site_id["right"]
-                ]  # 3-dim
+            )
+            robot_states["eef_pos"] = np.array(
+                self.sim.data.site_xpos[self.eef_site_id["right"]]
+            )
+            robot_states["eef_quat"] = T.convert_quat(
+                self.sim.data.get_body_xquat("right_hand"), to="xyzw"
+            )
+            robot_states["eef_velp"] = np.array(
+                self.sim.data.site_xvelp[self.eef_site_id["right"]]
+            )  # 3-dim
+            robot_states["eef_velr"] = self.sim.data.site_xvelr[
+                self.eef_site_id["right"]
+            ]  # 3-dim
 
             state["robot_ob"] = np.concatenate(
                 [x.ravel() for _, x in robot_states.items()]
@@ -223,11 +204,11 @@ class FurnitureSawyerEnv(FurnitureEnv):
             "right": self.sim.model.site_name2id("grip_site_cylinder")
         }
 
-    def _compute_reward(self):
+    def _compute_reward(self, ac):
         """
         Computes reward of the current state.
         """
-        return super()._compute_reward()
+        return super()._compute_reward(ac)
 
     def _finger_contact(self, obj):
         """
@@ -264,6 +245,9 @@ def main():
         "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
     )
     config, unparsed = parser.parse_known_args()
+    if len(unparsed):
+        logger.error("Unparsed argument is detected:\n%s", unparsed)
+        return
 
     # create an environment and run manual control of Sawyer environment
     env = FurnitureSawyerEnv(config)

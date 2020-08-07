@@ -434,7 +434,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         return self._terminal, step_log, penalty
 
-    def _compute_reward(self):
+    def _compute_reward(self, ac):
         """
         Computes the reward at the current step
         """
@@ -482,13 +482,16 @@ class FurnitureEnv(metaclass=EnvMeta):
         )
         self._prev_num_connected = self._num_connected
 
-        reward = success_reward + touch_reward + pick_reward
+        ctrl_reward = self._ctrl_reward(ac)
+
+        reward = success_reward + touch_reward + pick_reward + ctrl_reward
         # do not terminate
         done = False
         info = {
             "success_reward": success_reward,
             "touch_reward": touch_reward,
             "pick_reward": pick_reward,
+            "ctrl_reward": ctrl_reward,
         }
         return reward, done, info
 
