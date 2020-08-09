@@ -80,7 +80,7 @@ class UniformRandomSampler(ObjectPositionSampler):
         """
         self.mujoco_objects = mujoco_objects  # should be a dictionary - (name, mjcf)
         self.n_obj = len(self.mujoco_objects)
-        self.table_top_offset = table_top_offset
+        self.table_top_offset = 0#table_top_offset
         self.table_size = table_size
         if self.init_qpos is None:
             self.init_qpos = dict()
@@ -126,25 +126,39 @@ class UniformRandomSampler(ObjectPositionSampler):
         rot_range = self.rot_range
         minimum = min(rot_range)
         maximum = max(rot_range)
-        quat = quaternion.elements
-        w, x, y, z = quat
-        euler_x, euler_y, euler_z = T.quaternion_to_euler(x, y, z, w)
-        euler_x = euler_x + self.rng.uniform(high=maximum, low=minimum)
-        euler = [euler_x, euler_y, euler_z]
-        rotated_quat = T.euler_to_quat(euler)
+        # generate noise in euler, then convert noise to quat and multiply orig quat with noise quat
+        xy_noise = self.rng.uniform(high=maximum, low=maximum)
+        yz_noise = 0
+        xz_noise = 0
+        euler_noise = [xy_noise, yz_noise, xz_noise]
+        rotated_quat = T.euler_to_quat(
+            euler_noise, quaternion
+        )
         return rotated_quat
 
     def sample(self, objects=None, placed_objects_orig=None):
         pos_arr = {}
         quat_arr = {}
         index = 0
+        placed_names = []
         if placed_objects_orig is None:
             placed_objects = []
-        placed_objects = copy.copy(placed_objects_orig)
+        else:
+            placed_objects = copy.copy(placed_objects_orig)
+
         if objects is None:
             objects = copy.deepcopy(self.mujoco_objects)
-            for part_name in placed_objects:
-                objects.pop(part_name[0])
+            for part in placed_objects:
+                #don't randomly initialize parts in placed_objects 
+                objects.pop(part[0])
+                name = part[0]
+                qpos = part[2]
+                pos_arr[name] = (
+                        self.table_top_offset
+                        + np.array([qpos.x, qpos.y, qpos.z])
+                        )
+                quat_arr[name] = qpos.quat
+
         for obj_name, obj_mjcf in objects.items():
             obj_r = obj_mjcf.get_horizontal_radius(obj_name)
             # bottom_offset = obj_mjcf.get_bottom_offset(obj_name)
@@ -180,5 +194,4 @@ class UniformRandomSampler(ObjectPositionSampler):
             if not success:
                 raise RandomizationError("Cannot place all objects on the desk")
             index += 1
-
         return pos_arr, quat_arr

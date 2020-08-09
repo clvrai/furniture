@@ -146,8 +146,8 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         self.tree = rescale(self.tree, self.root, resize_factor, write=False)
         self.root = self.tree.getroot()
 
-    def get_init_pos(self, names):
-        init_pos = None
+    def get_init_qpos(self, names):
+        init_qpos = None
         # see custom numeric tag in mujoco xml reference
         numerics = self.root.find('custom')
         if numerics is not None:
@@ -155,13 +155,14 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
                 if 'name' in numeric.attrib and 'initpos' in numeric.attrib['name']:
                     name = '_'.join(numeric.attrib['name'].split('_')[0:-1])
                     if name in names:
-                        if init_pos is None:
-                            init_pos = {}
+                        if init_qpos is None:
+                            init_qpos = {}
                         data = numeric.attrib['data'].split(' ')
                         xpos = [float(data[i]) for i in range(3)]
                         quat = Quaternion([float(data[i]) for i in range(3, 7)])
-                        init_pos[name] = Qpos(xpos[0], xpos[1], xpos[2], quat)
-        return init_pos
+                        init_qpos[name] = Qpos(xpos[0], xpos[1], xpos[2], quat)
+        print('objects', init_qpos['0_part0'])
+        return init_qpos
 
     def get_bottom_offset(self, name=None):
         if name is None:
@@ -231,3 +232,60 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
                     elif child.tag == 'geom' and 'name' in child.attrib:
                         if 'noviz' in child.attrib['name']:
                             child.attrib['rgba'] = '0 0 0 0'
+
+
+    def fix_rel_path(self):
+        for mesh in self.root.find('asset'):
+            if 'file' in mesh.attrib and 'scale' in mesh.attrib:
+                rel_path = mesh.attrib["file"].split('/')
+                rel_path = '/'.join(rel_path[-2:])
+                print('rel_path', rel_path)
+                mesh.set("file", rel_path)
+
+
+    def indent(self, elem, level=0):
+        i = "\n" + level*"  "
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "  "
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                self.indent(elem, level+1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
+
+
+    def set_init_qpos(self, qpos):
+        # see custom numeric tag in mujoco xml reference
+        numerics = self.root.find('custom')
+        if numerics is None:
+            custom = ET.Element("custom")
+            self.root.insert(0, custom)
+            numerics = self.root.find('custom')
+            for name, part_qpos in qpos.items():
+                data_str = ''
+                for i in range(6):
+                    data_str += str(round(part_qpos[i],6)) + ' '
+                data_str += str(round(part_qpos[6],6))
+                part_init_qpos = ET.Element("numeric", attrib={'name':name+'_initpos', 'data':data_str})
+                numerics.append(part_init_qpos)
+        else:
+            for name, part_qpos in qpos.items():
+                for numeric in numerics:
+                    if 'name' in numeric.attrib and name in numeric.attrib['name']:
+                        data_str = ''
+                        for i in range(6):
+                            data_str += str(round(part_qpos[i],6)) + ' '
+                        data_str += str(round(part_qpos[6],6))
+                        numeric.set("data", data_str)
+
+
+    def save_qpos(self, qpos, path):
+        self.set_init_qpos(qpos)
+        self.fix_rel_path()
+        self.indent(self.root)
+        self.save_model(path)
