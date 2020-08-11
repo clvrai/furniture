@@ -1,4 +1,16 @@
 <mujoco model="bookcase_hensvik_0565">
+  <custom>
+    <numeric data="-0.34873 0.261326 0.00379 0.703856 0.067999 -0.703802 0.068005" name="0_part0_initpos" />
+    <numeric data="-0.249609 0.321251 0.003831 0.707107 0.000464 -0.707107 0.000464" name="9_part9_initpos" />
+    <numeric data="0.510708 -0.221477 0.003831 0.999664 -0.0 0.0 0.025928" name="8_part8_initpos" />
+    <numeric data="0.424423 0.078883 0.003841 0.706489 0.029149 0.70652 -0.029199" name="7_part7_initpos" />
+    <numeric data="-0.602976 -0.20608 0.003841 0.506919 0.493015 -0.506909 0.492963" name="6_part6_initpos" />
+    <numeric data="0.063299 -0.234001 0.003831 0.706994 -0.012618 0.706994 0.012618" name="5_part5_initpos" />
+    <numeric data="-0.032413 0.174661 0.003831 0.999008 0.0 0.0 0.044532" name="4_part4_initpos" />
+    <numeric data="-0.568739 0.259396 0.003831 0.9995 0.0 0.0 0.031628" name="3_part3_initpos" />
+    <numeric data="-0.370656 -0.206767 0.003793 0.705874 -0.70591 -0.041433 0.041431" name="2_part2_initpos" />
+    <numeric data="0.402221 0.303398 0.003771 0.495099 -0.495124 -0.504854 0.504828" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="bookcase_hensvik_0565/0.stl" name="part0" scale="0.00038 0.00038 0.00038" />
     <mesh file="bookcase_hensvik_0565/9.stl" name="part9" scale="0.00038 0.00038 0.00038" />
@@ -206,4 +218,8 @@
       <site name="side-top,0,180,conn_site2" pos="-1.1400000000000001e-08 -0.0002811962 0.24130000000000001" quat="1 0 0 0" rgba="1.0 0.8823 0.0980 0.3" size="0.0038" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

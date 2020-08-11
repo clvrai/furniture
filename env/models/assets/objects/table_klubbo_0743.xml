@@ -1,4 +1,11 @@
 <mujoco model="table_klubbo_0743">
+  <custom>
+    <numeric data="-0.330408 0.130433 0.026985 0.707048 0.009076 -0.70705 0.009074" name="1_table_leg1_initpos" />
+    <numeric data="0.516525 -0.068009 0.026985 0.508322 -0.508323 -0.491538 0.491535" name="2_table_leg2_initpos" />
+    <numeric data="0.094253 0.330903 0.026985 0.480384 0.518874 0.480387 -0.518873" name="3_table_leg3_initpos" />
+    <numeric data="-0.404182 -0.114156 0.026985 0.466922 0.466922 0.531023 0.53102" name="4_table_leg4_initpos" />
+    <numeric data="0.067728 -0.152203 0.02397 0.0 0.694917 0.71909 -0.0" name="5_table_top_initpos" />
+  </custom>
   <asset>
     <mesh file="table_klubbo_0743/leg1.stl" name="table_leg1" scale="0.0002 0.0002 0.0002" />
     <mesh file="table_klubbo_0743/leg2.stl" name="table_leg2" scale="0.0002 0.0002 0.0002" />
@@ -25,7 +32,7 @@
       <site name="1_table_leg1_corner_site3" pos="-0.012 0.182 -0.16" rgba="0 0 1 0.3" size="0.005" />
       <site name="1_table_leg1_bottom_site" pos="-0.012 0.182 -0.16" rgba="0 0 1 0" size="0.0232" />
       <site name="1_table_leg1_top_site" pos="-0.012 0.0 0.15" rgba="0 0 1 0" size="0.0232" />
-      <site name="1_table_leg1_horizontal_radius_site" pos="-0.012 0.0 0.0" rgba="0 0 1 0" size="0.14" />
+      <site name="1_table_leg1_horizontal_radius_site" pos="-0.012 0.0 0.0" rgba="0 0 1 0" size="0.08" />
     </body>
     <body name="2_table_leg2" pos="0.007 0.168 0.1666" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="table_leg2" name="table_leg2_geom" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
@@ -37,7 +44,7 @@
       <site name="2_table_leg2_corner_site3" pos="0.182 0.012 -0.16" rgba="0 0 1 0.3" size="0.005" />
       <site name="2_table_leg2_bottom_site" pos="0.182 0.012 -0.16" rgba="0 0 1 0" size="0.0232" />
       <site name="2_table_leg2_top_site" pos="0.0 0.012 0.15" rgba="0 0 1 0" size="0.0232" />
-      <site name="2_table_leg2_horizontal_radius_site" pos="0.0 0.012 0.0" rgba="0 0 1 0" size="0.14" />
+      <site name="2_table_leg2_horizontal_radius_site" pos="0.0 0.012 0.0" rgba="0 0 1 0" size="0.08" />
     </body>
     <body name="3_table_leg3" pos="0.168 -0.007 0.1666" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="table_leg3" name="table_leg3_geom" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
@@ -49,7 +56,7 @@
       <site name="3_table_leg3_corner_site3" pos="0.012 -0.182 -0.16" rgba="0 0 1 0.3" size="0.005" />
       <site name="3_table_leg3_bottom_site" pos="0.012 -0.182 -0.16" rgba="0 0 1 0" size="0.0232" />
       <site name="3_table_leg3_top_site" pos="0.012 0.0 0.15" rgba="0 0 1 0" size="0.0232" />
-      <site name="3_table_leg3_horizontal_radius_site" pos="0.012 0.0 0.0" rgba="0 0 1 0" size="0.14" />
+      <site name="3_table_leg3_horizontal_radius_site" pos="0.012 0.0 0.0" rgba="0 0 1 0" size="0.08" />
     </body>
     <body name="4_table_leg4" pos="0.007 -0.168 0.1666" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="table_leg4" name="table_leg4_geom" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
@@ -61,7 +68,7 @@
       <site name="4_table_leg4_corner_site3" pos="-0.182 -0.012 -0.16" rgba="0 0 1 0.3" size="0.005" />
       <site name="4_table_leg4_bottom_site" pos="-0.182 -0.012 -0.16" rgba="0 0 1 0" size="0.0232" />
       <site name="4_table_leg4_top_site" pos="0.0 -0.012 0.15" rgba="0 0 1 0" size="0.0232" />
-      <site name="4_table_leg4_horizontal_radius_site" pos="0.0 -0.012 0.0" rgba="0 0 1 0" size="0.14" />
+      <site name="4_table_leg4_horizontal_radius_site" pos="0.0 -0.012 0.0" rgba="0 0 1 0" size="0.08" />
     </body>
     <body name="5_table_top" pos="0.01 0.0 0.35" quat="1 0 0 0">
       <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="table_top" name="table_top_geom" pos="0.0 0.0 0.0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
@@ -83,4 +90,8 @@
       <site name="5_table_top_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0" size="0.2" />
     </body>
   </worldbody>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
 </mujoco>

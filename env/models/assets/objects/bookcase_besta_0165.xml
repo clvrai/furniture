@@ -1,4 +1,15 @@
 <mujoco model="bookcase_besta_0165">
+  <custom>
+    <numeric data="-0.195705 0.029558 0.007606 0.48465 -0.51491 -0.484241 -0.515259" name="0_part0_initpos" />
+    <numeric data="-0.002543 0.202942 0.005304 1.0 0.0 0.0 0.000142" name="8_part8_initpos" />
+    <numeric data="0.211164 -0.212496 0.005304 0.0 -0.999534 -0.030518 0.0" name="7_part7_initpos" />
+    <numeric data="0.341642 0.088378 0.001037 0.707107 -0.707107 1.1e-05 -1.1e-05" name="6_part6_initpos" />
+    <numeric data="0.189434 0.342267 0.002633 0.999797 -0.0 -0.0 -0.020168" name="5_part5_initpos" />
+    <numeric data="0.182365 0.016163 0.002633 1.0 0.0 0.0 0.000421" name="4_part4_initpos" />
+    <numeric data="0.182186 0.158303 0.002633 1.0 0.0 0.0 0.0" name="3_part3_initpos" />
+    <numeric data="0.196062 -0.077061 0.002641 1.0 0.0 0.0 0.0" name="2_part2_initpos" />
+    <numeric data="-0.365249 0.064085 0.002599 0.48465 -0.51491 -0.484241 -0.515259" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="bookcase_besta_0165/0.stl" name="part0" scale="0.00042 0.00042 0.00042" />
     <mesh file="bookcase_besta_0165/8.stl" name="part8" scale="0.00042 0.00042 0.00042" />

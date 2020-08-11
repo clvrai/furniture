@@ -1,4 +1,15 @@
 <mujoco model="desk_hannes_0529">
+  <custom>
+    <numeric data="-0.278467 0.171887 0.003515 1.0 0.0 -1e-06 0.000885" name="0_part0_initpos" />
+    <numeric data="0.060741 0.01891 0.007061 0.0 -1.0 0.0 -0.0" name="8_part8_initpos" />
+    <numeric data="0.067668 -0.315762 0.007165 1.0 0.0 0.0 0.0" name="7_part7_initpos" />
+    <numeric data="0.561685 0.027393 0.007061 0.478652 -0.520473 0.478652 0.520473" name="6_part6_initpos" />
+    <numeric data="0.047691 0.340941 0.007061 0.707107 0.707107 2.9e-05 2.9e-05" name="5_part5_initpos" />
+    <numeric data="-0.488397 0.002862 0.007061 0.497087 -0.502896 -0.497087 -0.502896" name="4_part4_initpos" />
+    <numeric data="-0.24835 -0.085303 0.00087 0.706892 -0.017461 0.706891 0.017461" name="3_part3_initpos" />
+    <numeric data="-0.168998 0.03854 -0.000343 1.0 0.0 0.0 0.0" name="2_part2_initpos" />
+    <numeric data="-0.25187 0.053577 0.001034 1.0 0.0 0.0 0.0" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="desk_hannes_0529/0.stl" name="part0" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
     <mesh file="desk_hannes_0529/8.stl" name="part8" scale="0.0005583599999999999 0.0005583599999999999 0.0005583599999999999" />
@@ -170,4 +181,8 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 0 0" size="0.0003545586 0.0010636757999999997 0.0010636757999999997" solref="0.001 1" type="box" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

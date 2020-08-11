@@ -1,4 +1,11 @@
 <mujoco model="tvunit_0406">
+  <custom>
+    <numeric data="-0.384165 0.272905 0.00497 0.999971 0.0 0.0 -0.007619" name="botplane_initpos" />
+    <numeric data="-0.33085 -0.206251 0.00497 0.99999 -0.0 0.0 -0.004369" name="midplane_initpos" />
+    <numeric data="0.554654 -0.223251 0.005073 0.707103 -0.002217 0.707103 0.002217" name="sideplane1_initpos" />
+    <numeric data="0.21867 -0.208788 0.00497 0.707105 0.001443 0.707105 -0.001443" name="sideplane2_initpos" />
+    <numeric data="0.47408 0.258903 0.00497 -0.0 -0.999894 0.014558 -0.0" name="topplane_initpos" />
+  </custom>
   <asset>
     <mesh file="tvunit_0406/botplane.stl" name="botplane" scale="0.001 0.001 0.001" />
     <mesh file="tvunit_0406/midplane.stl" name="midplane" scale="0.001 0.001 0.001" />
@@ -105,4 +112,8 @@
       <site name="topplane_corner_site8" pos="0.38 0.19 0.005" rgba="0 0 1 0.3" size="0.005" />
     </body>
   </worldbody>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
 </mujoco>

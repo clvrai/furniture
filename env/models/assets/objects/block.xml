@@ -1,5 +1,9 @@
 <mujoco model="blocks">
-  <asset>
+  <custom>
+    <numeric data="-0.169076 0.006912 0.050073 1.0 0.0 0.0 0.0" name="1_block_l_initpos" />
+    <numeric data="0.207085 0.013862 0.050073 1.0 0.0 0.0 0.0" name="2_block_r_initpos" />
+  </custom>
+<asset>
     <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
@@ -22,4 +26,4 @@
       <site name="2_block_r_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.1" />
     </body>
   </worldbody>
-</mujoco>
+<actuator /><sensor /><contact /><default /></mujoco>

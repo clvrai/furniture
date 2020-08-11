@@ -1,4 +1,14 @@
 <mujoco model="table_liden_0919">
+  <custom>
+    <numeric data="-0.375211 0.016449 0.023536 0.04548 0.0 0.0 0.998965" name="0_part0_initpos" />
+    <numeric data="0.044406 0.108081 0.025892 -7e-06 -0.999947 0.010278 0.0" name="7_part7_initpos" />
+    <numeric data="0.041843 -0.118284 0.025892 9e-06 -0.999961 0.008831 0.0" name="6_part6_initpos" />
+    <numeric data="0.227318 0.268369 0.014213 0.486318 -0.486318 -0.513317 0.513317" name="5_part5_initpos" />
+    <numeric data="-0.127298 0.385418 0.014109 0.5 0.5 -0.5 -0.5" name="4_part4_initpos" />
+    <numeric data="0.24812 0.379448 0.014109 0.5 0.5 -0.5 -0.5" name="3_part3_initpos" />
+    <numeric data="-0.119076 0.281912 0.014109 0.5 -0.5 -0.5 0.5" name="2_part2_initpos" />
+    <numeric data="0.486105 0.018474 0.023639 0.99994 -0.0 0.0 0.010916" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="table_liden_0919/0.stl" name="part0" scale="0.000371112 0.000371112 0.000371112" />
     <mesh file="table_liden_0919/7.stl" name="part7" scale="0.000371112 0.000371112 0.000371112" />
@@ -163,4 +173,8 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="0.0 0.0 -0.004352056401839999" quat="1 0 0 0" rgba="0 0 0 0" size="0.014139404311199996 0.133347778284 0.01921355930928" solref="0.001 1" type="box" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

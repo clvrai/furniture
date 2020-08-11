@@ -1,4 +1,10 @@
 <mujoco model="desk_mikael_1064">
+  <custom>
+    <numeric data="0.681998 -0.053785 0.00997 0.0 -0.707107 0.0 0.707107" name="2_leftplane_initpos" />
+    <numeric data="-0.524391 -0.031642 0.010073 -0.000762 -0.707106 0.000762 -0.707106" name="1_rightplane_initpos" />
+    <numeric data="0.079033 -0.044954 0.01197 0.0 -0.999892 0.014681 -0.0" name="4_topplane_initpos" />
+    <numeric data="0.069886 0.284708 0.00597 0.707105 -0.707105 0.001478 -0.001478" name="3_drawer_initpos" />
+  </custom>
   <asset>
     <mesh file="desk_mikael_1064/drawer.stl" name="drawer" scale="0.0005 0.0005 0.0005" />
     <mesh file="desk_mikael_1064/leftplane.stl" name="leftplane" scale="0.0005 0.0005 0.0005" />
@@ -84,4 +90,8 @@
       <site name="3_drawer_corner_site8" pos="0.335 0.01 -0.045" rgba="0 0 1 0.3" size="0.0025" />
     </body>
   </worldbody>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
 </mujoco>

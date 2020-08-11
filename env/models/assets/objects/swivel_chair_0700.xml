@@ -1,4 +1,9 @@
 <mujoco model="swivel_chair_0700">
+  <custom>
+    <numeric data="-0.225755 0.221819 0.007144 1.0 0.00064 -0.0 -0.0" name="1_chair_base_initpos" />
+    <numeric data="0.090067 0.21979 0.01494 0.118367 -0.701227 0.090995 -0.697129" name="2_chair_column_initpos" />
+    <numeric data="0.082576 -0.170539 0.009289 0.421821 0.906551 0.013823 0.006432" name="3_chair_seat_initpos" />
+  </custom>
   <asset>
     <mesh file="swivel_chair_0700/base.stl" name="1_chair_base" scale="0.0006 0.0006 0.0006" />
     <mesh file="swivel_chair_0700/column.stl" name="2_chair_column" scale="0.0006 0.0006 0.0006" />
@@ -56,4 +61,8 @@
       <site name="3_chair_seat_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 1 0.3" size="0.12" />
     </body>
   </worldbody>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
 </mujoco>

@@ -1,4 +1,12 @@
 <mujoco model="shelf_ivar_0678">
+  <custom>
+    <numeric data="-0.000755 0.072044 0.009075 0.5 -0.5 0.5 -0.5" name="1_column_initpos" />
+    <numeric data="-0.254231 -0.080677 0.06297 1.0 -0.0 0.0 0.0" name="2_box1_initpos" />
+    <numeric data="-0.10745 0.201858 0.063073 -6e-06 0.0 -0.0 -1.0" name="3_box2_initpos" />
+    <numeric data="0.045981 -0.080604 0.06297 1.0 -0.0 0.0 -6e-06" name="4_box3_initpos" />
+    <numeric data="0.197653 0.207511 0.06297 1e-06 0.0 0.0 -1.0" name="5_box4_initpos" />
+    <numeric data="0.348056 -0.070529 0.06297 1.0 -0.0 -0.0 7e-06" name="6_box5_initpos" />
+  </custom>
   <asset>
     <mesh file="shelf_ivar_0678/box.stl" name="box_mesh" scale="0.0005 0.0005 0.0005" />
     <mesh file="shelf_ivar_0678/column.stl" name="column_mesh" scale="0.0005 0.0005 0.0005" />
@@ -81,4 +89,8 @@
       <site name="6_box5_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
     </body>
   </worldbody>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
 </mujoco>

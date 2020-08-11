@@ -1,4 +1,17 @@
 <mujoco model="table_hemnes_0541">
+  <custom>
+    <numeric data="-0.325755 -0.178171 0.006066 1.0 -0.0 0.0 0.0" name="0_part0_initpos" />
+    <numeric data="-0.051426 -0.156712 0.005196 0.707105 0.707105 -0.001625 -0.001625" name="10_part9_initpos" />
+    <numeric data="0.168591 0.026762 0.007734 0.707089 -0.005005 0.707089 0.005005" name="9_part8_initpos" />
+    <numeric data="-0.029056 0.175695 0.008391 0.707107 -0.707107 -0.0 0.0" name="8_part7_initpos" />
+    <numeric data="-0.232284 0.056541 0.005655 0.70663 -0.025975 -0.70663 -0.025974" name="7_part6_initpos" />
+    <numeric data="0.426967 0.059525 0.006066 0.0 -0.998287 -0.058513 -0.0" name="6_part5_initpos" />
+    <numeric data="0.087723 0.406904 0.00969 0.707107 4e-06 0.707107 -4e-06" name="5_part4_initpos" />
+    <numeric data="-0.417659 0.288586 0.00969 0.707106 0.000879 0.707106 -0.000879" name="4_part3_initpos" />
+    <numeric data="-0.457292 0.40313 0.008645 -3e-06 -0.707107 3e-06 -0.707107" name="3_part2_initpos" />
+    <numeric data="-0.043002 0.021218 0.00297 1.0 0.0 -0.0 0.0" name="2_part10_initpos" />
+    <numeric data="0.128936 0.314328 0.00909 0.012357 -0.706999 -0.012357 -0.706999" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="table_hemnes_0541/0.stl" name="part0" scale="0.0006 0.0006 0.0006" />
     <mesh file="table_hemnes_0541/9.stl" name="part9" scale="0.0006 0.0006 0.0006" />
@@ -211,4 +224,8 @@
       <site name="leftbackleg-backwall,0,conn_site1" pos="0.012 -0.005143494 0.184116" quat="0.7071067 0 -0.7071068 0" rgba="0.9411 0.1960 0.9019 0.3" size="0.012" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

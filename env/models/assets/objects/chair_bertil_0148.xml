@@ -1,12 +1,11 @@
 <mujoco model="chair_bertil_0148">
-<custom>
-
-<numeric data="0.261174 0.055009 0.037727 0.011477 -0.011329 0.702426 -0.711574" name="0_part0_initpos" />
-<numeric data="0.013485 0.085632 0.007892 0.707107 0.0 -0.707107 -0.0" name="1_part1_initpos" />
-<numeric data="-0.094549 0.059042 0.007892 0.707107 0.0 -0.707107 -0.0" name="2_part2_initpos" />
-<numeric data="-0.314271 -0.124672 0.011968 0.005597 -0.005597 0.707096 -0.707073" name="3_part3_initpos" />
-<numeric data="-0.321011 0.371645 0.00304 0.0 0.001511 -0.999999 0.0" name="4_part4_initpos" />
-</custom>
+  <custom>
+    <numeric data="0.261174 0.055009 0.037727 0.011477 -0.011329 0.702426 -0.711574" name="0_part0_initpos" />
+    <numeric data="0.013485 0.085632 0.007892 0.707107 0.0 -0.707107 -0.0" name="1_part1_initpos" />
+    <numeric data="-0.094549 0.059042 0.007892 0.707107 0.0 -0.707107 0.0" name="2_part2_initpos" />
+    <numeric data="-0.314275 -0.124592 0.011968 0.005613 -0.005613 0.707096 -0.707073" name="3_part3_initpos" />
+    <numeric data="-0.321306 0.372008 0.002946 0.0 0.000565 -1.0 -0.0" name="4_part4_initpos" />
+  </custom>
   <asset>
     <mesh file="chair_bertil_0148/backlleg.stl" name="backlleg" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/backrleg.stl" name="backrleg" scale="0.0156 0.0156 0.0156" />
@@ -14,7 +13,7 @@
     <mesh file="chair_bertil_0148/back_support2.stl" name="backmidpanel" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/frontleg1.stl" name="frontlleg" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/frontleg2.stl" name="frontrleg" scale="0.0156 0.0156 0.0156" />
-    <mesh file="chair_bertil_0148/seat.stl" name="seat" scale="0.0156 0.0156 0.0156" /> 
+    <mesh file="chair_bertil_0148/seat.stl" name="seat" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support1.stl" name="backbotpanel" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support2nopeg.stl" name="rsidesupport" scale="0.0156 0.0156 0.0156" />
     <mesh file="chair_bertil_0148/seat_support3.stl" name="frontsupport" scale="0.0156 0.0156 0.0156" />
@@ -86,7 +85,6 @@
       <site name="3_part3_horizontal_radius_site" pos="0.0 0 0.0" rgba="0 0 0 0" size="0.02" />
     </body>
     <body name="4_part4" pos="0.0 0.0 0.0" quat="1 0 0 0">
-      
       <geom conaffinity="0" contype="0" density="0" material="light-wood" mesh="seat" name="4_part4_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <geom density="50" name="noviz_collision_4_part4_0" pos="0 -0.015 0" rgba="0 0 0 0" size="0.15 0.143 0.003" type="box" />
       <geom density="50" name="noviz_collision_4_part4_1" pos="0 0 0" rgba="0 0 0 0" size="0.115 0.16 0.003" type="box" />
@@ -96,4 +94,8 @@
       <site name="4_part4_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 0 0" size="0.0093" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>
