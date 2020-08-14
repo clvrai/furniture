@@ -286,6 +286,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         with tqdm(total=n_demos) as pbar:
             while n_successful_demos < n_demos:
                 ob = self.reset()
+                t = 0
                 if "num_connects" in p.keys():
                     self._success_num_conn = p["num_connects"]
                 else:
@@ -626,7 +627,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         action[3:6] = p["rot_magnitude"] * action[3:6]
                         action = self.norm_rot_action(action)
                         action = self._cap_action(action)
-                        # print(self._phase, action)
+                        # print(t, self._phase, action)
+                        t += 1
                         ob, reward, _, info = self.step(action)
                         if self._config.render:
                             self.render()
