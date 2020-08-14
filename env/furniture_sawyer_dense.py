@@ -157,19 +157,19 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # detect early success
         info["is_aligned"] = int(self._is_aligned(self._leg_site, self._table_site))
         left, right = self._finger_contact(self._leg)
-        if phase != "move_leg_fine" and info["is_aligned"] and left and right:
-            phase_info = {}
-            phase_reward = 300
-            phase_info["connect_rew"] = ac[-1] * 300
-            reward += phase_info["connect_rew"]
-            phase_info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
-            if phase_info["connect_succ"]:
-                phase_reward = 20000
-                self._phase_i = 5
-                print(f"Early Connected!!!")
-                # update reward variables for next attachment
-                done = self._success = self._set_next_subtask()
-        elif phase == "move_eef_above_leg":
+        # if phase != "move_leg_fine" and info["is_aligned"] and left and right:
+        #     phase_info = {}
+        #     phase_reward = 300
+        #     phase_info["connect_rew"] = ac[-1] * 300
+        #     reward += phase_info["connect_rew"]
+        #     phase_info["connect_succ"] = int(info["is_aligned"] and ac[-1] > 0)
+        #     if phase_info["connect_succ"]:
+        #         phase_reward = 20000
+        #         self._phase_i = 5
+        #         print(f"Early Connected!!!")
+        #         # update reward variables for next attachment
+        #         done = self._success = self._set_next_subtask()
+        if phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 print(f"DONE WITH PHASE {phase}")
