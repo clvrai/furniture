@@ -308,7 +308,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info["grasp_leg_succ"] = int(leg_touched and grasp)
         # closed gripper is 1, want to maximize gripper
         offset = ac[-2] - self._prev_grasp_leg_rew
-        grasp_leg_rew = offset * self._gripper_penalty_coef * 40
+        grasp_leg_rew = offset * self._gripper_penalty_coef * 100
         self._prev_grasp_leg_rew = ac[-2]
         info["grasp_leg_rew"] = grasp_leg_rew
 
