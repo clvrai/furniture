@@ -1,14 +1,12 @@
 # xyz parameters
 fine_magnitude: 4
-z_finedist: 0.05              # distance between connsites at which to start fine adjustment
-z_conn_dist: 0                # distance between connsites at which to connect
-lat_magnitude: 20             # keep movespeed constant at 0.025
-# z_nogrip_safepos: 0.5        # z height to raise gripper to, to ensure no collisions
-# z_grip_safepos: 0.3
-z_nogrip_safepos: 0.7        # z height to raise gripper to, to ensure no collisions
+z_finedist: 0.05
+z_conn_dist: 0
+lat_magnitude: 20
+z_nogrip_safepos: 0.7
 z_grip_safepos: 0.65
-eps: 0.01                     # max acceptable x,y,z difference
-eps_fine: 0.001               # max acceptable x,y,z difference
+eps: 0.01
+eps_fine: 0.001
 # rot parameters
 rot_magnitude: 0.2
 rot_eps: 0.05
@@ -16,8 +14,9 @@ rot_eps_fine: 0.005
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 #general parameters
-max_success_steps: 4000            # max # of steps a successful demo will take
+max_success_steps: 4000
 use_closest: False
+# assembly order parameters
 recipe: 
         # - !!python/tuple ["5_part5", "7_part7"] 
         # - !!python/tuple ["2_part2", "7_part7"] 

@@ -55,8 +55,8 @@
     <body name="2_part2" pos="-0.133 0.0 -0.023" quat="1 0 0 0">
       <geom density="100" material="light-wood" mesh="rsidesupport" name="2_part2_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
       <geom density="100" name="noviz_collision_2_part2_0" pos="0 0 0" rgba="0 0 0 0" size="0.008 0.129 0.02" type="box" />
-      <site group="1" name="2_part2_ltgt_site0" pos="0 0 0.02" rgba="0 0 0 0" size="0.01 0.01 0.01" type="sphere" />
-      <site group="1" name="2_part2_rtgt_site0" pos="0 0 -0.02" rgba="0 0 0 0" size="0.01 0.01 0.01" type="sphere" />
+      <site group="1" name="2_part2_ltgt_site0" pos="0 0 -0.02" rgba="0 0 0 0" size="0.01 0.01 0.01" type="sphere" />
+      <site group="1" name="2_part2_rtgt_site0" pos="0 0 0.02" rgba="0 0 0 0" size="0.01 0.01 0.01" type="sphere" />
       <site name="rsidesupport-backlegs,0,180,conn_site" pos="0.0 0.13 0.0" quat="0.707 -0.707 0 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.0093" />
       <site name="rsidesupport-frontlegs,0,180,conn_site" pos="0.000 -0.126 0.0" quat="0.707 -0.707 0 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.0093" />
       <site name="2_part2_bottom_site" pos="0.0 -0.136 0.0" rgba="0 0 0 0" size="0.0093" />

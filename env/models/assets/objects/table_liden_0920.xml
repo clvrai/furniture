@@ -1,14 +1,11 @@
 <mujoco model="table_liden_0920">
   <custom>
-
     <numeric data="0.4 0.3 0.027405 0.0 1.0 0.0 0.0" name="0_part0_initpos" />
     <numeric data="-0.185209 0.125035 0.006726 0.0 -1.0 0 0.0" name="5_part5_initpos" />
     <numeric data="-0.185924 0.309664 0.006829 0.0 -1.0 0 0.0" name="4_part4_initpos" />
     <numeric data="-0.450277 -0.090518 0.170664 0.0 0.705513 0.708697 0.0" name="3_part3_initpos" />
     <numeric data="-0.101199 -0.259353 0.170664 1.6e-05 -0.699554 -0.71458 -1.6e-05" name="2_part2_initpos" />
     <numeric data="0.399995 0.139968 0.027405 0.0 -1.0 8.8e-05 -0.0" name="1_part1_initpos" />
-
-
   </custom>
   <asset>
     <mesh file="table_liden_0920/0.stl" name="part0" scale="0.00054 0.00054 0.00054" />

@@ -1,4 +1,4 @@
-<mujoco model="0019_CABINET_AKURUM">
+<mujoco model="cabinet_akurum_0019">
   <custom>
     <numeric data="0.004059 0.31079 0.004853 -0.001617 -0.0 -3e-06 -0.999999" name="0_part0_initpos" />
     <numeric data="0.02032 -0.15402 0.001323 0.510748 -0.510748 -0.489016 0.489016" name="4_part4_initpos" />

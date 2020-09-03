@@ -86,8 +86,8 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="1.4797439999999998e-05 -1.3214879999999998e-05 0.00048231288" quat="1 0 0 0" rgba="0 0 0 0" size="0.02561799744 0.15875999999999998" solref="0.001 1" type="cylinder" />
     </body>
   </worldbody>
-  <actuator />
-  <sensor />
-  <contact />
-  <default />
+  <actuator/>
+  <sensor/>
+  <contact/>
+  <default/>
 </mujoco>

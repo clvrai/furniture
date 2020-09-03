@@ -1,20 +1,21 @@
 # xyz parameters
 fine_magnitude: 4
-z_finedist: 0.04              # distance between connsites at which to start fine adjustment
+z_finedist: 0.06              # distance between connsites at which to start fine adjustment
 z_conn_dist: 0                # distance between connsites at which to connect
 lat_magnitude: 20             # keep movespeed constant at 0.025
 eps: 0.01                     # max acceptable x,y,z difference
 eps_fine: 0.001               # max acceptable x,y,z difference
 # rot parameters
 rot_magnitude: 0.2
-rot_eps: 0.05
+rot_eps: 0.01
 rot_eps_fine: 0.05
-min_rot_act: 0.04
+min_rot_act: 0.05
 min_rot_act_fine: 0.01
-#general parameters
+# general parameters
 use_closest: True            
-max_success_steps: 2100            # max # of steps a successful demo will take
-
+max_success_steps: 2600            # max # of steps a successful demo will take
+num_connects: 5
+# assembly order parameters
 recipe: 
         - !!python/tuple ["1_part1", "0_part0"]
         - !!python/tuple ["2_part2", "0_part0"]
@@ -22,48 +23,58 @@ recipe:
         - !!python/tuple ["3_part3", "1_part1"]
 
 site_recipe:
-        - !!python/tuple ["lsidesupport-backlegs,0,180",  "backlegs-lsidesupport,0,180,conn_site"]
+        - !!python/tuple ["lsidesupport-backlegs,0,180,conn_site",  "backlegs-lsidesupport,0,180,conn_site"]
         - !!python/tuple ["rsidesupport-backlegs,0,180,conn_site", "backlegs-rsidesupport,0,180,conn_site"]
         - !!python/tuple ["frontlegs-seat,0,conn_site", "seat-frontlegs,0,conn_site"]
         - !!python/tuple ["frontlegs-lsidesupport,0,180,conn_site", "lsidesupport-frontlegs,0,180,conn_site"]
 
-#note: absolute coordinates
 grip_safepos: 
-      - 
-        - !!python/tuple ["z", 0.26] 
-      - 
-        - !!python/tuple ["z", 0.5] 
-      - 
-        - !!python/tuple ["z", 0.2] 
-      - 
-        - !!python/tuple ["z", 0.5]
-        - !!python/tuple ["y", 0]  
-        - !!python/tuple ["x", 0]  
+    -
+      - [0, 0, 0.2]
+    - 
+      - [0.3, 0.3, 0.2]
+    - 
+      - [0, 0, 0.2]
+    - 
+      - [0, -0.25, 0.38] 
+      # - 
+      #   - !!python/tuple ["z", 0.26] 
+      # - 
+      #   - !!python/tuple ["z", 0.5] 
+      # - 
+      #   - !!python/tuple ["z", 0.2] 
+      # - 
+      #   - !!python/tuple ["z", 0.5]
+      #   - !!python/tuple ["y", 0]  
+      #   - !!python/tuple ["x", 0]  
 
 nogrip_safepos:
-      - 
-        - !!python/tuple ["z", 0.44] 
-      - 
-        - !!python/tuple ["z", 0.44]        
-      - []
-      - 
-        - !!python/tuple ["z", 0.5] 
+    -
+      - [0, 0, 0.2]
+    - 
+      - [0, 0, 0.2]
+    - 
+    - 
+      - [0, 0, 0.2] 
+      # - 
+      #   - !!python/tuple ["z", 0.44] 
+      # - 
+      #   - !!python/tuple ["z", 0.44]        
+      # - []
+      # - 
+      #   - !!python/tuple ["z", 0.5] 
 
 grip_angles: 
-        - 
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1        
-        -
-num_connects: 5
-# indices of recipe steps to connect twice
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+    -
+
+skip_phase:
+  - !!python/tuple [3, 'xy_move_t']
+
 connect_twice:
   - 3

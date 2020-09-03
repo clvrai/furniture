@@ -1,0 +1,99 @@
+# General Note:
+#      No guarantees that demo generation works if the XML init_pos is changed
+
+# xyz parameters
+fine_magnitude: 4             # amount by which to reduce fine_phase xyz motion
+z_finedist: 0                 # distance between connsites at which to start fine adjustment
+z_conn_dist: 0                # distance between connsites at which to connect
+lat_magnitude: 20             # scalar to keep '--move_speed' constant for all demos
+eps: 0.01                     # max acceptable L1 distance between target position and current position
+eps_fine: 0.001               # max epsilon for fine translation phases
+
+# rot parameters
+rot_magnitude: 0.2            # scalar to keep '--rotate_speed' constant for all demos
+rot_eps: 0.05                 # max acceptable angle in radians between target vector and current vector
+rot_eps_fine: 0.01            # max epsilon for fine rotation phases
+min_rot_act: 0.05             # minimum rotation action, intended to reduce # of steps for assembly
+min_rot_act_fine: 0.01        # minimum rotation action for fine phases
+
+# general parameters
+use_closest: False            # if site_recipe not given, use closest/furthest legal connection site
+max_success_steps: 2300       # max # of steps complete assembly can take before being terminated for failure
+num_connects: 4               # specify # of active welds for special furniture, defaults to num_parts-1
+leg_axis: left                # for determining wrist rotation reward
+
+
+# Assembly Order Notes: 
+#      1. All the below variables are initialization specific         
+#      2. The recipe and site_recipe are optimized single-part RL assembly, likely not optimal for complete assembly
+#      3. Often, many legal assembly orders exist.
+
+# assembly order parameters
+recipe: 
+# defines an ordered list of body pairs for proper assembly 
+#                 (gripped_body, target_body)
+    - !!python/tuple ["0_part0", "4_part4"]
+    - !!python/tuple ["2_part2", "4_part4"]
+    - !!python/tuple ["3_part3", "4_part4"]
+    - !!python/tuple ["1_part1", "4_part4"]
+
+site_recipe:
+# defines an ordered list of connection site pairs for assembly
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site4", "top-leg,0,90,180,270,conn_site3"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site2", "top-leg,0,90,180,270,conn_site1"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site1", "top-leg,0,90,180,270,conn_site2"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site3", "top-leg,0,90,180,270,conn_site4"]
+
+grip_safepos: 
+# Used in phase 'move_grip_safepos'
+# defines an ordered list of positions to move to relative to gripper pos at end of z_move_g
+# if null, skip phase 'move_grip_safepos' for that recipe index
+# If a part connects to multiple parts before it is released, set the corresponding grip_safepos to null 
+# data[recipe_idx] = [[x0, y0, z0], [x1, y1, z1], ...]
+
+    -  # recipe_idx 0
+      - !!python/list [x0, y0, z0]
+    -  # recipe_idx 1
+      - !!python/list [x0, y0, z0]
+      - !!python/list [x1, y1, z1]
+    -  # recipe_idx 2
+      - !!python/list [x0, y0, z0]
+    -  # recipe_idx 3
+      - !!python/list [x0, y0, z0]
+
+nogrip_safepos:
+# Used in 'move_nogrip_safepos'
+# data ~ list of positions to move to relative to gripper pos at end of z_move_conn_fine
+# if null, skip phase 'move_nogrip_safepos' for that recipe index
+# data[recipe_idx] = [[x0, y0, z0], [x1, y1, z1], ...]
+
+    -  # recipe_idx 0
+      - !!python/list [x0, y0, z0]
+      - !!python/list [x1, y1, z1]
+    -  # recipe_idx 1,
+    -  # recipe_idx 2
+      - !!python/list [x0, y0, z0]
+    -  # recipe_idx 3
+
+grip_angles: 
+# Used in 'align_g'
+# data ~ the grip angle to be align the gripper with for each recipe step
+# data[recipe_idx] = [x, y, z]
+# if null, skip phase 'align_g' for that recipe_idx
+
+    - 
+      - !!python/list [0, 0, -1]
+    - 
+      - !!python/list [0, 0, -1]
+    - 
+      - !!python/list [0, 0, -1]
+    - 
+      - !!python/list [0, 0, -1]
+
+skip_phase:
+# tuple(recipe_idx, phase)
+  - !!python/tuple [3, 'xy_move_t']
+
+#  recipe_idx to connect twice
+connect_twice:
+  - 3
