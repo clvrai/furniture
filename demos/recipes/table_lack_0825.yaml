@@ -12,8 +12,9 @@ rot_eps: 0.05
 rot_eps_fine: 0.05
 min_rot_act: 0.3
 min_rot_act_fine: 0.01
-#general parameters
+# general parameters
 use_closest: False
+num_connects: 2
 max_success_steps: 2000            # max # of steps a successful demo will take
 recipe:
         - !!python/tuple ["0_part0", "4_part4"]
@@ -60,6 +61,6 @@ grip_angles:
 
 site_recipe:
         - !!python/tuple ["leg-table,0,90,180,270,conn_site1", "table-leg,0,90,180,270,conn_site3"]
-        - !!python/tuple ["leg-table,0,90,180,270,conn_site4", "table-leg,0,90,180,270,conn_site4"]
         - !!python/tuple ["leg-table,0,90,180,270,conn_site3", "table-leg,0,90,180,270,conn_site1"]
+        - !!python/tuple ["leg-table,0,90,180,270,conn_site4", "table-leg,0,90,180,270,conn_site4"]
         - !!python/tuple ["leg-table,0,90,180,270,conn_site2", "table-leg,0,90,180,270,conn_site2"]

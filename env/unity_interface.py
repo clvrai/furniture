@@ -248,3 +248,4 @@ class UnityInterface(object):
                 self.proc1.kill()
             else:
                 os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)
+            self.proc1 = None

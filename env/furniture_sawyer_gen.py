@@ -3,17 +3,13 @@ import time
 
 import numpy as np
 import yaml
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from tqdm import tqdm
 
 import env.transform_utils as T
-from config import create_parser
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from util import PrettySafeLoader
 from util.logger import logger
-from util.video_recorder import VideoRecorder
 
 
 class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
@@ -125,6 +121,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             and len(self._object_names) > 1
         ):
             self._success = True
+            done = True
         return ob, reward, done, info
 
     def get_bodyiterator(self, bodyname):
@@ -312,11 +309,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     if p["use_closest"]:
                         gconn = self.get_closest_connsite(
                             gconn_names, grip_pos
-                        )  #'leg-top,0,90,180,270,conn_site3'
+                        )
                     else:
                         gconn = self.get_furthest_connsite(
                             gconn_names, grip_pos
-                        )  #'leg-top,0,90,180,270,conn_site3'
+                        )
                     g_pos = self._get_pos(gbody_name)
                     allowed_angles = [float(x) for x in gconn.split(",")[1:-1] if x]
                     for i in range(len(recipe)):
@@ -677,6 +674,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
 
 def main():
+    from config import create_parser
+
     parser = create_parser(env="FurnitureSawyerGenEnv")
     parser.set_defaults(render=False)
     parser.set_defaults(record_vid=False)
