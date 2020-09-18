@@ -31,6 +31,7 @@ from util.demo_recorder import DemoRecorder
 from util.video_recorder import VideoRecorder
 from util.logger import logger
 from util import Qpos
+from util.pytorch import *
 
 try:
     import mujoco_py
@@ -222,15 +223,23 @@ class FurnitureEnv(metaclass=EnvMeta):
             # can be changed to the desired number depending on the task
             if self._object_ob_all:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4) * self.n_objects,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4) * self.n_objects,),
                 )
             else:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4) * 2,),
                 )
 
         if self._subtask_ob:
-            ob_space["subtask_ob"] = gym.spaces.Box(low=0.0, high=np.inf, shape=(2,),)
+            ob_space["subtask_ob"] = gym.spaces.Box(
+                low=0.0,
+                high=np.inf,
+                shape=(2,),
+            )
 
         return gym.spaces.Dict(ob_space)
 
@@ -265,7 +274,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 (
                     "default",
                     gym.spaces.Box(
-                        shape=(self.dof,), low=-1, high=1, dtype=np.float32,
+                        shape=(self.dof,),
+                        low=-1,
+                        high=1,
+                        dtype=np.float32,
                     ),
                 )
             ]
@@ -1433,7 +1445,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 init_pos, init_quat = self._place_objects()
                 self.init_pos.update(init_pos)
                 self.init_quat.update(init_quat)
-
             # set furniture positions
             for i, body in enumerate(self._object_names):
                 logger.debug(f"{body} {self.init_pos[body]} {self.init_quat[body]}")
@@ -1494,7 +1505,6 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 self.sim.forward()
                 self.sim.step()
-
         # store qpos of furniture and robot
         if self._record_demo:
             self._store_qpos()
@@ -1503,7 +1513,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.set_env_qpos(self._init_qpos)
 
         # sync mujoco sim state
-        self.sim.data.ctrl[:] = 0
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+            self.sim.data.ctrl[:] = 0
         self.sim.data.qfrc_applied[:] = 0
         self.sim.data.xfrc_applied[:] = 0
         self.sim.data.qacc_warmstart[:] = 0
@@ -1831,18 +1842,18 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif self._config.furn_size_rand != 0:
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
-        objects = MujocoXMLObject(path, debug=self._debug, resize=resize_factor)
-        objects.hide_visualization()
-        part_names = objects.get_children_names()
+        self._objects = MujocoXMLObject(path, debug=self._debug, resize=resize_factor)
+        self._objects.hide_visualization()
+        part_names = self._objects.get_children_names()
 
         # furniture pieces
         lst = []
         for part_name in part_names:
-            lst.append((part_name, objects))
+            lst.append((part_name, self._objects))
 
         self.mujoco_objects = OrderedDict(lst)
         self.n_objects = len(self.mujoco_objects)
-        self.mujoco_equality = objects.equality
+        self.mujoco_equality = self._objects.equality
 
     def _load_model(self):
         """
@@ -1852,9 +1863,15 @@ class FurnitureEnv(metaclass=EnvMeta):
         # task includes arena, robot, and objects of interest
         from env.models.tasks import FloorTask
 
-        init_qpos = next(iter(self.mujoco_objects.values())).get_init_pos(
+        init_qpos = next(iter(self.mujoco_objects.values())).get_init_qpos(
             list(self.mujoco_objects.keys())
         )
+        if init_qpos:
+            self.init_pos = {}
+            self.init_quat = {}
+            for key, qpos in init_qpos.items():
+                self.init_pos[key] = [qpos.x, qpos.y, qpos.z]
+                self.init_quat[key] = qpos.quat
         self.mujoco_model = FloorTask(
             self.mujoco_arena,
             self.mujoco_robot,
@@ -1982,7 +1999,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         make sure to add keys to whitelist in MJTCPInterace.cs
         """
         key = self._unity.get_input()
-
         if key == "None":
             return
         elif key == "Q":
@@ -2487,7 +2503,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.zeros((15,))
             ob, reward, done, info = self.step(action)
             self.render("rgb_array")
-            logger.info("current_scale", 1 + self._manual_resize)
+            logger.info("current_scale: " + str(1 + self._manual_resize))
             self.reset(config.furniture_id, config.background)
             self._action_on = False
 
@@ -2495,24 +2511,23 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Run a resizing program in unity for adjusting furniture size in xml
         """
-        if config.furniture_name is not None:
-            config.furniture_id = furniture_name2id[config.furniture_name]
-        ob = self.reset(config.furniture_id, config.background)
-        self.reset(config.furniture_id, config.background)
-        self.render()
         flag = [-1, -1]
-        n_img = 20
-        grid = tensor(np.zeros((n_img, 3, self._screen_height, self._screen_width)))
+        n_img = 5
+        grid = np.zeros((n_img, 3, self._screen_height, self._screen_width))
         blended = np.zeros((3, self._screen_height, self._screen_width))
         for i in range(n_img):
-            grid[i] = tensor(np.transpose((self.render("rgb_array")[0]), (2, 0, 1)))
-            blended += grid[i].numpy()
-            self.reset(config.furniture_id, config.background)
-
-        grid = make_grid(grid, nrow=4).numpy()
-        plt.imsave("grid" + str(n_img) + ".jpg", np.transpose(grid, (1, 2, 0)))
+            self.reset()
+            grid[i] = np.transpose((self.render("rgb_array")[0]), (2, 0, 1))
+            blended += grid[i]
         blended = blended / n_img
-        plt.imsave("blended" + str(n_img) + ".jpg", np.transpose(blended, (1, 2, 0)))
+        path = "randomness_distribution"
+        blended_img_path = os.path.join(
+            path, furniture_names[self._furniture_id] + "_blended" + str(n_img) + ".jpg"
+        )
+        grid_img_path = os.path.join(
+            path, furniture_names[self._furniture_id] + "_grid" + str(n_img) + ".jpg"
+        )
+        save_distribution_imgs(grid, blended, grid_img_path, blended_img_path)
 
     def _get_reference(self):
         """

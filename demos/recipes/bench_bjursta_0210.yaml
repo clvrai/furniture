@@ -1,11 +1,11 @@
-#works for furn_xyz_rand=0.02, furn_rot_rand=3
+# works for furn_xyz_rand=0.02, furn_rot_rand=3
 # xyz parameters
 fine_magnitude: 4
-z_finedist: 0.03              # distance between connsites at which to start fine adjustment
-z_conn_dist: 0                # distance between connsites at which to connect
-lat_magnitude: 20             # keep movespeed constant at 0.025
-eps: 0.01                     # max acceptable x,y,z difference
-eps_fine: 0.001               # max acceptable x,y,z difference
+z_finedist: 0.03
+z_conn_dist: 0
+lat_magnitude: 20
+eps: 0.01
+eps_fine: 0.001
 # rot parameters
 rot_magnitude: 0.2
 rot_eps: 0.05
@@ -14,53 +14,67 @@ min_rot_act: 0.05
 min_rot_act_fine: 0.01
 #general parameters
 use_closest: False
-max_success_steps: 2300            # max # of steps a successful demo will take
+max_success_steps: 2300
+#assembly parameters
 recipe: 
-        - !!python/tuple ["0_part0", "4_part4"]
-        - !!python/tuple ["2_part2", "4_part4"]
-        - !!python/tuple ["3_part3", "4_part4"]
-        - !!python/tuple ["1_part1", "4_part4"]
+    - !!python/tuple ["0_part0", "4_part4"]
+    - !!python/tuple ["2_part2", "4_part4"]
+    - !!python/tuple ["3_part3", "4_part4"]
+    - !!python/tuple ["1_part1", "4_part4"]
 
 site_recipe:
-        - !!python/tuple ["leg-top,0,90,180,270,conn_site4", "top-leg,0,90,180,270,conn_site3"]
-        - !!python/tuple ["leg-top,0,90,180,270,conn_site2", "top-leg,0,90,180,270,conn_site1"]
-        - !!python/tuple ["leg-top,0,90,180,270,conn_site1", "top-leg,0,90,180,270,conn_site2"]
-        - !!python/tuple ["leg-top,0,90,180,270,conn_site3", "top-leg,0,90,180,270,conn_site4"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site4", "top-leg,0,90,180,270,conn_site3"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site2", "top-leg,0,90,180,270,conn_site1"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site1", "top-leg,0,90,180,270,conn_site2"]
+    - !!python/tuple ["leg-top,0,90,180,270,conn_site3", "top-leg,0,90,180,270,conn_site4"]
 
 grip_safepos: 
-      - 
-        - !!python/tuple ["z", 0.25] 
-      - 
-        - !!python/tuple ["z", 0.25] 
-      - 
-        - !!python/tuple ["z", 0.25] 
-      - 
-        - !!python/tuple ["z", 0.25] 
+    - 
+      - [0, 0, 0.15]
+    - 
+      - [0, 0, 0.15]
+      - [0, -0.2, 0.15]
+    - 
+      - [0, 0, 0.15] 
+    - 
+      - [0, 0, 0.15] 
 
 nogrip_safepos:
-      - 
-        - !!python/tuple ["z", 0.3] 
-      - 
-        - !!python/tuple ["z", 0.3] 
-      - 
-        - !!python/tuple ["z", 0.3] 
-      - 
-        - !!python/tuple ["z", 0.3] 
+    - 
+      - [0, 0, 0.2]
+    - 
+      - [0, 0, 0.2]
+    - 
+      - [0, 0, 0.2] 
+    - 
+      - [0, 0, 0.2] 
 
 grip_angles: 
-        - 
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1        
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+
+# nogrip_safepos:
+#     - 
+#       - !!python/list [0, 0, 0.2]
+#     - 
+#       - !!python/list [0, 0, 0.2]
+#     - 
+#       - !!python/list [0, 0, 0.2] 
+#     - 
+#       - !!python/list [0, 0, 0.2] 
+
+# grip_angles: 
+#     - 
+#       - !!python/list [0, 0, -1]
+#     - 
+#       - !!python/list [0, 0, -1]
+#     - 
+#       - !!python/list [0, 0, -1]
+#     - 
+#       - !!python/list [0, 0, -1]

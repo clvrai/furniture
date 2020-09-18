@@ -1,4 +1,12 @@
 <mujoco model="bench_bjoderna_0208">
+  <custom>
+    <numeric data="0.249251 -0.103173 0.015304 0.707107 -0.707107 0.0 0.0" name="0_part0_initpos" />
+    <numeric data="0.341971 -0.102334 0.015523 0.707107 -0.707107 -1e-06 1e-06" name="3_part3_initpos" />
+    <numeric data="0.231673 0.244826 0.015523 0.707107 -0.707107 0.0 0.0" name="4_part4_initpos" />
+    <numeric data="0.345944 0.263487 0.015304 0.707107 -0.707107 -0.0 -0.0" name="1_part1_initpos" />
+    <numeric data="-0.254193 0.324151 0.007692 0.707107 0.0 0.0 -0.707107" name="5_part5_initpos" />
+    <numeric data="-0.231282 0.005742 0.015327 0.031097 0.706422 -0.706423 0.031097" name="10_part10_initpos" />
+  </custom>
   <asset>
     <mesh file="bench_bjoderna_0208/0.stl" name="part0" scale="0.000608 0.000608 0.000608" />
     <mesh file="bench_bjoderna_0208/9.stl" name="part9" scale="0.000608 0.000608 0.000608" />

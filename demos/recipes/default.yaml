@@ -1,0 +1,46 @@
+# good starting values, change with trial and error
+# xyz parameters
+fine_magnitude: 4
+z_finedist: 0.05
+z_conn_dist: 0
+lat_magnitude: 20
+eps: 0.01
+eps_fine: 0.001
+# rot parameters
+rot_magnitude: 0.2
+rot_eps: 0.05
+rot_eps_fine: 0.01
+min_rot_act: 0.05
+min_rot_act_fine: 0.01
+# general parameters
+use_closest: False
+max_success_steps: 2500
+# assembly parameters
+# all assembly parameters should have same length as recipe
+recipe: 
+      # fill in
+
+site_recipe:
+      # fill in
+
+grip_safepos: 
+    - 
+      - !!python/list [0, 0, 0]
+    - 
+      - !!python/list [0, 0, 0]
+    # ...
+
+nogrip_safepos:
+    - 
+      - !!python/list [0, 0, 0.3]
+    - 
+      - !!python/list [0, 0, 0.3]
+    # ...
+
+grip_angles: 
+    - 
+      - !!python/list [0, 0, 0]
+    - 
+      - !!python/list [0, 0, 0]
+    # ...
+

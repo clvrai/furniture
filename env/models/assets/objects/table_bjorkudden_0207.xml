@@ -1,10 +1,10 @@
 <mujoco model="table_bjorkudden_0207">
   <custom>
-    <numeric data="0.146806 0.093341 0.015845 0.707107 0.0 0.707107 0.0" name="0_part0_initpos" />
-   <numeric data="-0.35001 0.049956 0.018455 0.0 -1.0 5.9e-05 -0.0" name="4_part4_initpos" />
-   <numeric data="-0.133236 0.38 0.015845 0.5 -0.5 0.5 -0.5" name="3_part3_initpos" />
-   <numeric data="-0.144303 0.29 0.015845 0.5 -0.5 0.5 -0.5" name="2_part2_initpos" />
-   <numeric data="0.156754 0.18 0.015948 0.707107 -0.0 0.707107 -0.0" name="1_part1_initpos" />
+    <numeric data="0.166806 0.063341 0.015845 0.707107 0.0 0.707107 0.0" name="0_part0_initpos" />
+    <numeric data="-0.23001 0.109956 0.018558 0.0 -0.707065 0.707148 0.0" name="4_part4_initpos" />
+    <numeric data="0.166764 -0.07 0.015845 0.5 -0.5 0.5 -0.5" name="3_part3_initpos" />
+    <numeric data="0.175697 0.33 0.015845 0.5 -0.5 0.5 -0.5" name="2_part2_initpos" />
+    <numeric data="0.176754 0.2 0.015845 0.707107 0.0 0.707107 0.0" name="1_part1_initpos" />
   </custom>
   <asset>
     <mesh file="table_bjorkudden_0207/1.stl" name="part1" scale="0.0005 0.0005 0.0005" />
@@ -55,10 +55,10 @@
       <site name="4_part4_corner_site3" pos="0.2984500122 0.1841499939 -0.01968499755" quat="1 0 0 0" rgba="0 0 0 0" size="0.01" />
       <site name="4_part4_corner_site2" pos="0.2984500122 -0.1841499939 -0.01968499755" quat="1 0 0 0" rgba="0 0 0 0" size="0.01" />
       <site name="4_part4_corner_site1" pos="-0.2984500122 -0.1841499939 -0.01968499755" quat="1 0 0 0" rgba="0 0 0 0" size="0.01" />
-      <site name="top-leg,0,90,180,270,conn_site4" pos="0.2567625 -0.142725 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
-      <site name="top-leg,0,90,180,270,conn_site3" pos="0.2567625 0.14265 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
-      <site name="top-leg,0,90,180,270,conn_site2" pos="-0.2577375 0.14265 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
-      <site name="top-leg,0,90,180,270,conn_site1" pos="-0.2577375 -0.142725 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="top-leg,0,90,180,270,conn_site4" pos="0.2577625 -0.1445 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="top-leg,0,90,180,270,conn_site3" pos="0.2577625 0.1445 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="top-leg,0,90,180,270,conn_site2" pos="-0.2577375 0.1445 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="top-leg,0,90,180,270,conn_site1" pos="-0.2577375 -0.1445 0.005985000000000001" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <geom density="50" name="noviz_collision_4_part4_0" pos="3.9500000000000003e-07 1e-08 0.013485" quat="1 0 0 0" rgba="0 0 0 0" size="0.2984504 0.18415 0.005" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_4_part4_1" pos="3.9500000000000003e-07 0.13415000000000002 -0.0070149999999999995" quat="1 0 0 0" rgba="0 0 0 0" size="0.23750000000000002 0.0075 0.0125" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_4_part4_2" pos="3.9500000000000003e-07 -0.13435 -0.0070149999999999995" quat="1 0 0 0" rgba="0 0 0 0" size="0.23750000000000002 0.0075 0.0125" solref="0.001 1" type="box" />
@@ -120,4 +120,8 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="0.0 0.0 0.0" quat="1 0 0 0" rgba="0 0 0 0" size="0.015875 0.015875 0.15875" solref="0.001 1" type="box" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

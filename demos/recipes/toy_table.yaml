@@ -1,8 +1,8 @@
 #works for furn_xyz_rand=0.02, furn_rot_rand=3
 # xyz parameters
 fine_magnitude: 4
-z_finedist: 0.11                   # distance between connsites at which to start fine adjustment
-z_conn_dist: -0.02                 # distance between connsites at which to connect
+z_finedist: 0.105                  # distance between connsites at which to start fine adjustment
+z_conn_dist: -0.01                 # distance between connsites at which to connect
 lat_magnitude: 20           # keep movespeed constant at 0.025
 eps: 0.01                      # max acceptable x,y,z difference
 eps_fine: 0.001                # max acceptable x,y,z difference
@@ -23,42 +23,36 @@ recipe:
 
 site_recipe:
         - !!python/tuple ["leg-top,,conn_site3", "top-leg,,conn_site3"]
-        - !!python/tuple ["leg-top,,conn_site1", "top-leg,,conn_site1"]
+        - !!python/tuple ["leg-top,,conn_site1", "top-leg,,conn_site4"]
+        - !!python/tuple ["leg-top,,conn_site4", "top-leg,,conn_site2"]
+        - !!python/tuple ["leg-top,,conn_site2", "top-leg,,conn_site1"]
 
 grip_safepos:
-      -
-        - !!python/tuple ["z", 0.4]
-      -
-        - !!python/tuple ["z", 0.4]
-      -
-        - !!python/tuple ["z", 0.4]
-      -
-        - !!python/tuple ["z", 0.4]
+    -
+      - [0, 0, 0.3]
+    - 
+      - [0, 0, 0.3]
+    - 
+      - [0, 0, 0.3] 
+    - 
+      - [0, 0, 0.3]
 
 nogrip_safepos:
-      -
-        - !!python/tuple ["z", 0.44]
-      -
-        - !!python/tuple ["z", 0.44]
-      -
-        - !!python/tuple ["z", 0.44]
-      -
-        - !!python/tuple ["z", 0.44]
+    -
+      - [0, 0, 0.2]
+    - 
+      - [0, 0, 0.2]
+    - 
+      - [0, 0, 0.2] 
+    - 
+      - [0, 0, 0.2]
 
 grip_angles:
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]
+    - 
+      - [0, 0, -1]

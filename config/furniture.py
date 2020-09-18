@@ -78,10 +78,10 @@ def add_argument(parser):
         help="rescale actions to [-1,1] and normalize to the control range",
     )
     parser.add_argument(
-        "--move_speed", type=float, default=0.025, help="step size of move actions"
+        "--move_speed", type=float, default=0.05, help="step size of move actions"
     )
     parser.add_argument(
-        "--rotate_speed", type=float, default=11.25, help="step size of rotate actions"
+        "--rotate_speed", type=float, default=22.5, help="step size of rotate actions"
     )
 
     parser.add_argument(

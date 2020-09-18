@@ -1,4 +1,12 @@
 <mujoco model="shelf_ivar_0678">
+  <custom>
+    <numeric data="-0.000755 0.072044 0.009075 0.5 -0.5 0.5 -0.5" name="0_part0_initpos" />
+    <numeric data="-0.254231 -0.080677 0.06297 1.0 -0.0 0.0 0.0" name="1_part1_initpos" />
+    <numeric data="-0.10745 0.201858 0.063073 -6e-06 0.0 -0.0 -1.0" name="2_part2_initpos" />
+    <numeric data="0.045981 -0.080604 0.06297 1.0 -0.0 0.0 -6e-06" name="3_part3_initpos" />
+    <numeric data="0.197653 0.207511 0.06297 1e-06 0.0 0.0 -1.0" name="4_part4_initpos" />
+    <numeric data="0.348056 -0.070529 0.06297 1.0 -0.0 -0.0 7e-06" name="5_part5_initpos" />
+  </custom>
   <asset>
     <mesh file="shelf_ivar_0678/box.stl" name="box_mesh" scale="0.0005 0.0005 0.0005" />
     <mesh file="shelf_ivar_0678/column.stl" name="column_mesh" scale="0.0005 0.0005 0.0005" />
@@ -6,79 +14,83 @@
     <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
   <equality>
-    <weld active="false" body1="1_column" body2="2_box1" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="1_column" body2="3_box2" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="1_column" body2="4_box3" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="1_column" body2="5_box4" solimp="1 1 0.5" solref="0.01 0.3" />
-    <weld active="false" body1="1_column" body2="6_box5" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="1_part1" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="2_part2" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="3_part3" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="4_part4" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="0_part0" body2="5_part5" solimp="1 1 0.5" solref="0.01 0.3" />
   </equality>
   <worldbody>
-    <body name="1_column" pos="0 0 0" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="1" mesh="column_mesh" name="1_column_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_1_column" pos="0 0 0" rgba="1 0 0 1" size="0.0135 0.009 0.45" solref="0.001 1" type="box" />
-      <site name="1_column_bottom_site" pos="0 0 -0.44" rgba="1 0 0 0.3" size="0.01" />
-      <site name="1_column_top_site" pos="0.0 0.0 0.44" rgba="1 0 0 0.3" size="0.01" />
-      <site name="1_column_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.02" />
+    <body name="0_part0" pos="0 0 0" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="1" mesh="column_mesh" name="0_part0_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_0_part0" pos="0 0 0" rgba="1 0 0 1" size="0.0135 0.009 0.45" solref="0.001 1" type="box" />
+      <site name="0_part0_bottom_site" pos="0 0 -0.44" rgba="1 0 0 0.3" size="0.01" />
+      <site name="0_part0_top_site" pos="0.0 0.0 0.44" rgba="1 0 0 0.3" size="0.01" />
+      <site name="0_part0_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.02" />
       <site name="col-box1,0,conn_site" pos="0 -0.01 -0.26" quat="0.707 0 0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
       <site name="col-box2,0,conn_site" pos="0 -0.01 -0.10" quat="0.707 0 0.707 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
       <site name="col-box3,0,conn_site" pos="0 -0.01 0.04" quat="0.707 0 0.707 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
       <site name="col-box4,0,conn_site" pos="0 -0.01 0.20" quat="0.707 0 0.707 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.01" />
       <site name="col-box5,0,conn_site" pos="0 -0.01 0.36" quat="0.707 0 0.707 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.01" />
     </body>
-    <body name="2_box1" pos="0 -0.03 -0.32" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="2_box1_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_2_box1_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" name="noviz_collision_2_box1_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_2_box1_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_2_box1_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+    <body name="1_part1" pos="0 -0.03 -0.32" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="1_part1_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_1_part1_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" name="noviz_collision_1_part1_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_1_part1_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_1_part1_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
       <site name="box1-col,0,conn_site" pos="0.0 0.025 0.06" quat="0.707 0 0.707 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
-      <site name="2_box1_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="2_box1_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="2_box1_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
+      <site name="1_part1_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="1_part1_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="1_part1_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
     </body>
-    <body name="3_box2" pos="0 -0.03 -0.16" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="3_box2_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_3_box2_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" name="noviz_collision_3_box2_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_3_box2_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_3_box2_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+    <body name="2_part2" pos="0 -0.03 -0.16" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="2_part2_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_2_part2_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" name="noviz_collision_2_part2_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_2_part2_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_2_part2_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
       <site name="box2-col,0,conn_site" pos="0.0 0.025 0.06" quat="0.707 0 0.707 0" rgba="0.2352 0.7058 0.2941 0.3" size="0.01" />
-      <site name="3_box2_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="3_box2_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="3_box2_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
+      <site name="2_part2_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="2_part2_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="2_part2_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
     </body>
-    <body name="4_box3" pos="0 -0.03 -0.02" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="4_box3_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_4_box3_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" name="noviz_collision_4_box3_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_4_box3_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_4_box3_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+    <body name="3_part3" pos="0 -0.03 -0.02" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="3_part3_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_3_part3_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" name="noviz_collision_3_part3_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_3_part3_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_3_part3_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
       <site name="box3-col,0,conn_site" pos="0.0 0.025 0.06" quat="0.707 0 0.707 0" rgba="1.0 0.8823 0.0980 0.3" size="0.01" />
-      <site name="4_box3_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="4_box3_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="4_box3_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
+      <site name="3_part3_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="3_part3_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="3_part3_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
     </body>
-    <body name="5_box4" pos="0 -0.03 0.14" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="5_box4_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_5_box4_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" name="noviz_collision_5_box4_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_5_box4_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_5_box4_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+    <body name="4_part4" pos="0 -0.03 0.14" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="4_part4_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_4_part4_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" name="noviz_collision_4_part4_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_4_part4_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_4_part4_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
       <site name="box4-col,0,conn_site" pos="0.0 0.025 0.06" quat="0.707 0 0.707 0" rgba="0.2627 0.3882 0.8470 0.3" size="0.01" />
-      <site name="5_box4_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="5_box4_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="5_box4_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
+      <site name="4_part4_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="4_part4_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="4_part4_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
     </body>
-    <body name="6_box5" pos="0 -0.03 0.30" quat="1 0 0 0">
-      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="6_box5_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
-      <geom density="100" name="noviz_collision_6_box5_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" name="noviz_collision_6_box5_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_6_box5_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
-      <geom density="100" euler="0 1.56  0" name="noviz_collision_6_box5_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+    <body name="5_part5" pos="0 -0.03 0.30" quat="1 0 0 0">
+      <geom conaffinity="0" contype="0" density="1" material="light-wood" mesh="box_mesh" name="5_part5_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" type="mesh" />
+      <geom density="100" name="noviz_collision_5_part5_top" pos="0 -0.01 0.06" rgba="1 0 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" name="noviz_collision_5_part5_bot" pos="0 -0.01 -0.06" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_5_part5_side1" pos="-0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
+      <geom density="100" euler="0 1.56  0" name="noviz_collision_5_part5_side2" pos="0.06 -0.01 0" rgba="1 1 0 1" size="0.06 0.03 0.003" solref="0.001 1" type="box" />
       <site name="box5-col,0,conn_site" pos="0.0 0.025 0.06" quat="0.707 0 0.707 0" rgba="0.9607 0.5098 0.1921 0.3" size="0.01" />
-      <site name="6_box5_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="6_box5_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
-      <site name="6_box5_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
+      <site name="5_part5_bottom_site" pos="0 0 -0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="5_part5_top_site" pos="0.0 0.0 0.06" rgba="0 0 1 0.3" size="0.01" />
+      <site name="5_part5_horizontal_radius_site" pos="0 0 0" rgba="0 0 1 0.3" size="0.05" />
     </body>
   </worldbody>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
 </mujoco>

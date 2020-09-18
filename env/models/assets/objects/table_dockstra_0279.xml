@@ -1,9 +1,9 @@
 <mujoco model="table_dockstra_0279">
   <custom>
-    <numeric data="-0.290359 0.054744 0.02821 0.999971 0.0 0.0 0.007571" name="0_part0_initpos" />
-    <numeric data="-0.09 -0.051051 0.02641 0.0 1.0 0.0 0.0" name="3_part3_initpos" />
-    <numeric data="-0.116383 0.315 0.003136 0.0 0.082519 0.99659 0.0" name="2_part2_initpos" /> 
-    <numeric data="0.011717 0.107275 0.022457 0.583591 -0.47236 0.52619 -0.399276" name="1_part1_initpos" />
+    <numeric data="-0.332024 -0.069709 0.02821 0.999971 -0.0 -0.0 0.007559" name="0_part0_initpos" />
+    <numeric data="-0.112954 -0.076936 0.026272 0.0 1.0 -9.4e-05 0.0" name="3_part3_initpos" />
+    <numeric data="-0.316383 0.24 0.003274 0.0 0.082519 0.99659 0.0" name="2_part2_initpos" /> 
+    <numeric data="0.01172 0.107275 0.022457 0.583591 -0.47236 0.52619 -0.399276" name="1_part1_initpos" />
   </custom>
   <asset>
     <mesh file="table_dockstra_0279/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
