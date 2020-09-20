@@ -43,16 +43,16 @@
             <body name="collision_head_link_1" pos="0.11 0 0.75">
                 <inertial pos="0 0 0" mass="0.0001" diaginertia="1e-008 1e-008 1e-008" />
                 <geom name="collision_head_link_1_geom_1_collision" margin="0.001" type="sphere" class="viz" size="0.001" rgba="0.8 0.3 0.3 0.3" pos="0 0 0" />
-                <geom name="collision_head_link_1_geom_2_collision" margin="0.001" type="sphere" size="0.22" rgba="0.8 0.3 0.3 0.3" pos="-0.07 -0.04 0"/>
+                <geom name="collision_head_link_1_geom_2_collision" margin="0.001" type="sphere" size="0.14" rgba="0.8 0.3 0.3 0.3" pos="-0.07 -0.04 0"/>
             </body>
             <body name="collision_head_link_2" pos="0.11 0 0.75">
                 <inertial pos="0 0 0" mass="0.0001" diaginertia="1e-008 1e-008 1e-008" />
                 <geom name="collision_head_link_2_geom_1_collision" margin="0.001" type="sphere" size="0.001" rgba="0.8 0.3 0.3 0.3" pos="0 0 0" />
-                <geom name="collision_head_link_2_geom_2_collision" margin="0.001" type="sphere" size="0.22" rgba="0.8 0.3 0.3 0.3" pos="-0.07 0.04 0" />
+                <geom name="collision_head_link_2_geom_2_collision" margin="0.001" type="sphere" size="0.14" rgba="0.8 0.3 0.3 0.3" pos="-0.07 0.04 0"/>
             </body>
             <body name="torso" pos="0 0 0">
                 <inertial pos="0 0 0" quat="0.997433 0.00167178 0.0715546 -0.00209003" mass="35.3365" diaginertia="1.87139 1.66268 0.779991" />
-                <geom name="torso_visual" margin="0.001" class="viz" mesh="base_link" />
+                <geom name="torso_visual" margin="0.001" class="viz" rgba="0.2 0.2 0.2 1" mesh="base_link" />
                 <geom name="torso_collision" margin="0.001" type="mesh" mesh="base_link_collision" class="viz"/>
                 <body name="pedestal" pos="0 0 0">
                     <inertial pos="0 0 0" quat="0.659267 -0.259505 -0.260945 0.655692" mass="60.864" diaginertia="6.0869 5.81635 4.20915" />
@@ -75,7 +75,7 @@
                     <body name="right_upper_shoulder" pos="0.055695 0 0.011038">
                         <inertial pos="0.01783 0.00086 0.19127" quat="0.975667 0.0673303 -0.206117 0.0325173" mass="5.70044" diaginertia="0.0498344 0.0377511 0.0331351" />
                         <joint limited="true" damping="0" armature=".01" name="right_s0" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.70168 1.70168" />
-                        <geom name="right_upper_shoulder_visual" margin="0.001" class="viz" rgba="0.5 0.1 0.1 1" mesh="S0" />
+                        <geom name="right_upper_shoulder_visual" margin="0.001" class="viz" rgba="0.2 0.2 0.2 1" mesh="S0" />
                         <geom name="right_upper_shoulder_collision" margin="0.001" type="cylinder" size="0.06 0.1361" rgba="0.5 0.1 0.1 1" pos="0 0 0.1361"/>
                         <body name="right_lower_shoulder" pos="0.069 0 0.27035" quat="0.707107 -0.707107 0 0">
                             <inertial pos="0.06845 0.00269 -0.00529" quat="0.447487 0.536948 0.56425 0.439391" mass="3.22698" diaginertia="0.0278991 0.0212327 0.0112937" />
@@ -102,7 +102,7 @@
                                         <body name="right_lower_forearm" pos="0.01 0 0.2707" quat="0.5 -0.5 -0.5 -0.5">
                                             <inertial pos="0.06041 0.00697 0.006" quat="0.456911 0.468526 0.475683 0.587743" mass="1.60979" diaginertia="0.00708828 0.00552689 0.00379383" />
                                             <joint limited="true" damping="0" armature=".01" name="right_w1" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.5708 2.094" />
-                                            <geom name="right_lower_forearm_visual" margin="0.001" class="viz" rgba="0.5 0.1 0.1 1" mesh="W1" pos="0 0 -0.01" />
+                                            <geom name="right_lower_forearm_visual" margin="0.001" class="viz" rgba="0.2 0.2 0.2 1" mesh="W1" pos="0 0 -0.01" />
                                             <geom name="right_lower_forearm_collision" margin="0.001" type="cylinder" size="0.06 0.05" rgba="0.5 0.1 0.1 1" pos="0 0 0" />
                                             <body name="right_wrist" pos="0.115975 0 0" quat="0.5 0.5 0.5 0.5">
                                                 <inertial pos="0.00198 0.00125 0.01855" quat="0.0594843 0.68926 -0.16016 0.704082" mass="0.35093" diaginertia="0.0003082 0.000269928 0.000251035" />
@@ -125,7 +125,7 @@
                     <body name="left_upper_shoulder" pos="0.055695 0 0.011038">
                         <inertial pos="0.01783 0.00086 0.19127" quat="0.975667 0.0673303 -0.206117 0.0325173" mass="5.70044" diaginertia="0.0498344 0.0377511 0.0331351" />
                         <joint limited="true" damping="0" armature=".01" name="left_s0" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.70168 1.70168" />
-                        <geom name="left_upper_shoulder_visual" margin="0.001" class="viz" rgba="0.5 0.1 0.1 1" mesh="S0" />
+                        <geom name="left_upper_shoulder_visual" margin="0.001" class="viz" rgba="0.2 0.2 0.2 1" mesh="S0" />
                         <geom name="left_upper_shoulder_collision" margin="0.001" type="cylinder" size="0.06 0.1361" rgba="0.5 0.1 0.1 1" pos="0 0 0.1361" />
                         <body name="left_lower_shoulder" pos="0.069 0 0.27035" quat="0.707107 -0.707107 0 0">
                             <inertial pos="0.06845 0.00269 -0.00529" quat="0.447487 0.536948 0.56425 0.439391" mass="3.22698" diaginertia="0.0278991 0.0212327 0.0112937" />
@@ -152,7 +152,7 @@
                                         <body name="left_lower_forearm" pos="0.01 0 0.2707" quat="0.5 -0.5 -0.5 -0.5">
                                             <inertial pos="0.06041 0.00697 0.006" quat="0.456911 0.468526 0.475683 0.587743" mass="1.60979" diaginertia="0.00708828 0.00552689 0.00379383" />
                                             <joint limited="true" damping="0" armature=".01" name="left_w1" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.5708 2.094" />
-                                            <geom name="left_lower_forearm_visual" margin="0.001" class="viz" rgba="0.5 0.1 0.1 1" mesh="W1" pos="0 0 -0.01"/>
+                                            <geom name="left_lower_forearm_visual" margin="0.001" class="viz" rgba="0.2 0.2 0.2 1" mesh="W1" pos="0 0 -0.01"/>
                                             <geom name="left_lower_forearm_collision" margin="0.001" type="cylinder" size="0.06 0.05" rgba="0.5 0.1 0.1 1" pos="0 0 0" />
                                             <body name="left_wrist" pos="0.115975 0 0" quat="0.5 0.5 0.5 0.5">
                                                 <inertial pos="0.00198 0.00125 0.01855" quat="0.0594843 0.68926 -0.16016 0.704082" mass="0.35093" diaginertia="0.0003082 0.000269928 0.000251035" />
