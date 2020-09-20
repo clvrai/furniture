@@ -91,7 +91,7 @@ public class MJTCPInterface : MonoBehaviour
     readonly KeyCode[] keyCodes =
     {
         KeyCode.Space, KeyCode.Return,
-        KeyCode.Alpha1, KeyCode.Alpha2,
+        KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3,
         KeyCode.Q, KeyCode.W, KeyCode.E,
         KeyCode.A, KeyCode.S, KeyCode.D,
         KeyCode.U, KeyCode.I, KeyCode.O,

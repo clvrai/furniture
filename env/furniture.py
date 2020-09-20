@@ -1916,6 +1916,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = "save"
         elif key == glfw.KEY_ESCAPE:
             action = "reset"
+        elif key == glfw.KEY_3:
+            action = "save_qpos"
         else:
             return
 
@@ -1971,6 +1973,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = "save"
         elif key == "Escape":
             action = "reset"
+        elif key == "Alpha3":
+            action = "save_qpos"
         else:
             return
 
@@ -2382,6 +2386,14 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 if self.action == "save" and self._record_demo:
                     self._demo.save(self.file_prefix)
+                if self.action == 'save_qpos':
+                    path = xml_path_completion(furniture_xmls[self._furniture_id])
+                    qpos = {}
+                    for name in self._object_names:
+                        qpos[name] = self._get_qpos(name)
+                    self._objects.save_qpos(qpos, path)
+                    self.action = ''
+                    break
 
                 self._action_on = False
                 t += 1
@@ -2497,11 +2509,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         Run a resizing program in unity for adjusting furniture size in xml
         """
         flag = [-1, -1]
-        n_img = 5
+        n_img = 8
         grid = np.zeros((n_img, 3, self._screen_height, self._screen_width))
         blended = np.zeros((3, self._screen_height, self._screen_width))
         for i in range(n_img):
-            self.reset()
+            self.reset(config.furniture_id, config.background)
             grid[i] = np.transpose((self.render("rgb_array")[0]), (2, 0, 1))
             blended += grid[i]
         blended = blended / n_img
