@@ -1,66 +1,59 @@
 # xyz parameters
-fine_magnitude: 4
+fine_magnitude: 1.5
 z_finedist: 0.05
-z_conn_dist: -0.002
+z_conn_dist: 0.0
 lat_magnitude: 20
 eps: 0.01
-eps_fine: 0.001
+eps_fine: 0.005
 # rot parameters
-rot_magnitude: 0.2
+rot_magnitude: 0.4
 rot_eps: 0.05
-rot_eps_fine: 0.005
-min_rot_act: 0.05
+rot_eps_fine: 0.05
+min_rot_act: 0.1
 min_rot_act_fine: 0.01
 # general parameters
 use_closest: False
-max_success_steps: 2400
+num_connects: 4
+max_success_steps: 1000
 # assembly order parameters
 recipe:
-        - !!python/tuple ["0_part0", "4_part4"]
-        - !!python/tuple ["2_part2", "4_part4"]
-        - !!python/tuple ["3_part3", "4_part4"]
-        - !!python/tuple ["1_part1", "4_part4"]
+  - !!python/tuple ["1_part1", "4_part4"]
+  - !!python/tuple ["2_part2", "4_part4"]
+  - !!python/tuple ["3_part3", "4_part4"]
+  - !!python/tuple ["0_part0", "4_part4"]
 
 grip_safepos:
-      -
-        - !!python/tuple ["z", 0.25]
-      -
-        - !!python/tuple ["z", 0.25]
-      -
-        - !!python/tuple ["z", 0.25]
-      -
-        - !!python/tuple ["z", 0.25]
+  -
+    - [0, 0, 0.2]
+  -
+    - [0, 0, 0.2]
+  -
+    - [0, 0, 0.2]
+  -
+    - [0, 0, 0.2]
 
 nogrip_safepos:
-      -
-        - !!python/tuple ["z", 0.4]
-      -
-        - !!python/tuple ["z", 0.4]
-      -
-        - !!python/tuple ["z", 0.4]
-      -
-        - !!python/tuple ["z", 0.4]
+  -
+    - [0, 0, 0.25]
+  -
+    - [0, 0, 0.25]
+  -
+    - [0, 0, 0.25]
+  -
+    - [0, 0, 0.25]
 
 grip_angles:
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
-        -
-          -  0
-          -  0
-          - -1
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]
 
 site_recipe:
-        - !!python/tuple ["leg-table,0,90,180,270,conn_site1", "table-leg,0,90,180,270,conn_site3"]
-        - !!python/tuple ["leg-table,0,90,180,270,conn_site4", "table-leg,0,90,180,270,conn_site4"]
-        - !!python/tuple ["leg-table,0,90,180,270,conn_site3", "table-leg,0,90,180,270,conn_site1"]
-        - !!python/tuple ["leg-table,0,90,180,270,conn_site2", "table-leg,0,90,180,270,conn_site2"]
+  - !!python/tuple ["leg-table,0,90,180,270,conn_site2", "table-leg,0,90,180,270,conn_site2"]
+  - !!python/tuple ["leg-table,0,90,180,270,conn_site3", "table-leg,0,90,180,270,conn_site1"]
+  - !!python/tuple ["leg-table,0,90,180,270,conn_site4", "table-leg,0,90,180,270,conn_site4"]
+  - !!python/tuple ["leg-table,0,90,180,270,conn_site1", "table-leg,0,90,180,270,conn_site3"]

@@ -14,7 +14,7 @@ from env.furniture_cursor_toytable import FurnitureCursorToyTableEnv
 from env.furniture_jaco import FurnitureJacoEnv
 from env.furniture_panda import FurniturePandaEnv
 from env.furniture_sawyer import FurnitureSawyerEnv
-from env.furniture_sawyer_tablelack import FurnitureSawyerDenseRewardEnv
+from env.furniture_sawyer_dense import FurnitureSawyerDenseRewardEnv
 from env.furniture_sawyer_toytable import FurnitureSawyerToyTableEnv
 
 

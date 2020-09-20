@@ -55,7 +55,7 @@ def get_env_specific_argument(env):
         import config.furniture_sawyer_pick as f
 
     elif env == "furniture-sawyer-densereward-v0":
-        import config.furniture_sawyer_tablelack as f
+        import config.furniture_sawyer_dense as f
 
     return f
 

@@ -1,19 +1,15 @@
 import math
 import time
+import yaml
 
 import numpy as np
-import yaml
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from tqdm import tqdm
 
 import env.transform_utils as T
-from config import create_parser
 from env.furniture_sawyer import FurnitureSawyerEnv
 from env.models import background_names, furniture_name2id, furniture_xmls
 from util import PrettySafeLoader
 from util.logger import logger
-from util.video_recorder import VideoRecorder
 
 
 class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
@@ -67,7 +63,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         self._phase = None
         self._num_connected_prev = 0
         self._part_success = False
-        self._complete_success = False
         self._phases = [
             "xy_move_g",
             "align_g",
@@ -97,7 +92,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             minimum, maximum, size = val
             noise[phase] = self._rng.uniform(low=minimum, high=maximum, size=size)
 
-    def norm_rot_action(self, action, cap=1):
+    def _norm_rot_action(self, action, cap=1):
         if "fine" in self._phase:
             for a in range(3, 7):
                 if 0 < abs(action[a]) < self.min_rot_act_fine:
@@ -109,12 +104,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         return action
 
     def _cap_action(self, action, cap=1):
-        for a in range(len(action)):
-            if action[a] > cap:
-                action[a] = cap
-            elif action[a] < -cap:
-                action[a] = -cap
-        return action
+        return np.clip(action, -cap, cap)
 
     def _step(self, a):
         """
@@ -129,7 +119,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             self._num_connected == self._success_num_conn
             and len(self._object_names) > 1
         ):
-            self._complete_success = True
+            self._success = True
+            done = True
         return ob, reward, done, info
 
     def get_bodyiterator(self, bodyname):
@@ -327,7 +318,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         return d
 
     def generate_demos(self, n_demos):
-
         """
         Issues:
             1. Only downward gripping works
@@ -412,7 +402,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 # initiate phases for single-part assembly
                 while self._phase != "part_done":
                     action = np.zeros((8,))
-                    # print(self._phase)
+                    # logger.info(self._phase)
                     if self._phase == "xy_move_g":
                         grip_xy_pos = self._get_pos(grip_site)[0:2]
                         g_xy_pos = (self._get_pos(g_l) + self._get_pos(g_r))[0:2] / 2
@@ -442,7 +432,9 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             if rot_action == [0, 0, 0]:
                                 grip_pos = self._get_pos(grip_site)[0:2]
                                 g_pos = (self._get_pos(g_l) + self._get_pos(g_r)) / 2
-                                action[0:2] = self.move_xy(grip_pos, g_pos[0:2], p["eps"])
+                                action[0:2] = self.move_xy(
+                                    grip_pos, g_pos[0:2], p["eps"]
+                                )
                             else:
                                 action[3:6] = rot_action
                         else:
@@ -456,6 +448,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         d = (g_pos) - grip_pos
                         if z_move_g_prev is None:
                             z_move_g_prev = grip_tip[2] + ground_offset
+
                         if abs(d[2]) > p["eps"] and grip_tip[2] < z_move_g_prev:
                             action[0:3] = d
                             z_move_g_prev = grip_tip[2] - ground_offset
@@ -578,7 +571,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         action[0:3] = self.move_z(
                             gconn_pos,
                             tconn_pos,
-                            p["eps"],
+                            p["eps_fine"],
                             p["z_conn_dist"],
                             fine=p["fine_magnitude"],
                         )
@@ -612,22 +605,23 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     self._phase = self._phases[self._phase_num]
                     action[0:3] = p["lat_magnitude"] * action[0:3]
                     action[3:6] = p["rot_magnitude"] * action[3:6]
-                    action = self.norm_rot_action(action)
+                    action = self._norm_rot_action(action)
                     action = self._cap_action(action)
                     ob, reward, _, info = self.step(action)
+
                     if self._config.render:
                         self.render()
                     if self._config.record_vid:
                         self.vid_rec.capture_frame(self.render("rgb_array")[0])
+
                     if self._episode_length > p["max_success_steps"]:
-                        print(
-                            "self._episode_length",
+                        logger.info(
+                            "Time-limit exceeds %d/%d",
                             self._episode_length,
                             p["max_success_steps"],
                         )
                         break
-                    if self._complete_success:
-                        print("complete suc", self._complete_success)
+                    if self._success:
                         break
 
                 if self._part_success:
@@ -635,15 +629,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     self._used_sites.add(tconn)
                     self._part_success = False
 
-                if self._complete_success:
-                    print(
-                        "assembled",
+                if self._success:
+                    logger.warn(
+                        "assembled (%s) in %d steps!",
                         self._config.furniture_name,
-                        "in",
                         self._episode_length,
-                        "steps!",
                     )
-                    self._complete_success = False
                     n_successful_demos += 1
                     pbar.update(1)
                     if self._config.record_vid:
@@ -657,21 +648,23 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     break
                 elif self._episode_length > p["max_success_steps"]:
                     # failed
-                    print("failed to assemble")
+                    logger.warn("Failed to assemble!")
                     n_failed_demos += 1
                     if self._config.record_vid:
-                        self.vid_rec.close(success=False)
+                        self.vid_rec.close(success=True)
                     break
 
-        print("n_failed_demos", n_failed_demos)
+        logger.info("n_failed_demos: %d", n_failed_demos)
 
 
 def main():
+    from config import create_parser
+
     parser = create_parser(env="FurnitureSawyerGenEnv")
-    parser.set_defaults(render=False)
-    parser.set_defaults(record_vid=False)
-    parser.set_defaults(unity=False)
     config, unparsed = parser.parse_known_args()
+    if len(unparsed):
+        logger.error("Unparsed argument is detected:\n%s", unparsed)
+        return
 
     env = FurnitureSawyerGenEnv(config)
     env.generate_demos(config.n_demos)

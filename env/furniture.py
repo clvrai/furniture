@@ -223,15 +223,23 @@ class FurnitureEnv(metaclass=EnvMeta):
             # can be changed to the desired number depending on the task
             if self._object_ob_all:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4) * self.n_objects,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4) * self.n_objects,),
                 )
             else:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4) * 2,),
                 )
 
         if self._subtask_ob:
-            ob_space["subtask_ob"] = gym.spaces.Box(low=0.0, high=np.inf, shape=(2,),)
+            ob_space["subtask_ob"] = gym.spaces.Box(
+                low=0.0,
+                high=np.inf,
+                shape=(2,),
+            )
 
         return gym.spaces.Dict(ob_space)
 
@@ -266,7 +274,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 (
                     "default",
                     gym.spaces.Box(
-                        shape=(self.dof,), low=-1, high=1, dtype=np.float32,
+                        shape=(self.dof,),
+                        low=-1,
+                        high=1,
+                        dtype=np.float32,
                     ),
                 )
             ]
@@ -289,6 +300,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         ob = self._get_obs()
         if self._record_demo:
             self._demo.add(ob=ob)
+            self._demo.add(low_level_ob=self._get_obs(include_qpos=True))
 
         return ob
 
@@ -434,7 +446,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         return self._terminal, step_log, penalty
 
-    def _compute_reward(self):
+    def _compute_reward(self, ac):
         """
         Computes the reward at the current step
         """
@@ -482,13 +494,16 @@ class FurnitureEnv(metaclass=EnvMeta):
         )
         self._prev_num_connected = self._num_connected
 
-        reward = success_reward + touch_reward + pick_reward
+        ctrl_reward = self._ctrl_reward(ac)
+
+        reward = success_reward + touch_reward + pick_reward + ctrl_reward
         # do not terminate
         done = False
         info = {
             "success_reward": success_reward,
             "touch_reward": touch_reward,
             "pick_reward": pick_reward,
+            "ctrl_reward": ctrl_reward,
         }
         return reward, done, info
 
@@ -1158,23 +1173,23 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._do_ik_step(action)
 
         elif self._control_type == "torque":
+            self._do_simulation(action[:-1])
             if self._record_demo:
                 self._demo.add(
-                    low_level_ob=self._get_obs(),
+                    low_level_ob=self._get_obs(include_qpos=True),
                     low_level_action=action[:-1],
                     connect_action=connect,
                 )
-            self._do_simulation(action[:-1])
 
         elif self._control_type == "impedance":
+            a = self._setup_action(action[:-1])
+            self._do_simulation(a)
             if self._record_demo:
                 self._demo.add(
-                    low_level_ob=self._get_obs(),
+                    low_level_ob=self._get_obs(include_qpos=True),
                     low_level_action=action[:-1],
                     connect_action=connect,
                 )
-            a = self._setup_action(action[:-1])
-            self._do_simulation(a)
 
         elif self._control_type in NEW_CONTROLLERS:
             self._do_controller_step(action)
@@ -2518,10 +2533,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             blended += grid[i]
         blended = blended / n_img
         path = "randomness_distribution"
-        blended_img_path =  os.path.join(path, furniture_names[self._furniture_id] +
-            "_blended" + str(n_img) + ".jpg")
-        grid_img_path =  os.path.join(path,  furniture_names[self._furniture_id] +
-            "_grid" + str(n_img) + ".jpg")
+        blended_img_path = os.path.join(
+            path, furniture_names[self._furniture_id] + "_blended" + str(n_img) + ".jpg"
+        )
+        grid_img_path = os.path.join(
+            path, furniture_names[self._furniture_id] + "_grid" + str(n_img) + ".jpg"
+        )
         save_distribution_imgs(grid, blended, grid_img_path, blended_img_path)
 
     def _get_reference(self):
@@ -2717,10 +2734,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         Take multiple physics simulation steps, bounded by self._control_timestep
         """
         # stop moving arm for IK control, critical for BC with IK
-        for arm in self._arms:
-            for qvel_addr in self._ref_joint_vel_indexes[arm]:
-                self.sim.data.qvel[qvel_addr] = 0.0
-        self.sim.forward()
+        # for arm in self._arms:
+        #     for qvel_addr in self._ref_joint_vel_indexes[arm]:
+        #         self.sim.data.qvel[qvel_addr] = 0.0
+        # self.sim.forward()
 
         connect = action[-1]
 
@@ -2793,13 +2810,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             # keep trying to reach the target in a closed-loop
             ctrl = self._setup_action(low_action)
             for i in range(self._action_repeat):
+                self._do_simulation(ctrl)
                 if self._record_demo:
                     self._demo.add(
-                        low_level_ob=self._get_obs(),
+                        low_level_ob=self._get_obs(include_qpos=True),
                         low_level_action=low_action,
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
-                self._do_simulation(ctrl)
 
                 if i + 1 < self._action_repeat:
                     velocities = self._controller.get_control()
@@ -2860,13 +2877,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             # keep trying to reach the target in a closed-loop
             ctrl = self._setup_action(low_action)
             for i in range(self._action_repeat):
+                self._do_simulation(ctrl)
                 if self._record_demo:
                     self._demo.add(
-                        low_level_ob=self._get_obs(),
+                        low_level_ob=self._get_obs(include_qpos=True),
                         low_level_action=low_action,
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
-                self._do_simulation(ctrl)
 
                 if i + 1 < self._action_repeat:
                     velocities = self._controller.get_control()

@@ -75,7 +75,7 @@ class DemoRecorder(object):
                     [self._low_level_actions[i], [self._connect_actions[i]]]
                 )
 
-        assert len(self._low_level_obs) == len(self._low_level_actions)
+        assert len(self._low_level_obs) == len(self._low_level_actions) + 1
         assert len(self._obs) == len(self._actions) + 1
 
         with open(path, "wb") as f:
