@@ -94,6 +94,23 @@ def rescale(tree, root, mult, outpath="out.xml", translate=[], rotate=[], write=
     return tree
 
 
+def rescale_connsite(tree, root, mult):
+    for body in root.find("worldbody"):
+        if "name" in body.attrib and "_part" in body.attrib["name"]:
+            for child in body.getiterator():
+                if child.tag == "site" and "name" in child.attrib and "conn_site" in child.attrib["name"]:
+                    size = child.attrib["size"]
+                    if " " in size:  # sometimes size is not a scalar
+                        size_pos = child.attrib["size"].split(" ")
+                        size_pos = [str(float(i) * mult) for i in size_pos]
+                        upt_size_pos = " ".join(size_pos)
+                        child.set("size", upt_size_pos)
+                    else:
+                        upt_size = str(mult * float(size))
+                        child.set("size", upt_size)
+    return tree
+
+
 def rescale_numeric(tree, root, mult, outpath="out.xml", translate=[], rotate=[], write=False):
     for body in root.find("custom"):
         if "name" in body.attrib and "_part" in body.attrib["name"]:

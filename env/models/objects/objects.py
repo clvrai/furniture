@@ -142,8 +142,11 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         if resize:
             self.set_resized_tree(resize)
 
-    def set_resized_tree(self, resize_factor):
-        self.tree = rescale(self.tree, self.root, resize_factor, write=False)
+    def set_resized_tree(self, resize_factor, connsite_only=False):
+        if connsite_only:
+            self.tree = rescale_connsite(self.tree, self.root, resize_factor)
+        else:
+            self.tree = rescale(self.tree, self.root, resize_factor, write=False)
         self.root = self.tree.getroot()
 
     def get_init_qpos(self, names):

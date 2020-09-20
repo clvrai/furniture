@@ -172,6 +172,18 @@ def add_argument(parser):
         help="variance in size of furniture at episode start, ranging from size*(1-rand) to size*(1+rand)",
     )
     parser.add_argument(
+        "--resize",
+        type=float,
+        default=None,
+        help="change size of everything in furniture xml at episode start set <1 for smaller, >1 for larger",
+    )
+    parser.add_argument(
+        "--resize_site",
+        type=float,
+        default=None,
+        help="change size of furniture connection sites at episode start set <1 for smaller, >1 for larger",
+    )
+    parser.add_argument(
         "--alignment_pos_dist",
         type=float,
         default=0.1,

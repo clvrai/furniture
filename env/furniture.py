@@ -101,6 +101,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._control_type = config.control_type
         self._control_freq = config.control_freq  # reduce freq -> longer timestep
         self._rescale_actions = config.rescale_actions
+        self._resize = config.resize
+        self._resize_site = config.resize_site
 
         if self._agent_type == "Baxter":
             self._arms = ["right", "left"]
@@ -132,7 +134,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.init_quat = None
         self.fixed_parts = []
 
-        self._manual_resize = None
+        self._resize = None
         self._action_on = False
         self._load_demo = config.load_demo
         self._eval_on_train_set = False
@@ -1333,7 +1335,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if (
             self._furniture_id is None
             or (self._furniture_id != furniture_id and furniture_id is not None)
-            or (self._manual_resize is not None)
+            or (self._resize is not None)
         ):
             # construct mujoco xml for furniture_id
             if furniture_id is None:
@@ -1837,12 +1839,17 @@ class FurnitureEnv(metaclass=EnvMeta):
         path = xml_path_completion(furniture_xmls[self._furniture_id])
         logger.debug("load furniture %s" % path)
         resize_factor = None
-        if self._manual_resize is not None:
-            resize_factor = 1 + self._manual_resize
-        elif self._config.furn_size_rand != 0:
+        if self._resize is not None:
+            resize_factor = 1 + self._resize
+        if self._config.furn_size_rand != 0:
             rand = self._init_random(1, "resize")[0]
-            resize_factor = 1 + rand
+            if resize_factor is None:
+                resize_factor = 1 + rand
+            else:
+                resize_factor += rand
         self._objects = MujocoXMLObject(path, debug=self._debug, resize=resize_factor)
+        if self._resize_site:
+            self._objects.set_resized_tree(self._resize_site, connsite_only=True)
         self._objects.hide_visualization()
         part_names = self._objects.get_children_names()
 
@@ -2477,7 +2484,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Run a resizing program in unity for adjusting furniture size in xml
         """
-        self._manual_resize = 0
+        self._resize = 0
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         ob = self.reset(config.furniture_id, config.background)
@@ -2500,13 +2507,13 @@ class FurnitureEnv(metaclass=EnvMeta):
                 continue
             # move
             if self.action == "smaller":
-                self._manual_resize -= 0.1
+                self._resize -= 0.1
             if self.action == "fine_smaller":
-                self._manual_resize -= 0.02
+                self._resize -= 0.02
             if self.action == "fine_larger":
-                self._manual_resize += 0.02
+                self._resize += 0.02
             if self.action == "larger":
-                self._manual_resize += 0.1
+                self._resize += 0.1
             if self.action == "save":
                 path = xml_path_completion(furniture_xmls[self._furniture_id])
                 next(iter(self.mujoco_objects.values())).save_model(path)
@@ -2515,7 +2522,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.zeros((15,))
             ob, reward, done, info = self.step(action)
             self.render("rgb_array")
-            logger.info("current_scale: " + str(1 + self._manual_resize))
+            logger.info("current_scale: " + str(1 + self._resize))
             self.reset(config.furniture_id, config.background)
             self._action_on = False
 

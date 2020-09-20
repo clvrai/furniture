@@ -324,8 +324,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             2. Once any collision occurs, unlikely to recover
             3. fine adjustment phase sometimes very challenging
         """
+        # todo: move finalized recipe paths to
+        # recipe_path = "env/models/assets/objects/" + self._config.furniture_name + "/"
+        recipe_path = "demos/recipes/"
         with open(
-            "demos/recipes/" + self._config.furniture_name + ".yaml", "r"
+            recipe_path + self._config.furniture_name + ".yaml", "r"
         ) as stream:
             p = yaml.load(stream, Loader=PrettySafeLoader)
 
