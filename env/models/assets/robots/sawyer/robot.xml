@@ -134,18 +134,20 @@
                     <body name="right_l4_2" pos="0 0 0">
                       <inertial diaginertia="1e-08 1e-08 1e-08" mass="1e-08" pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708"/>
                       <geom name="right_l4_2_collision" pos="0 0.01 0.26" size="0.06"/>
+                      <geom name="right_l4_2_visual" conaffinity="0" contype="0" group="1" pos="0 0.01 0.26" size="0.06"/>
                     </body>
                   </body>
                 </body>
                 <body name="right_l2_2" pos="0 0 0">
                   <inertial diaginertia="1e-08 1e-08 1e-08" mass="1e-08" pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708"/>
                   <geom name="right_l2_2_collision" pos="0 0 0.26" size="0.06"/>
+                  <geom name="right_l2_2_visual" conaffinity="0" contype="0" group="1" pos="0 0 0.26" size="0.06"/>
                 </body>
               </body>
               <body name="right_l1_2" pos="0 0 0">
                 <inertial diaginertia="1e-08 1e-08 1e-08" mass="1e-08" pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708"/>
-<!--                 <geom name="right_l1_2_collision" pos="0 0 0.035" size="0.068 0.068" type="cylinder"/>
- -->                <geom name="right_l1_2_visual" conaffinity="0" contype="0" group="1"  pos="0.001 0 0.006" size="0.069 0.006" type="cylinder"/>
+                <geom name="right_l1_2_collision" pos="0 0 0.035" size="0.068 0.068" type="cylinder"/>
+                <geom name="right_l1_2_visual" conaffinity="0" contype="0" group="1" pos="0 0 0.035" size="0.069 0.006" type="cylinder"/>
               </body>
             </body>
           </body>
