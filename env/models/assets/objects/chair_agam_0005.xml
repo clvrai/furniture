@@ -1,4 +1,16 @@
 <mujoco model="chair_agam_0005">
+  <custom>
+    <numeric data="-0.275651 0.273606 0.00498 0.700875 -0.0 -0.0 0.713284" name="0_part0_initpos" />
+    <numeric data="0.072391 0.246226 0.010264 0.772906 -0.634479 -0.00724 5.4e-05" name="9_part9_initpos" />
+    <numeric data="0.05494 -0.090051 0.01193 0.0 0.027588 -0.999619 0.0" name="8_part8_initpos" />
+    <numeric data="0.313458 0.201181 0.007479 0.249467 -0.096474 0.728277 0.630929" name="7_part7_initpos" />
+    <numeric data="0.429402 0.229077 0.00748 0.222884 -0.053915 -0.741367 -0.630707" name="6_part6_initpos" />
+    <numeric data="0.299343 -0.196277 0.007188 0.354144 0.176245 -0.686132 0.610526" name="5_part5_initpos" />
+    <numeric data="0.405567 -0.182501 0.007462 0.496832 0.319624 0.580873 -0.559986" name="4_part4_initpos" />
+    <numeric data="-0.261339 -0.055502 0.004476 0.707734 -0.001757 0.001754 -0.706474" name="3_part3_initpos" />
+    <numeric data="-0.171903 0.278192 0.00498 1.0 0.0 0.0 0.0" name="2_part2_initpos" />
+    <numeric data="-0.177234 -0.083199 0.004982 0.952035 -0.007002 0.305129 0.021847" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="chair_agam_0005/0.stl" name="part0" scale="0.0005039999999999999 0.0005039999999999999 0.0005039999999999999" />
     <mesh file="chair_agam_0005/9.stl" name="part9" scale="0.0005039999999999999 0.0005039999999999999 0.0005039999999999999" />
@@ -220,4 +232,8 @@
       <geom density="50" name="noviz_collision_1_part1_0" pos="9.0216e-07 4.4856e-07 -2.2528800000000004e-06" quat="0.7071067 0.7071068 0 0" rgba="0 0 0 0" size="0.00504 0.11088" solref="0.001 1" type="cylinder" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

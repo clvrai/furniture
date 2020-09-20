@@ -1,4 +1,13 @@
 <mujoco model="cabinet_akurum_0021">
+  <custom>
+    <numeric data="-0.427423 -0.316349 0.003993 0.003448 -0.707098 0.003448 0.707098" name="0_part0_initpos" />
+    <numeric data="-0.270597 0.169268 0.007799 0.647802 -0.658506 0.257624 0.283466" name="6_part6_initpos" />
+    <numeric data="-0.513557 0.168976 0.006523 0.662367 -0.643392 -0.293336 -0.247527" name="5_part5_initpos" />
+    <numeric data="0.621851 0.141191 0.004387 0.27884 -0.262313 0.656652 0.649806" name="4_part4_initpos" />
+    <numeric data="0.373475 0.135234 0.004387 0.657322 -0.64909 0.280504 0.26063" name="3_part3_initpos" />
+    <numeric data="0.092789 -0.102338 0.004407 0.925112 0.0 0.0 0.379694" name="2_part2_initpos" />
+    <numeric data="0.009676 0.232061 0.004407 0.39587 0.0 0.0 -0.918306" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="cabinet_akurum_0021/0.stl" name="part0" scale="0.0006956 0.0006956 0.0006956" />
     <mesh file="cabinet_akurum_0021/6.stl" name="part6" scale="0.0006956 0.0006956 0.0006956" />
@@ -151,4 +160,8 @@
       <geom density="50" name="noviz_collision_1_part1_2" pos="-0.061454472308 0.0 0.0" quat="1 0 0 0" rgba="0 0 0 0" size="0.1259036 0.12172999999999999 0.0044170669559999995" solref="0.001 1" type="box" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>

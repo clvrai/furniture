@@ -1,4 +1,18 @@
 <mujoco model="table_liden_0921">
+  <custom>
+    <numeric data="-0.450239 -0.161507 0.000803 0.999992 -0.0 -0.0 -0.004" name="0_part0_initpos" />
+    <numeric data="0.03186 0.054694 0.003145 0.999998 0.0 0.0 0.002028" name="11_part9_initpos" />
+    <numeric data="0.315471 -0.216263 0.004732 0.706957 0.014539 0.706957 -0.014539" name="10_part8_initpos" />
+    <numeric data="0.402899 -0.222949 0.004732 0.706476 -0.02985 -0.706476 -0.02985" name="9_part7_initpos" />
+    <numeric data="0.031738 -0.334261 0.003145 0.707093 0.707093 0.004378 0.004378" name="8_part6_initpos" />
+    <numeric data="-0.204569 0.315476 0.003133 0.49089 -0.490889 -0.508947 0.508948" name="7_part5_initpos" />
+    <numeric data="0.247775 0.238493 0.003145 0.707055 -0.008545 0.707055 0.008545" name="6_part4_initpos" />
+    <numeric data="0.246095 -0.109605 0.003248 0.70709 -0.004811 0.70709 0.004811" name="5_part3_initpos" />
+    <numeric data="-0.253378 -0.176806 0.00272 0.0 0.003162 -0.999995 0.0" name="4_part2_initpos" />
+    <numeric data="0.455755 0.117378 0.009516 -0.707087 -0.707127 0.000212 0.000212" name="3_part11_initpos" />
+    <numeric data="0.454793 0.312393 0.009385 0.707087 -0.707127 0.000362 -0.000362" name="2_part10_initpos" />
+    <numeric data="-0.341493 0.302701 0.003145 0.486941 -0.486941 -0.512727 0.512727" name="1_part1_initpos" />
+  </custom>
   <asset>
     <mesh file="table_liden_0921/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />
     <mesh file="table_liden_0921/9.stl" name="part9" scale="0.0005 0.0005 0.0005" />
@@ -241,4 +255,8 @@
       <site name="middle-thintop,0,180,conn_site1" pos="0.10792 -0.00065001 0.044632605" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
     </body>
   </worldbody>
-<actuator /><sensor /><contact /><default /></mujoco>
+  <actuator />
+  <sensor />
+  <contact />
+  <default />
+</mujoco>
