@@ -2802,7 +2802,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self._record_demo:
                     self._demo.add(
                         low_level_ob=self._get_obs(include_qpos=True),
-                        low_level_action=low_action,
+                        low_level_action=np.clip(low_action, -1, 1),
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
 
@@ -2869,7 +2869,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self._record_demo:
                     self._demo.add(
                         low_level_ob=self._get_obs(include_qpos=True),
-                        low_level_action=low_action,
+                        low_level_action=np.clip(low_action, -1, 1),
                         connect_action=connect if i == self._action_repeat - 1 else 0,
                     )
 
