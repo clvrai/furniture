@@ -77,7 +77,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             self._get_leg_grasp_vector = lambda x: self._get_pos(g1) - self._get_pos(g2)
 
     def _reset_reward_variables(self):
-        self._subtask_step = 0
+        self._subtask_step = len(self._preassembled)
         self._update_reward_variables(self._subtask_step)
 
     def _set_next_subtask(self) -> bool:
