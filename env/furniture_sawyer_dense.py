@@ -118,7 +118,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         ):
             g1, g2 = self._data["grip_site_recipe"][self._subtask_step]
         self._get_leg_grasp_pos = lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
-        self._get_leg_grasp_vector = lambda x: self._get_pos(g1) - self._get_pos(g2)
+        self._get_leg_grasp_vector = lambda x: self._get_pos(g2) - self._get_pos(g1)
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -155,13 +155,33 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         """
         phase_bonus = reward = 0
         _, done, info = super()._compute_reward(ac)
-        phase = self._phases[self._phase_i]
-        info["phase_i"] = self._phase_i
-        info["subtask"] = self._subtask_step
 
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
         stable_grip_rew, sg_info = self._stable_grip_reward()
+
+        left, right = self._finger_contact(self._leg)
+        leg_touched = int(left and right)
+
+        # detect early picking
+        if leg_touched and sg_info["stable_grip_succ"] and self._phase_i < 2:
+            phase_bonus += self._phase_bonus * (2 - self._phase_i)
+            self._phase_i = 2
+            eef_pos = self._get_gripper_pos()
+            leg_pos = self._get_pos(self._leg) + [0, 0, -0.015]
+            xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
+            z_distance = np.abs(eef_pos[2] - leg_pos[2])
+            self._prev_eef_leg_distance = xy_distance + z_distance
+            self._prev_grasp_leg_rew = ac[-2]
+
+        phase = self._phases[self._phase_i]
+        info["phase_i"] = self._phase_i + len(self._phases) * self._subtask_step
+        info["subtask"] = self._subtask_step
+
         grip_penalty, grip_info = self._gripper_penalty(ac)
+
+        # impose stable_grip_rew until lifting
+        if self._phase_i > 3:
+            stable_grip_rew = 0
 
         # detect early success
         info["is_aligned"] = int(self._is_aligned(self._leg_site, self._table_site))
@@ -185,7 +205,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 # print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                phase_bonus += self._phase_bonus
                 eef_pos = self._get_gripper_pos()
                 leg_pos1 = self._get_pos(self._leg) + [0, 0, -0.015]
                 leg_pos2 = leg_pos1 + [0, 0, 0.03]
@@ -198,19 +218,19 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._lower_eef_to_leg_reward()
             if phase_info[f"{phase}_succ"] and sg_info["stable_grip_succ"]:
                 # print(f"DONE WITH PHASE {phase}")
-                phase_bonus = self._phase_bonus
+                phase_bonus += self._phase_bonus
                 self._phase_i += 1
                 self._prev_grasp_leg_rew = ac[-2]
 
         elif phase == "grasp_leg":
             phase_reward, phase_info = self._grasp_leg_reward(ac)
-            if phase_info[f"grasp_leg_succ"]:
+            if phase_info[f"grasp_leg_succ"] and sg_info["stable_grip_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus
+                phase_bonus += self._phase_bonus
                 leg_pos = self._get_pos(self._leg_site)
                 self._init_lift_leg_pos = leg_pos
-                self._lift_leg_pos = leg_pos + [0, 0, 0.1]
+                self._lift_leg_pos = leg_pos + [0, 0, 0.2]
                 xy_distance = np.linalg.norm(self._lift_leg_pos[:2] - leg_pos[:2])
                 z_distance = np.abs(self._lift_leg_pos[2] - leg_pos[2])
                 self._prev_lift_leg_z_distance = z_distance
@@ -222,11 +242,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             if not phase_info["touch"]:
                 print("Dropped leg")
                 done = True
+                phase_bonus += -self._phase_bonus / 2
 
             elif phase_info[f"lift_leg_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus * 2
+                phase_bonus += self._phase_bonus * 2
                 above_table_site = self._get_pos(self._table_site) + [0, 0, 0.05]
                 leg_site = self._get_pos(self._leg_site)
                 self._prev_move_pos_distance = np.linalg.norm(
@@ -241,11 +262,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             if not phase_info["touch"] or not phase_info["lift"]:
                 print("Dropped leg")
                 done = True
+                phase_bonus += -self._phase_bonus / 2
 
             if phase_info[f"{phase}_succ"]:
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
-                phase_bonus = self._phase_bonus * 5
+                phase_bonus += self._phase_bonus * 5
                 table_site = self._get_pos(self._table_site)
                 leg_site = self._get_pos(self._leg_site)
                 self._prev_move_pos_distance = np.linalg.norm(table_site - leg_site)
@@ -262,9 +284,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             if not phase_info["touch"]:
                 print("Dropped leg")
                 done = True
+                phase_bonus += -self._phase_bonus
 
             if phase_info["connect_succ"]:
-                phase_bonus = self._phase_bonus * 10
+                phase_bonus += self._phase_bonus * 10
                 self._phase_i += 1
                 print(f"CONNECTED!!!!!!!!!!!!!!!!!!!!!!")
                 # update reward variables for next attachment
@@ -320,12 +343,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         eef_leg_distance = xy_distance + z_distance
         if self._diff_rew:
             offset = self._prev_eef_leg_distance - eef_leg_distance
-            rew = offset * self._pos_dist_coef
+            rew = offset * self._pos_dist_coef * 10
             self._prev_eef_leg_distance = eef_leg_distance
         else:
             rew = -eef_leg_distance * self._pos_dist_coef
-
-        rew *= 5
 
         info.update({"eef_leg_dist": eef_leg_distance, "eef_leg_rew": rew})
         info.update({"eef_pos": eef_pos[:3], "leg_pos": leg_pos})
@@ -342,8 +363,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         left, right = self._finger_contact(self._leg)
         leg_touched = int(left and right)
-        grasp = ac[-2] > 0.5
-        info["grasp_leg_succ"] = int(leg_touched and grasp)
+        info["grasp_leg_succ"] = leg_touched
+
         # closed gripper is 1, want to maximize gripper
         offset = ac[-2] - self._prev_grasp_leg_rew
         grasp_leg_rew = offset * self._gripper_penalty_coef * 200
@@ -369,7 +390,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_touched = int(left and right)
 
         # reward for grasping
-        touch_rew = leg_touched * self._touch_coef
+        # touch_rew = leg_touched * self._touch_coef
+        touch_rew = 0
 
         # reward for lifting
         leg_pos = self._get_pos(self._leg_site)
@@ -520,12 +542,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # up vector of leg and world up vector should be aligned
         eef_up = self._get_up_vector("grip_site")
         eef_up_grasp_dist = T.cos_siml(eef_up, [0, 0, -1])
-        eef_up_grasp_rew = self._rot_dist_coef / 3 * (eef_up_grasp_dist - 1)
+        eef_up_grasp_rew = self._rot_dist_coef * (eef_up_grasp_dist - 1)
 
         grasp_vec = self._get_leg_grasp_vector(self._leg_site)
         # up vector of leg and forward vector of grip site should be parallel (close to -1 or 1)
         eef_forward = self._get_forward_vector("grip_site")
-        eef_forward_grasp_dist = T.cos_siml(eef_forward[:2], grasp_vec[:2])
+        eef_forward_grasp_dist = T.cos_siml(eef_forward, grasp_vec)
         eef_forward_grasp_rew = (
             np.abs(eef_forward_grasp_dist) - 1
         ) * self._rot_dist_coef

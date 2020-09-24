@@ -22,7 +22,7 @@ def add_argument(parser):
     parser.add_argument("--gripper_penalty_coef", type=float, default=0.05)
     parser.add_argument("--rot_dist_coef", type=float, default=1)
     parser.add_argument("--pos_dist_coef", type=float, default=500)
-    parser.add_argument("--align_pos_dist_coef", type=float, default=1000)
+    parser.add_argument("--align_pos_dist_coef", type=float, default=500)
     parser.add_argument("--align_rot_dist_coef", type=float, default=250)
     parser.add_argument("--fine_pos_dist_coef", type=float, default=1000)
     parser.add_argument("--fine_align_rot_dist_coef", type=float, default=250)
