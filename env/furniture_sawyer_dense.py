@@ -32,6 +32,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._rot_dist_coef = config.rot_dist_coef
         self._pos_dist_coef = config.pos_dist_coef
         self._lift_dist_coef = config.lift_dist_coef
+        self._grasp_dist_coef = config.grasp_dist_coef
         self._gripper_penalty_coef = config.gripper_penalty_coef
         self._align_pos_dist_coef = config.align_pos_dist_coef
         self._align_rot_dist_coef = config.align_rot_dist_coef
@@ -52,21 +53,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         ]
 
         # load the furniture recipe
-        fullpath = os.path.join(
-            os.path.dirname(__file__), f"../demos/recipes/{config.furniture_name}.yaml"
-        )
-        with open(fullpath, "r") as stream:
-            self._data = data = yaml.load(stream, Loader=PrettySafeLoader)
-            self._recipe = data["recipe"]
-            self._site_recipe = data["site_recipe"]
-            part = self._recipe[0][0]
-            g1, g2 = f"{part}_ltgt_site0", f"{part}_rtgt_site0"
-            if "grip_site_recipe" in data:
-                g1, g2 = data["grip_site_recipe"][0]
-            self._get_leg_grasp_pos = (
-                lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
-            )
-            self._get_leg_grasp_vector = lambda x: self._get_pos(g1) - self._get_pos(g2)
+        self._load_recipe()
 
     def _reset_reward_variables(self):
         self._subtask_step = len(self._preassembled)
@@ -83,8 +70,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
     def _update_reward_variables(self, subtask_step):
         """Updates the reward variables wrt subtask step"""
         self._phase_i = 0
-        self._leg, self._table = self._recipe[subtask_step]
-        self._leg_site, self._table_site = self._site_recipe[subtask_step]
+        self._leg, self._table = self._recipe["recipe"][subtask_step]
+        self._leg_site, self._table_site = self._site_recipe[subtask_step][:2]
         # update the observation to the current objects of interest
         self._subtask_part1 = self._object_name2id[self._leg]
         self._subtask_part2 = self._object_name2id[self._table]
@@ -102,13 +89,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         if subtask_step == 0:  # don't need to update getters
             return
-        self._recipe = self._data["recipe"]
-        self._site_recipe = self._data["site_recipe"]
         g1, g2 = f"{self._leg}_ltgt_site0", f"{self._leg}_rtgt_site0"
-        if "grip_site_recipe" in self._data and self._subtask_step < len(
-            self._data["grip_site_recipe"]
+        if "grip_site_recipe" in self._recipe and self._subtask_step < len(
+            self._recipe["grip_site_recipe"]
         ):
-            g1, g2 = self._data["grip_site_recipe"][self._subtask_step]
+            g1, g2 = self._recipe["grip_site_recipe"][self._subtask_step]
         self._get_leg_grasp_pos = lambda x: (self._get_pos(g1) + self._get_pos(g2)) / 2
         self._get_leg_grasp_vector = lambda x: self._get_pos(g2) - self._get_pos(g1)
 
@@ -212,7 +197,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         elif phase == "grasp_leg":
             phase_reward, phase_info = self._grasp_leg_reward(ac)
-            if phase_info[f"grasp_leg_succ"] and sg_info["stable_grip_succ"]:
+            if phase_info["grasp_leg_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
                 phase_bonus += self._phase_bonus
                 leg_pos = self._get_pos(self._leg_site)
@@ -346,7 +331,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         """
         rew, info = self._lower_eef_to_leg_reward()
         # if eef in correct position, add additional grasping success
-        info.update({"grasp_leg_succ": 0, "grasp_leg_rew": 0})
 
         left, right = self._finger_contact(self._leg)
         leg_touched = int(left and right)
@@ -354,18 +338,20 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         # closed gripper is 1, want to maximize gripper
         offset = ac[-2] - self._prev_grasp_leg_rew
-        grasp_leg_rew = offset * self._gripper_penalty_coef * 200
+        grasp_leg_rew = offset * self._grasp_dist_coef
         self._prev_grasp_leg_rew = ac[-2]
         info["grasp_leg_rew"] = grasp_leg_rew
 
-        touch_rew = leg_touched * self._touch_coef * 10
+        touch_rew = 0
+        # touch_rew = leg_touched * self._touch_coef * 10
+
         # gripper rew, 1 if closed
         # further bonus for touch
         if leg_touched and not self._leg_touched:
             touch_rew += self._touch_coef * 10
             self._leg_touched = True
         info.update({"touch": leg_touched, "touch_rew": touch_rew})
-        rew += info["grasp_leg_rew"] + touch_rew
+        rew += grasp_leg_rew + touch_rew
 
         return rew, info
 
@@ -414,7 +400,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
     def _move_leg_reward(self) -> Tuple[float, dict]:
         """
-        Coarsely move the leg site over the connsite
+        Coarsely move the leg site over the conn_site
         Also give reward for angular alignment
         """
         left, right = self._finger_contact(self._leg)
@@ -457,7 +443,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
     def _move_leg_fine_reward(self, ac) -> Tuple[float, dict]:
         """
-        Finely move the leg site over the connsite
+        Finely move the leg site over the conn_site
         Also give reward for angular alignment
         Also check for connected pieces
         """
@@ -572,7 +558,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 -1 - ac[-2] if grip_open else ac[-2] - 1
             ) * self._gripper_penalty_coef
         assert rew <= 0
-        info = {"gripper_penalty": rew}
+        info = {"gripper_penalty": rew, "gripper_action": ac[-2]}
         return rew, info
 
     def _ctrl_penalty(self, action) -> Tuple[float, dict]:

@@ -4,6 +4,7 @@ import logging
 import os
 import pickle
 import time
+import yaml
 from collections import OrderedDict, deque
 from sys import platform
 
@@ -30,7 +31,7 @@ from env.controllers.arm_controller import *
 from util.demo_recorder import DemoRecorder
 from util.video_recorder import VideoRecorder
 from util.logger import logger
-from util import Qpos
+from util import Qpos, PrettySafeLoader
 from util.pytorch import *
 
 try:
@@ -185,6 +186,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._viewer = None
         self._unity = None
+        self._unity_updated = False
         if config.unity:
             self._unity = UnityInterface(
                 config.port, config.unity_editor, config.virtual_display
@@ -560,7 +562,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._render_callback()
 
         # update unity
-        if not self._unity_updated and self._unity:
+        if self._unity and not self._unity_updated:
             self._update_unity()
             self._unity_updated = True
 
@@ -845,7 +847,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # move furniture to collision-safe position
         if self._agent_type == "Cursor":
-            self._stop_objects()
+            self._stop_selected_objects()
         self.sim.forward()
         self.sim.step()
         min_pos1, max_pos1 = self._get_bounding_box(body1)
@@ -858,7 +860,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # activate weld
         if self._agent_type == "Cursor":
-            self._stop_objects()
+            self._stop_selected_objects()
         self.sim.forward()
         self.sim.step()
 
@@ -875,6 +877,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # set next subtask
         self._get_next_subtask()
+
+        # reset robot arm
+        if self._config.reset_robot_after_attach:
+            self._initialize_robot_pos()
 
     def _try_connect(self, part1=None, part2=None):
         """
@@ -1128,9 +1134,32 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._set_qpos(obj_name, new_pos, new_rot)
                 self._stop_object(obj_name, gravity=gravity)
 
+    def _project_connector_quat(self, connector1, connector2, angle=None):
+        """
+        Returns @connector2's xquat when aligned with @connector1 with @angle
+        """
+        up1 = self._get_up_vector(connector1)
+        forward1 = self._get_forward_vector(connector1)
+        forward2 = self._get_forward_vector(connector2)
+
+        if angle is None:
+            cos = T.cos_siml(forward1, forward2)
+            forward1_rotated_pos = T.rotate_vector_cos_siml(forward1, up1, cos, 1)
+            forward1_rotated_neg = T.rotate_vector_cos_siml(forward1, up1, cos, -1)
+            rot_dist_forward_pos = T.cos_siml(forward1_rotated_pos, forward2)
+            rot_dist_forward_neg = T.cos_siml(forward1_rotated_neg, forward2)
+            if rot_dist_forward_pos > rot_dist_forward_neg:
+                forward1_rotated = forward1_rotated_pos
+            else:
+                forward1_rotated = forward1_rotated_neg
+        else:
+            forward1_rotated = T.rotate_vector(forward1, up1, angle)
+
+        return T.convert_quat(T.lookat_to_quat(up1, forward1_rotated), "wxyz")
+
     def _align_connectors(self, connector1, connector2, gravity=1):
         """
-        Move connector2 to connector 1
+        Moves connector2 to connector 1
         """
         site1_xpos = self._site_xpos_xquat(connector1)
         site1_xpos[3:] = self._target_connector_xquat
@@ -1138,7 +1167,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _move_site_to_target(self, site, target_qpos, gravity=1):
         """
-        Move target site towards target quaternion / position
+        Moves target site towards target quaternion / position
         """
         qpos_base = self._site_xpos_xquat(site)
         target_quat = target_qpos[3:]
@@ -1311,8 +1340,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         return self.mujoco_model.place_objects(fixed_parts=self.fixed_parts)
 
     def set_env_qpos(self, given_qpos):
-        for i, body in enumerate(self._object_names):
-            self._stop_object(body, gravity=0)
+        self._stop_objects(gravity=0)
         self.sim.data.qpos[:] = given_qpos["qpos"]
         self.sim.data.qvel[:] = given_qpos["qvel"]
         self.sim.data.ctrl[:] = 0
@@ -1403,7 +1431,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         eq_obj1id = self.sim.model.eq_obj1id
         eq_obj2id = self.sim.model.eq_obj2id
         p = self._preassembled  # list of weld equality ids to activate
-        if len(p) > 0:
+        if len(p) > 0 and not self._recipe:
             for eq_id in p:
                 self.sim.model.eq_active[eq_id] = 1
                 object_body_id1 = eq_obj1id[eq_id]
@@ -1415,15 +1443,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
-        self._do_simulation(None)
-        # stablize furniture pieces
-        for _ in range(100):
-            for obj_name in self._object_names:
-                self._stop_object(obj_name, gravity=0)
-            self.sim.forward()
-            self.sim.step()
-
-        logger.debug("*** furniture initialization ***")
         # load demonstration from filepath, initialize furniture and robot
         if self._load_demo or self._eval_on_train_set:
             self.set_env_qpos(self._init_qpos)
@@ -1453,24 +1472,51 @@ class FurnitureEnv(metaclass=EnvMeta):
                 else:
                     self._set_qpos(body, self.init_pos[body], self.init_quat[body])
 
+        # stablize furniture pieces
+        for _ in range(10):
+            self._stop_objects(gravity=0)
+            for i in range(10):
+                self.sim.forward()
+                self.sim.step()
+                self._slow_objects()
+
+        if self._recipe:
+            for i in p:
+                # move site1 to site2
+                site1, site2 = self._recipe["site_recipe"][i][0:2]
+                site1_id = self.sim.model.site_name2id(site1)
+                site2_id = self.sim.model.site_name2id(site2)
+                if len(self._recipe["site_recipe"][i]) == 3:
+                    angle = self._recipe["site_recipe"][i][2]
+                else:
+                    angle = None
+                self._target_connector_xquat = self._project_connector_quat(
+                    site2, site1, angle
+                )
+                self._connect(site2_id, site1_id)
+                self._connected_body1 = None
+
+                # stablize furniture pieces
+                for _ in range(10):
+                    self._stop_objects(gravity=0)
+                    for i in range(10):
+                        self.sim.forward()
+                        self.sim.step()
+                        self._slow_objects()
+
         if self._load_demo or self._eval_on_train_set:
             self.sim.forward()
         else:
-            # stablize furniture pieces
-            for _ in range(100):
-                self._slow_objects()
-                self.sim.forward()
-                self.sim.step()
-
-            for _ in range(2):
-                for obj_name in self._object_names:
-                    self._stop_object(obj_name, gravity=0)
-                for i in range(100):
-                    self.sim.forward()
-                    self.sim.step()
+            # gravity compensation
+            if self._agent_type != "Cursor":
+                self.sim.data.qfrc_applied[
+                    self._ref_joint_vel_indexes_all
+                ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
 
             # set initial pose of an agent
             self._initialize_robot_pos()
+            self.sim.forward()
+            self.sim.step()
 
             # enable robot collision
             for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
@@ -1484,27 +1530,19 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self.sim.model.geom_contype[geom_id] = contype
                     self.sim.model.geom_conaffinity[geom_id] = conaffinity
 
-            # stablize furniture pieces
+            # gravity compensation
+            if self._agent_type != "Cursor":
+                self.sim.data.qfrc_applied[
+                    self._ref_joint_vel_indexes_all
+                ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
+
+            # stablize robot
             for _ in range(100):
-                self._slow_objects()
-                self.sim.forward()
-                self.sim.step()
-
-            for body in self._object_names:
-                self._stop_object(body, gravity=0)
-            for _ in range(500):
-                # gravity compensation
-                if self._agent_type != "Cursor":
-                    for arm in self._arms:
-                        self.sim.data.qfrc_applied[
-                            self._ref_joint_vel_indexes[arm]
-                        ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes[arm]]
-
                 # set initial pose of an agent
                 self._initialize_robot_pos()
-
                 self.sim.forward()
                 self.sim.step()
+
         # store qpos of furniture and robot
         if self._record_demo:
             self._store_qpos()
@@ -1513,14 +1551,21 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.set_env_qpos(self._init_qpos)
 
         # sync mujoco sim state
-        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+        if self._agent_type != "Cursor":
             self.sim.data.ctrl[:] = 0
         self.sim.data.qfrc_applied[:] = 0
         self.sim.data.xfrc_applied[:] = 0
         self.sim.data.qacc_warmstart[:] = 0
         self.sim.data.time = 0
-        self.sim.forward()
-        self.sim.step()
+
+        # gravity compensation
+        if self._agent_type != "Cursor":
+            self.sim.data.qfrc_applied[
+                self._ref_joint_vel_indexes_all
+            ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
+        for _ in range(100):
+            self.sim.forward()
+            self.sim.step()
 
         if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
             self._initial_right_hand_quat = self._right_hand_quat
@@ -1686,6 +1731,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._load_model_arena()
         self._load_model_object()
         self._load_model()
+
+        # read recipe
+        self._load_recipe()
 
         # write xml for unity viewer
         if self._unity:
@@ -1882,6 +1930,18 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._rng,
             init_qpos,
         )
+
+    def _load_recipe(self):
+        recipe_path = os.path.join(
+            os.path.dirname(__file__),
+            f"../demos/recipes/{self._config.furniture_name}.yaml",
+        )
+        if os.path.exists(recipe_path):
+            with open(recipe_path, "r") as stream:
+                self._recipe = yaml.load(stream, Loader=PrettySafeLoader)
+                self._site_recipe = self._recipe["site_recipe"]
+        else:
+            self._recipe = None
 
     def key_callback(self, window, key, scancode, action, mods):
         """
@@ -2631,8 +2691,18 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.sim.data.qvel[qvel_addr[0] : qvel_addr[1]] = [0] * (
             qvel_addr[1] - qvel_addr[0]
         )
+        self.sim.data.qfrc_applied[qvel_addr[0] : qvel_addr[1]] = [0] * (
+            qvel_addr[1] - qvel_addr[0]
+        )
 
     def _stop_objects(self, gravity=1):
+        """
+        Stop all objects
+        """
+        for obj_name in self._object_names:
+            self._stop_object(obj_name, gravity)
+
+    def _stop_selected_objects(self, gravity=1):
         """
         Stops all objects selected by cursor
         """
@@ -2660,6 +2730,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         qvel_addr = self.sim.model.get_joint_qvel_addr(obj_name)
         self.sim.data.qvel[qvel_addr[0] : qvel_addr[1]] = np.clip(
             self.sim.data.qvel[qvel_addr[0] : qvel_addr[1]], -0.2, 0.2
+        )
+        self.sim.data.qfrc_applied[qvel_addr[0] : qvel_addr[1]] = [0] * (
+            qvel_addr[1] - qvel_addr[0]
         )
 
     def _slow_objects(self):

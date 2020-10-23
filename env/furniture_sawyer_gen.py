@@ -42,15 +42,15 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             5. xy_move_t:
                     move gripper to tbody xy-pos
             6. align_conn:
-                    rotate gbody connsite up-vector to tbody connsite up-vector
+                    rotate gbody conn_site up-vector to tbody conn_site up-vector
             7. xy_move_conn:
-                    move to xy-pos of gbody connsite w.r.t. tbody connsite
+                    move to xy-pos of gbody conn_site w.r.t. tbody conn_site
             8. z_move_conn:
-                    move to xyz-pos of gbody connsite w.r.t. tbody connsite
+                    move to xyz-pos of gbody conn_site w.r.t. tbody conn_site
             9. align_conn_fine:
-                    finely rotate up-vector of gbody connsite to up-vector of tbody connsite
+                    finely rotate up-vector of gbody conn_site to up-vector of tbody conn_site
             10. z_move_conn_fine:
-                    finely move to xyz position of gbody connsite w.r.t. tbody connsite,
+                    finely move to xyz position of gbody conn_site w.r.t. tbody conn_site,
                     then try connecting
             11. move_nogrip_safepos:
                     release gripper and move up to nogrip_safepos
@@ -137,8 +137,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     return child.attrib["name"].split("-")[0]
         return None
 
-    def get_connsites(self, gbody_name, tbody_name):
-        gripbody_connsite, tbody_connsite = [], []
+    def get_conn_sites(self, gbody_name, tbody_name):
+        gripbody_conn_site, tbody_conn_site = [], []
         group1 = self._get_groupname(gbody_name)
         group2 = self._get_groupname(tbody_name)
         iter1 = self.get_bodyiterator(gbody_name)
@@ -153,7 +153,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     and griptag in child.attrib["name"]
                     and child.attrib["name"] not in self._used_sites
                 ):
-                    gripbody_connsite.append(child.attrib["name"])
+                    gripbody_conn_site.append(child.attrib["name"])
         for child in iter2:
             if child.tag == "site":
                 if (
@@ -162,10 +162,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     and tgttag in child.attrib["name"]
                     and child.attrib["name"] not in self._used_sites
                 ):
-                    tbody_connsite.append(child.attrib["name"])
-        return gripbody_connsite, tbody_connsite
+                    tbody_conn_site.append(child.attrib["name"])
+        return gripbody_conn_site, tbody_conn_site
 
-    def get_furthest_connsite(self, conn_sites, gripper_pos):
+    def get_furthest_conn_site(self, conn_sites, gripper_pos):
         furthest = None
         max_dist = None
         for name in conn_sites:
@@ -180,7 +180,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     max_dist = dist
         return furthest
 
-    def get_closest_connsite(self, conn_sites, gripper_pos):
+    def get_closest_conn_site(self, conn_sites, gripper_pos):
         closest = None
         min_dist = None
         for name in conn_sites:
@@ -345,6 +345,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             grip_angles = p["grip_angles"]
         if "num_connects" in p.keys():
             self._success_num_conn = p["num_connects"]
+            self._success_num_conn += len(self._config.preassembled)
         else:
             self._success_num_conn = len(self._object_names) - 1
         self._config.max_episode_steps = p["max_success_steps"] + 1
@@ -359,7 +360,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             ob = self.reset()
             self._used_sites = set()
             self.get_random_noise(noise)
-            for j in range(len(p["recipe"])):
+            for j in range(len(self._config.preassembled), len(p["recipe"])):
                 self._phase_num = 0
                 t_fwd = None
                 z_move_g_prev = None
@@ -369,16 +370,16 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 gbody_name, tbody_name = p["recipe"][j]
                 # use conn_sites in site_recipe, other dynamically get closest/furthest conn_site from gripper
                 if "site_recipe" in p:
-                    gconn, tconn = p["site_recipe"][j]
+                    gconn, tconn = p["site_recipe"][j][:2]
                 else:
-                    gconn_names, tconn_names = self.get_connsites(
+                    gconn_names, tconn_names = self.get_conn_sites(
                         gbody_name, tbody_name
                     )
                     grip_pos = self._get_pos(grip_site)
                     if p["use_closest"]:
-                        gconn = self.get_closest_connsite(gconn_names, grip_pos)
+                        gconn = self.get_closest_conn_site(gconn_names, grip_pos)
                     else:
-                        gconn = self.get_furthest_connsite(gconn_names, grip_pos)
+                        gconn = self.get_furthest_conn_site(gconn_names, grip_pos)
                 g_pos = self._get_pos(gbody_name)
                 allowed_angles = [float(x) for x in gconn.split(",")[1:-1] if x]
                 # get unused target sites
@@ -471,11 +472,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             gconn_pos = self.sim.data.get_site_xpos(gconn)
                             if "site_recipe" not in p:
                                 if p["use_closest"]:
-                                    tconn = self.get_closest_connsite(
+                                    tconn = self.get_closest_conn_site(
                                         tconn_names, gconn_pos
                                     )
                                 else:
-                                    tconn = self.get_furthest_connsite(
+                                    tconn = self.get_furthest_conn_site(
                                         tconn_names, gconn_pos
                                     )
                             tconn_pos = self.sim.data.get_site_xpos(tconn)
@@ -635,16 +636,15 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         self._config.furniture_name,
                         self._episode_length,
                     )
-                    n_successful_demos += 1
-                    pbar.update(1)
                     if self._config.record_vid:
                         self.vid_rec.close()
                     if self._config.start_count is not None:
                         demo_count = self._config.start_count + n_successful_demos
-                        fname = self.file_prefix + "{:04d}.pkl".format(demo_count)
                         self._demo.save(self.file_prefix, count=demo_count)
                     else:
                         self._demo.save(self.file_prefix)
+                    pbar.update(1)
+                    n_successful_demos += 1
                     break
                 elif self._episode_length > p["max_success_steps"]:
                     # failed
