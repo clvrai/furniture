@@ -4,7 +4,7 @@
     <numeric data="-0.369761 0.364977 0.01497 0.499854 0.499854 0.500146 0.500146" name="1_part1_initpos" />
     <numeric data="-0.370215 0.254977 0.01497 0.500129 0.500129 0.499871 0.499871" name="2_part2_initpos" />
     <numeric data="0.0 0.365 0.01497 0.5 -0.5 0.5 -0.5" name="3_part3_initpos" />
-    <numeric data="-0.2 0.005 0.019526 -1e-06 1.0 1e-06 -1e-06" name="4_part4_initpos" />
+    <numeric data="-0.18 -0.03 0.019527 0 1.0 0 0" name="4_part4_initpos" />
   </custom>
   <asset>
     <mesh file="table_lack_0825/leg1.stl" name="part0" scale="0.02 0.02 0.02" />
@@ -40,7 +40,7 @@
       <site name="0_part0_corner_site8" pos="-0.02 -0.02 0.1333" rgba="0 0 0 0" size="0.005" />
       <site name="0_part0_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 0 0" size="0.02" />
     </body>
-    <body name="1_part1" pos="-0.4 0.14 0.095" quat="1 0 0 0">
+    <body name="1_part1" pos="-0.4 0.14 0.095" quat="-0.7 0 0 0.7">
       <geom conaffinity="0" contype="0" density="0" material="pencil-wood" mesh="part1" name="1_part1_mesh" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
       <geom density="5" name="noviz_collision_1_part1_0" pos="0 0 0" quat="1 0 0 0" rgba="0 0 0 0" size="0.015 0.015 0.13125" solref="0.001 1" type="box" />
       <site group="1" name="1_part1_ltgt_site0" pos="-0.02 0 0" rgba="0 0 0 0" size="0.01 0.01 0.01" type="sphere" />

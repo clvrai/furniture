@@ -35,11 +35,11 @@
             <inertial diaginertia="0 0 0" mass="0" pos="0 0 0"/>
             <body name="controller_box" pos="0 0 0">
                 <inertial diaginertia="1.71363 1.27988 0.809981" mass="46.64" pos="-0.325 0 -0.38"/>
-                <geom name="controller_box_visual" pos="-0.325 0 -0.38" size="0.11 0.2 0.265" type="box"/>
+                <geom name="controller_box_visual" conaffinity="0" contype="0" pos="-0.325 0 -0.38" size="0.11 0.2 0.265" type="box"/>
             </body>
             <body name="pedestal_feet" pos="0 0 0">
                 <inertial diaginertia="8.16095 9.59375 15.0785" mass="167.09" pos="-0.1225 0 -0.758"/>
-                <geom name="pedestal_feet_visual" pos="-0.1225 0 -0.758" size="0.385 0.35 0.155" type="box"/>
+                <geom name="pedestal_feet_visual" conaffinity="0" contype="0" pos="-0.1225 0 -0.758" size="0.385 0.35 0.155" type="box"/>
             </body>
             <body name="torso" pos="0 0 0">
                 <inertial diaginertia="1e-08 1e-08 1e-08" mass="0.0001" pos="0 0 0"/>

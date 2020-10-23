@@ -47,6 +47,7 @@ class TwoFingerGripperBase(Gripper):
             "l_finger_g1",
             "r_fingertip_g0",
             "l_fingertip_g0",
+            "right_gripper_base_collision",
         ]
 
     @property
@@ -112,6 +113,7 @@ class LeftTwoFingerGripperBase(Gripper):
             "l_g_l_finger_g1",
             "l_g_r_fingertip_g0",
             "l_g_l_fingertip_g0",
+            "left_gripper_base_collision",
         ]
 
     @property

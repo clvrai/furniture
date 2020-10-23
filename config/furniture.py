@@ -145,8 +145,14 @@ def add_argument(parser):
         default=2000,
         help="max number of steps for an episode",
     )
+    parser.add_argument(
+        "--reset_robot_after_attach",
+        type=str2bool,
+        default=False,
+        help="reset robot arm to the initial pose after successful attach",
+    )
 
-    # observations
+    # initial randomness
     parser.add_argument(
         "--furn_xyz_rand",
         type=float,
@@ -171,6 +177,8 @@ def add_argument(parser):
         default=0.0,
         help="variance in size of furniture at episode start, ranging from size*(1-rand) to size*(1+rand)",
     )
+
+    # alignment criteria
     parser.add_argument(
         "--alignment_pos_dist",
         type=float,
@@ -196,6 +204,7 @@ def add_argument(parser):
         help="threshold for checking alignment",
     )
 
+    # observations
     parser.add_argument(
         "--robot_ob",
         type=str2bool,

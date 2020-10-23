@@ -38,14 +38,7 @@ class ObjectPositionSampler:
 class UniformRandomSampler(ObjectPositionSampler):
     """Places all objects within the table uniformly random."""
 
-    def __init__(
-        self,
-        rng,
-        r_xyz=None,
-        r_rot=None,
-        use_xml_init=True,
-        init_qpos=None
-    ):
+    def __init__(self, rng, r_xyz=None, r_rot=None, use_xml_init=True, init_qpos=None):
         """
         Args:
             r_xyz(float): override the range used to uniformly place objects
@@ -80,7 +73,7 @@ class UniformRandomSampler(ObjectPositionSampler):
         """
         self.mujoco_objects = mujoco_objects  # should be a dictionary - (name, mjcf)
         self.n_obj = len(self.mujoco_objects)
-        self.table_top_offset = 0#table_top_offset
+        self.table_top_offset = 0  # table_top_offset
         self.table_size = table_size
         if self.init_qpos is None:
             self.init_qpos = dict()
@@ -98,12 +91,18 @@ class UniformRandomSampler(ObjectPositionSampler):
             self.x_range, self.y_range = None, None
             # randomnly place remaining parts anywhere on table
             # and use that pos as starting pos for future samples
-            remaining_xpos, remaining_quat = self.sample(objects=remaining_objects, placed_objects_orig=preset_objects)
+            remaining_xpos, remaining_quat = self.sample(
+                objects=remaining_objects, placed_objects_orig=preset_objects
+            )
             for obj_name in remaining_xpos.keys():
                 xpos = remaining_xpos[obj_name]
                 quat = remaining_quat[obj_name]
-                self.init_qpos[obj_name] = Qpos(xpos[0], xpos[1], xpos[2],
-                    Quaternion(quat[0], quat[1], quat[2], quat[3]))
+                self.init_qpos[obj_name] = Qpos(
+                    xpos[0],
+                    xpos[1],
+                    xpos[2],
+                    Quaternion(quat[0], quat[1], quat[2], quat[3]),
+                )
             self.x_range, self.y_range = spec_x_range, spec_y_range
 
     def sample_x(self, obj_r):
@@ -131,9 +130,7 @@ class UniformRandomSampler(ObjectPositionSampler):
         yz_noise = 0
         xz_noise = 0
         euler_noise = [xy_noise, yz_noise, xz_noise]
-        rotated_quat = T.euler_to_quat(
-            euler_noise, quaternion
-        )
+        rotated_quat = T.euler_to_quat(euler_noise, quaternion)
         return rotated_quat
 
     def sample(self, objects=None, placed_objects_orig=None):
@@ -149,14 +146,13 @@ class UniformRandomSampler(ObjectPositionSampler):
         if objects is None:
             objects = copy.deepcopy(self.mujoco_objects)
             for part in placed_objects:
-                #don't randomly initialize parts in placed_objects 
+                # don't randomly initialize parts in placed_objects
                 objects.pop(part[0])
                 name = part[0]
                 qpos = part[2]
-                pos_arr[name] = (
-                        self.table_top_offset
-                        + np.array([qpos.x, qpos.y, qpos.z])
-                        )
+                pos_arr[name] = self.table_top_offset + np.array(
+                    [qpos.x, qpos.y, qpos.z]
+                )
                 quat_arr[name] = qpos.quat
 
         for obj_name, obj_mjcf in objects.items():
@@ -166,27 +162,23 @@ class UniformRandomSampler(ObjectPositionSampler):
             for i in range(10000):  # 1000 retries
                 obj_x = self.init_qpos[obj_name].x + self.sample_x(obj_r)
                 obj_y = self.init_qpos[obj_name].y + self.sample_y(obj_r)
-                obj_z = self.init_qpos[obj_name].z
+                obj_z = self.init_qpos[obj_name].z + 0.01  # slighly above the table
                 # objects cannot overlap
                 location_valid = True
                 for po_name, po_r, qpos in placed_objects:
                     po_x = qpos.x
                     po_y = qpos.y
-                    if (
-                        np.linalg.norm([obj_x - po_x, obj_y - po_y], 2)
-                        <= po_r + obj_r
-                    ):
+                    if np.linalg.norm([obj_x - po_x, obj_y - po_y], 2) <= po_r + obj_r:
                         location_valid = False
                         break
+
                 if location_valid:
-                    pos = (
-                        self.table_top_offset
-                        + np.array([obj_x, obj_y, obj_z])
-                        )
+                    pos = self.table_top_offset + np.array([obj_x, obj_y, obj_z])
                     quat = self.sample_quat(self.init_qpos[obj_name].quat)
 
-                    placed_objects.append((obj_name, obj_r, Qpos(pos[0], pos[1],
-                        pos[2], quat)))
+                    placed_objects.append(
+                        (obj_name, obj_r, Qpos(pos[0], pos[1], pos[2], quat))
+                    )
                     quat_arr[obj_name] = quat
                     pos_arr[obj_name] = pos
                     success = True
