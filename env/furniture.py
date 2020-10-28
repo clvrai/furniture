@@ -409,7 +409,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         ob = self._get_obs()
         done = False
         if (
-            self._num_connected == len(self._object_names) - 1
+            self._num_connected == self._success_num_conn
             and len(self._object_names) > 1
         ):
             self._success = True
@@ -1082,12 +1082,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             return True
 
         # connect two parts if they are very close to each other
-        if (
-            pos_dist < 0.03
-            and rot_dist_up > self._env_config["rot_dist_up"]
-            and is_rot_forward_aligned
-        ):
-            return True
+        # if (
+        #     pos_dist < 0.03
+        #     and rot_dist_up > self._env_config["rot_dist_up"]
+        #     and is_rot_forward_aligned
+        # ):
+        #     return True
 
         if pos_dist >= self._env_config["pos_dist"]:
             logger.debug(
@@ -1443,6 +1443,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._prev_num_connected = 0
         if self._agent_type == "Cursor":
             self._cursor_selected = [None, None]
+        if "num_connects" in self._recipe.keys():
+            self._success_num_conn = self._recipe["num_connects"]
+            self._success_num_conn += len(self._config.preassembled)
+        else:
+            self._success_num_conn = len(self._object_names) - 1
 
         self._touched = {}
         self._picked = {}
