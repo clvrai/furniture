@@ -1134,6 +1134,29 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._set_qpos(obj_name, new_pos, new_rot)
                 self._stop_object(obj_name, gravity=gravity)
 
+    def _project_connector_forward(self, connector1, connector2, angle=None):
+        """
+        Returns @connector2's forward vector when aligned with @connector1 with @angle
+        """
+        up1 = self._get_up_vector(connector1)
+        forward1 = self._get_forward_vector(connector1)
+        forward2 = self._get_forward_vector(connector2)
+
+        if angle is None:
+            cos = T.cos_siml(forward1, forward2)
+            forward1_rotated_pos = T.rotate_vector_cos_siml(forward1, up1, cos, 1)
+            forward1_rotated_neg = T.rotate_vector_cos_siml(forward1, up1, cos, -1)
+            rot_dist_forward_pos = T.cos_siml(forward1_rotated_pos, forward2)
+            rot_dist_forward_neg = T.cos_siml(forward1_rotated_neg, forward2)
+            if rot_dist_forward_pos > rot_dist_forward_neg:
+                forward1_rotated = forward1_rotated_pos
+            else:
+                forward1_rotated = forward1_rotated_neg
+        else:
+            forward1_rotated = T.rotate_vector(forward1, up1, angle)
+
+        return forward1_rotated
+
     def _project_connector_quat(self, connector1, connector2, angle=None):
         """
         Returns @connector2's xquat when aligned with @connector1 with @angle
