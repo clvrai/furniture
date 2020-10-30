@@ -361,6 +361,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Called before step
         """
         self._unity_updated = False
+        self._connected = False
 
     def _update_unity(self):
         """
@@ -871,6 +872,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._agent_type == "Cursor":
             self._cursor_selected[1] = None
 
+        self._connected = True
         self._connected_body1 = body1
         self._connected_body1_pos = self._get_qpos(body1)[:3]
         self._connected_body1_quat = self._get_qpos(body1)[3:]
@@ -1435,6 +1437,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # initialize member variables
         self._connect_step = 0
+        self._connected = False
         self._connected_sites = set()
         self._connected_body1 = None
         self._connected_body1_pos = None
@@ -1522,6 +1525,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     site2, site1, angle
                 )
                 self._connect(site2_id, site1_id)
+                self._connected = False
                 self._connected_body1 = None
 
                 # stablize furniture pieces
