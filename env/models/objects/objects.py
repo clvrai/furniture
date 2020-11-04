@@ -149,15 +149,15 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
     def get_init_qpos(self, names):
         init_qpos = None
         # see custom numeric tag in mujoco xml reference
-        numerics = self.root.find('custom')
+        numerics = self.root.find("custom")
         if numerics is not None:
             for numeric in numerics:
-                if 'name' in numeric.attrib and 'initpos' in numeric.attrib['name']:
-                    name = '_'.join(numeric.attrib['name'].split('_')[0:-1])
+                if "name" in numeric.attrib and "initpos" in numeric.attrib["name"]:
+                    name = "_".join(numeric.attrib["name"].split("_")[0:-1])
                     if name in names:
                         if init_qpos is None:
                             init_qpos = {}
-                        data = numeric.attrib['data'].split(' ')
+                        data = numeric.attrib["data"].split()
                         xpos = [float(data[i]) for i in range(3)]
                         quat = Quaternion([float(data[i]) for i in range(3, 7)])
                         init_qpos[name] = Qpos(xpos[0], xpos[1], xpos[2], quat)
@@ -183,7 +183,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
         )
         return float(horizontal_radius_site.get("size"))
 
-    def get_collision(self, name=None, site=False, friction=(1, 10, .5)):
+    def get_collision(self, name=None, site=False, friction=(1, 10, 0.5)):
         # get the mujocoXMLobject for geom labeled 'noviz'
         self.name = name
         collision = copy.deepcopy(self.worldbody.find("./body[@name='%s']" % name))
@@ -193,9 +193,9 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
             geoms = collision.findall("geom")
             for i in range(len(geoms)):
                 gname = geoms[i].get("name")
-                if not (gname.startswith('noviz') or gname.startswith('collision')):
+                if not (gname.startswith("noviz") or gname.startswith("collision")):
                     geoms[i].set("name", "{}-{}".format(name, i))
-                geoms[i].set("friction",array_to_string(friction))
+                geoms[i].set("friction", array_to_string(friction))
         if site:
             # add a site as well
             template = self.get_site_attrib_template()
@@ -220,67 +220,64 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
             visual.append(ET.Element("site", attrib=template))
         return visual
 
-
     def hide_visualization(self):
-        for body in self.root.find('worldbody'):
-            if 'name' in body.attrib and '_part' in body.attrib['name']:
+        for body in self.root.find("worldbody"):
+            if "name" in body.attrib and "_part" in body.attrib["name"]:
                 for child in body.getiterator():
-                    if child.tag == 'site' and 'name' in child.attrib:
-                        if 'conn_site' not in child.attrib['name']:
-                            child.attrib['rgba'] = '0 0 0 0'
-                    elif child.tag == 'geom' and 'name' in child.attrib:
-                        if 'noviz' in child.attrib['name']:
-                            child.attrib['rgba'] = '0 0 0 0'
-
+                    if child.tag == "site" and "name" in child.attrib:
+                        if "conn_site" not in child.attrib["name"]:
+                            child.attrib["rgba"] = "0 0 0 0"
+                    elif child.tag == "geom" and "name" in child.attrib:
+                        if "noviz" in child.attrib["name"]:
+                            child.attrib["rgba"] = "0 0 0 0"
 
     def fix_rel_path(self):
-        for mesh in self.root.find('asset'):
-            if 'file' in mesh.attrib and 'scale' in mesh.attrib:
-                rel_path = mesh.attrib["file"].split('/')
-                rel_path = '/'.join(rel_path[-2:])
+        for mesh in self.root.find("asset"):
+            if "file" in mesh.attrib and "scale" in mesh.attrib:
+                rel_path = mesh.attrib["file"].split("/")
+                rel_path = "/".join(rel_path[-2:])
                 mesh.set("file", rel_path)
 
-
     def indent(self, elem, level=0):
-        i = "\n" + level*"  "
+        i = "\n" + level * "  "
         if len(elem):
             if not elem.text or not elem.text.strip():
                 elem.text = i + "  "
             if not elem.tail or not elem.tail.strip():
                 elem.tail = i
             for elem in elem:
-                self.indent(elem, level+1)
+                self.indent(elem, level + 1)
             if not elem.tail or not elem.tail.strip():
                 elem.tail = i
         else:
             if level and (not elem.tail or not elem.tail.strip()):
                 elem.tail = i
 
-
     def set_init_qpos(self, qpos):
         # see custom numeric tag in mujoco xml reference
-        numerics = self.root.find('custom')
+        numerics = self.root.find("custom")
         if numerics is None:
             custom = ET.Element("custom")
             self.root.insert(0, custom)
-            numerics = self.root.find('custom')
+            numerics = self.root.find("custom")
             for name, part_qpos in qpos.items():
-                data_str = ''
+                data_str = ""
                 for i in range(6):
-                    data_str += str(round(part_qpos[i],6)) + ' '
-                data_str += str(round(part_qpos[6],6))
-                part_init_qpos = ET.Element("numeric", attrib={'name':name+'_initpos', 'data':data_str})
+                    data_str += str(round(part_qpos[i], 6)) + " "
+                data_str += str(round(part_qpos[6], 6))
+                part_init_qpos = ET.Element(
+                    "numeric", attrib={"name": name + "_initpos", "data": data_str}
+                )
                 numerics.append(part_init_qpos)
         else:
             for name, part_qpos in qpos.items():
                 for numeric in numerics:
-                    if 'name' in numeric.attrib and name in numeric.attrib['name']:
-                        data_str = ''
+                    if "name" in numeric.attrib and name in numeric.attrib["name"]:
+                        data_str = ""
                         for i in range(6):
-                            data_str += str(round(part_qpos[i],6)) + ' '
-                        data_str += str(round(part_qpos[6],6))
+                            data_str += str(round(part_qpos[i], 6)) + " "
+                        data_str += str(round(part_qpos[6], 6))
                         numeric.set("data", data_str)
-
 
     def save_qpos(self, qpos, path):
         self.set_init_qpos(qpos)
