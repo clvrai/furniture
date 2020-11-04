@@ -324,10 +324,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             2. Once any collision occurs, unlikely to recover
             3. fine adjustment phase sometimes very challenging
         """
-        with open(
-            "demos/recipes/" + self._config.furniture_name + ".yaml", "r"
-        ) as stream:
-            p = yaml.load(stream, Loader=PrettySafeLoader)
+        p = self._recipe
 
         n_successful_demos = 0
         n_failed_demos = 0

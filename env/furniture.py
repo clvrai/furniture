@@ -224,23 +224,15 @@ class FurnitureEnv(metaclass=EnvMeta):
             # can be changed to the desired number depending on the task
             if self._object_ob_all:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=((3 + 4) * self.n_objects,),
+                    low=-np.inf, high=np.inf, shape=((3 + 4) * self.n_objects,),
                 )
             else:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf,
-                    high=np.inf,
-                    shape=((3 + 4) * 2,),
+                    low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
                 )
 
         if self._subtask_ob:
-            ob_space["subtask_ob"] = gym.spaces.Box(
-                low=0.0,
-                high=np.inf,
-                shape=(2,),
-            )
+            ob_space["subtask_ob"] = gym.spaces.Box(low=0.0, high=np.inf, shape=(2,),)
 
         return gym.spaces.Dict(ob_space)
 
@@ -275,10 +267,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 (
                     "default",
                     gym.spaces.Box(
-                        shape=(self.dof,),
-                        low=-1,
-                        high=1,
-                        dtype=np.float32,
+                        shape=(self.dof,), low=-1, high=1, dtype=np.float32,
                     ),
                 )
             ]
@@ -1442,7 +1431,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._prev_num_connected = 0
         if self._agent_type == "Cursor":
             self._cursor_selected = [None, None]
-        if "num_connects" in self._recipe.keys():
+        if self._recipe and "num_connects" in self._recipe.keys():
             self._success_num_conn = self._recipe["num_connects"]
             self._success_num_conn += len(self._config.preassembled)
         else:
@@ -1981,8 +1970,7 @@ class FurnitureEnv(metaclass=EnvMeta):
     def _load_recipe(self):
         furniture_name = furniture_names[self._furniture_id]
         recipe_path = os.path.join(
-            os.path.dirname(__file__),
-            f"../demos/recipes/{furniture_name}.yaml",
+            os.path.dirname(__file__), f"models/assets/recipes/{furniture_name}.yaml",
         )
         if os.path.exists(recipe_path):
             with open(recipe_path, "r") as stream:
@@ -2636,6 +2624,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             path, furniture_names[self._furniture_id] + "_grid" + str(n_img) + ".jpg"
         )
         from util.pytorch import save_distribution_imgs
+
         save_distribution_imgs(grid, blended, grid_img_path, blended_img_path)
 
     def _get_reference(self):
