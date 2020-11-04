@@ -165,39 +165,21 @@ def main(args):
 
     # load demo from pickle file
     with open(env._load_demo, "rb") as f:
-        demo = pickle.load(f)
-        all_qpos = demo["qpos"]
+        demo = pickle.load(f)["qpos"]
 
     # playback
-    for qpos in tqdm(all_qpos, desc="Recording Demo"):
-        # set furniture part positions
-        for i, body in enumerate(env._object_names):
-            pos = qpos[body][:3]
-            quat = qpos[body][3:]
-            env._set_qpos(body, pos, quat)
-            env._stop_object(body, gravity=0)
-        # set robot positions
-        if env._agent_type in ["Sawyer", "Panda", "Jaco"]:
-            env.sim.data.qpos[env._ref_joint_pos_indexes_all] = qpos["qpos"]
-            env.sim.data.qpos[env._ref_gripper_joint_pos_indexes["right"]] = qpos["l_gripper"]
-        elif env._agent_type == "Baxter":
-            env.sim.data.qpos[env._ref_joint_pos_indexes_all] = qpos["qpos"]
-            env.sim.data.qpos[env._ref_gripper_joint_pos_indexes["right"]] = qpos[
-                "r_gripper"
-            ]
-            env.sim.data.qpos[env._ref_gripper_joint_pos_indexes["left"]] = qpos[
-                "l_gripper"
-            ]
-        elif env._agent_type == "Cursor":
-            env._set_pos("cursor0", qpos["cursor0"])
-            env._set_pos("cursor1", qpos["cursor1"])
+    for state in tqdm(demo, desc="Recording Demo"):
+        env.sim.data.qpos[:] = state["qpos"]
+        env.sim.data.qvel[:] = state["qvel"]
+        if env._agent_type == "Cursor":
+            env._set_pos("cursor0", state["cursor0"])
+            env._set_pos("cursor1", state["cursor1"])
 
         env.sim.forward()
         env._update_unity()
 
         img, depth = env.render("rgbd_array")
         seg = np.array([color_segmentation(x) for x in env.render("segmentation")])
-        # print('rgb_frames', img.shape, 'depth_frames', depth.shape, 'seg_frames', seg.shape)
         if img.ndim == 4:
             if len(img) > 1:
                 img = np.concatenate(img, axis=1)
