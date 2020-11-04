@@ -219,6 +219,13 @@ class FurnitureBaxterEnv(FurnitureEnv):
         # indices for grippers in qpos, qvel
         gripper_left_joints = list(self.gripper["left"].joints)
         gripper_right_joints = list(self.gripper["right"].joints)
+        self.gripper_joints = gripper_left_joints + gripper_right_joints
+        self._ref_gripper_joint_pos_indexes_all = [
+            self.sim.model.get_joint_qpos_addr(x) for x in self.gripper_joints
+        ]
+        self._ref_gripper_joint_vel_indexes_all = [
+            self.sim.model.get_joint_qvel_addr(x) for x in self.gripper_joints
+        ]
         self._ref_gripper_joint_pos_indexes = {
             "left": [
                 self.sim.model.get_joint_qpos_addr(x) for x in gripper_left_joints

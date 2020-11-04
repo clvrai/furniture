@@ -209,15 +209,17 @@ class FurnitureJacoEnv(FurnitureEnv):
 
         # indices for grippers in qpos, qvel
         self.gripper_joints = list(self.gripper["right"].joints)
+        self._ref_gripper_joint_pos_indexes_all = [
+            self.sim.model.get_joint_qpos_addr(x) for x in self.gripper_joints
+        ]
+        self._ref_gripper_joint_vel_indexes_all = [
+            self.sim.model.get_joint_qvel_addr(x) for x in self.gripper_joints
+        ]
         self._ref_gripper_joint_pos_indexes = {
-            "right": [
-                self.sim.model.get_joint_qpos_addr(x) for x in self.gripper_joints
-            ]
+            "right": self._ref_gripper_joint_pos_indexes_all
         }
         self._ref_gripper_joint_vel_indexes = {
-            "right": [
-                self.sim.model.get_joint_qvel_addr(x) for x in self.gripper_joints
-            ]
+            "right": self._ref_gripper_joint_vel_indexes_all
         }
 
         # IDs of sites for gripper visualization

@@ -32,7 +32,6 @@ from util.demo_recorder import DemoRecorder
 from util.video_recorder import VideoRecorder
 from util.logger import logger
 from util import Qpos, PrettySafeLoader
-from util.pytorch import *
 
 try:
     import mujoco_py
@@ -1220,7 +1219,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _step_continuous(self, action):
         """
-        Step function for continuous control, like Sawyer and Baxter
+        Step function for continuous control
         """
         connect = action[-1]
         if self._control_type in ["ik", "ik_quaternion"]:
@@ -1389,10 +1388,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             or (self._manual_resize is not None)
         ):
             # construct mujoco xml for furniture_id
-            if furniture_id is None:
-                self._furniture_id = self._config.furniture_id
-            else:
-                self._furniture_id = furniture_id
+            self._furniture_id = furniture_id or self._config.furniture_id
             self._reset_internal()
             self.file_prefix = (
                 self._agent_type + "_" + furniture_names[self._furniture_id] + "_"
@@ -1424,7 +1420,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.model.geom_contype[geom_id] = 0
                 self.sim.model.geom_conaffinity[geom_id] = 0
 
-        # initialize collision for non-mesh geoms
+        # initialize collision for non-visual geoms
         for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
             body_name = self.sim.model.body_names[body_id]
             geom_name = self.sim.model.geom_id2name(geom_id)
@@ -1544,6 +1540,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.data.qfrc_applied[
                     self._ref_joint_vel_indexes_all
                 ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
+                self.sim.data.qfrc_applied[
+                    self._ref_gripper_joint_vel_indexes_all
+                ] = self.sim.data.qfrc_bias[self._ref_gripper_joint_vel_indexes_all]
 
             # set initial pose of an agent
             self._initialize_robot_pos()
@@ -1567,6 +1566,9 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.data.qfrc_applied[
                     self._ref_joint_vel_indexes_all
                 ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
+                self.sim.data.qfrc_applied[
+                    self._ref_gripper_joint_vel_indexes_all
+                ] = self.sim.data.qfrc_bias[self._ref_gripper_joint_vel_indexes_all]
 
             # stablize robot
             for _ in range(100):
@@ -1595,11 +1597,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.sim.data.qfrc_applied[
                 self._ref_joint_vel_indexes_all
             ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
+            self.sim.data.qfrc_applied[
+                self._ref_gripper_joint_vel_indexes_all
+            ] = self.sim.data.qfrc_bias[self._ref_gripper_joint_vel_indexes_all]
         for _ in range(100):
             self.sim.forward()
             self.sim.step()
 
-        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+        if self._agent_type not in ["Cursor"]:
             self._initial_right_hand_quat = self._right_hand_quat
             if self._agent_type == "Baxter":
                 self._initial_left_hand_quat = self._left_hand_quat
@@ -1722,7 +1727,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         Initializes robot posision with random noise perturbation
         """
         noise = self._init_random(self.mujoco_robot.init_qpos.shape, "agent")
-        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+        if self._agent_type not in ["Cursor"]:
             self.sim.data.qpos[self._ref_joint_pos_indexes_all] = (
                 self.mujoco_robot.init_qpos + noise
             )
@@ -1964,9 +1969,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         )
 
     def _load_recipe(self):
+        furniture_name = furniture_names[self._furniture_id]
         recipe_path = os.path.join(
             os.path.dirname(__file__),
-            f"../demos/recipes/{self._config.furniture_name}.yaml",
+            f"../demos/recipes/{furniture_name}.yaml",
         )
         if os.path.exists(recipe_path):
             with open(recipe_path, "r") as stream:
@@ -2353,7 +2359,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             import glfw
 
             assert self._config.render, "Set --render True for manual control"
-            glfw.set_key_callback(self._viewer.window, self.key_callback)
+            glfw.set_key_callback(self._get_viewer().window, self.key_callback)
 
         cursor_idx = 0
         flag = [-1, -1]
@@ -2619,6 +2625,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         grid_img_path = os.path.join(
             path, furniture_names[self._furniture_id] + "_grid" + str(n_img) + ".jpg"
         )
+        from util.pytorch import save_distribution_imgs
         save_distribution_imgs(grid, blended, grid_img_path, blended_img_path)
 
     def _get_reference(self):
@@ -3297,6 +3304,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.sim.data.qfrc_applied[
             self._ref_joint_vel_indexes_all
         ] = self.sim.data.qfrc_bias[self._ref_joint_vel_indexes_all]
+        self.sim.data.qfrc_applied[
+            self._ref_gripper_joint_vel_indexes_all
+        ] = self.sim.data.qfrc_bias[self._ref_gripper_joint_vel_indexes_all]
 
         return applied_action
 
