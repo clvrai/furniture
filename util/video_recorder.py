@@ -2,11 +2,12 @@ import distutils.spawn
 import distutils.version
 import glob
 import os
-import os.path
 import subprocess
 
 import moviepy.editor as mpy
 import numpy as np
+
+from util.logger import logger
 
 
 class VideoRecorder(object):
@@ -29,9 +30,9 @@ class VideoRecorder(object):
         os.makedirs(video_dir, exist_ok=True)
         self._demo_dir = demo_dir
         self.set_outfile(prefix)
-        self.frames_per_sec = frames_per_sec
-        self.output_frames_per_sec = output_frames_per_sec
-        self.encoder = None
+        self._frames_per_sec = frames_per_sec
+        self._output_frames_per_sec = output_frames_per_sec
+        self._encoder = None
         self._frames = []
 
     def set_outfile(self, prefix):
@@ -43,7 +44,7 @@ class VideoRecorder(object):
             prefix = prefix + "vidonly"
             count = min(9999, self._get_vid_count(prefix))
         video_name = prefix + "{:04d}.mp4".format(count)
-        self.outfile = os.path.join(self._video_dir, video_name)
+        self._outfile = os.path.join(self._video_dir, video_name)
 
     def _get_demo_count(self, prefix, demo_dir):
         return len(glob.glob(os.path.join(demo_dir, prefix) + "*"))
@@ -70,18 +71,17 @@ class VideoRecorder(object):
                 self._encode_image_frame((255 * frame).astype("uint8"))
 
     def _encode_image_frame(self, frame):
-        if not self.encoder:
-            self.encoder = ImageEncoder(
-                self.outfile,
+        if not self._encoder:
+            self._encoder = ImageEncoder(
+                self._outfile,
                 frame.shape,
-                self.frames_per_sec,
-                self.output_frames_per_sec,
+                self._frames_per_sec,
+                self._output_frames_per_sec,
             )
         try:
-            self.encoder.capture_frame(frame)
+            self._encoder.capture_frame(frame)
         except Exception:
-            pass
-            # logger.warn todo
+            logger.error("Error in storing image file for video recording.")
 
     def close(self, name=None, success=True):
         """
@@ -89,11 +89,11 @@ class VideoRecorder(object):
         Make sure to manually close, or else you'll leak the encoder process
         """
         if name is not None:
-            self.outfile = os.path.join(self._video_dir, name)
+            self._outfile = os.path.join(self._video_dir, name)
 
         if self._record_mode == "ram":
             if success:
-                fps = self.output_frames_per_sec
+                fps = self._output_frames_per_sec
 
                 def f(t):
                     frame_length = len(self._frames)
@@ -102,25 +102,25 @@ class VideoRecorder(object):
                     return self._frames[idx]
 
                 video = mpy.VideoClip(f, duration=len(self._frames) / fps + 2)
-                video.write_videofile(self.outfile, fps, verbose=False)
+                video.write_videofile(self._outfile, fps, verbose=False)
                 self._frames = []
 
         elif self._record_mode == "file":
-            if self.encoder is not None:
-                self.encoder.close()
-                self.encoder = None
+            if self._encoder is not None:
+                self._encoder.close()
+                self._encoder = None
             else:
                 # No frames captured. Set metadata, and remove the empty output file.
-                os.remove(self.outfile)
+                os.remove(self._outfile)
 
         if success:
-            print("closed vr, video at", self.outfile)
+            logger.info("closed video recorder, video at", self._outfile)
 
 
 class ImageEncoder(object):
     def __init__(self, outfile, frame_shape, frames_per_sec, output_frames_per_sec):
-        self.proc = None
-        self.outfile = outfile
+        self._proc = None
+        self._outfile = outfile
         # Frame shape should be lines-first, so w and h are swapped
         h, w, pixfmt = frame_shape
         if pixfmt != 3 and pixfmt != 4:
@@ -129,23 +129,23 @@ class ImageEncoder(object):
                     frame_shape
                 )
             )
-        self.wh = (w, h)
-        self.includes_alpha = pixfmt == 4
-        self.frame_shape = frame_shape
-        self.frames_per_sec = frames_per_sec
-        self.output_frames_per_sec = output_frames_per_sec
+        self._wh = (w, h)
+        self._includes_alpha = pixfmt == 4
+        self._frame_shape = frame_shape
+        self._frames_per_sec = frames_per_sec
+        self._output_frames_per_sec = output_frames_per_sec
 
         if distutils.spawn.find_executable("ffmpeg") is not None:
-            self.backend = "ffmpeg"
+            self._backend = "ffmpeg"
         else:
             raise ImportError(
                 "Could not find ffmpeg executable. On OS X, you can install ffmpeg via `brew install ffmpeg`. On most Ubuntu variants, `sudo apt-get install ffmpeg` should do it."
             )
-        self.start()
+        self._start()
 
     def start(self):
-        self.cmdline = (
-            self.backend,
+        self._cmdline = (
+            self._backend,
             "-nostats",
             "-loglevel",
             "error",  # suppress warnings
@@ -154,11 +154,11 @@ class ImageEncoder(object):
             "-f",
             "rawvideo",
             "-s:v",
-            "{}x{}".format(*self.wh),
+            "{}x{}".format(*self._wh),
             "-pix_fmt",
-            ("rgb32" if self.includes_alpha else "rgb24"),
+            ("rgb32" if self._includes_alpha else "rgb24"),
             "-framerate",
-            "%d" % self.frames_per_sec,
+            "%d" % self._frames_per_sec,
             "-i",
             "-",  # this used to be /dev/stdin, which is not Windows-friendly
             # output
@@ -169,17 +169,17 @@ class ImageEncoder(object):
             "-pix_fmt",
             "yuv420p",
             "-r",
-            "%d" % self.output_frames_per_sec,
-            self.outfile,
+            "%d" % self._output_frames_per_sec,
+            self._outfile,
         )
 
-        print('Starting ffmpeg with "%s"', " ".join(self.cmdline))
+        logger.info('Starting ffmpeg with "%s"', " ".join(self._cmdline))
         if hasattr(os, "setsid"):  # setsid not present on Windows
-            self.proc = subprocess.Popen(
-                self.cmdline, stdin=subprocess.PIPE, preexec_fn=os.setsid
+            self._proc = subprocess.Popen(
+                self._cmdline, stdin=subprocess.PIPE, preexec_fn=os.setsid
             )
         else:
-            self.proc = subprocess.Popen(self.cmdline, stdin=subprocess.PIPE)
+            self._proc = subprocess.Popen(self._cmdline, stdin=subprocess.PIPE)
 
     def capture_frame(self, frame):
         if not isinstance(frame, (np.ndarray, np.generic)):
@@ -188,10 +188,10 @@ class ImageEncoder(object):
                     type(frame), frame
                 )
             )
-        if frame.shape != self.frame_shape:
+        if frame.shape != self._frame_shape:
             raise Exception(
                 "Your frame has shape {}, but the VideoRecorder is configured for shape {}.".format(
-                    frame.shape, self.frame_shape
+                    frame.shape, self._frame_shape
                 )
             )
         if frame.dtype != np.uint8:
@@ -203,12 +203,12 @@ class ImageEncoder(object):
         if distutils.version.LooseVersion(
             np.__version__
         ) >= distutils.version.LooseVersion("1.9.0"):
-            self.proc.stdin.write(frame.tobytes())
+            self._proc.stdin.write(frame.tobytes())
         else:
-            self.proc.stdin.write(frame.tostring())
+            self._proc.stdin.write(frame.tostring())
 
     def close(self):
-        self.proc.stdin.close()
-        ret = self.proc.wait()
+        self._proc.stdin.close()
+        ret = self._proc.wait()
         if ret != 0:
-            print("VideoRecorder encoder exited with status {}".format(ret))
+            logger.error("VideoRecorder encoder exited with status {}".format(ret))

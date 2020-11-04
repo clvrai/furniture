@@ -83,6 +83,7 @@ def numpy_to_img(arr, name):
     img = np.transpose(img, (1,2,0))
     PIL.Image.fromarray(img).save(name + '.jpg')
 
+
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 

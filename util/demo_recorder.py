@@ -4,6 +4,8 @@ import pickle
 
 import numpy as np
 
+from util.logger import logger
+
 
 class DemoRecorder(object):
     def __init__(self, demo_dir="./", metadata=None):
@@ -80,6 +82,8 @@ class DemoRecorder(object):
 
         with open(path, "wb") as f:
             pickle.dump(demo, f)
+        logger.warn("Save demo of length %d to %s", len(self._obs), path)
+
         self.reset()
 
     def _get_demo_count(self, prefix):
