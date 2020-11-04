@@ -5,7 +5,7 @@ import os
 import pickle
 import time
 import yaml
-from collections import OrderedDict, deque
+from collections import OrderedDict
 from sys import platform
 
 import numpy as np
@@ -13,6 +13,7 @@ import gym.spaces
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
 import hjson
+import mujoco_py
 
 import env.transform_utils as T
 from env.base import EnvMeta
@@ -33,10 +34,6 @@ from util.video_recorder import VideoRecorder
 from util.logger import logger
 from util import Qpos, PrettySafeLoader
 
-try:
-    import mujoco_py
-except ImportError as e:
-    raise Exception("{}. (need to install mujoco_py)".format(e))
 
 
 np.set_printoptions(suppress=True)
