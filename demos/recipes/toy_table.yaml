@@ -7,14 +7,15 @@ lat_magnitude: 20           # keep movespeed constant at 0.025
 eps: 0.01                      # max acceptable x,y,z difference
 eps_fine: 0.001                # max acceptable x,y,z difference
 # rot parameters
-rot_magnitude: 0.2
+rot_magnitude: 0.4
 rot_eps: 0.05
 rot_eps_fine: 0.01
-min_rot_act: 0.05
+min_rot_act: 0.1
 min_rot_act_fine: 0.01
 #general parameters
 use_closest: False
-max_success_steps: 2400            # max # of steps a successful demo will take
+num_connects: 4
+max_success_steps: 1500            # max # of steps a successful demo will take
 recipe:
         - !!python/tuple ["0_part0", "4_part4"]
         - !!python/tuple ["1_part1", "4_part4"]
@@ -22,37 +23,37 @@ recipe:
         - !!python/tuple ["3_part3", "4_part4"]
 
 site_recipe:
+        - !!python/tuple ["leg-top,,conn_site0", "top-leg,,conn_site1"]
+        - !!python/tuple ["leg-top,,conn_site1", "top-leg,,conn_site2"]
+        - !!python/tuple ["leg-top,,conn_site2", "top-leg,,conn_site4"]
         - !!python/tuple ["leg-top,,conn_site3", "top-leg,,conn_site3"]
-        - !!python/tuple ["leg-top,,conn_site1", "top-leg,,conn_site4"]
-        - !!python/tuple ["leg-top,,conn_site4", "top-leg,,conn_site2"]
-        - !!python/tuple ["leg-top,,conn_site2", "top-leg,,conn_site1"]
 
 grip_safepos:
     -
       - [0, 0, 0.3]
-    - 
+    -
       - [0, 0, 0.3]
-    - 
-      - [0, 0, 0.3] 
-    - 
+    -
+      - [0, 0, 0.3]
+    -
       - [0, 0, 0.3]
 
 nogrip_safepos:
     -
       - [0, 0, 0.2]
-    - 
+    -
       - [0, 0, 0.2]
-    - 
-      - [0, 0, 0.2] 
-    - 
+    -
+      - [0, 0, 0.2]
+    -
       - [0, 0, 0.2]
 
 grip_angles:
-    - 
+    -
       - [0, 0, -1]
-    - 
+    -
       - [0, 0, -1]
-    - 
+    -
       - [0, 0, -1]
-    - 
+    -
       - [0, 0, -1]

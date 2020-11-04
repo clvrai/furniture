@@ -303,7 +303,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             useful for phase 'z_move_conn_fine' to get consistent connection behavior
 
         """
-        d = conn_dist + target_pos - cur_pos
+        d = target_pos - cur_pos
         if noise is not None:
             d += noise
         if abs(d[0]) < epsilon:
