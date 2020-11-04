@@ -1884,6 +1884,16 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.mujoco_robot.set_base_xpos([0, 0.65, -0.7])
             self.mujoco_robot.set_base_xquat([1, 0, 0, -1])
 
+        elif self._agent_type == "Fetch":
+            from env.models.robots import Fetch
+
+            self.mujoco_robot = Fetch(use_torque=use_torque)
+            self.gripper = {"right": gripper_factory("FetchGripper")}
+            self.gripper["right"].hide_visualization()
+            self.mujoco_robot.add_gripper("right_hand", self.gripper["right"])
+            self.mujoco_robot.set_base_xpos([0, 0.65, -0.7])
+            self.mujoco_robot.set_base_xquat([1, 0, 0, -1])
+
         elif self._agent_type == "Cursor":
             from env.models.robots import Cursor
 
@@ -2450,7 +2460,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                             ]
                         )
                 elif self._control_type in ["ik", "position_orientation"]:
-                    if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+                    if self._agent_type in ["Sawyer", "Panda", "Jaco", "Fetch"]:
                         action = action[:8]
                         action[6] = flag[0]
                     elif self._agent_type == "Baxter":
@@ -2842,7 +2852,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         connect = action[-1]
 
         if self._control_type == "ik":
-            if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+            if self._agent_type in ["Sawyer", "Panda", "Jaco", "Fetch"]:
                 action[:3] = action[:3] * self._move_speed
                 action[:3] = [-action[1], action[0], action[2]]
                 gripper_pos = self.sim.data.get_body_xpos("right_hand")
@@ -2891,7 +2901,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 )
 
             input_1 = self._make_input(action[:7], self._right_hand_quat)
-            if self._agent_type in ["Sawyer", "Panda"]:
+            if self._agent_type in ["Sawyer", "Panda", "Fetch"]:
                 velocities = self._controller.get_control(**input_1)
                 low_action = np.concatenate([velocities, action[7:8]])
             elif self._agent_type == "Jaco":
@@ -2920,7 +2930,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 if i + 1 < self._action_repeat:
                     velocities = self._controller.get_control()
-                    if self._agent_type in ["Sawyer", "Panda"]:
+                    if self._agent_type in ["Sawyer", "Panda", "Fetch"]:
                         low_action = np.concatenate([velocities, action[7:]])
                     elif self._agent_type == "Jaco":
                         low_action = np.concatenate([velocities] + [action[7:]] * 3)
@@ -2958,7 +2968,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             gripper_action = np.hstack(action_items)
 
             input_1 = self._make_input(action[:7], self._right_hand_quat)
-            if self._agent_type in ["Sawyer", "Panda"]:
+            if self._agent_type in ["Sawyer", "Panda", "Fetch"]:
                 velocities = self._controller.get_control(**input_1)
                 low_action = np.concatenate([velocities, gripper_action])
             elif self._agent_type == "Jaco":
@@ -2987,7 +2997,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
                 if i + 1 < self._action_repeat:
                     velocities = self._controller.get_control()
-                    if self._agent_type in ["Sawyer", "Panda"]:
+                    if self._agent_type in ["Sawyer", "Panda", "Fetch"]:
                         low_action = np.concatenate([velocities, gripper_action])
                     elif self._agent_type == "Jaco":
                         low_action = np.concatenate([velocities] + [gripper_action] * 3)
@@ -2999,7 +3009,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Take multiple physics simulation steps, bounded by self._control_timestep
         """
-        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Fetch"]:
             action[:3] = action[:3] * self._move_speed
             action[:3] = [-action[1], action[0], action[2]]
         elif self._agent_type == "Baxter":
@@ -3040,7 +3050,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns the cursor positions
         """
-        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter", "Fetch"]:
             return self.sim.data.site_xpos[self.eef_site_id["right"]].copy()
         elif self._agent_type == "Cursor":
             if name:
@@ -3266,7 +3276,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.clip(action, -1, 1)
 
         arm_action = action[: self.mujoco_robot.dof]
-        if self._agent_type in ["Sawyer", "Panda", "Jaco"]:
+        if self._agent_type in ["Sawyer", "Panda", "Jaco", "Fetch"]:
             gripper_action_in = action[
                 self.mujoco_robot.dof : self.mujoco_robot.dof
                 + self.gripper["right"].dof

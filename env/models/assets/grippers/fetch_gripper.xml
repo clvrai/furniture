@@ -1,0 +1,40 @@
+<mujoco model="base">
+    <asset>
+        <mesh name="gripper_link" file="meshes/fetch_gripper/gripper_link.stl" />
+        <mesh name="r_gripper_finger_link" file="meshes/fetch_gripper/r_gripper_finger_link.stl" />
+        <mesh name="l_gripper_finger_link" file="meshes/fetch_gripper/l_gripper_finger_link.stl" />
+    </asset>
+    <actuator>
+        <position kp="1e4" ctrllimited="true" ctrlrange="0 .05" joint="r_gripper_finger_joint" name="gripper_r_gripper_finger" />
+        <position kp="1e4" ctrllimited="true" ctrlrange="0 .05" joint="l_gripper_finger_joint" name="gripper_l_gripper_finger" />
+        <!--
+        <motor gear="1" ctrllimited="true" ctrlrange="-60 60" joint="r_gripper_finger_joint" name="r_gripper_finger" />
+        <motor gear="1" ctrllimited="true" ctrlrange="-60 60" joint="l_gripper_finger_joint" name="l_gripper_finger" />
+        -->
+    </actuator>
+    <worldbody>
+        <body name="gripper_link" pos="0.16645 0 0">
+            <inertial pos="-0.09 -0.0001 -0.0017" quat="0 0.707107 0 0.707107" mass="1.5175" diaginertia="0.0024 0.0019 0.0013" />
+            <geom mesh="gripper_link" name="gripper_link_collision"/>
+            <site name="grip" rgba='1. 0. 0. 1.' size=".02 .02 .02" group="3"/>
+
+            <!-- This site was added for visualization. -->
+            <site name="grip_site" pos="0 0 -0.03" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+            <site name="griptip_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+            <site name="grip_site_cylinder" pos="0 0 0" size="0.005 10" rgba="0 1 0 0.3" type="cylinder" group="1"></site>
+
+            <body name="r_gripper_finger_link" pos="0 0.0159 0.0" childclass="fetchGripper">
+                <inertial pos="-0.01 0 0" mass="0.0798" diaginertia="0.002 0.002 0.002" />
+                <joint name="r_gripper_finger_joint" axis="0 1 0" range="0 0.05" />
+                <!--geom pos="0 0.101425 0" mesh="r_gripper_finger_link"/-©vk©-->
+                <geom pos="-.05 -.008 0" type="box" size="0.082 0.008 0.03" name="r_gripper_finger_link_collision" />
+            </body>
+            <body name="l_gripper_finger_link" pos="0 -0.0159 0.0" childclass="fetchGripper">
+                <inertial pos="-0.01 0 0" mass="0.0798" diaginertia="0.002 0.002 0.002" />
+                <joint name="l_gripper_finger_joint" axis="0 -1 0" range="0 0.05" />
+                <!--<geom pos="0 -0.101425 0" mesh="l_gripper_finger_link" rgba=".1 .1 .2 1"/>-©vk©-->
+                <geom pos="-.05 .008 0" type="box" size="0.082 0.008 0.03" rgba="0.32 0.32 0.376 1" name="l_gripper_finger_link_collision"/>
+            </body>
+        </body>
+    </worldbody>
+</mujoco>
