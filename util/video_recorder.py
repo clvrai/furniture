@@ -114,7 +114,7 @@ class VideoRecorder(object):
                 os.remove(self._outfile)
 
         if success:
-            logger.info("closed video recorder, video at", self._outfile)
+            logger.info("closed video recorder, video at %s", self._outfile)
 
 
 class ImageEncoder(object):
