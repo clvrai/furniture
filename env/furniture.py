@@ -1444,8 +1444,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._prev_num_connected = 0
         if self._agent_type == "Cursor":
             self._cursor_selected = [None, None]
-        if self._recipe and "num_connects" in self._recipe.keys():
-            self._success_num_conn = self._recipe["num_connects"]
+        if self._config.num_connects is not None:
+            self._success_num_conn = self._config.num_connects
             self._success_num_conn += len(self._config.preassembled)
         else:
             self._success_num_conn = len(self._object_names) - 1

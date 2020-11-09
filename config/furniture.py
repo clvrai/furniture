@@ -78,6 +78,9 @@ def add_argument(parser):
         help="rescale actions to [-1,1] and normalize to the control range",
     )
     parser.add_argument(
+        "--num_connects", type=int, default=None, help="number connecting for success"
+    )
+    parser.add_argument(
         "--move_speed", type=float, default=0.05, help="step size of move actions"
     )
     parser.add_argument(

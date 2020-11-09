@@ -340,11 +340,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         grip_angles = None
         if "grip_angles" in p.keys():
             grip_angles = p["grip_angles"]
-        if "num_connects" in p.keys():
-            self._success_num_conn = p["num_connects"]
-            self._success_num_conn += len(self._config.preassembled)
-        else:
-            self._success_num_conn = len(self._object_names) - 1
         self._config.max_episode_steps = p["max_success_steps"] + 1
         # align_g target vector
         align_g_tgt = np.array([0, -1])
@@ -357,6 +352,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             ob = self.reset()
             self._used_sites = set()
             self.get_random_noise(noise)
+
             for j in range(len(self._config.preassembled), len(p["recipe"])):
                 self._phase_num = 0
                 t_fwd = None
@@ -393,10 +389,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         self._used_sites.add(g_l)
                         self._used_sites.add(g_r)
                         break
+
                 if self._config.render:
                     self.render()
                 if self._config.record_vid:
                     self.vid_rec.capture_frame(self.render("rgb_array")[0])
+
                 # initiate phases for single-part assembly
                 while self._phase != "part_done":
                     action = np.zeros((8,))
