@@ -30,6 +30,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._pos_threshold = config.pos_threshold
         self._rot_threshold = config.rot_threshold
         self._eef_rot_dist_coef = config.eef_rot_dist_coef
+        self._eef_up_rot_dist_coef = config.eef_up_rot_dist_coef
         self._eef_pos_dist_coef = config.eef_pos_dist_coef
         self._rot_dist_coef = config.rot_dist_coef
         self._pos_dist_coef = config.pos_dist_coef
@@ -53,9 +54,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             "move_leg",
             "move_leg_fine",
         ]
-
-        # load the furniture recipe
-        self._load_recipe()
 
     def _reset_reward_variables(self):
         self._subtask_step = len(self._preassembled)
@@ -96,7 +94,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         if self._diff_rew:
             eef_pos = self._get_pos("griptip_site")
-            leg_pos = self._get_leg_grasp_pos(self._leg) + [0, 0, 0.07]
+            leg_pos = self._get_leg_grasp_pos(self._leg)  # + [0, 0, 0.07]
+            leg_pos[2] = 0.08
             xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
             z_distance = np.abs(eef_pos[2] - leg_pos[2])
             self._prev_eef_above_leg_distance = xy_distance + z_distance
@@ -135,7 +134,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         - lower_leg_fine: finely move the leg onto the conn site
         """
         phase_bonus = reward = 0
-        _, done, info = super()._compute_reward(ac)
+        _, _, info = super()._compute_reward(ac)
+
+        # clear the original success and done
+        done = False
+        self._success = False
 
         ctrl_penalty, ctrl_info = self._ctrl_penalty(ac)
         stable_grip_rew, sg_info = self._stable_grip_reward()
@@ -163,9 +166,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # impose stable_grip_rew until lifting
         if self._phase_i > 3:
             stable_grip_rew = 0
-
-        # detect early success
-        info["is_aligned"] = int(self._is_aligned(self._leg_site, self._table_site))
 
         if phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
@@ -265,7 +265,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 self._phase_i = 0
                 print(f"CONNECTED!!!!!!!!!!!!!!!!!!!!!!")
                 # update reward variables for next attachment
-                done = self._success = self._set_next_subtask()
+                self._success = self._set_next_subtask()
+                if self._success:
+                    done = True
 
             elif not phase_info["touch"]:
                 print("Dropped leg")
@@ -293,7 +295,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         Return negative eucl distance
         """
         eef_pos = self._get_pos("griptip_site")
-        leg_pos = self._get_leg_grasp_pos(self._leg) + [0, 0, 0.07]
+        leg_pos = self._get_leg_grasp_pos(self._leg)  # + [0, 0, 0.07]
+        leg_pos[2] = 0.08
         xy_distance = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_distance = np.abs(eef_pos[2] - leg_pos[2])
         eef_above_leg_distance = xy_distance + z_distance
@@ -303,8 +306,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             self._prev_eef_above_leg_distance = eef_above_leg_distance
         else:
             rew = -eef_above_leg_distance * self._eef_pos_dist_coef
-        info = {"eef_above_leg_dist": eef_above_leg_distance, "eef_above_leg_rew": rew}
-        info["move_eef_above_leg_succ"] = int(xy_distance < 0.02 and z_distance < 0.02)
+        info = {
+            "eef_above_leg_dist": eef_above_leg_distance,
+            "eef_above_leg_rew": rew,
+            "move_eef_above_leg_succ": int(xy_distance < 0.02 and z_distance < 0.02),
+        }
         return rew, info
 
     def _lower_eef_to_leg_reward(self) -> Tuple[float, dict]:
@@ -571,7 +577,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # up vector of leg and world up vector should be aligned
         eef_up = self._get_up_vector("grip_site")
         eef_up_grasp_dist = T.cos_siml(eef_up, [0, 0, -1])
-        eef_up_grasp_rew = self._eef_rot_dist_coef * (eef_up_grasp_dist - 1)
+        eef_up_grasp_rew = self._eef_up_rot_dist_coef * (eef_up_grasp_dist - 1)
 
         grasp_vec = self._get_leg_grasp_vector(self._leg_site)
         # up vector of leg and forward vector of grip site should be parallel (close to -1 or 1)
