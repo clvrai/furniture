@@ -132,12 +132,16 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._manual_resize = None
         self._action_on = False
         self._load_demo = config.load_demo
-        self._eval_on_train_set = False
+        self._load_init_states = config.load_init_states
         self._init_qpos = None
+        self._init_states = None
         if self._load_demo:
             with open(self._load_demo, "rb") as f:
                 demo = pickle.load(f)
-                self._init_qpos = demo["qpos"][0]
+                self._init_qpos = demo["states"][0]
+        if self._load_init_states:
+            with open(self._load_init_states, "rb") as f:
+                self._init_states = pickle.load(f)
 
         if config.furniture_name:
             furniture_name = config.furniture_name
@@ -337,7 +341,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         done, info, penalty = self._after_step(reward, done, info)
         reward += penalty
         if self._record_demo:
-            self._store_qpos()
+            self._store_state()
             self._demo.add(ob=ob, action=_action, reward=reward)
         return ob, reward, done, info
 
@@ -431,6 +435,8 @@ class FurnitureEnv(metaclass=EnvMeta):
             step_log["episode_time"] = total_time
             step_log["episode_unstable"] = penalty
             step_log["episode_num_connected"] = self._num_connected
+            if self._success:
+                step_log["episode_success_state"] = self._get_env_state()
 
         return self._terminal, step_log, penalty
 
@@ -1349,16 +1355,16 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.fixed_parts.append((part, rad, Qpos(pos[0], pos[1], pos[2], quat)))
         return self.mujoco_model.place_objects(fixed_parts=self.fixed_parts)
 
-    def set_env_qpos(self, given_qpos):
+    def set_env_state(self, given_state):
         self._stop_objects(gravity=0)
-        self.sim.data.qpos[:] = given_qpos["qpos"]
-        self.sim.data.qvel[:] = given_qpos["qvel"]
+        self.sim.data.qpos[:] = given_state["qpos"]
+        self.sim.data.qvel[:] = given_state["qvel"]
         self.sim.data.ctrl[:] = 0
 
-        if "cursor0" in given_qpos:
-            self._set_pos("cursor0", given_qpos["cursor0"])
-        if "cursor1" in given_qpos:
-            self._set_pos("cursor1", given_qpos["cursor1"])
+        if "cursor0" in given_state:
+            self._set_pos("cursor0", given_state["cursor0"])
+        if "cursor1" in given_state:
+            self._set_pos("cursor1", given_state["cursor1"])
 
     def _reset(self, furniture_id=None, background=None):
         """
@@ -1457,8 +1463,14 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
         # load demonstration from filepath, initialize furniture and robot
-        if self._load_demo or self._eval_on_train_set:
-            self.set_env_qpos(self._init_qpos)
+        if self._init_states:
+            if self._rng.rand() > 0.5:
+                self._init_qpos = self._rng.choice(self._init_states)
+            else:
+                self._init_qpos = None
+
+        if self._init_qpos:
+            self.set_env_state(self._init_qpos)
             # enable robot collision
             for geom_id, body_id in enumerate(self.sim.model.geom_bodyid):
                 body_name = self.sim.model.body_names[body_id]
@@ -1470,6 +1482,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     contype, conaffinity = robot_col[geom_name]
                     self.sim.model.geom_contype[geom_id] = contype
                     self.sim.model.geom_conaffinity[geom_id] = conaffinity
+            self.sim.forward()
         else:
             if self.init_pos is None:
                 self.init_pos, self.init_quat = self._place_objects()
@@ -1485,13 +1498,13 @@ class FurnitureEnv(metaclass=EnvMeta):
                 else:
                     self._set_qpos(body, self.init_pos[body], self.init_quat[body])
 
-        # stablize furniture pieces
-        for _ in range(10):
-            self._stop_objects(gravity=0)
-            for i in range(10):
-                self.sim.forward()
-                self.sim.step()
-                self._slow_objects()
+            # stablize furniture pieces
+            for _ in range(10):
+                self._stop_objects(gravity=0)
+                for i in range(10):
+                    self.sim.forward()
+                    self.sim.step()
+                    self._slow_objects()
 
         if self._recipe:
             for i in p:
@@ -1510,15 +1523,15 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._connected = False
                 self._connected_body1 = None
 
-                # stablize furniture pieces
-                for _ in range(10):
-                    self._stop_objects(gravity=0)
-                    for i in range(10):
-                        self.sim.forward()
-                        self.sim.step()
-                        self._slow_objects()
+            # stablize furniture pieces
+            for _ in range(10):
+                self._stop_objects(gravity=0)
+                for i in range(10):
+                    self.sim.forward()
+                    self.sim.step()
+                    self._slow_objects()
 
-        if self._load_demo or self._eval_on_train_set:
+        if self._init_qpos:
             self.sim.forward()
         else:
             # gravity compensation
@@ -1565,10 +1578,10 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # store qpos of furniture and robot
         if self._record_demo:
-            self._store_qpos()
+            self._store_state()
 
-        if self._load_demo or self._eval_on_train_set:
-            self.set_env_qpos(self._init_qpos)
+        if self._init_qpos:
+            self.set_env_state(self._init_qpos)
 
         # sync mujoco sim state
         if self._agent_type != "Cursor":
@@ -1586,6 +1599,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.sim.data.qfrc_applied[
                 self._ref_gripper_joint_vel_indexes_all
             ] = self.sim.data.qfrc_bias[self._ref_gripper_joint_vel_indexes_all]
+
         for _ in range(100):
             self.sim.forward()
             self.sim.step()
@@ -1710,7 +1724,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def _initialize_robot_pos(self):
         """
-        Initializes robot posision with random noise perturbation
+        Initializes robot posision with random noise perturbation.
         """
         noise = self._init_random(self.mujoco_robot.init_qpos.shape, "agent")
         if self._agent_type not in ["Cursor"]:
@@ -1728,22 +1742,25 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._set_pos("cursor0", [-0.2, 0.0, self._move_speed / 2])
             self._set_pos("cursor1", [0.2, 0.0, self._move_speed / 2])
 
-    def _store_qpos(self):
+    def _get_env_state(self):
         """
-        Stores current qposition for demonstration
+        Returns current qpos and qvel.
         """
-        qpos = {
+        state = {
             "qpos": self.sim.data.qpos.copy(),
             "qvel": self.sim.data.qvel.copy(),
         }
         if self._agent_type == "Cursor":
-            qpos = {
-                "cursor0": self._get_pos("cursor0"),
-                "cursor1": self._get_pos("cursor1"),
-            }
-        qpos.update({x: self._get_qpos(x) for x in self._object_names})
-        qpos.update({(x + "_qvel"): self._get_qpos(x) for x in self._object_names})
-        self._demo.add(qpos=qpos)
+            state["cursor0"] = self._get_pos("cursor0")
+            state["cursor1"] = self._get_pos("cursor1")
+        return state
+
+    def _store_state(self):
+        """
+        Stores current qpos, qvel for demonstration.
+        """
+        state = self._get_env_state()
+        self._demo.add(state=state)
 
     def _reset_internal(self):
         """
@@ -2115,7 +2132,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
     def run_demo(self, config):
         """
-        Since we save all qpos, just play back qpos
+        Since we save all states, just play back states
         """
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
@@ -2126,13 +2143,13 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.render("rgb_array")[0]
         with open(self._load_demo, "rb") as f:
             demo = pickle.load(f)
-            all_qpos = demo["qpos"]
+            all_states = demo["state"]
             if config.debug:
                 for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
                     logger.debug("action", i, action)
         try:
-            for qpos in all_qpos:
-                self.set_env_qpos(qpos)
+            for state in all_states:
+                self.set_env_state(state)
                 self.sim.forward()
                 if self._unity:
                     self._update_unity()

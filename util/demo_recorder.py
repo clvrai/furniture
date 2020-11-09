@@ -11,7 +11,7 @@ class DemoRecorder(object):
     def __init__(self, demo_dir="./", metadata=None):
         self._obs = []
         self._actions = []
-        self._qpos = []
+        self._states = []
         self._rewards = []
         self._low_level_obs = []
         self._low_level_actions = []
@@ -24,7 +24,7 @@ class DemoRecorder(object):
     def reset(self):
         self._obs = []
         self._actions = []
-        self._qpos = []
+        self._states = []
         self._rewards = []
         self._low_level_obs = []
         self._low_level_actions = []
@@ -33,7 +33,7 @@ class DemoRecorder(object):
     def add(
         self,
         ob=None,
-        qpos=None,
+        state=None,
         action=None,
         reward=None,
         low_level_ob=None,
@@ -44,8 +44,8 @@ class DemoRecorder(object):
             self._obs.append(ob)
         if action is not None:
             self._actions.append(action)
-        if qpos is not None:
-            self._qpos.append(qpos)
+        if state is not None:
+            self._states.append(state)
         if reward is not None:
             self._rewards.append(reward)
         if low_level_ob is not None:
@@ -61,7 +61,7 @@ class DemoRecorder(object):
         fname = prefix + "{:04d}.pkl".format(count)
         path = os.path.join(self._demo_dir, fname)
         demo = {
-            "qpos": self._qpos,
+            "states": self._states,
             "obs": self._obs,
             "actions": self._actions,
             "rewards": self._rewards,

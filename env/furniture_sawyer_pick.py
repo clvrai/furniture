@@ -194,9 +194,9 @@ class FurnitureSawyerPickEnv(FurnitureSawyerEnv):
 
         self.sim.forward()
 
-        # store qpos of furniture and robot
+        # store state of furniture and robot
         if self._record_demo:
-            self._store_qpos()
+            self._store_state()
 
         if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
             self._initial_right_hand_quat = self._right_hand_quat

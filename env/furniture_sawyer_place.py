@@ -189,7 +189,7 @@ class FurnitureSawyerPlaceEnv(FurnitureSawyerEnv):
 
         # store qpos of furniture and robot
         if self._record_demo:
-            self._store_qpos()
+            self._store_state()
 
         if self._agent_type in ["Sawyer", "Panda", "Jaco", "Baxter"]:
             self._initial_right_hand_quat = self._right_hand_quat
