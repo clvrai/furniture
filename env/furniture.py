@@ -35,7 +35,6 @@ from util.logger import logger
 from util import Qpos, PrettySafeLoader
 
 
-
 np.set_printoptions(suppress=True)
 
 
@@ -225,15 +224,23 @@ class FurnitureEnv(metaclass=EnvMeta):
             # can be changed to the desired number depending on the task
             if self._object_ob_all:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4) * self.n_objects,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4) * self.n_objects,),
                 )
             else:
                 ob_space["object_ob"] = gym.spaces.Box(
-                    low=-np.inf, high=np.inf, shape=((3 + 4) * 2,),
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=((3 + 4) * 2,),
                 )
 
         if self._subtask_ob:
-            ob_space["subtask_ob"] = gym.spaces.Box(low=0.0, high=np.inf, shape=(2,),)
+            ob_space["subtask_ob"] = gym.spaces.Box(
+                low=0.0,
+                high=np.inf,
+                shape=(2,),
+            )
 
         return gym.spaces.Dict(ob_space)
 
@@ -268,7 +275,10 @@ class FurnitureEnv(metaclass=EnvMeta):
                 (
                     "default",
                     gym.spaces.Box(
-                        shape=(self.dof,), low=-1, high=1, dtype=np.float32,
+                        shape=(self.dof,),
+                        low=-1,
+                        high=1,
+                        dtype=np.float32,
                     ),
                 )
             ]
@@ -850,19 +860,19 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._move_rotate_object(body1, offset, [0, 0, 0])
             self._move_rotate_object(body2, offset, [0, 0, 0])
 
-        # activate weld
         if self._agent_type == "Cursor":
             self._stop_selected_objects()
         self.sim.forward()
         self.sim.step()
 
+        # activate weld
         self._activate_weld(body1, body2)
 
-        self._num_connected += 1
         # release cursor
         if self._agent_type == "Cursor":
             self._cursor_selected[1] = None
 
+        self._num_connected += 1
         self._connected = True
         self._connected_body1 = body1
         self._connected_body1_pos = self._get_qpos(body1)[:3]
@@ -1984,7 +1994,8 @@ class FurnitureEnv(metaclass=EnvMeta):
     def _load_recipe(self):
         furniture_name = furniture_names[self._furniture_id]
         recipe_path = os.path.join(
-            os.path.dirname(__file__), f"models/assets/recipes/{furniture_name}.yaml",
+            os.path.dirname(__file__),
+            f"models/assets/recipes/{furniture_name}.yaml",
         )
         if os.path.exists(recipe_path):
             with open(recipe_path, "r") as stream:
