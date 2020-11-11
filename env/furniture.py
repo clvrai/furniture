@@ -852,6 +852,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._stop_selected_objects()
         self.sim.forward()
         self.sim.step()
+
         min_pos1, max_pos1 = self._get_bounding_box(body1)
         min_pos2, max_pos2 = self._get_bounding_box(body2)
         min_pos = np.minimum(min_pos1, min_pos2)
@@ -1085,12 +1086,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             return True
 
         # connect two parts if they are very close to each other
-        # if (
-        #     pos_dist < 0.03
-        #     and rot_dist_up > self._env_config["rot_dist_up"]
-        #     and is_rot_forward_aligned
-        # ):
-        #     return True
+        if (
+            pos_dist < self._env_config["pos_dist"] / 2
+            and rot_dist_up > self._env_config["rot_dist_up"]
+            and is_rot_forward_aligned
+        ):
+            return True
 
         if pos_dist >= self._env_config["pos_dist"]:
             logger.debug(

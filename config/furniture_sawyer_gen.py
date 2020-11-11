@@ -7,6 +7,11 @@ def add_argument(parser):
     parser.set_defaults(record_vid=False)
     parser.set_defaults(unity=False)
 
+    parser.set_defaults(alignment_pos_dist=0.02)
+    parser.set_defaults(alignment_rot_dist_up=0.99)
+    parser.set_defaults(alignment_rot_dist_forward=0.99)
+    parser.set_defaults(alignment_project_dist=0.)
+
     parser.add_argument(
         "--start_count",
         type=int,

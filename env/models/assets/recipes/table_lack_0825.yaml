@@ -1,20 +1,20 @@
 # xyz parameters
-fine_magnitude: 1.5
+fine_magnitude: 0.8
 z_finedist: 0.05
-z_conn_dist: 0.0
+z_conn_dist: 0.002
 lat_magnitude: 20
 eps: 0.01
 eps_fine: 0.005
 # rot parameters
 rot_magnitude: 0.4
 rot_eps: 0.05
-rot_eps_fine: 0.05
+rot_eps_fine: 0.02
 min_rot_act: 0.1
 min_rot_act_fine: 0.01
 # general parameters
 use_closest: False
 num_connects: 4
-max_success_steps: 1000
+max_success_steps: 300
 # assembly order parameters
 recipe:
   - !!python/tuple ["1_part1", "4_part4"]

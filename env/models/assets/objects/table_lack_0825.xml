@@ -1,17 +1,17 @@
 <mujoco model="table_lack_0825">
   <custom>
-    <numeric data="0.0 0.255 0.01497 0.5 -0.5 0.5 -0.5" name="0_part0_initpos" />
-    <numeric data="-0.369761 0.364977 0.01497 0.499854 0.499854 0.500146 0.500146" name="1_part1_initpos" />
-    <numeric data="-0.370215 0.254977 0.01497 0.500129 0.500129 0.499871 0.499871" name="2_part2_initpos" />
-    <numeric data="0.0 0.365 0.01497 0.5 -0.5 0.5 -0.5" name="3_part3_initpos" />
-    <numeric data="-0.18 -0.03 0.019527 0 1.0 0 0" name="4_part4_initpos" />
+    <numeric data="0.0 0.26 0.01497 0.5 -0.5 0.5 -0.5" name="0_part0_initpos" />
+    <numeric data="-0.369761 0.36 0.01497 0.499854 0.499854 0.500146 0.500146" name="1_part1_initpos" />
+    <numeric data="-0.370215 0.26 0.01497 0.500129 0.500129 0.499871 0.499871" name="2_part2_initpos" />
+    <numeric data="0.0 0.36 0.01497 0.5 -0.5 0.5 -0.5" name="3_part3_initpos" />
+    <numeric data="-0.18 0 0.019527 0 1.0 0 0" name="4_part4_initpos" />
   </custom>
   <asset>
     <mesh file="table_lack_0825/leg1.stl" name="part0" scale="0.02 0.02 0.02" />
     <mesh file="table_lack_0825/leg2.stl" name="part1" scale="0.02 0.02 0.02" />
     <mesh file="table_lack_0825/leg3.stl" name="part2" scale="0.02 0.02 0.02" />
     <mesh file="table_lack_0825/leg4.stl" name="part3" scale="0.02 0.02 0.02" />
-    <mesh file="table_lack_0825/table.stl" name="part4" scale="0.02 0.02 0.02" />
+    <mesh file="table_lack_0825/table.stl" name="part4" scale="0.018 0.018 0.02" />
     <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
     <material name="pencil-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
   </asset>
@@ -96,18 +96,18 @@
     </body>
     <body name="4_part4" pos="0.0 0.0 0.2433" quat="1 0 0 0">
       <geom density="100" material="pencil-wood" mesh="part4" name="4_part4_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" solref="0.001 1" type="mesh" />
-      <site group="0" name="table-leg,0,90,180,270,conn_site1" pos="-0.4 -0.133 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
-      <site group="0" name="table-leg,0,90,180,270,conn_site2" pos="-0.4 0.14 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
-      <site group="0" name="table-leg,0,90,180,270,conn_site3" pos="0.4083 -0.133 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
-      <site group="0" name="table-leg,0,90,180,270,conn_site4" pos="0.4083 0.14 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
-      <site name="4_part4_corner_site1" pos="-0.428 -0.156 -0.023" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site2" pos="-0.428 0.1566 -0.023" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site3" pos="0.4283 -0.156 -0.023" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site4" pos="0.4283 0.1566 -0.023" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site5" pos="-0.428 -0.156 0.0233" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site6" pos="-0.428 0.1566 0.0233" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site7" pos="0.4283 -0.156 0.0233" rgba="0 0 0 0" size="0.005" />
-      <site name="4_part4_corner_site8" pos="0.4283 0.1566 0.0233" rgba="0 0 0 0" size="0.005" />
+      <site group="0" name="table-leg,0,90,180,270,conn_site1" pos="-0.36 -0.112 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
+      <site group="0" name="table-leg,0,90,180,270,conn_site2" pos="-0.36 0.126 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
+      <site group="0" name="table-leg,0,90,180,270,conn_site3" pos="0.367 -0.112 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
+      <site group="0" name="table-leg,0,90,180,270,conn_site4" pos="0.367 0.126 -0.016" rgba="0.9019 0.0980 0.2941 0.3" size="0.0116" />
+      <site name="4_part4_corner_site1" pos="-0.385 -0.140 -0.023" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site2" pos="-0.385 0.140 -0.023" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site3" pos="0.385 -0.140 -0.023" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site4" pos="0.385 0.140 -0.023" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site5" pos="-0.385 -0.140 0.0233" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site6" pos="-0.385 0.140 0.0233" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site7" pos="0.385 -0.140 0.0233" rgba="0 0 0 0" size="0.005" />
+      <site name="4_part4_corner_site8" pos="0.385 0.140 0.0233" rgba="0 0 0 0" size="0.005" />
       <site name="4_part4_bottom_site" pos="0.0 0.0 -0.0" rgba="0 0 0 0" size="0.0066" />
       <site name="4_part4_top_site" pos="0.0 0.0 0.02" rgba="0 0 0 0" size="0.0066" />
       <site name="4_part4_horizontal_radius_site" pos="0.0 0.0 0.0" rgba="0 0 0 0" size="0.18" />

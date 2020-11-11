@@ -303,6 +303,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             useful for phase 'z_move_conn_fine' to get consistent connection behavior
 
         """
+        target_pos = target_pos + [0, 0, conn_dist]
         d = target_pos - cur_pos
         if noise is not None:
             d += noise
@@ -311,9 +312,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         if abs(d[1]) < epsilon:
             d[1] = 0
         if abs(d[2]) < epsilon:
-            self._phase_num += 1
-            d[0:3] = 0
-        elif fine:
+            d[2] = 0
+        if fine:
             d /= fine
         return d
 
@@ -534,6 +534,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         action[0:3] = self.move_z(
                             gconn_pos, tconn_pos, p["z_finedist"], p["z_conn_dist"]
                         )
+                        if not np.any(action[0:3]):
+                            self._phase_num += 1
 
                     elif self._phase == "align_conn_fine":
                         action[6] = 1
@@ -571,8 +573,23 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             p["z_conn_dist"],
                             fine=p["fine_magnitude"],
                         )
-                        if not np.any(action[0:3]):
+                        g_up = self._get_up_vector(gconn)
+                        t_up = self._get_up_vector(tconn)
+                        yz_ac = self.align2D(g_up[1:], t_up[1:], p["rot_eps_fine"])
+                        xz_ac = self.align2D(g_up[0::2], t_up[0::2], p["rot_eps_fine"])
+                        xy_ac = 0
+                        if yz_ac == 0 and xz_ac == 0:
+                            g_xy_fwd = self._get_forward_vector(gconn)[0:2]
+                            if t_fwd is None:
+                                t_fwd = self.get_closest_xy_fwd(
+                                    allowed_angles, gconn, tconn
+                                )
+                                t_xy_fwd = t_fwd[0:2]
+                            xy_ac = self.align2D(g_xy_fwd, t_xy_fwd, p["rot_eps_fine"])
+                        action[3:6] = [-xy_ac, yz_ac, xz_ac]
+                        if not np.any(action[0:6]):
                             action[7] = 1
+                            self._phase_num += 1
                         if p["nogrip_safepos"][j] is not None:
                             gripbase_pos = self._get_pos(gripbase_site)
                             for pos in p["nogrip_safepos"][j]:
