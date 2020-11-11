@@ -1,10 +1,10 @@
 <mujoco model="toy_table">
   <custom>
     <numeric name="4_part4_initpos" data="-0.3 -0.02 0.03878736 0.00 0.99997892 0.00649339 0"/>
-    <numeric name="3_part3_initpos" data="0.4  0.08 0.04 -0.71 0.71 0 0"/>
-    <numeric name="2_part2_initpos" data="0.28 0.08 0.04 -0.71 0.71 0 0"/>
-    <numeric name="1_part1_initpos" data="0.14 0.08 0.04 -0.71 0.71 0 0"/>
-    <numeric name="0_part0_initpos" data="0.02 0.08 0.04 -0.71 0.71 0 0"/>
+    <numeric name="3_part3_initpos" data="0.44  0.08 0.04 -0.71 0.71 0 0"/>
+    <numeric name="2_part2_initpos" data="0.32 0.08 0.04 -0.71 0.71 0 0"/>
+    <numeric name="1_part1_initpos" data="0.2 0.08 0.04 -0.71 0.71 0 0"/>
+    <numeric name="0_part0_initpos" data="0.08 0.08 0.04 -0.71 0.71 0 0"/>
   </custom>
   <asset>
     <mesh file="toy_table/0.stl" name="part0" scale="0.042 0.042 0.042" />
