@@ -97,6 +97,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._control_type = config.control_type
         self._control_freq = config.control_freq  # reduce freq -> longer timestep
         self._rescale_actions = config.rescale_actions
+        self._auto_align = config.auto_align
 
         if self._agent_type == "Baxter":
             self._arms = ["right", "left"]
@@ -811,7 +812,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif self._connect_step > 0:
             self._connect_step = 0
 
-    def _connect(self, site1_id, site2_id):
+    def _connect(self, site1_id, site2_id, auto_align=True):
         """
         Connects two sites together with weld constraint.
         Makes the two objects are within boundaries
@@ -845,7 +846,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self.sim.model.geom_conaffinity[geom_id] = 1 << (group1 + 1)
 
         # align site
-        self._align_connectors(site1, site2, gravity=self._gravity_compensation)
+        if auto_align:
+            self._align_connectors(site1, site2, gravity=self._gravity_compensation)
 
         # move furniture to collision-safe position
         if self._agent_type == "Cursor":
@@ -996,7 +998,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                             self._connect_step += 1
                             return False
                         else:
-                            self._connect(site1_id, site2_id)
+                            self._connect(site1_id, site2_id, self._auto_align)
                             self._connect_step = 0
                             self.next_pos = self.next_rot = None
                             return True
@@ -1518,6 +1520,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self._slow_objects()
 
         if self._recipe:
+            # preassemble furniture pieces
             for i in p:
                 # move site1 to site2
                 site1, site2 = self._recipe["site_recipe"][i][0:2]
@@ -1530,7 +1533,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._target_connector_xquat = self._project_connector_quat(
                     site2, site1, angle
                 )
-                self._connect(site2_id, site1_id)
+                self._connect(site2_id, site1_id, auto_align=True)
                 self._connected = False
                 self._connected_body1 = None
 

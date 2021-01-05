@@ -86,6 +86,12 @@ def add_argument(parser):
     parser.add_argument(
         "--rotate_speed", type=float, default=22.5, help="step size of rotate actions"
     )
+    parser.add_argument(
+        "--auto_align",
+        type=str2bool,
+        default=True,
+        help="automatically (perfectly) align two parts when connected",
+    )
 
     parser.add_argument(
         "--furniture_id",
