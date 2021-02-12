@@ -131,17 +131,11 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._manual_resize = None
         self._action_on = False
-        self._load_demo = config.load_demo
-        self._load_init_states = config.load_init_states
         self._init_qpos = None
-        self._init_states = None
-        if self._load_demo:
-            with open(self._load_demo, "rb") as f:
+        if config.load_demo:
+            with open(config.load_demo, "rb") as f:
                 demo = pickle.load(f)
                 self._init_qpos = demo["states"][0]
-        if self._load_init_states:
-            with open(self._load_init_states, "rb") as f:
-                self._init_states = pickle.load(f)
 
         if config.furniture_name:
             furniture_name = config.furniture_name
@@ -206,6 +200,17 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._furniture_id = config.furniture_id
             self._load_model_object()
             self._furniture_id = None
+
+    def update_config(self, config):
+        """ Updates private member variables with @config dictionary. """
+        # Not all config can be appropriately updated.
+        for k, v in config.items():
+            if hasattr(self, "_" + k):
+                setattr(self, "_" + k, v)
+
+    def set_phase(self, phase):
+        """ Simply sets @self._preassembled to [0, 1, ..., @phase]. """
+        self._preassembled = range(phase)
 
     @property
     def observation_space(self):
@@ -1475,13 +1480,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
-        # load demonstration from filepath, initialize furniture and robot
-        if self._init_states:
-            if self._rng.rand() > 0.5:
-                self._init_qpos = self._rng.choice(self._init_states)
-            else:
-                self._init_qpos = None
-
         if self._init_qpos:
             self.set_env_state(self._init_qpos)
             # enable robot collision
@@ -1533,7 +1531,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._target_connector_xquat = self._project_connector_quat(
                     site2, site1, angle
                 )
-                self._connect(site2_id, site1_id, auto_align=True)
+                self._connect(site2_id, site1_id, auto_align=self._init_qpos is None)
                 self._connected = False
                 self._connected_body1 = None
 
@@ -2156,7 +2154,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.vid_rec.capture_frame(self.render("rgb_array")[0])
         else:
             self.render("rgb_array")[0]
-        with open(self._load_demo, "rb") as f:
+        with open(config.load_demo, "rb") as f:
             demo = pickle.load(f)
             all_states = demo["state"]
             if config.debug:
@@ -2552,7 +2550,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.render()
 
         # Load demo
-        with open(self._load_demo, "rb") as f:
+        with open(config.load_demo, "rb") as f:
             demo = pickle.load(f)
             qpos = demo["qpos"]
             actions = demo["actions"]

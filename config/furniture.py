@@ -126,12 +126,6 @@ def add_argument(parser):
         help="path to pickle file of demo to load",
     )
     parser.add_argument(
-        "--load_init_states",
-        type=str,
-        default=None,
-        help="path to pickle file of initial states",
-    )
-    parser.add_argument(
         "--demo_dir", type=str, default="demos", help="path to demo folder"
     )
     parser.add_argument(
