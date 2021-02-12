@@ -15,7 +15,7 @@ min_rot_act_fine: 0.01
 #general parameters
 use_closest: False
 num_connects: 4
-max_success_steps: 400            # max # of steps a successful demo will take
+max_success_steps: 1000            # max # of steps a successful demo will take
 recipe:
         - !!python/tuple ["0_part0", "4_part4"]
         - !!python/tuple ["1_part1", "4_part4"]

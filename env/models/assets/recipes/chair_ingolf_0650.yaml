@@ -1,19 +1,19 @@
 # xyz parameters
-fine_magnitude: 4
-z_finedist: 0.05
-z_conn_dist: -0.005
+fine_magnitude: 2
+z_finedist: 0.1
+z_conn_dist: 0.00
 lat_magnitude: 20
 eps: 0.01
 eps_fine: 0.001
 # rot parameters
-rot_magnitude: 0.2
+rot_magnitude: 0.4
 rot_eps: 0.05
 rot_eps_fine: 0.01
-min_rot_act: 0.05
+min_rot_act: 0.1
 min_rot_act_fine: 0.01
 # general parameters
 use_closest: True
-max_success_steps: 2000
+max_success_steps: 800
 # assembly order parameters
 recipe:
         - !!python/tuple ["2_part2", "3_part3"]
@@ -29,41 +29,22 @@ site_recipe:
 
 grip_safepos:
     - 
-      - [0, 0, 0.1]
+      - [0, 0, 0.05]
     - 
-      - [0, 0, 0.1]
+      - [0, 0, 0.05]
     - 
-      - [0, 0, 0.35]
+      - [0, 0, 0.3]
     - 
-      - [0, 0, 0.35]
-      # -
-      #   - !!python/tuple ["z", 0.16]
-      # -
-      #   - !!python/tuple ["z", 0.16]
-      # -
-      #   - !!python/tuple ["z", 0.35]
-      # -
-      #   - !!python/tuple ["z", 0.36]
-      #   - !!python/tuple ["z", 0.36]
-      #   - !!python/tuple ["z", 0.36]
+      - [0, 0, 0.3]
 
 nogrip_safepos:
     - 
       - [0, 0, 0.1]
     -
     - 
-      - [0, 0, 0.25]
+      - [0, 0, 0.2]
     - 
       - [0, 0, 0.15]
-      # -
-      #   - !!python/tuple ["z", 0.18]
-      # -
-      #   - !!python/tuple ["z", 0.18]
-      # -
-      #   - !!python/tuple ["y", 0.1]
-      #   - !!python/tuple ["z", 0.3]
-      # -
-      #   - !!python/tuple ["z", 0.2]
 
 grip_angles:
     - 

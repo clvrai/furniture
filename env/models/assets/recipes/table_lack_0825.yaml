@@ -14,7 +14,7 @@ min_rot_act_fine: 0.01
 # general parameters
 use_closest: False
 num_connects: 4
-max_success_steps: 300
+max_success_steps: 1000
 # assembly order parameters
 recipe:
   - !!python/tuple ["1_part1", "4_part4"]
