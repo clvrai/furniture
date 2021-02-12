@@ -210,7 +210,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 print(f"DONE WITH PHASE {phase}")
                 self._phase_i += 1
                 phase_bonus += self._phase_bonus
-                above_table_site = self._get_pos(self._table_site) + [0, 0, 0.05]
+                above_table_site = self._get_pos(self._table_site) + [
+                    0,
+                    0,
+                    self._recipe["z_finedist"],
+                ]
                 leg_site = self._get_pos(self._leg_site)
                 self._prev_move_pos_distance = np.linalg.norm(
                     above_table_site - leg_site
@@ -423,7 +427,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info = {"touch": leg_touched, "touch_rew": touch_rew}
 
         # calculate position rew
-        above_table_site = self._get_pos(self._table_site) + [0, 0, 0.05]
+        above_table_site = self._get_pos(self._table_site) + [
+            0,
+            0,
+            self._recipe["z_finedist"],
+        ]
         leg_site = self._get_pos(self._leg_site)
         move_pos_distance = np.linalg.norm(above_table_site - leg_site)
         if self._diff_rew:
