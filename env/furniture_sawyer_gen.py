@@ -606,10 +606,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         if not np.any(action[0:6]):
                             action[7] = 1
                             self._phase_num += 1
-                        if p["nogrip_safepos"][j] is not None:
-                            gripbase_pos = self._get_pos(gripbase_site)
-                            for pos in p["nogrip_safepos"][j]:
-                                safepos.append(gripbase_pos + pos)
+                            if self._config.reset_robot_after_attach:
+                                self._phase_num += 1
+                            if p["nogrip_safepos"][j] is not None:
+                                gripbase_pos = self._get_pos(gripbase_site)
+                                for pos in p["nogrip_safepos"][j]:
+                                    safepos.append(gripbase_pos + pos)
 
                     elif self._phase == "move_nogrip_safepos":
                         action[6] = -1
