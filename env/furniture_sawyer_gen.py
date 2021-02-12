@@ -353,6 +353,22 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             self._used_sites = set()
             self.get_random_noise(noise)
 
+            for j in range(len(self._config.preassembled)):
+                gbody_name, tbody_name = p["recipe"][j]
+                for i in range(len(p["recipe"])):
+                    g_l = (
+                        gbody_name + "_ltgt_site" + str(i)
+                    )  # gripped body left gripsite
+                    g_r = (
+                        gbody_name + "_rtgt_site" + str(i)
+                    )  # gripped body right gripsite
+                    if g_l in self._used_sites or g_r in self._used_sites:
+                        pass
+                    else:
+                        self._used_sites.add(g_l)
+                        self._used_sites.add(g_r)
+                        break
+
             for j in range(len(self._config.preassembled), len(p["recipe"])):
                 self._phase_num = 0
                 t_fwd = None
