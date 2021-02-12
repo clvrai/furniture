@@ -86,6 +86,12 @@ def add_argument(parser):
     parser.add_argument(
         "--rotate_speed", type=float, default=22.5, help="step size of rotate actions"
     )
+    parser.add_argument(
+        "--auto_align",
+        type=str2bool,
+        default=True,
+        help="automatically (perfectly) align two parts when connected",
+    )
 
     parser.add_argument(
         "--furniture_id",
@@ -118,12 +124,6 @@ def add_argument(parser):
         type=str,
         default=None,
         help="path to pickle file of demo to load",
-    )
-    parser.add_argument(
-        "--load_init_states",
-        type=str,
-        default=None,
-        help="path to pickle file of initial states",
     )
     parser.add_argument(
         "--demo_dir", type=str, default="demos", help="path to demo folder"

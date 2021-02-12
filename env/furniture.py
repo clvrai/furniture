@@ -97,6 +97,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._control_type = config.control_type
         self._control_freq = config.control_freq  # reduce freq -> longer timestep
         self._rescale_actions = config.rescale_actions
+        self._auto_align = config.auto_align
 
         if self._agent_type == "Baxter":
             self._arms = ["right", "left"]
@@ -130,17 +131,11 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         self._manual_resize = None
         self._action_on = False
-        self._load_demo = config.load_demo
-        self._load_init_states = config.load_init_states
         self._init_qpos = None
-        self._init_states = None
-        if self._load_demo:
-            with open(self._load_demo, "rb") as f:
+        if config.load_demo:
+            with open(config.load_demo, "rb") as f:
                 demo = pickle.load(f)
                 self._init_qpos = demo["states"][0]
-        if self._load_init_states:
-            with open(self._load_init_states, "rb") as f:
-                self._init_states = pickle.load(f)
 
         if config.furniture_name:
             furniture_name = config.furniture_name
@@ -205,6 +200,17 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._furniture_id = config.furniture_id
             self._load_model_object()
             self._furniture_id = None
+
+    def update_config(self, config):
+        """ Updates private member variables with @config dictionary. """
+        # Not all config can be appropriately updated.
+        for k, v in config.items():
+            if hasattr(self, "_" + k):
+                setattr(self, "_" + k, v)
+
+    def set_phase(self, phase):
+        """ Simply sets @self._preassembled to [0, 1, ..., @phase]. """
+        self._preassembled = range(phase)
 
     @property
     def observation_space(self):
@@ -811,7 +817,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         elif self._connect_step > 0:
             self._connect_step = 0
 
-    def _connect(self, site1_id, site2_id):
+    def _connect(self, site1_id, site2_id, auto_align=True):
         """
         Connects two sites together with weld constraint.
         Makes the two objects are within boundaries
@@ -845,7 +851,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self.sim.model.geom_conaffinity[geom_id] = 1 << (group1 + 1)
 
         # align site
-        self._align_connectors(site1, site2, gravity=self._gravity_compensation)
+        if auto_align:
+            self._align_connectors(site1, site2, gravity=self._gravity_compensation)
 
         # move furniture to collision-safe position
         if self._agent_type == "Cursor":
@@ -999,7 +1006,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                             self._connect_step += 1
                             return False
                         else:
-                            self._connect(site1_id, site2_id)
+                            self._connect(site1_id, site2_id, self._auto_align)
                             self._connect_step = 0
                             self.next_pos = self.next_rot = None
                             return True
@@ -1476,13 +1483,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             for i, (id1, id2) in enumerate(zip(eq_obj1id, eq_obj2id)):
                 self.sim.model.eq_active[i] = 1 if self._config.assembled else 0
 
-        # load demonstration from filepath, initialize furniture and robot
-        if self._init_states:
-            if self._rng.rand() > 0.5:
-                self._init_qpos = self._rng.choice(self._init_states)
-            else:
-                self._init_qpos = None
-
         if self._init_qpos:
             self.set_env_state(self._init_qpos)
             # enable robot collision
@@ -1521,6 +1521,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                     self._slow_objects()
 
         if self._recipe:
+            # preassemble furniture pieces
             for i in p:
                 # move site1 to site2
                 site1, site2 = self._recipe["site_recipe"][i][0:2]
@@ -1533,7 +1534,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self._target_connector_xquat = self._project_connector_quat(
                     site2, site1, angle
                 )
-                self._connect(site2_id, site1_id)
+                self._connect(site2_id, site1_id, auto_align=self._init_qpos is None)
                 self._connected = False
                 self._connected_body1 = None
 
@@ -2156,7 +2157,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.vid_rec.capture_frame(self.render("rgb_array")[0])
         else:
             self.render("rgb_array")[0]
-        with open(self._load_demo, "rb") as f:
+        with open(config.load_demo, "rb") as f:
             demo = pickle.load(f)
             all_states = demo["state"]
             if config.debug:
@@ -2552,7 +2553,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.render()
 
         # Load demo
-        with open(self._load_demo, "rb") as f:
+        with open(config.load_demo, "rb") as f:
             demo = pickle.load(f)
             qpos = demo["qpos"]
             actions = demo["actions"]

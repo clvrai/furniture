@@ -164,7 +164,7 @@ def main(args):
     seg_frames = []
 
     # load demo from pickle file
-    with open(env._load_demo, "rb") as f:
+    with open(args.load_demo, "rb") as f:
         demo = pickle.load(f)["qpos"]
 
     # playback

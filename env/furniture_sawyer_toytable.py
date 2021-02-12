@@ -498,8 +498,7 @@ class FurnitureSawyerToyTableEnv(FurnitureSawyerEnv):
         """
         Since we save all qpos, just play back qpos
         """
-        print('here')
-        with open(self._load_demo, "rb") as f:
+        with open(config.load_demo, "rb") as f:
             demo = pickle.load(f)
             self.reset()
             for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
