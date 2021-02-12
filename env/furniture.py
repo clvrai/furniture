@@ -885,6 +885,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         # reset robot arm
         if self._config.reset_robot_after_attach:
             self._initialize_robot_pos()
+            if self._control_type in ["ik", "ik_quaternion"]:
+                # set up ik controller
+                self._controller.sync_state()
 
     def _try_connect(self, part1=None, part2=None):
         """
@@ -1737,8 +1740,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Initializes robot posision with random noise perturbation.
         """
-        noise = self._init_random(self.mujoco_robot.init_qpos.shape, "agent")
         if self._agent_type not in ["Cursor"]:
+            noise = self._init_random(self.mujoco_robot.init_qpos.shape, "agent")
             self.sim.data.qpos[self._ref_joint_pos_indexes_all] = (
                 self.mujoco_robot.init_qpos + noise
             )
