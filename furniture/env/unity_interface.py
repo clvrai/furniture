@@ -7,11 +7,29 @@ import time
 import atexit
 import glob
 from sys import platform
+import xml.etree.ElementTree as ET
 
 import numpy as np
+import gdown
 
 from .mjremote import mjremote
 from ..util.logger import logger
+
+
+APP_GDRIVE_ID = {
+    "linux": "1LCpLtwMov1pd5XesOsTD-PfOQtbvJZWb",
+    "linux2": "1LCpLtwMov1pd5XesOsTD-PfOQtbvJZWb",
+    "darwin": "1nk1zJTYU5CI76r8sCiHJJAjQg28EgwsC",
+    "win32": "1mr4RQMxcArHCU8Pj2nDZl5EihHfFNkjo",
+}
+
+
+APP_FILE_NAME = {
+    "linux": "ubuntu_binary.zip",
+    "linux2": "ubuntu_binary.zip",
+    "darwin": "mac_binary.zip",
+    "win32": "windows_binary.zip",
+}
 
 
 class UnityInterface(object):
@@ -53,30 +71,45 @@ class UnityInterface(object):
 
         logger.info("Unity remote connected to {}".format(port))
 
-    def change_model(self, xml, camera_id, screen_width, screen_height):
+    def change_model(
+        self, xml=None, xml_path=None, camera_id=0, screen_width=500, screen_height=500
+    ):
         """
         Changes the mujoco scene rendered in Unity.
 
         Args:
-            xml: path to mujoco xml.
+            xml: mujoco xml.
+            xml_path: path to mujoco xml.
             camera_id: id of the camera for rendering.
             screen_width: width of screen for rendering.
             screen_height: height of screen for rendering.
         """
-        with open(self._unity_xml_path, "w") as f:
-            f.write(xml)
-
-        full_path = os.path.abspath(self._unity_xml_path)
+        assert not (xml is not None and xml_path is not None)
+        if xml is not None:
+            root = ET.fromstring(xml)
+            for p in root.findall(".//general/.."):
+                for e in p.findall("general"):
+                    p.remove(e)
+            asset_dir = os.path.dirname(xml_path)
+            for e in root.findall(".//mesh"):
+                e.set("file", os.path.join(asset_dir, e.get("file")))
+            xml_str = ET.tostring(root, encoding="unicode")
+            with open(self._unity_xml_path, "w") as f:
+                f.write(xml_str)
+            full_path = os.path.abspath(self._unity_xml_path)
+        else:
+            full_path = os.path.abspath(xml_path)
         self._remote.changeworld(full_path)
         self._remote.setcamera(camera_id)
         self._remote.setresolution(screen_width, screen_height)
+        self._camera_id = camera_id
         logger.debug(
             f"Size of qpos:{self._remote.nqpos} Size of mocap: {self._remote.nmocap}"
             + f" No. of camera: {self._remote.ncamera}"
             + f" Size of image w = {self._remote.width} h ={self._remote.height}"
         )
 
-    def get_images(self, camera_ids, render_depth=False):
+    def get_images(self, camera_ids=None, render_depth=False):
         """
         Gets multiple rendered image from Unity.
 
@@ -84,6 +117,8 @@ class UnityInterface(object):
             camera_ids: cameras ids to get
             render_depth: returns depth image if True
         """
+        if camera_ids is None:
+            camera_ids = [self._camera_id]
         n_camera = len(camera_ids)
         b_img = bytearray(n_camera * 3 * self._remote.height * self._remote.width)
         self._remote.getimages(b_img, camera_ids)
@@ -98,12 +133,14 @@ class UnityInterface(object):
             depth = None
         return img, depth
 
-    def get_segmentations(self, camera_ids):
+    def get_segmentations(self, camera_ids=None):
         """
         Gets segmentation maps from Unity.
         Args:
             camera_ids: camera_ids to get
         """
+        if camera_ids is None:
+            camera_ids = [self._camera_id]
         n_camera = len(camera_ids)
         b_img = bytearray(n_camera * self._remote.height * self._remote.width * 3)
         self._remote.getsegmentationimages(b_img, camera_ids)
@@ -123,6 +160,10 @@ class UnityInterface(object):
         """Sets xyz, wxyz of camera pose. """
         self._remote.setcamerapose(cam_id, pose)
 
+    def set_camera_id(self, cam_id):
+        """Sets camera id. """
+        self._remote.setcamera(cam_id)
+
     def set_geom_pos(self, name, pos):
         """ Changes position of geometry of the scene. """
         self._remote.setgeompos(name, pos)
@@ -140,22 +181,23 @@ class UnityInterface(object):
         self._remote.close()
         self.close()
 
-    def _launch_unity(self, port):
-        """
-        Launches a unity app in ./binary/ and connects to the @port.
-        """
-        atexit.register(self.close)
+    def _download_unity(self):
+        """ Downloads Unity app from Google Drive. """
+        url = "https://drive.google.com/uc?id=" + APP_GDRIVE_ID[platform]
+        # os.makedirs("binary", exist_ok=True)
+        # zip_path = os.path.join("binary", APP_FILE_NAME[platform])
+        zip_path = APP_FILE_NAME[platform]
+        if os.path.exists(zip_path):
+            logger.info("%s is already downloaded.", zip_path)
+        else:
+            logger.info("Downloading Unity app from %s", url)
+            gdown.cached_download(url, zip_path, postprocess=gdown.extractall)
+
+    def _find_unity_path(self):
+        """ Finds path to Unity app. """
         cwd = os.getcwd()
         file_name = "binary/Furniture"
-        file_name = (
-            file_name.strip()
-            .replace(".app", "")
-            .replace(".exe", "")
-            .replace(".x86_64", "")
-            .replace(".x86", "")
-        )
-        true_filename = os.path.basename(os.path.normpath(file_name))
-        logger.info("The true file name is {}".format(true_filename))
+        true_filename = "Furniture"
 
         launch_string = None
         if platform == "linux" or platform == "linux2":
@@ -189,9 +231,20 @@ class UnityInterface(object):
         elif platform == "win32":
             candidates = glob.glob(os.path.join(cwd, file_name) + ".exe")
 
-
         if len(candidates) > 0:
             launch_string = candidates[0]
+        return launch_string
+
+    def _launch_unity(self, port):
+        """
+        Launches a unity app in ./binary/ and connects to the @port.
+        """
+        atexit.register(self.close)
+
+        launch_string = self._find_unity_path()
+        if launch_string is None:
+            self._download_unity()
+            launch_string = self._find_unity_path()
 
         logger.info("This is the launch string {}".format(launch_string))
         assert launch_string is not None, "Cannot find unity app {}".format(
