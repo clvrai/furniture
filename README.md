@@ -34,7 +34,7 @@ The structure of the repository:
 
 ## Prerequisites
 - Ubuntu 18.04, MacOS Catalina, Windows10
-- Python 3.7
+- Python 3.7 (pybullet may not work with Python 3.8 or higher)
 - Mujoco 2.0
 - Unity 2018.4.23f1 ([Install using Unity Hub](https://unity3d.com/get-unity/download))
 
