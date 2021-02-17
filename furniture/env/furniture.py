@@ -208,9 +208,16 @@ class FurnitureEnv(metaclass=EnvMeta):
             if hasattr(self, "_" + k):
                 setattr(self, "_" + k, v)
 
-    def set_phase(self, phase):
-        """ Simply sets @self._preassembled to [0, 1, ..., @phase]. """
-        self._preassembled = range(phase)
+    def set_subtask(self, subtask):
+        """ Simply sets @self._preassembled to [0, 1, ..., @subtask]. """
+        self._preassembled = range(subtask)
+
+    @property
+    def num_subtask(self):
+        if self._config.num_connects is not None:
+            return self._config.num_connects
+        else:
+            return len(self._object_names) - 1
 
     @property
     def observation_space(self):
