@@ -340,7 +340,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         grip_angles = None
         if "grip_angles" in p.keys():
             grip_angles = p["grip_angles"]
-        self._config.max_episode_steps = p["max_success_steps"] + 1
+        if self._config.max_episode_steps is None:
+            self._config.max_episode_steps = p["max_success_steps"]
         # align_g target vector
         align_g_tgt = np.array([0, -1])
         # background specific, only tested on --background Industrial
@@ -582,6 +583,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         action[6] = 1
                         gconn_pos = self.sim.data.get_site_xpos(gconn)
                         tconn_pos = self.sim.data.get_site_xpos(tconn)
+                        if "target_displacement" in p:
+                            tconn_pos += p["target_displacement"][j][0]
                         action[0:3] = self.move_z(
                             gconn_pos,
                             tconn_pos,
@@ -645,11 +648,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     if self._config.record_vid:
                         self.vid_rec.capture_frame(self.render("rgb_array")[0])
 
-                    if self._episode_length > p["max_success_steps"]:
+                    if self._episode_length > self._config.max_episode_steps:
                         logger.info(
                             "Time-limit exceeds %d/%d",
                             self._episode_length,
-                            p["max_success_steps"],
+                            self._config.max_episode_steps,
                         )
                         break
                     if self._success:
@@ -676,7 +679,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     pbar.update(1)
                     n_successful_demos += 1
                     break
-                elif self._episode_length > p["max_success_steps"]:
+                elif self._episode_length > self._config.max_episode_steps:
                     # failed
                     logger.warn("Failed to assemble!")
                     n_failed_demos += 1

@@ -10,7 +10,7 @@ rot_magnitude: 0.4
 rot_eps: 0.05
 rot_eps_fine: 0.01
 min_rot_act: 0.1
-min_rot_act_fine: 0.01
+min_rot_act_fine: 0.05
 # general parameters
 use_closest: True
 max_success_steps: 800
@@ -55,3 +55,12 @@ grip_angles:
       - [0, 0, -1]
     - 
       - [0, 0, -1]
+target_displacement:
+    -
+      - [0, 0, 0]
+    -
+      - [0, 0, 0]
+    -
+      - [0.01, 0, 0.002]
+    -
+      - [0, 0, 0]
