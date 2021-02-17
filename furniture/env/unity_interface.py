@@ -84,18 +84,9 @@ class UnityInterface(object):
             screen_width: width of screen for rendering.
             screen_height: height of screen for rendering.
         """
-        assert not (xml is not None and xml_path is not None)
         if xml is not None:
-            root = ET.fromstring(xml)
-            for p in root.findall(".//general/.."):
-                for e in p.findall("general"):
-                    p.remove(e)
-            asset_dir = os.path.dirname(xml_path)
-            for e in root.findall(".//mesh"):
-                e.set("file", os.path.join(asset_dir, e.get("file")))
-            xml_str = ET.tostring(root, encoding="unicode")
             with open(self._unity_xml_path, "w") as f:
-                f.write(xml_str)
+                f.write(xml)
             full_path = os.path.abspath(self._unity_xml_path)
         else:
             full_path = os.path.abspath(xml_path)

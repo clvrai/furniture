@@ -1800,10 +1800,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         # write xml for unity viewer
         if self._unity:
             self._unity.change_model(
-                self.mujoco_model.get_xml(),
-                self._camera_ids[0],
-                self._screen_width,
-                self._screen_height,
+                xml=self.mujoco_model.get_xml(),
+                camera_id=self._camera_ids[0],
+                screen_width=self._screen_width,
+                screen_height=self._screen_height,
             )
 
         logger.debug(self.mujoco_model.get_xml())
