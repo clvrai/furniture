@@ -35,6 +35,8 @@ def add_argument(parser):
     parser.add_argument("--align_pos_dist_coef", type=float, default=200)
     parser.add_argument("--align_rot_dist_coef", type=float, default=50)
     parser.add_argument("--fine_align_pos_dist_coef", type=float, default=200)
-    parser.add_argument("--fine_align_rot_dist_coef", type=float, default=100)
+    parser.add_argument("--fine_align_rot_dist_coef", type=float, default=300)
+    parser.add_argument("--aligned_bonus_coef", type=float, default=10)
+    parser.add_argument("--move_other_part_penalty_coef", type=float, default=10)
 
     parser.add_argument("--phase_bonus", type=float, default=1000)

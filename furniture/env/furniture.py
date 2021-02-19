@@ -258,6 +258,24 @@ class FurnitureEnv(metaclass=EnvMeta):
         return gym.spaces.Dict(ob_space)
 
     @property
+    def state_space(self):
+        """
+        Returns mujoco state space.
+        """
+        state_space = OrderedDict()
+        state_space["qpos"] = gym.spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(len(self.sim.data.qpos),),
+        )
+        state_space["qvel"] = gym.spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(len(self.sim.data.qvel),),
+        )
+        return gym.spaces.Dict(state_space)
+
+    @property
     def dof(self):
         """
         Returns the DoF of the robot (with out grippers).
