@@ -68,7 +68,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             "align_g",
             "z_move_g",
             "move_grip_safepos",
-            "xy_move_t",
+            # "xy_move_t",
             "align_conn",
             "xy_move_conn",
             "z_move_conn",
@@ -503,15 +503,15 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             if not np.any(action[0:3]):
                                 safepos_idx += 1
 
-                    elif self._phase == "xy_move_t":
-                        action[6] = 1
-                        grip_pos = self._get_pos(grip_site)
-                        action[0:2] = self.move_xy(
-                            grip_pos[0:2],
-                            tconn_pos[0:2],
-                            p["eps"],
-                            noise=noise[self._phase],
-                        )
+                    # elif self._phase == "xy_move_t":
+                    #     action[6] = 1
+                    #     grip_pos = self._get_pos(grip_site)
+                    #     action[0:2] = self.move_xy(
+                    #         grip_pos[0:2],
+                    #         tconn_pos[0:2],
+                    #         p["eps"],
+                    #         noise=noise[self._phase],
+                    #     )
 
                     elif self._phase == "align_conn":
                         action[6] = 1
