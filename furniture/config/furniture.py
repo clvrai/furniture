@@ -87,6 +87,12 @@ def add_argument(parser):
         "--rotate_speed", type=float, default=22.5, help="step size of rotate actions"
     )
     parser.add_argument(
+        "--discrete_grip",
+        type=str2bool,
+        default=True,
+        help="make gripper action either -1 or 1",
+    )
+    parser.add_argument(
         "--auto_align",
         type=str2bool,
         default=True,

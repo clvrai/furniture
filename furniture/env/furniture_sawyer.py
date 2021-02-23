@@ -69,7 +69,13 @@ class FurnitureSawyerEnv(FurnitureEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
-        ob, _, done, _ = super()._step(a)
+
+        # discretize gripper action
+        applied_action = a.copy()
+        if self._discrete_grip:
+            applied_action[-2] = -1 if a[-2] < 0 else 1
+
+        ob, _, done, _ = super()._step(applied_action)
 
         reward, _done, info = self._compute_reward(a)
         done = done or _done

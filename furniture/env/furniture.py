@@ -96,6 +96,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._agent_type = config.agent_type
         self._control_type = config.control_type
         self._control_freq = config.control_freq  # reduce freq -> longer timestep
+        self._discrete_grip = config.discrete_grip
         self._rescale_actions = config.rescale_actions
         self._auto_align = config.auto_align
 
@@ -378,6 +379,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             action = np.concatenate(
                 [action[key] for key in self.action_space.spaces.keys()]
             )
+
         ob, reward, done, info = self._step(action)
         done, info, penalty = self._after_step(reward, done, info)
         reward += penalty
