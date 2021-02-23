@@ -7,15 +7,6 @@
 
     <worldbody>
         <geom condim="3" rgba="0.7 0.7 0.7 1" name="FLOOR" pos="0 0 0" size="0.5 0.5 .125" type="plane" />
-        <!--<geom condim="3" rgba="1 1 1 0" name="ground_up" pos="0 0 0" size="0 0 0.1" type="plane" /> -->
-        <!--<geom condim="3" conaffinity="0" contype="0" rgba="0.7 0.7 0.7 1" name="FLOOR" pos="0 0 -.075" size="0.5 0.5 .075" type="box" />-->
-        <!--<geom condim="3" rgba="1 1 1 1" name="ground" pos="0 0 -0.15" size="0 0 0.1" type="plane" /> -->
-        <!--
-        <geom condim="3" name="left_wall" pos="-0.5 0 0.5" size="0.5 0.5 .125" quat="1 1 0 0" type="plane" rgba="1 0 0 0.1"/>
-        <geom condim="3" name="right_wall" pos="0.5 0 0.5" size="0.5 0.5 .125" quat="1 -1 0 0" type="plane" rgba="1 0 0 0.1"/>
-        <geom condim="3" name="front_wall" pos="0 -0.5 0.5" size="0.5 0.5 .125" quat="1 0 1 0" type="plane" rgba="1 0 0 0.1"/>
-        <geom condim="3" name="back_wall" pos="0 0.5 0.5" size="0.5 0.5 .125" quat="1 0 -1 0" type="plane" rgba="1 0 0 0.1"/>
-        -->
 
         <light diffuse=".8 .8 .8" dir=".5 -.3 -.8" directional="true" pos="0 0 2.0" specular="0.3 0.3 0.3" castshadow="true"/>
 

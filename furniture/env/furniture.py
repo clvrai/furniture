@@ -1959,7 +1959,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Loads the arena XML
         """
-        floor_full_size = (1.0, 1.0)
+        floor_full_size = (1.5, 1.0)
         floor_friction = (2.0, 0.005, 0.0001)
         from .models.arenas import FloorArena
 
