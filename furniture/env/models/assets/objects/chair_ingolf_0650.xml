@@ -1,10 +1,10 @@
 <mujoco model="chair_ingolf_0650">
   <custom>
-    <numeric data="0.22 0.23 0.007326 0.0 -0.0 0.70709 -0.707124" name="0_part0_initpos" />
-    <numeric data="0.22 -0.22 0.024596 0.0 0.0 -0.698083 0.716017" name="4_part4_initpos" />
+    <numeric data="0.17 0.23 0.007326 0.0 -0.0 0.70709 -0.707124" name="0_part0_initpos" />
+    <numeric data="0.17 -0.22 0.024596 0.0 0.0 -0.698083 0.716017" name="4_part4_initpos" />
     <numeric data="-0.25 0.107139 0.002981 0.0 0.0 -1.0 -3.8e-05" name="3_part3_initpos" />
-    <numeric data="0.0 0.094433 0.015668 0.0 1.0 0.0 0.0" name="2_part2_initpos" />
-    <numeric data="-0.5 0.091377 0.015668 0.0 1.0 0.0 0.0" name="1_part1_initpos" />
+    <numeric data="-0.05 0.094433 0.015668 0.0 1.0 0.0 0.0" name="2_part2_initpos" />
+    <numeric data="-0.45 0.091377 0.015668 0.0 1.0 0.0 0.0" name="1_part1_initpos" />
   </custom>
   <asset>
     <mesh file="chair_ingolf_0650/0.stl" name="part0" scale="0.0005 0.0005 0.0005" />

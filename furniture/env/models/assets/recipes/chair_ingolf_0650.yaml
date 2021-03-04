@@ -24,7 +24,7 @@ recipe:
 site_recipe:
         - !!python/tuple ["side-seat,0,180,conn_site1","seat-side,0,180,conn_site2", 180]
         - !!python/tuple ["side-seat,0,180,conn_site2", "seat-side,0,180,conn_site1", 180]
-        - !!python/tuple ["side-back,0,conn_site1", "back-side,0,conn_site3"]
+        - !!python/tuple ["side-back,0,conn_site1", "back-side,0,conn_site3", 0]
         - !!python/tuple ["front-side,0,conn_site2", "side-front,0,conn_site2"]
 
 grip_safepos:
