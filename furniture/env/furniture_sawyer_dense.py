@@ -38,8 +38,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._gripper_penalty_coef = config.gripper_penalty_coef
         self._align_pos_dist_coef = config.align_pos_dist_coef
         self._align_rot_dist_coef = config.align_rot_dist_coef
+        self._align_pos_threshold = config.align_pos_threshold
+        self._align_rot_threshold = config.align_rot_threshold
         self._move_pos_dist_coef = config.move_pos_dist_coef
         self._move_rot_dist_coef = config.move_rot_dist_coef
+        self._move_pos_threshold = config.move_pos_threshold
+        self._move_rot_threshold = config.move_rot_threshold
         self._move_fine_rot_dist_coef = config.move_fine_rot_dist_coef
         self._move_fine_pos_dist_coef = config.move_fine_pos_dist_coef
         self._touch_coef = config.touch_coef
@@ -88,6 +92,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._init_lift_leg_pos = leg_pos = self._get_pos(self._leg)
         self._lift_leg_pos = leg_pos + [0, 0, 0.2]
         self._leg_fine_aligned = 0
+        self._leg_allowed_angles = [x for x in self._leg_site.split(",")[1:-1] if x]
 
         g1, g2 = f"{self._leg}_ltgt_site0", f"{self._leg}_rtgt_site0"
         if "grip_site_recipe" in self._recipe and self._subtask_step < len(
@@ -127,9 +132,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_up = self._get_up_vector(self._leg_site)
         table_up = self._get_up_vector(self._table_site)
         leg_forward = self._get_forward_vector(self._leg_site)
-        target_forward = self._project_connector_forward(
-            self._table_site, self._leg_site, self._table_leg_angle
-        )
+        if len(self._leg_allowed_angles):
+            target_forward = self._project_connector_forward(
+                self._table_site, self._leg_site, self._table_leg_angle
+            )
+        else:
+            target_forward = leg_forward
         leg_site_pos = self._get_pos(self._leg_site)
         leg_pos = self._get_pos(self._leg)
         table_site_pos = self._get_pos(self._table_site)
@@ -207,9 +215,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             move_forward_ang_dist = v["move_forward_ang_dist"]
 
             if (
-                move_pos_dist < 0.05
-                and move_ang_dist > 0.85
-                and move_forward_ang_dist > 0.85
+                move_pos_dist < self._move_pos_threshold
+                and move_ang_dist > self._move_rot_threshold
+                and move_forward_ang_dist > self._move_rot_threshold
             ):
                 logger.info("Skipped to move_leg_fine")
                 # phase_bonus += self._phase_bonus * (6 - self._phase_i)
@@ -227,7 +235,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             move_ang_dist = v["move_ang_dist"]
             move_forward_ang_dist = v["move_forward_ang_dist"]
 
-            if move_ang_dist > 0.85 and move_forward_ang_dist > 0.85:
+            if (
+                move_ang_dist > self._align_rot_threshold
+                and move_forward_ang_dist > self._align_rot_threshold
+            ):
                 logger.info("Skipped to move_leg")
                 # phase_bonus += self._phase_bonus * (5 - self._phase_i)
                 self._phase_i = 5  # move_leg
@@ -324,7 +335,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
             elif phase_info["move_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus * 5
 
                 self._prev_move_pos_dist = v["move_pos_dist"]
                 self._prev_proj_t = v["proj_table"]
@@ -339,7 +350,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 phase_bonus += -self._phase_bonus / 2
 
             elif phase_info["connect_succ"]:
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus * 5
                 # discourage staying in algined mode
                 phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
                 self._phase_i = 0
@@ -350,7 +361,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             elif not leg_touched:
                 logger.info("Dropped leg during move_leg_fine")
                 done = True
-                phase_bonus += -self._phase_bonus / 2
+                phase_bonus += -self._phase_bonus * 2
 
         else:
             phase_reward, phase_info = 0, {}
@@ -533,9 +544,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info["align_forward_ang_rew"] = forward_ang_rew
 
         info["align_leg_succ"] = int(
-            move_pos_dist < 0.2
-            and move_ang_dist > 0.85
-            and move_forward_ang_dist > 0.85
+            move_pos_dist < self._align_pos_threshold
+            and move_ang_dist > self._align_rot_threshold
+            and move_forward_ang_dist > self._align_rot_threshold
             and leg_touched
         )
 
@@ -585,9 +596,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info["move_forward_ang_rew"] = forward_ang_rew
 
         info["move_leg_succ"] = int(
-            move_pos_dist < 0.06
-            and move_ang_dist > 0.85
-            and move_forward_ang_dist > 0.85
+            move_pos_dist < self._move_pos_threshold
+            and move_ang_dist > self._move_rot_threshold
+            and move_forward_ang_dist > self._move_rot_threshold
             and leg_touched
         )
 

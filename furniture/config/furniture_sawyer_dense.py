@@ -40,10 +40,14 @@ def add_argument(parser):
     ## align_leg
     parser.add_argument("--align_pos_dist_coef", type=float, default=200)
     parser.add_argument("--align_rot_dist_coef", type=float, default=50)
+    parser.add_argument("--align_pos_threshold", type=float, default=0.2)
+    parser.add_argument("--align_rot_threshold", type=float, default=0.85)
 
     ## move_leg
     parser.add_argument("--move_pos_dist_coef", type=float, default=200)
     parser.add_argument("--move_rot_dist_coef", type=float, default=50)
+    parser.add_argument("--move_pos_threshold", type=float, default=0.06)
+    parser.add_argument("--move_rot_threshold", type=float, default=0.85)
 
     ## move_leg_fine
     parser.add_argument("--move_fine_pos_dist_coef", type=float, default=400)
