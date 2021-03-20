@@ -1,20 +1,16 @@
-import math
-import time
 import yaml
-
 import numpy as np
 from tqdm import tqdm
 
 from . import transform_utils as T
 from .furniture_sawyer import FurnitureSawyerEnv
 from .models import background_names, furniture_name2id, furniture_xmls
-from ..util import PrettySafeLoader
 from ..util.logger import logger
 
 
 class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
     """
-    Sawyer environment for assemblying furniture programmatically
+    Sawyer environment for assemblying furniture programmatically.
     """
 
     def __init__(self, config):
@@ -29,6 +25,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             conn ~ connection
 
         Phases Descrption:
+            0. init_grip:
+                    move gripper to grip_init_pos (for the first part)
             1. xy_move_g:
                     move to xy-pos of gripper with gbody
             2. align_g:
@@ -54,7 +52,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     then try connecting
             11. move_nogrip_safepos:
                     release gripper and move up to nogrip_safepos
-            12  part_done:
+            12. part_done:
                     set part_done = True, and part is connected
         """
         config.record_demo = True
@@ -64,6 +62,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         self._num_connected_prev = 0
         self._part_success = False
         self._phases = [
+            "init_grip",
             "xy_move_g",
             "align_g",
             "z_move_g",
@@ -80,6 +79,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
         self._phase_noise = {
             #   phase      : (min_val, max_val, dimensions)
+            "init_grip": (0, 2 * self._config.furn_xyz_rand, 3),
             "xy_move_g": (0, 0, 2),
             "xy_move_t": (-self._config.furn_xyz_rand, self._config.furn_xyz_rand, 2),
             "move_waypoints": (0, 2 * self._config.furn_xyz_rand, 3),
@@ -87,10 +87,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         }
         self.reset()
 
-    def get_random_noise(self, noise):
+    def _get_random_noise(self):
+        noise = {}
         for phase, val in self._phase_noise.items():
             minimum, maximum, size = val
             noise[phase] = self._rng.uniform(low=minimum, high=maximum, size=size)
+        return noise
 
     def _norm_rot_action(self, action, cap=1):
         if "fine" in self._phase:
@@ -329,7 +331,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         n_successful_demos = 0
         n_failed_demos = 0
         safepos_idx = 0
-        noise = dict()
         safepos = []
         pbar = tqdm(total=n_demos)
         # two_finger gripper sites, as defined in gripper xml
@@ -338,7 +339,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         grip_site = "grip_site"
         # define assembly order and furniture specific variables
         grip_angles = None
-        if "grip_angles" in p.keys():
+        if "grip_angles" in p:
             grip_angles = p["grip_angles"]
         if self._config.max_episode_steps is None:
             self._config.max_episode_steps = p["max_success_steps"]
@@ -352,10 +353,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         while n_successful_demos < n_demos:
             ob = self.reset()
             self._used_sites = set()
-            self.get_random_noise(noise)
+            noise = self._get_random_noise()
+            max_griptip_height = 0
 
-            for j in range(len(self._config.preassembled)):
-                gbody_name, tbody_name = p["recipe"][j]
+            for part_idx in range(len(self._config.preassembled)):
+                gbody_name, tbody_name = p["recipe"][part_idx]
                 for i in range(len(p["recipe"])):
                     g_l = (
                         gbody_name + "_ltgt_site" + str(i)
@@ -374,9 +376,22 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 self._phase_num = 0
                 t_fwd = None
                 z_move_g_prev = None
+
                 safepos_idx = 0
                 safepos.clear()
+                if "grip_init_pos" in p:
+                    if p["grip_init_pos"][j] is not None:
+                        gripbase_pos = self._get_pos(gripbase_site)
+                        # gripbase_pos = [0.05866653 0.26087148 0.17194385]
+                        for pos in p["grip_init_pos"][j]:
+                            gripbase_pos[2] = pos[2]
+                            safepos.append(gripbase_pos)
+                            print("grip init", safepos[-1])
+                else:
+                    self._phase_num = 1
+
                 self._phase = self._phases[self._phase_num]
+
                 gbody_name, tbody_name = p["recipe"][j]
                 # use conn_sites in site_recipe, other dynamically get closest/furthest conn_site from gripper
                 if "site_recipe" in p:
@@ -415,8 +430,29 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 # initiate phases for single-part assembly
                 while self._phase != "part_done":
                     action = np.zeros((8,))
+                    max_griptip_height = max(
+                        max_griptip_height, self._get_pos(griptip_site)[2]
+                    )
                     # logger.info(self._phase)
-                    if self._phase == "xy_move_g":
+                    if self._phase == "init_grip":
+                        action[6] = -1
+                        if safepos_idx >= len(safepos):
+                            safepos_idx = 0
+                            safepos.clear()
+                            self._phase_num += 1
+                        else:
+                            gripbase_pos = self._get_pos(gripbase_site)
+                            action[0:3] = self.move_xyz(
+                                gripbase_pos,
+                                safepos[safepos_idx],
+                                p["eps"],
+                                noise=noise[self._phase],
+                            )
+                            if not np.any(action[0:3]):
+                                safepos_idx += 1
+
+                    elif self._phase == "xy_move_g":
+                        action[6] = -1
                         grip_xy_pos = self._get_pos(grip_site)[0:2]
                         g_xy_pos = (self._get_pos(g_l) + self._get_pos(g_r))[0:2] / 2
                         action[0:2] = self.move_xy(
@@ -683,6 +719,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         self._demo.save(self.file_prefix)
                     pbar.update(1)
                     n_successful_demos += 1
+                    print("Max griptip height = %f" % max_griptip_height)
                     break
                 elif self._episode_length > self._config.max_episode_steps:
                     # failed
