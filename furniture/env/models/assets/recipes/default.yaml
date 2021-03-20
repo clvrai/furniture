@@ -23,7 +23,7 @@ recipe:
 site_recipe:
       # fill in
 
-grip_safepos: 
+waypoints: 
     - 
       - !!python/list [0, 0, 0]
     - 

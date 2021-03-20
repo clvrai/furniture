@@ -26,7 +26,7 @@ recipe:
         - !!python/tuple ["3_part3", "1_part1"]
         - !!python/tuple ["1_part1", "6_part6"]
 
-grip_safepos: 
+waypoints: 
       # - 
       #   - !!python/tuple ["z", 0.7] 
       # - 

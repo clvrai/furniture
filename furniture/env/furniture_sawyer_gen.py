@@ -37,8 +37,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             3. z_move_g:
                     move gripper down to z-pos of gbody
                     *has special check to ensure gripper doesn't repeatedly hit ground/table
-            4. move_grip_safepos:
-                    grip gbody then move up to the grip_safepos
+            4. move_waypoints:
+                    grip gbody then move up to the waypoints
             5. xy_move_t:
                     move gripper to tbody xy-pos
             6. align_conn:
@@ -67,7 +67,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             "xy_move_g",
             "align_g",
             "z_move_g",
-            "move_grip_safepos",
+            "move_waypoints",
             # "xy_move_t",
             "align_conn",
             "xy_move_conn",
@@ -82,7 +82,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             #   phase      : (min_val, max_val, dimensions)
             "xy_move_g": (0, 0, 2),
             "xy_move_t": (-self._config.furn_xyz_rand, self._config.furn_xyz_rand, 2),
-            "move_grip_safepos": (0, 2 * self._config.furn_xyz_rand, 3),
+            "move_waypoints": (0, 2 * self._config.furn_xyz_rand, 3),
             "move_nogrip_safepos": (0, 2 * self._config.furn_xyz_rand, 3),
         }
         self.reset()
@@ -467,16 +467,17 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             z_move_g_prev = grip_tip[2] - ground_offset
                         else:
                             self._phase_num += 1
-                            if p["grip_safepos"][j] is not None:
+                            if p["waypoints"][j] is not None:
                                 gripbase_pos = self._get_pos(gripbase_site)
-                                for pos in p["grip_safepos"][j]:
+                                for pos in p["waypoints"][j]:
                                     safepos.append(gripbase_pos + pos)
+                                    print("pick up", safepos[-1])
 
-                    elif self._phase == "move_grip_safepos":
+                    elif self._phase == "move_waypoints":
                         action[6] = 1
-                        if p["grip_safepos"][j] is None or (
-                            p["grip_safepos"][j]
-                            and safepos_idx >= len(p["grip_safepos"][j])
+                        if p["waypoints"][j] is None or (
+                            p["waypoints"][j]
+                            and safepos_idx >= len(p["waypoints"][j])
                         ):
                             safepos_idx = 0
                             safepos.clear()
@@ -611,10 +612,14 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             self._phase_num += 1
                             if self._config.reset_robot_after_attach:
                                 self._phase_num += 1
-                            if p["nogrip_safepos"][j] is not None:
+                            else:
                                 gripbase_pos = self._get_pos(gripbase_site)
-                                for pos in p["nogrip_safepos"][j]:
-                                    safepos.append(gripbase_pos + pos)
+                                safepos_idx = 0
+                                safepos.clear()
+                                if p["nogrip_safepos"][j] is not None:
+                                    for pos in p["nogrip_safepos"][j]:
+                                        safepos.append(gripbase_pos + pos)
+                                        print("after attach", safepos[-1])
 
                     elif self._phase == "move_nogrip_safepos":
                         action[6] = -1

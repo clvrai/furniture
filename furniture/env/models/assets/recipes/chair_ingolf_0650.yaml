@@ -27,7 +27,7 @@ site_recipe:
         - !!python/tuple ["side-back,0,conn_site1", "back-side,0,conn_site3", 0]
         - !!python/tuple ["front-side,0,conn_site2", "side-front,0,conn_site2"]
 
-grip_safepos:
+waypoints:
     - 
       - [0, 0, 0.05]
     - 

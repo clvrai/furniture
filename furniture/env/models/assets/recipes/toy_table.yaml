@@ -28,7 +28,7 @@ site_recipe:
         - !!python/tuple ["leg-top,,conn_site2", "top-leg,,conn_site4"]
         - !!python/tuple ["leg-top,,conn_site3", "top-leg,,conn_site3"]
 
-grip_safepos:
+waypoints:
     -
       - [0, 0, 0.3]
     -

@@ -22,7 +22,17 @@ recipe:
   - !!python/tuple ["3_part3", "4_part4"]
   - !!python/tuple ["0_part0", "4_part4"]
 
-grip_safepos:
+grip_init_pos:
+  -
+    - [0, 0, 0.4]
+  -
+    - [0, 0, 0.4]
+  -
+    - [0, 0, 0.4]
+  -
+    - [0, 0, 0.4]
+
+waypoints:
   -
     - [0, 0, 0.2]
   -

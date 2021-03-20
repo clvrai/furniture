@@ -23,17 +23,23 @@ site_recipe:
         - !!python/tuple ["left-mid,0,180,conn_site1", "mid-left,0,180,conn_site1"]
         - !!python/tuple ["right-left,0,180,conn_site1", "left-right,0,180,conn_site2"]
 
-grip_safepos:
+grip_init_pos:
+    -
+      - [0, 0, 0.2]
+    -
+      - [0, 0, 0.25]
+
+waypoints:
     -
       - [0, 0, 0.1]
     -
-      - [0, 0, 0.2]
+      - [0, 0, 0.15]
 
 nogrip_safepos:
     -
-      - [0, 0, 0.2]
+      - [0, 0, 0.05]
     -
-      - [0, 0, 0.2]
+      - [0, 0, 0.05]
 
 grip_angles:
     -

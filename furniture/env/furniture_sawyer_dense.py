@@ -90,7 +90,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._leg_lift = False
         self._init_table_site_pos = self._get_pos(self._table_site)
         self._init_lift_leg_pos = leg_pos = self._get_pos(self._leg)
-        self._lift_leg_pos = leg_pos + [0, 0, 0.2]
+        self._lift_leg_pos = leg_pos + [
+            0,
+            0,
+            self._recipe["waypoints"][subtask_step][0][2],
+        ]
         self._leg_fine_aligned = 0
         self._leg_allowed_angles = [x for x in self._leg_site.split(",")[1:-1] if x]
 
@@ -110,7 +114,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             z_dist = np.abs(eef_pos[2] - leg_pos[2])
             self._prev_eef_above_leg_dist = xy_dist + z_dist
             self._prev_grasp_dist = -1
-            self._prev_lift_leg_z_dist = 0.2
+            self._prev_lift_leg_z_dist = self._recipe["waypoints"][subtask_step][0][2]
             self._prev_lift_leg_xy_dist = 0.0
 
     def _reset(self, furniture_id=None, background=None):

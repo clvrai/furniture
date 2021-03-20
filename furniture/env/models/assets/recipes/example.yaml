@@ -44,11 +44,11 @@ site_recipe:
     - !!python/tuple ["leg-top,0,90,180,270,conn_site1", "top-leg,0,90,180,270,conn_site2"]
     - !!python/tuple ["leg-top,0,90,180,270,conn_site3", "top-leg,0,90,180,270,conn_site4"]
 
-grip_safepos: 
-# Used in phase 'move_grip_safepos'
+waypoints: 
+# Used in phase 'move_waypoints'
 # defines an ordered list of positions to move to relative to gripper pos at end of z_move_g
-# if null, skip phase 'move_grip_safepos' for that recipe index
-# If a part connects to multiple parts before it is released, set the corresponding grip_safepos to null 
+# if null, skip phase 'move_waypoints' for that recipe index
+# If a part connects to multiple parts before it is released, set the corresponding waypoints to null 
 # data[recipe_idx] = [[x0, y0, z0], [x1, y1, z1], ...]
 
     -  # recipe_idx 0

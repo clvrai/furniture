@@ -28,7 +28,7 @@ site_recipe:
         - !!python/tuple ["frontlegs-seat,0,conn_site", "seat-frontlegs,0,conn_site"]
         - !!python/tuple ["frontlegs-lsidesupport,0,180,conn_site", "lsidesupport-frontlegs,0,180,conn_site"]
 
-grip_safepos: 
+waypoints: 
     -
       - [0, 0, 0.2]
     - 
