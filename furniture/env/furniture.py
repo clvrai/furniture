@@ -4,7 +4,6 @@ import logging
 import os
 import pickle
 import time
-import yaml
 from collections import OrderedDict
 from sys import platform
 
@@ -13,6 +12,7 @@ import gym.spaces
 from pyquaternion import Quaternion
 from scipy.interpolate import interp1d
 import hjson
+import yaml
 import mujoco_py
 
 from . import transform_utils as T
@@ -213,7 +213,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         """ Simply sets @self._preassembled to [0, 1, ..., @subtask]. """
         self._preassembled = range(subtask)
 
-    @property
     def num_subtask(self):
         if self._config.num_connects is not None:
             return self._config.num_connects
@@ -479,7 +478,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             step_log["episode_unstable"] = penalty
             step_log["episode_num_connected"] = self._num_connected
             if self._success:
-                step_log["episode_success_state"] = self._get_env_state()
+                step_log["episode_success_state"] = self.get_env_state()
 
         return self._terminal, step_log, penalty
 
@@ -1784,7 +1783,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._set_pos("cursor0", [-0.2, 0.0, self._move_speed / 2])
             self._set_pos("cursor1", [0.2, 0.0, self._move_speed / 2])
 
-    def _get_env_state(self):
+    def get_env_state(self):
         """
         Returns current qpos and qvel.
         """
@@ -1801,7 +1800,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Stores current qpos, qvel for demonstration.
         """
-        state = self._get_env_state()
+        state = self.get_env_state()
         self._demo.add(state=state)
 
     def _reset_internal(self):

@@ -28,6 +28,10 @@ class FurnitureGym(gym.Env):
 
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
+        self.num_subtask = self.env.num_subtask
+        self.set_subtask = self.env.set_subtask
+        self.set_init_qpos = self.env.set_init_qpos
+        self.get_env_state = self.env.get_env_state
         self._max_episode_steps = config.max_episode_steps
 
     def reset(self):
