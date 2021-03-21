@@ -20,9 +20,8 @@ def add_argument(parser):
     parser.add_argument("--ctrl_penalty_coef", type=float, default=1e-3)
     parser.add_argument("--eef_forward_dist_coef", type=float, default=2)
     parser.add_argument("--eef_up_dist_coef", type=float, default=4)
-    parser.add_argument("--eef_rot_threshold", type=float, default=0.05)
+    parser.add_argument("--eef_rot_threshold", type=float, default=0.95)
     parser.add_argument("--gripper_penalty_coef", type=float, default=0.05)
-    parser.add_argument("--touch_coef", type=float, default=5)
     parser.add_argument("--move_other_part_penalty_coef", type=float, default=10)
 
     ## init_eef

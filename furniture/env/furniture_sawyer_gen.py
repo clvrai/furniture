@@ -105,14 +105,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     action[a] *= self.min_rot_act / abs(action[a])
         return action
 
-    def _cap_action(self, action, cap=1):
-        return np.clip(action, -cap, cap)
-
     def _step(self, a):
         """
         Takes a simulation step with @a and computes reward.
         """
-        ob, reward, done, info = super(FurnitureSawyerEnv, self)._step(a)
+        ob, reward, done, info = super()._step(a)
         if self._num_connected > self._num_connected_prev:
             self._part_success = True
             self._num_connected_prev = self._num_connected
@@ -681,7 +678,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     action[0:3] = p["lat_magnitude"] * action[0:3]
                     action[3:6] = p["rot_magnitude"] * action[3:6]
                     action = self._norm_rot_action(action)
-                    action = self._cap_action(action)
+                    action = np.clip(action, -1, 1)
                     ob, reward, _, info = self.step(action)
 
                     if self._config.render:
