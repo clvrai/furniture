@@ -248,11 +248,14 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_touched = v["leg_touched"]
         eef_out_of_range = v["eef_pos"][2] >= 0.5
 
+        info["skip_to_lift_leg"] = 0
+        info["skip_to_move_leg_fine"] = 0
+
         # detect early picking
         if v["leg_safe_grasp"] and sg_info["stable_grip_succ"] and self._phase_i < 3:
             logger.info("Skipped to lift_leg")
             info["skip_to_lift_leg"] = 1
-            phase_bonus += self._phase_bonus * (4 - self._phase_i)
+            phase_bonus += self._phase_bonus * (3 - self._phase_i)
             self._phase_i = self._phases.index("lift_leg")  # lift_leg
 
         # detect early fine alignment without lifting or coarse alignment
@@ -427,7 +430,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
             elif phase_info["move_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus * 3
 
                 self._prev_move_pos_dist = v["move_pos_dist"]
                 self._prev_proj_t = v["proj_table"]
@@ -442,7 +445,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 phase_bonus -= self._phase_bonus / 2
 
             elif phase_info["connect_succ"]:
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus * 3
                 # discourage staying in algined mode
                 phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
                 # encourage to open gripper
@@ -601,6 +604,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             self._leg_lift = True
             lift_leg_rew += self._phase_bonus / 10
 
+        if not leg_touched:
+            lift_leg_rew = 0
+
         rew = lift_leg_rew
         info = {
             "lift": int(leg_lift),
@@ -646,6 +652,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             self._prev_move_forward_ang_dist = move_forward_ang_dist
         else:
             forward_ang_rew = (move_forward_ang_dist - 1) * self._align_rot_dist_coef
+
+        if not leg_touched:
+            pos_rew = up_ang_rew = forward_ang_rew = 0
 
         rew = pos_rew + up_ang_rew + forward_ang_rew
         info = {
@@ -698,6 +707,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         else:
             forward_ang_rew = (move_forward_ang_dist - 1) * self._move_rot_dist_coef
 
+        if not leg_touched:
+            pos_rew = up_ang_rew = forward_ang_rew = 0
+
         rew = pos_rew + up_ang_rew + forward_ang_rew
         info = {
             "move_pos_dist": move_pos_dist,
@@ -728,6 +740,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             return 0, info
 
         v = self._current_values
+        leg_touched = v["leg_touched"]
 
         # calculate position rew
         move_pos_dist = v["move_pos_dist"]
@@ -786,8 +799,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         info["move_leg_fine_succ"] = int(
-            self._is_aligned(self._leg_site, self._table_site)
+            self._is_aligned(self._leg_site, self._table_site) and leg_touched
         )
+
+        if not leg_touched:
+            pos_rew = up_ang_rew = forward_ang_rew = proj_t_rew = proj_l_rew = 0
+
         rew = pos_rew + up_ang_rew + forward_ang_rew + proj_t_rew + proj_l_rew
 
         if info["move_leg_fine_succ"]:
