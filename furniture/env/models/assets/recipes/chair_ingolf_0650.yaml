@@ -1,14 +1,13 @@
 # xyz parameters
 fine_magnitude: 2
 z_finedist: 0.1
-z_conn_dist: 0.00
 lat_magnitude: 20
 eps: 0.01
-eps_fine: 0.002
+eps_fine: 0.005
 # rot parameters
 rot_magnitude: 0.4
 rot_eps: 0.05
-rot_eps_fine: 0.01
+rot_eps_fine: 0.02
 min_rot_act: 0.1
 min_rot_act_fine: 0.05
 # general parameters
@@ -44,7 +43,13 @@ waypoints:
   -
     - [0, 0, 0.1]
   -
-    - [0, 0, 0.25]
+    - [0, 0, 0.27]
+
+z_conn_dist:
+  - 0
+  - 0
+  - 0.005
+  - 0
 
 nogrip_safepos:
   -
