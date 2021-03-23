@@ -1,5 +1,5 @@
 # xyz parameters
-fine_magnitude: 1
+fine_magnitude: 2
 z_finedist: 0.05
 z_conn_dist: 0
 lat_magnitude: 20
@@ -14,7 +14,7 @@ min_rot_act_fine: 0.01
 #general parameters
 use_closest: False
 num_connects: 4
-max_success_steps: 1000
+max_success_steps: 800
 #assembly parameters
 recipe:
   - !!python/tuple ["1_part1", "4_part4"]
@@ -31,11 +31,11 @@ site_recipe:
 grip_init_pos:
   -
   -
-    - [0, 0, 0, 0.3]
+    - [0, 0, 0, 0.31]
   -
-    - [0, 0, 0, 0.3]
+    - [0, 0, 0, 0.31]
   -
-    - [0, 0, 0, 0.3]
+    - [0, 0, 0, 0.31]
 
 waypoints:
   -
