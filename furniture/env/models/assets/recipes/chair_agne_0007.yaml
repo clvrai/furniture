@@ -1,19 +1,19 @@
 # xyz parameters
-fine_magnitude: 2.0
+fine_magnitude: 1
 z_finedist: 0.05
 z_conn_dist: 0.0
 lat_magnitude: 20
 eps: 0.01
 eps_fine: 0.005
 # rot parameters
-rot_magnitude: 0.2
+rot_magnitude: 0.3
 rot_eps: 0.05
-rot_eps_fine: 0.08
+rot_eps_fine: 0.02
 min_rot_act: 0.1
-min_rot_act_fine: 0.01
+min_rot_act_fine: 0.05
 # general parameters
 use_closest: False
-max_success_steps: 500
+max_success_steps: 400
 # assembly order parameters
 recipe:
   - !!python/tuple ["0_part0", "2_part2"]
@@ -26,7 +26,7 @@ site_recipe:
 grip_init_pos:
   -
   -
-    - [-0.05, -0.05, 0, 0.5]
+    - [-0.05, 0.05, 0, 0.5]
 
 waypoints:
   -
