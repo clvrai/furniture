@@ -1,8 +1,8 @@
 <mujoco model="chair_bernhard_0146">
   <custom>
-    <numeric data="-0.125053 0.074995 0.03398 -0.707107 -8e-06 0.707107 -8e-06" name="0_part0_initpos" />
-    <numeric data="-0.35 0.224993 0.034049 0.707107 8e-06 0.707107 -8e-06" name="1_part1_initpos" />
-    <numeric data="-0.374994 -0.18096 0.010682 0.002099 -0.005231 -0.928024 0.372477" name="2_part2_initpos" />
+    <numeric data="-0.025053 0.074995 0.03398 -0.707107 -8e-06 0.707107 -8e-06" name="0_part0_initpos" />
+    <numeric data="-0.25 0.224993 0.034049 0.707107 8e-06 0.707107 -8e-06" name="1_part1_initpos" />
+    <numeric data="-0.274994 -0.18096 0.010682 0.002099 -0.005231 -0.928024 0.372477" name="2_part2_initpos" />
   </custom>
   <asset>
     <mesh file="chair_bernhard_0146/left_leg.stl" name="0_part0" scale="0.576 0.576 0.576" />

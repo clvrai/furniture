@@ -381,9 +381,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         gripbase_pos = self._get_pos(gripbase_site)
                         # gripbase_pos = [0.05866653 0.26087148 0.17194385]
                         for pos in p["grip_init_pos"][j]:
-                            gripbase_pos[2] = pos[2]
-                            safepos.append(gripbase_pos)
-                            print("grip init", safepos[-1])
+                            init_pos = gripbase_pos + pos[:3]
+                            if len(pos) == 4:
+                                init_pos[2] = pos[3]
+                            safepos.append(init_pos)
+                            print("grip init", init_pos)
                 else:
                     self._phase_num = 1
 
@@ -404,6 +406,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         gconn = self.get_furthest_conn_site(gconn_names, grip_pos)
                 g_pos = self._get_pos(gbody_name)
                 allowed_angles = [float(x) for x in gconn.split(",")[1:-1] if x]
+                z_conn_dist = p["z_conn_dist"]
+                if isinstance(z_conn_dist, list):
+                    z_conn_dist = z_conn_dist[j]
+
                 # get unused target sites
                 for i in range(len(p["recipe"])):
                     g_l = (
@@ -583,7 +589,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         gconn_pos = self.sim.data.get_site_xpos(gconn)
                         tconn_pos = self.sim.data.get_site_xpos(tconn)
                         action[0:3] = self.move_z(
-                            gconn_pos, tconn_pos, p["z_finedist"], p["z_conn_dist"]
+                            gconn_pos, tconn_pos, p["z_finedist"], z_conn_dist
                         )
                         if not np.any(action[0:3]):
                             self._phase_num += 1
@@ -617,13 +623,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         action[6] = 1
                         gconn_pos = self.sim.data.get_site_xpos(gconn)
                         tconn_pos = self.sim.data.get_site_xpos(tconn)
-                        if "target_displacement" in p:
-                            tconn_pos += p["target_displacement"][j][0]
                         action[0:3] = self.move_z(
                             gconn_pos,
                             tconn_pos,
                             p["eps_fine"],
-                            p["z_conn_dist"],
+                            z_conn_dist,
                             fine=p["fine_magnitude"],
                         )
                         g_up = self._get_up_vector(gconn)

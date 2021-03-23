@@ -14,7 +14,7 @@ min_rot_act_fine: 0.01
 # general parameters
 use_closest: False
 num_connects: 4
-max_success_steps: 1000
+max_success_steps: 800
 # assembly order parameters
 recipe:
   - !!python/tuple ["1_part1", "4_part4"]
@@ -24,33 +24,28 @@ recipe:
 
 grip_init_pos:
   -
-    - [0, 0, 0.4]
   -
-    - [0, 0, 0.4]
+    - [0, 0, 0, 0.3]
   -
-    - [0, 0, 0.4]
+    - [0, 0, 0, 0.3]
   -
-    - [0, 0, 0.4]
+    - [0, 0, 0, 0.3]
 
 waypoints:
   -
-    - [0, 0, 0.2]
+    - [0, 0, 0.1]
   -
-    - [0, 0, 0.2]
+    - [0, 0, 0.1]
   -
-    - [0, 0, 0.2]
+    - [0, 0, 0.1]
   -
-    - [0, 0, 0.2]
+    - [0, 0, 0.1]
 
 nogrip_safepos:
   -
-    - [0, 0, 0.25]
   -
-    - [0, 0, 0.25]
   -
-    - [0, 0, 0.25]
   -
-    - [0, 0, 0.25]
 
 grip_angles:
   -

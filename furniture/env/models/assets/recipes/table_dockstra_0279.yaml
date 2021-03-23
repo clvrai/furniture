@@ -1,63 +1,50 @@
 # xyz parameters
-fine_magnitude: 4
-z_finedist: 0.05
-z_conn_dist: 0
+fine_magnitude: 2
+z_finedist: 0.03
 lat_magnitude: 20
 eps: 0.01
-eps_fine: 0.001
+eps_fine: 0.0025
 # rot parameters
 rot_magnitude: 0.2
 rot_eps: 0.05
-rot_eps_fine: 0.005
+rot_eps_fine: 0.02
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 # general parameters
 use_closest: False
-max_success_steps: 1250
+num_connects: 3
+max_success_steps: 500
 # assembly order parameters
 recipe:
-        - !!python/tuple ["1_part1", "0_part0"]
-        - !!python/tuple ["1_part1", "3_part3"]
-        - !!python/tuple ["3_part3", "2_part2"]
+  - !!python/tuple ["1_part1", "0_part0"]
+  - !!python/tuple ["1_part1", "3_part3"]
+  - !!python/tuple ["3_part3", "2_part2"]
 
 site_recipe:
-        - !!python/tuple ["column-base,conn_site1", "base-column,conn_site1"]
-        - !!python/tuple ["column-topsupp,conn_site2", "topsupp-column,conn_site2"]
-        - !!python/tuple ["topsupp-topplane,conn_site1", "topplane-topsupp,conn_site1"]
+  - !!python/tuple ["column-base,conn_site1", "base-column,conn_site1"]
+  - !!python/tuple ["column-topsupp,conn_site2", "topsupp-column,conn_site2"]
+  - !!python/tuple ["topsupp-topplane,conn_site1", "topplane-topsupp,conn_site1"]
+
+z_conn_dist:
+  - 0.011
+  - 0.011
+  - 0.001
 
 grip_angles:
-        -
-          - [0, 0, -1]
-        -
-        -
+  -
+    - [0, 0, -1]
+  -
+  -
 
 waypoints:
-    -
-      - [0, 0, 0.22]
-    - 
-      - [0, 0, 0.3]
-    - 
-      - [0, 0, 0.05] 
-      # -
-      #   - !!python/tuple ["z", 0.34]
-      # -
-      #   - !!python/tuple ["z", 0.4]
-      # -
-      #   - !!python/tuple ["z", 0.42]
+  -
+    - [0.05, 0, 0.22]
+  -
+    - [0, 0, 0.3]
+  -
+    - [0, 0, 0.05]
 
 nogrip_safepos:
-    -
-      - [0, 0, 0]
-    - 
-      - [0, 0, 0]
-    - 
-      - [0, 0, 0] 
-      # -
-      #   - !!python/tuple ["z", 0.24]
-      # -
-      #   - !!python/tuple ["z", 0.34]
-      #   - !!python/tuple ["z", 0.34]
-      #   - !!python/tuple ["z", 0.34]
-      #   - !!python/tuple ["z", 0.34]
-      # -
-      #   - !!python/tuple ["z", 0.34]
+  -
+  -
+  -

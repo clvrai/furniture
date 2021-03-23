@@ -4,7 +4,7 @@ z_finedist: 0.1
 z_conn_dist: 0.00
 lat_magnitude: 20
 eps: 0.01
-eps_fine: 0.001
+eps_fine: 0.002
 # rot parameters
 rot_magnitude: 0.4
 rot_eps: 0.05
@@ -27,40 +27,37 @@ site_recipe:
         - !!python/tuple ["side-back,0,conn_site1", "back-side,0,conn_site3", 0]
         - !!python/tuple ["front-side,0,conn_site2", "side-front,0,conn_site2"]
 
+grip_init_pos:
+  -
+  -
+    - [0, 0, 0, 0.15]
+  -
+    - [0, 0, 0, 0.15]
+  -
+    - [0, 0, 0, 0.25]
+
 waypoints:
-    - 
-      - [0, 0, 0.05]
-    - 
-      - [0, 0, 0.05]
-    - 
-      - [0, 0, 0.3]
-    - 
-      - [0, 0, 0.3]
+  -
+    - [0, 0, 0.05]
+  -
+    - [0, 0, 0.05]
+  -
+    - [0, 0, 0.1]
+  -
+    - [0, 0, 0.25]
 
 nogrip_safepos:
-    - 
-      - [0, 0, 0.1]
-    -
-    - 
-      - [0, 0, 0.2]
-    - 
-      - [0, 0, 0.15]
+  -
+  -
+  -
+  -
 
 grip_angles:
-    - 
-      - [0, 0, -1]
-    - 
-      - [0, 0, -1]
-    - 
-      - [0, 0, -1]
-    - 
-      - [0, 0, -1]
-target_displacement:
-    -
-      - [0, 0, 0]
-    -
-      - [0, 0, 0]
-    -
-      - [0, 0, 0]
-    -
-      - [0, 0, 0]
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]

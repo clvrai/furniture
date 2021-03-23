@@ -4,7 +4,7 @@ z_finedist: 0.04
 z_conn_dist: 0
 lat_magnitude: 20
 eps: 0.01
-eps_fine: 0.001
+eps_fine: 0.005
 # rot parameters
 rot_magnitude: 0.2
 rot_eps: 0.05
@@ -12,32 +12,35 @@ rot_eps_fine: 0.05
 min_rot_act: 0.05
 min_rot_act_fine: 0.01
 # general parameters
-max_success_steps: 1100
+max_success_steps: 500
 use_closest: True
 # assembly order parameters
-recipe: 
-        - !!python/tuple ["0_part0", "2_part2"]
-        - !!python/tuple ["1_part1", "2_part2"]
+recipe:
+  - !!python/tuple ["0_part0", "2_part2"]
+  - !!python/tuple ["1_part1", "2_part2"]
 
 site_recipe:
-        - !!python/tuple ["part1-part3,0,conn_site1", "part3-part1,0,conn_site1"]
-        - !!python/tuple ["part2-part3,0,conn_site2", "part3-part2,0,conn_site2"]
+  - !!python/tuple ["part1-part3,0,conn_site1", "part3-part1,0,conn_site1"]
+  - !!python/tuple ["part2-part3,0,conn_site2", "part3-part2,0,conn_site2"]
 
-waypoints: 
-    -
-      - [-0.25, 0, 0.41]
-    - 
-      - [0, 0, 0.41]
+grip_init_pos:
+  -
+  -
+    - [0, 0, 0, 0.3]
+
+waypoints:
+  -
+    - [-0.25, 0, 0.28]
+  -
+    - [0, 0, 0.28]
 
 nogrip_safepos:
-    -
-      - [0, 0, 0]
-    - 
-      - [0, 0, 0]
+  -
+  -
 
-grip_angles: 
-    -
-      - [0, 0, -1]
-    - 
-      - [0, 0, -1]
+grip_angles:
+  -
+    - [0, 0, -1]
+  -
+    - [0, 0, -1]
 

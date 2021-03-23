@@ -1,0 +1,53 @@
+<mujoco model="three_blocks">
+  <custom>
+    <numeric data="-0.25 0.0 0.030073 1.0 0.0 0.0 0.0" name="1_block_l_initpos" />
+    <numeric data=" -0.05 0.0 0.030073 1.0 0.0 0.0 0.0" name="2_block_m_initpos" />
+    <numeric data=" 0.25 0.0 0.030073 1.0 0.0 0.0 0.0" name="3_block_r_initpos" />
+  </custom>
+  <asset>
+    <texture file="../textures/light-wood.png" name="tex-light-wood" type="2d" />
+    <material name="light-wood" reflectance="0.5" texrepeat="20 20" texture="tex-light-wood" texuniform="true" />
+  </asset>
+  <equality>
+    <weld active="false" body1="1_block_l" body2="2_block_m" solimp="1 1 0.5" solref="0.01 0.3" />
+    <weld active="false" body1="1_block_l" body2="3_block_r" solimp="1 1 0.5" solref="0.01 0.3" />
+  </equality>
+  <worldbody>
+    <body name="1_block_l" pos="0.0 0.0 0.03" quat="1 0 0 0">
+      <geom density="100" material="light-wood" name="1_block_l_geom_0" pos="0 0 0.015" rgba="0.82 0.71 0.55 1" size="0.05 0.02 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="1_block_l_geom_1" pos="-0.03 0 -0.015" rgba="0.82 0.71 0.55 1" size="0.02 0.02 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="1_block_l_geom_2" pos="0.03 0 -0.015" rgba="0.82 0.71 0.55 1" size="0.02 0.02 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="1_block_l_geom_3" pos="0 -0.015 -0.015" rgba="0.82 0.71 0.55 1" size="0.01 0.005 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="1_block_l_geom_4" pos="0 0.015 -0.015" rgba="0.82 0.71 0.55 1" size="0.01 0.005 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="1_block_l_geom_5" pos="0 0 0.035" rgba="0.82 0.71 0.55 1" size="0.008 0.008 0.005" solref="0.001 1" type="box" />
+      <site name="1_block_l_ltgt_site0" pos="0 -0.02 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="1_block_l_rtgt_site0" pos="0 0.02 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="left-mid,0,180,conn_site1" pos="0. 0. -0.005" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="left-right,0,180,conn_site2" pos="0. 0. 0.04" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="1_block_l_bottom_site" pos="0.0 0.0 -0.03" rgba="0 0 1 0.3" size="0.0015" />
+      <site name="1_block_l_top_site" pos="0.0 0.0 0.03" rgba="0 0 1 0.3" size="0.0015" />
+      <site name="1_block_l_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.05" />
+    </body>
+    <body name="2_block_m" pos="0.0 0.0 0.09" quat="1 0 0 0">
+      <geom density="100" material="light-wood" name="2_block_m_geom" pos="0 0 0" rgba="0.82 0.71 0.55 1" size="0.05 0.02 0.03" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="2_block_m_geom_5" pos="0 0 0.035" rgba="0.82 0.71 0.55 1" size="0.008 0.008 0.005" solref="0.001 1" type="box" />
+      <site name="mid-left,0,180,conn_site1" pos="0. 0. 0.04" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="2_block_m_bottom_site" pos="0.0 0.0 -0.03" rgba="0 0 1 0.3" size="0.0015" />
+      <site name="2_block_m_top_site" pos="0.0 0.0 0.03" rgba="0 0 1 0.3" size="0.0015" />
+      <site name="2_block_m_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.05" />
+    </body>
+    <body name="3_block_r" pos="0.0 0.0 0.15" quat="1 0 0 0">
+      <geom density="100" material="light-wood" name="3_block_r_geom_0" pos="0 0 0.015" rgba="0.82 0.71 0.55 1" size="0.05 0.02 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="3_block_r_geom_1" pos="-0.03 0 -0.015" rgba="0.82 0.71 0.55 1" size="0.02 0.02 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="3_block_r_geom_2" pos="0.03 0 -0.015" rgba="0.82 0.71 0.55 1" size="0.02 0.02 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="3_block_r_geom_3" pos="0 -0.015 -0.015" rgba="0.82 0.71 0.55 1" size="0.01 0.005 0.015" solref="0.001 1" type="box" />
+      <geom density="100" material="light-wood" name="3_block_r_geom_4" pos="0 0.015 -0.015" rgba="0.82 0.71 0.55 1" size="0.01 0.005 0.015" solref="0.001 1" type="box" />
+      <site name="3_block_r_ltgt_site0" pos="0 -0.02 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="3_block_r_rtgt_site0" pos="0 0.02 0.02" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"></site>
+      <site name="right-left,0,180,conn_site1" pos="0. 0. -0.005" quat="1 0 0 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01" />
+      <site name="3_block_r_bottom_site" pos="0.0 0.0 -0.03" rgba="0 0 1 0.3" size="0.0015" />
+      <site name="3_block_r_top_site" pos="0.0 0.0 0.03" rgba="0 0 1 0.3" size="0.0015" />
+      <site name="3_block_r_horizontal_radius_site" pos="0. 0. 0." rgba="0 0 1 0." size="0.05" />
+    </body>
+  </worldbody>
+</mujoco>

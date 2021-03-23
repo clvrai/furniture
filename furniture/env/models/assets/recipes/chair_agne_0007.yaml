@@ -1,5 +1,5 @@
 # xyz parameters
-fine_magnitude: 1.5
+fine_magnitude: 2.0
 z_finedist: 0.05
 z_conn_dist: 0.0
 lat_magnitude: 20
@@ -7,8 +7,8 @@ eps: 0.01
 eps_fine: 0.005
 # rot parameters
 rot_magnitude: 0.2
-rot_eps: 0.04
-rot_eps_fine: 0.05
+rot_eps: 0.05
+rot_eps_fine: 0.08
 min_rot_act: 0.1
 min_rot_act_fine: 0.01
 # general parameters
@@ -23,6 +23,11 @@ site_recipe:
   - !!python/tuple ["leg1-seat,0,180,conn_site", "seat-leg1,0,180,conn_site"]
   - !!python/tuple ["leg2-leg1,0,180,conn_site", "leg1-leg2,0,180,conn_site"]
 
+grip_init_pos:
+  -
+  -
+    - [-0.05, -0.05, 0, 0.5]
+
 waypoints:
   -
     - [0, 0, 0.41]
@@ -31,9 +36,7 @@ waypoints:
 
 nogrip_safepos:
   -
-    - [0, 0, 0.02]
   -
-    - [0, 0, 0.02]
 
 grip_angles:
   -
