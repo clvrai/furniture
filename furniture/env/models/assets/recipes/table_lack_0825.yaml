@@ -1,7 +1,7 @@
 # xyz parameters
-fine_magnitude: 0.8
+fine_magnitude: 1
 z_finedist: 0.05
-z_conn_dist: 0.002
+z_conn_dist: 0.0
 lat_magnitude: 20
 eps: 0.01
 eps_fine: 0.005
@@ -25,11 +25,11 @@ recipe:
 grip_init_pos:
   -
   -
-    - [0, 0, 0, 0.3]
+    - [0, 0, 0, 0.37]
   -
-    - [0, 0, 0, 0.3]
+    - [0, 0, 0, 0.37]
   -
-    - [0, 0, 0, 0.3]
+    - [0, 0, 0, 0.37]
 
 waypoints:
   -
