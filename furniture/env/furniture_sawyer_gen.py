@@ -79,7 +79,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
         self._phase_noise = {
             #   phase      : (min_val, max_val, dimensions)
-            "init_grip": (0, 2 * self._config.furn_xyz_rand, 3),
+            "init_grip": (0, 0, 3),
             "xy_move_g": (0, 0, 2),
             "xy_move_t": (-self._config.furn_xyz_rand, self._config.furn_xyz_rand, 2),
             "move_waypoints": (0, 2 * self._config.furn_xyz_rand, 3),
