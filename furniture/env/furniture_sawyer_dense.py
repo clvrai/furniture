@@ -134,11 +134,23 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._leg_fine_aligned = 0
         self._leg_allowed_angles = [x for x in self._leg_site.split(",")[1:-1] if x]
         eef_pos = self._get_pos("griptip_site")
-        self._init_eef_pos = eef_pos.copy()
-        self._init_eef_pos[2] = (
-            self._recipe["grip_init_pos"][subtask_step][0][2]
-            - 0.085  # deduct distance between grip_base and griptip
-        )
+
+        if self._config.reset_robot_after_attach:
+            self._phase_i = 1
+        else:
+            self._phase_i = 0
+
+        if (
+            "grip_init_pos" in self._recipe
+            and self._recipe["grip_init_pos"][subtask_step] is not None
+        ):
+            init_eef_offset = self._recipe["grip_init_pos"][subtask_step][0]
+            self._init_eef_pos = eef_pos.copy() + init_eef_offset[:3]
+            if len(init_eef_offset) == 4:
+                self._init_eef_pos[2] = init_eef_offset[3] - 0.085
+                # deduct distance between grip_base and griptip
+        else:
+            self._phase_i = 1
 
         for i in range(len(self._recipe["recipe"])):
             g_l, g_r = f"{self._leg}_ltgt_site{i}", f"{self._leg}_rtgt_site{i}"
@@ -151,7 +163,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._get_leg_grasp_vector = lambda: self._get_pos(g_r) - self._get_pos(g_l)
 
         if self._diff_rew:
-            if self._config.reset_robot_after_attach:
+            if self._phase_i == 1:
                 leg_pos = self._get_leg_grasp_pos() + [0, 0, 0.05]
                 dist = np.linalg.norm(eef_pos - leg_pos)
                 self._prev_eef_above_leg_dist = min(dist, 1.0)
@@ -283,26 +295,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 self._prev_move_forward_ang_dist = move_forward_ang_dist
                 self._prev_proj_t = v["proj_table"]
                 self._prev_proj_l = v["proj_leg"]
-
-        # # detect early alignment without lifting
-        # if self._phase_i == 4:  # lift_leg
-        #     lift = v["lift"]
-        #     move_above_pos_dist = v["move_above_pos_dist"]
-        #     move_up_ang_dist = v["move_up_ang_dist"]
-        #     move_forward_ang_dist = v["move_forward_ang_dist"]
-
-        #     if (
-        #         lift
-        #         and move_up_ang_dist > self._align_rot_threshold
-        #         and move_forward_ang_dist > self._align_rot_threshold
-        #     ):
-        #         logger.info("Skipped to move_leg")
-        #         # phase_bonus += self._phase_bonus * (5 - self._phase_i)
-        #         self._phase_i = self._phases.index("move_leg")  # move_leg
-
-        #         self._prev_move_pos_dist = move_above_pos_dist
-        #         self._prev_move_up_ang_dist = move_up_ang_dist
-        #         self._prev_move_forward_ang_dist = move_forward_ang_dist
 
         # compute phase-based reward
         phase = self._phases[self._phase_i]

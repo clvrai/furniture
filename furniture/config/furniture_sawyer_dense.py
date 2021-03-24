@@ -3,15 +3,15 @@ from ..util import str2bool
 
 def add_argument(parser):
     parser.set_defaults(max_episode_steps=200)
-    parser.set_defaults(object_ob_all=True)
     parser.set_defaults(control_type="impedance")
     parser.set_defaults(furniture_name="table_lack_0825")
+    parser.set_defaults(unity=False)
 
     parser.set_defaults(auto_align=False)
     parser.set_defaults(alignment_pos_dist=0.02)
     parser.set_defaults(alignment_rot_dist_up=0.99)
     parser.set_defaults(alignment_rot_dist_forward=0.99)
-    parser.set_defaults(alignment_project_dist=0.99)
+    parser.set_defaults(alignment_project_dist=0.)
 
     # reward coefficients
     ## common rewards
