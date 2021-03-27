@@ -899,7 +899,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
 
 def main():
-    from config import create_parser
+    from ..config import create_parser
 
     parser = create_parser(env="furniture-sawyer-densereward-v0")
     parser.add_argument(

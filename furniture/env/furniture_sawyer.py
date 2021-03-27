@@ -246,7 +246,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
 
 
 def main():
-    from config import create_parser
+    from ..config import create_parser
 
     parser = create_parser(env="FurnitureSawyerEnv")
     parser.set_defaults(max_episode_steps=2000)

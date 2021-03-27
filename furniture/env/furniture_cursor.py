@@ -133,24 +133,25 @@ class FurnitureCursorEnv(FurnitureEnv):
 
 
 def main():
-    import argparse
-    import config.furniture as furniture_config
-    from util import str2bool
+    from ..config import create_parser
 
-    parser = argparse.ArgumentParser()
-    furniture_config.add_argument(parser)
-
-    # change default config for Cursors
-    parser.add_argument("--seed", type=int, default=123)
-    parser.add_argument("--debug", type=str2bool, default=False)
-
-    parser.set_defaults(render=True)
-
+    parser = create_parser(env="furniture-cursor-v0")
+    parser.add_argument(
+        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
+    )
     config, unparsed = parser.parse_known_args()
+    if len(unparsed):
+        logger.error("Unparsed argument is detected:\n%s", unparsed)
+        return
 
     # create an environment and run manual control of Cursor environment
     env = FurnitureCursorEnv(config)
-    env.run_manual(config)
+    if config.run_mode == "manual":
+        env.run_manual(config)
+    elif config.run_mode == "vr":
+        env.run_vr(config)
+    elif config.run_mode == "demo":
+        env.run_demo_actions(config)
 
 
 if __name__ == "__main__":

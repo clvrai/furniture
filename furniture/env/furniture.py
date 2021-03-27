@@ -1402,17 +1402,6 @@ class FurnitureEnv(metaclass=EnvMeta):
                 self.fixed_parts.append((part, rad, Qpos(pos[0], pos[1], pos[2], quat)))
         return self.mujoco_model.place_objects(fixed_parts=self.fixed_parts)
 
-    def set_env_state(self, given_state):
-        self._stop_objects(gravity=0)
-        self.sim.data.qpos[:] = given_state["qpos"]
-        self.sim.data.qvel[:] = given_state["qvel"]
-        self.sim.data.ctrl[:] = 0
-
-        if "cursor0" in given_state:
-            self._set_pos("cursor0", given_state["cursor0"])
-        if "cursor1" in given_state:
-            self._set_pos("cursor1", given_state["cursor1"])
-
     def _reset(self, furniture_id=None, background=None):
         """
         Internal reset function that resets the furniture and agent
@@ -1629,8 +1618,10 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.sim.data.ctrl[:] = 0
         self.sim.data.qfrc_applied[:] = 0
         self.sim.data.xfrc_applied[:] = 0
+        self.sim.data.qacc[:] = 0
         self.sim.data.qacc_warmstart[:] = 0
         self.sim.data.time = 0
+        self.sim.forward()
 
         # gravity compensation
         if self._agent_type != "Cursor":
@@ -1795,6 +1786,17 @@ class FurnitureEnv(metaclass=EnvMeta):
             state["cursor0"] = self._get_pos("cursor0")
             state["cursor1"] = self._get_pos("cursor1")
         return state
+
+    def set_env_state(self, given_state):
+        self._stop_objects(gravity=0)
+        self.sim.data.qpos[:] = given_state["qpos"]
+        self.sim.data.qvel[:] = given_state["qvel"]
+        self.sim.data.ctrl[:] = 0
+
+        if "cursor0" in given_state:
+            self._set_pos("cursor0", given_state["cursor0"])
+        if "cursor1" in given_state:
+            self._set_pos("cursor1", given_state["cursor1"])
 
     def _store_state(self):
         """
@@ -2581,17 +2583,13 @@ class FurnitureEnv(metaclass=EnvMeta):
         # Load demo
         with open(config.load_demo, "rb") as f:
             demo = pickle.load(f)
-            qpos = demo["qpos"]
             actions = demo["actions"]
             low_level_actions = demo["low_level_actions"]
-            connect_actions = demo["connect_actions"]
-            obs = demo["obs"]
 
         try:
             i = 0
             if self._control_type == "impedance":
-                for ac, connect in zip(low_level_actions, connect_actions):
-                    action = np.append(ac, [connect])
+                for action in low_level_actions:
                     logger.info("Action: %s", str(action))
                     ob, _, _, _ = self.step(action)
                     if self._record_vid:
