@@ -4,9 +4,6 @@
 .python-version
 
 # Log
-checkpoint
-/log*
-/result*
 furniture-unity/Assets/StreamingAssets
 
 # Vim
@@ -27,21 +24,21 @@ demos
 
 # Mujoco
 MUJOCO_LOG.TXT
-/unity-xml
-/unity-log
+unity-xml
+unity-log
 
 # Unity
 UnitySDK.log
-/furniture-unity/*.sln
-/furniture-unity/[Ll]ibrary/
-/furniture-unity/[Ll]ogs/
-/furniture-unity/[Tt]emp/
-/furniture-unity/[Oo]bj/
-/furniture-unity/[Bb]uild/
-/furniture-unity/[Bb]uilds/
-/furniture-unity/Assets/AssetStoreTools*
-/furniture-unity/Assets/Resources/[Tt]emp*
-/furniture-unity/.vs
+furniture-unity/*.sln
+furniture-unity/[Ll]ibrary/
+furniture-unity/[Ll]ogs/
+furniture-unity/[Tt]emp/
+furniture-unity/[Oo]bj/
+furniture-unity/[Bb]uild/
+furniture-unity/[Bb]uilds/
+furniture-unity/Assets/AssetStoreTools*
+furniture-unity/Assets/Resources/[Tt]emp*
+furniture-unity/.vs
 furniture-unity/Assembly-CSharp-Editor.csproj
 furniture-unity/*.csproj
 /binary
