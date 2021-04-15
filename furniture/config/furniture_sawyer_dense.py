@@ -2,7 +2,7 @@ from ..util import str2bool
 
 
 def add_argument(parser):
-    parser.set_defaults(max_episode_steps=200)
+    parser.set_defaults(max_episode_steps=150)
     parser.set_defaults(control_type="impedance")
     parser.set_defaults(furniture_name="table_lack_0825")
     parser.set_defaults(unity=False)
@@ -42,7 +42,7 @@ def add_argument(parser):
     parser.add_argument("--lift_xy_dist_coef", type=float, default=250)
 
     ## align_leg
-    parser.add_argument("--align_pos_dist_coef", type=float, default=200)
+    parser.add_argument("--align_pos_dist_coef", type=float, default=100)
     parser.add_argument("--align_rot_dist_coef", type=float, default=50)
     parser.add_argument("--align_pos_threshold", type=float, default=0.2)
     parser.add_argument("--align_rot_threshold", type=float, default=0.85)
@@ -54,6 +54,6 @@ def add_argument(parser):
     parser.add_argument("--move_rot_threshold", type=float, default=0.85)
 
     ## move_leg_fine
-    parser.add_argument("--move_fine_pos_dist_coef", type=float, default=400)
-    parser.add_argument("--move_fine_rot_dist_coef", type=float, default=300)
+    parser.add_argument("--move_fine_pos_dist_coef", type=float, default=500)
+    parser.add_argument("--move_fine_rot_dist_coef", type=float, default=200)
     parser.add_argument("--aligned_bonus_coef", type=float, default=10)
