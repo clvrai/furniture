@@ -59,23 +59,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         Initializes class with the configuration.
         """
         self._config = config
+
         # default env config
-        self._env_config = {
-            "max_episode_steps": config.max_episode_steps,
-            "success_reward": 100,
-            "touch_reward": 10,
-            "pick_reward": 100,
-            "ctrl_reward": 1e-3,
-            "furn_xyz_rand": config.furn_xyz_rand,
-            "agent_xyz_rand": config.agent_xyz_rand,
-            "furn_size_rand": config.furn_size_rand,
-            "unstable_penalty": 100,
-            "boundary": 1.5,  # XYZ cube boundary
-            "pos_dist": config.alignment_pos_dist,
-            "rot_dist_up": config.alignment_rot_dist_up,
-            "rot_dist_forward": config.alignment_rot_dist_forward,
-            "project_dist": config.alignment_project_dist,
-        }
+        self._max_episode_steps = config.max_episode_steps
 
         self._debug = config.debug
         if logger.getEffectiveLevel() != logging.CRITICAL:
@@ -287,7 +273,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Returns maximum number of steps in an episode.
         """
-        return self._env_config["max_episode_steps"]
+        return self._max_episode_steps
 
     @property
     def action_size(self):
@@ -341,11 +327,11 @@ class FurnitureEnv(metaclass=EnvMeta):
         Returns initial random distribution.
         """
         if name == "furniture":
-            r = self._env_config["furn_xyz_rand"]
+            r = self._config.furn_xyz_rand
         elif name == "agent":
-            r = self._env_config["agent_xyz_rand"]
+            r = self._config.agent_xyz_rand
         elif name == "resize":
-            r = self._env_config["furn_size_rand"]
+            r = self._config.furn_size_rand
         else:
             r = 0
 
@@ -463,11 +449,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._episode_reward += reward
             self._episode_length += 1
 
-        if self._episode_length == self._env_config["max_episode_steps"] or self._fail:
+        if self._episode_length == self._max_episode_steps or self._fail:
             self._terminal = True
             if self._fail:
                 self._fail = False
-                penalty = -self._env_config["unstable_penalty"]
+                penalty = -self._config.unstable_penalty_coef
 
         if self._terminal:
             total_time = time.time() - self._episode_time
@@ -519,38 +505,38 @@ class FurnitureEnv(metaclass=EnvMeta):
                     if touch_left_finger[body_id] and touch_right_finger[body_id]:
                         if not self._touched[body_id]:
                             self._touched[body_id] = True
-                            touch_reward += self._env_config["touch_reward"]
+                            touch_reward += self._config.touch_reward
                         if not touch_floor[body_id] and not self._picked[body_id]:
                             self._picked[body_id] = True
-                            pick_reward += self._env_config["pick_reward"]
+                            pick_reward += self._config.pick_reward
 
         # Success reward
-        success_reward = self._env_config["success_reward"] * (
+        success_reward = self._config.success_reward * (
             self._num_connected - self._prev_num_connected
         )
         self._prev_num_connected = self._num_connected
 
-        ctrl_reward = self._ctrl_reward(ac)
+        ctrl_penalty = self._ctrl_penalty(ac)
 
-        reward = success_reward + touch_reward + pick_reward + ctrl_reward
+        reward = success_reward + touch_reward + pick_reward + ctrl_penalty
         # do not terminate
         done = False
         info = {
             "success_reward": success_reward,
             "touch_reward": touch_reward,
             "pick_reward": pick_reward,
-            "ctrl_reward": ctrl_reward,
+            "ctrl_penalty": ctrl_penalty,
         }
         return reward, done, info
 
-    def _ctrl_reward(self, a):
+    def _ctrl_penalty(self, a):
         """
-        Control penalty to discourage erratic motions
+        Control penalty to discourage erratic motions.
         """
         if a is None or self._agent_type == "Cursor":
             return 0
-        ctrl_reward = -self._env_config["ctrl_reward"] * np.square(a).sum()
-        return ctrl_reward
+        ctrl_penalty = -self._config.ctrl_penalty_coef * np.square(a).sum()
+        return ctrl_penalty
 
     def _set_camera_position(self, cam_id, cam_pos):
         """
@@ -712,7 +698,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         cursor_name = "cursor%d" % cursor_i
         cursor_pos = self._get_pos(cursor_name)
         cursor_pos = cursor_pos + move_offset
-        boundary = self._env_config["boundary"]
+        boundary = self._config.cursor_boundary
         if (np.abs(cursor_pos) < boundary).all() and cursor_pos[
             2
         ] >= self._move_speed * 0.45:
@@ -774,7 +760,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.sim.forward()
         self.sim.step()
         min_pos, max_pos = self._get_bounding_box(obj_name)
-        b = self._env_config["boundary"]
+        b = self._config.cursor_boundary
         if (min_pos < np.array([-b, -b, -0.05])).any() or (
             max_pos > np.array([b, b, b])
         ).any():
@@ -1105,7 +1091,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 forward1_rotated = T.rotate_vector(forward1, up1, angle)
                 rot_dist_forward = T.cos_siml(forward1_rotated, forward2)
                 max_rot_dist_forward = max(max_rot_dist_forward, rot_dist_forward)
-                if rot_dist_forward > self._env_config["rot_dist_forward"]:
+                if rot_dist_forward > self._config.alignment_rot_dist_forward:
                     is_rot_forward_aligned = True
                     self._target_connector_xquat = T.convert_quat(
                         T.lookat_to_quat(up1, forward1_rotated), "wxyz"
@@ -1113,38 +1099,38 @@ class FurnitureEnv(metaclass=EnvMeta):
                     break
 
         if (
-            pos_dist < self._env_config["pos_dist"]
-            and rot_dist_up > self._env_config["rot_dist_up"]
+            pos_dist < self._config.alignment_pos_dist
+            and rot_dist_up > self._config.alignment_rot_dist_up
             and is_rot_forward_aligned
-            and abs(project1_2) > self._env_config["project_dist"]
-            and abs(project2_1) > self._env_config["project_dist"]
+            and abs(project1_2) > self._config.alignment_project_dist
+            and abs(project2_1) > self._config.alignment_project_dist
         ):
             return True
 
         # connect two parts if they are very close to each other
         if (
-            pos_dist < self._env_config["pos_dist"] / 2
-            and rot_dist_up > self._env_config["rot_dist_up"]
+            pos_dist < self._config.alignment_pos_dist / 2
+            and rot_dist_up > self._config.alignment_rot_dist_up
             and is_rot_forward_aligned
         ):
             return True
 
-        if pos_dist >= self._env_config["pos_dist"]:
+        if pos_dist >= self._config.alignment_pos_dist:
             logger.debug(
                 "(connect) two parts are too far ({} >= {})".format(
-                    pos_dist, self._env_config["pos_dist"]
+                    pos_dist, self._config.alignment_pos_dist
                 )
             )
-        elif rot_dist_up <= self._env_config["rot_dist_up"]:
+        elif rot_dist_up <= self._config.alignment_rot_dist_up:
             logger.debug(
                 "(connect) misaligned ({} <= {})".format(
-                    rot_dist_up, self._env_config["rot_dist_up"]
+                    rot_dist_up, self._config.alignment_rot_dist_up
                 )
             )
         elif not is_rot_forward_aligned:
             logger.debug(
                 "(connect) aligned, but rotate a connector ({} <= {})".format(
-                    max_rot_dist_forward, self._env_config["rot_dist_forward"]
+                    max_rot_dist_forward, self._config.alignment_rot_dist_forward
                 )
             )
         else:
@@ -2879,6 +2865,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 "[!] Warning: Simulation is unstable. The episode is terminated."
             )
             logger.warn(e)
+            logger.warn(type(e))
             self.reset()
             self._fail = True
 
@@ -3074,6 +3061,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                 "[!] Warning: Simulation is unstable. The episode is terminated."
             )
             logger.warn(e)
+            logger.warn(type(e))
             self.reset()
             self._fail = True
 

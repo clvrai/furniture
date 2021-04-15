@@ -247,7 +247,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             7. move_leg_fine: fine grain alignment of the up and forward vectors
         """
         phase_bonus = reward = 0
-        _, _, info = super()._compute_reward(ac)
+        # _, _, info = super()._compute_reward(ac)
+        info = {}
 
         # clear the original success and done
         done = False
@@ -476,7 +477,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info["phase_bonus"] = phase_bonus
         info = {**info, **ctrl_info, **phase_info, **sg_info, **grip_info, **move_info}
         # log phase if last frame
-        if self._episode_length == self._env_config["max_episode_steps"] - 1 or done:
+        if self._episode_length == self._max_episode_steps - 1 or done:
             info["phase"] = self._phase_i + len(self._phases) * self._subtask_step
         return reward, done, info
 

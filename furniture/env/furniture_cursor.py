@@ -24,16 +24,6 @@ class FurnitureCursorEnv(FurnitureEnv):
 
         super().__init__(config)
 
-        self._env_config.update(
-            {
-                "success_reward": 100,
-                "pos_dist": 0.1,
-                "rot_siml_up": 0.9,
-                "rot_siml_forward": 0.9,
-                "project_dist": -1,
-            }
-        )
-
         # turn on the gravity compensation for selected furniture pieces
         self._gravity_compensation = 1
 

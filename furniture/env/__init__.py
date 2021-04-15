@@ -7,8 +7,6 @@ from .base import make_env, make_vec_env
 
 # register all environment to use
 from .furniture_baxter import FurnitureBaxterEnv
-from .furniture_baxter_block import FurnitureBaxterBlockEnv
-from .furniture_baxter_toytable import FurnitureBaxterToyTableEnv
 from .furniture_cursor import FurnitureCursorEnv
 from .furniture_jaco import FurnitureJacoEnv
 from .furniture_panda import FurniturePandaEnv
@@ -18,7 +16,7 @@ from .furniture_sawyer_dense import FurnitureSawyerDenseRewardEnv
 
 # add cursor environment to Gym
 register(
-    id="furniture-cursor-v0",
+    id="IKEACursor-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
         "name": "FurnitureCursorEnv",
@@ -31,7 +29,7 @@ register(
 
 # add sawyer environment to Gym
 register(
-    id="furniture-sawyer-v0",
+    id="IKEASawyer-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
         "name": "FurnitureSawyerEnv",
@@ -44,7 +42,7 @@ register(
 
 # add baxter environment to Gym
 register(
-    id="furniture-baxter-v0",
+    id="IKEABaxter-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
         "name": "FurnitureBaxterEnv",
@@ -57,7 +55,7 @@ register(
 
 # add jaco environment to Gym
 register(
-    id="furniture-jaco-v0",
+    id="IKEAJaco-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
         "name": "FurnitureJacoEnv",
@@ -70,7 +68,7 @@ register(
 
 # add panda environment to Gym
 register(
-    id="furniture-panda-v0",
+    id="IKEAPanda-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
         "name": "FurniturePandaEnv",
@@ -81,16 +79,11 @@ register(
 )
 
 
-# add baxter flipping environment to Gym
+# add sawyer dense reward environment to Gym
 register(
-    id="furniture-baxter-flip-v0",
+    id="IKEASawyerDense-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "name": "FurnitureBaxterToyTableEnv",
-        "furniture_id": 1,
-        "background": "Interior",
-        "port": 1050,
-    },
+    kwargs={"name": "FurnitureSawyerDenseRewardEnv", "unity": False},
 )
 
 

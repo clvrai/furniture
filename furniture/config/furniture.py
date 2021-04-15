@@ -278,6 +278,16 @@ def add_argument(parser):
         "--render", type=str2bool, default=False, help="whether to render camera"
     )
 
+    # cursor agent
+    parser.add_argument("--cursor_boundary", type=float, default=1.5)
+
+    # reward coefficients
+    parser.add_argument("--ctrl_penalty_coef", type=float, default=1e-3)
+    parser.add_argument("--unstable_penalty_coef", type=float, default=100)
+    parser.add_argument("--success_reward", type=float, default=100)
+    parser.add_argument("--touch_reward", type=float, default=10)
+    parser.add_argument("--pick_reward", type=float, default=100)
+
     # debug
     parser.add_argument(
         "--render_agent",

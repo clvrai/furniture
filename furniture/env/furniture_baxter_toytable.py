@@ -21,12 +21,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         config.furniture_id = furniture_name2id["toy_table_flip"]
 
         super().__init__(config)
-        config.discretize_grip = True
         self._gravity_compensation = 1
-        # requires multiple connection actions to make connection between two
-        # parts.
-        self._num_connect_steps = 0
-        self._discretize_grip = config.discretize_grip
 
     def _step(self, a):
         """
@@ -35,7 +30,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         a = a.copy()
 
         # discretize gripper action
-        if self._discretize_grip:
+        if self._config.discrete_grip:
             a[-2] = -1 if a[-2] < 0 else 1
             a[-3] = -1 if a[-3] < 0 else 1
 
@@ -99,7 +94,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         elif self._config.control_type == "impedance":
             a = np.linalg.norm(action[:14])
 
-        ctrl_reward = -self._env_config["ctrl_reward"] * a
+        ctrl_reward = -self._config.ctrl_penalty_coef * a
         return ctrl_reward
 
     def _compute_reward(self, action):

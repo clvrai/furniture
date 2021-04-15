@@ -27,9 +27,9 @@ def create_parser(env=None):
     # furniture config
     add_furniture_arguments(parser)
 
-    env_config = get_env_specific_argument(args.env)
-    if env_config:
-        env_config.add_argument(parser)
+    env_arguments = get_env_specific_argument(args.env)
+    if env_arguments:
+        env_arguments.add_argument(parser)
 
     parser.add_argument("--seed", type=int, default=123, help="random seed")
     parser.add_argument("--debug", type=str2bool, default=False)
@@ -39,22 +39,13 @@ def create_parser(env=None):
 
 def get_env_specific_argument(env):
     f = None
-    if env == "FurnitureCursorToyTableEnv":
-        from . import furniture_cursor_toytable as f
+    if env == "IKEACursor-v0":
+        from . import furniture_cursor as f
 
-    elif env == "FurnitureSawyerGenEnv":
+    elif env == "IKEASawyerGen-v0":
         from . import furniture_sawyer_gen as f
 
-    elif env == "FurnitureSawyerToyTableEnv":
-        from . import furniture_sawyer_toytable as f
-
-    elif env == "FurnitureSawyerPlaceEnv":
-        from . import furniture_sawyer_place as f
-
-    elif env == "FurnitureSawyerPickEnv":
-        from . import furniture_sawyer_pick as f
-
-    elif env == "furniture-sawyer-densereward-v0":
+    elif env in ["IKEASawyerDense-v0", "furniture-sawyer-densereward-v0"]:
         from . import furniture_sawyer_dense as f
 
     return f

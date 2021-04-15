@@ -45,14 +45,11 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         config.furniture_id = furniture_name2id["block"]
         # set subtask_ob for getting target object
         config.subtask_ob = True
+        # set environment- and task-specific configurations
+        config.max_episode_steps = 50
 
         # create a MuJoCo environment based on @config
         super().__init__(config)
-
-        # set environment- and task-specific configurations
-        self._env_config.update(
-            {"max_episode_steps": 50, "distance_reward": 1, "success_reward": 5,}
-        )
 
     def _reset(self, furniture_id=None, background=None):
         """
@@ -83,12 +80,8 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         ######################################################
         # Specify initial position and rotation of each part #
         ######################################################
-        pos_init = {'1_block_l' : [-0.3, -0.2, 0.05],
-                    '2_block_r' : [0.1, -0.2, 0.05]
-                   }
-        quat_init = {'1_block_l' : [1, 0, 0, 0],
-                     '2_block_r' : [1, 0, 0, 0]
-                    }
+        pos_init = {"1_block_l": [-0.3, -0.2, 0.05], "2_block_r": [0.1, -0.2, 0.05]}
+        quat_init = {"1_block_l": [1, 0, 0, 0], "2_block_r": [1, 0, 0, 0]}
 
         return pos_init, quat_init
 
@@ -125,26 +118,26 @@ class FurnitureExampleEnv(FurnitureBaxterEnv):
         info = {}
 
         # control penalty
-        ctrl_reward = self._ctrl_reward(a)
+        ctrl_penalty = self._ctrl_penalty(a)
 
         # distance-based reward
         hand_pos = np.array(self.sim.data.site_xpos[self.right_eef_site_id])
         dist = T.l2_dist(hand_pos, self._get_pos(self._target_body))
-        distance_reward = -self._env_config["distance_reward"] * dist
+        distance_reward = -self._config.distance_reward * dist
 
         # reward for successful reaching
         success_reward = 0
         if dist < 0.05:
-            success_reward = self._env_config["success_reward"]
+            success_reward = self._config.success_reward
 
         # add up all rewards
-        reward = ctrl_reward + distance_reward + success_reward
+        reward = ctrl_penalty + distance_reward + success_reward
         done = False
 
         # log each component of reward
-        info["reward_ctrl"] = ctrl_reward
-        info["reward_distance"] = distance_reward
-        info["reward_success"] = success_reward
+        info["ctrl_penalty"] = ctrl_penalty
+        info["distance_reward"] = distance_reward
+        info["success_reward"] = success_reward
 
         return reward, done, info
 
@@ -188,7 +181,7 @@ def main(args):
 
         print(
             "{:3d} step:  reward ({:5.3f})  action ({})".format(
-                ep_length, reward, action['default']
+                ep_length, reward, action["default"]
             )
         )
 

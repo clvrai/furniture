@@ -24,8 +24,6 @@ class FurnitureSawyerEnv(FurnitureEnv):
 
         super().__init__(config)
 
-        self._env_config.update({"success_reward": 100})
-
     @property
     def observation_space(self):
         """
