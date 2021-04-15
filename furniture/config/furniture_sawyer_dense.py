@@ -17,12 +17,13 @@ def add_argument(parser):
     ## common rewards
     parser.add_argument("--diff_rew", type=str2bool, default=True)
     parser.add_argument("--phase_bonus", type=float, default=2000)
-    parser.add_argument("--ctrl_penalty_coef", type=float, default=1e-3)
     parser.add_argument("--eef_forward_dist_coef", type=float, default=2)
     parser.add_argument("--eef_up_dist_coef", type=float, default=4)
     parser.add_argument("--eef_rot_threshold", type=float, default=0.95)
     parser.add_argument("--gripper_penalty_coef", type=float, default=5)
     parser.add_argument("--move_other_part_penalty_coef", type=float, default=50)
+
+    parser.add_argument("--early_termination", type=str2bool, default=True)
 
     ## init_eef
     parser.add_argument("--init_eef_pos_dist_coef", type=float, default=100)
