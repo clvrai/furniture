@@ -263,7 +263,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         move_other_part_penalty, move_info = self._move_other_part_penalty()
 
         leg_touched = v["leg_touched"]
-        eef_out_of_range = v["eef_pos"][2] >= 0.5
 
         info["skip_to_lift_leg"] = 0
         info["skip_to_move_leg_fine"] = 0
@@ -307,17 +306,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info["phase_i"] = self._phase_i + len(self._phases) * self._subtask_step
         info["subtask"] = self._subtask_step
         info["touch"] = leg_touched
-        # info["eef_out_of_range"] = eef_out_of_range
 
         stable_grip_reward, sg_info = self._stable_grip_reward()
         grip_penalty, grip_info = self._gripper_penalty(ac)
 
         if phase == "init_eef":
             phase_reward, phase_info = self._init_eef_reward()
-            # if eef_out_of_range:
-            #     logger.info("EEF out of range during init_eef")
-            #     done = True
-            #     phase_bonus += -self._phase_bonus / 2
 
             # if move_info["table_displacement"] > 0.1:
             #     logger.info("Moved table too much during init_eef")
@@ -339,10 +333,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         elif phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
-            # if eef_out_of_range:
-            #     logger.info("EEF out of range during move_eef_above")
-            #     done = True
-            #     phase_bonus += -self._phase_bonus / 2
 
             if (
                 phase_info[f"{phase}_succ"]
@@ -359,10 +349,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         elif phase == "lower_eef":
             phase_reward, phase_info = self._lower_eef_reward()
-            # if eef_out_of_range:
-            #     logger.info("EEF out of range during lower_eef")
-            #     done = True
-            #     phase_bonus += -self._phase_bonus / 2
 
             if (
                 phase_info[f"{phase}_succ"]
