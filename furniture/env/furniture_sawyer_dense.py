@@ -580,7 +580,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         # reward for lifting
         leg_pos = v["leg_pos"]
-        xy_dist = np.linalg.norm(self._lift_leg_pos[:2] - leg_pos[:2])
+        xy_dist = min(np.linalg.norm(self._lift_leg_pos[:2] - leg_pos[:2]), 0.2)
         z_dist = np.abs(self._lift_leg_pos[2] - leg_pos[2])
         if self._diff_rew:
             z_offset = self._prev_lift_leg_z_dist - z_dist
@@ -598,7 +598,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         if leg_touched and leg_lift and v["leg_safe_grasp"] and not self._leg_lift:
             logger.info("Lift leg")
             self._leg_lift = True
-            lift_leg_rew += self._phase_bonus / 10
+            lift_leg_rew += self._phase_bonus / 2
 
         if not leg_touched:
             # lift_leg_rew = 0
