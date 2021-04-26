@@ -116,9 +116,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._leg, self._table = self._recipe["recipe"][subtask_step]
         self._leg_site, self._table_site = self._site_recipe[subtask_step][:2]
         if len(self._site_recipe[subtask_step]) == 3:
-            self._table_leg_angle = self._site_recipe[subtask_step][2]
+            self._leg_table_angle = self._site_recipe[subtask_step][2]
         else:
-            self._table_leg_angle = None
+            self._leg_table_angle = None
 
         # update the observation to the current objects of interest
         self._subtask_part1 = self._object_name2id[self._leg]
@@ -187,12 +187,13 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_up = self._get_up_vector(self._leg_site)
         table_up = self._get_up_vector(self._table_site)
         leg_forward = self._get_forward_vector(self._leg_site)
+        table_forward = self._get_forward_vector(self._table_site)
         if len(self._leg_allowed_angles):
-            target_forward = self._project_connector_forward(
-                self._table_site, self._leg_site, self._table_leg_angle
+            leg_forward_rotated = self._project_connector_forward(
+                self._leg_site, self._table_site, self._leg_table_angle
             )
         else:
-            target_forward = leg_forward
+            leg_forward_rotated = leg_forward
         leg_site_pos = self._get_pos(self._leg_site)
         leg_pos = self._get_pos(self._leg)
         table_site_pos = self._get_pos(self._table_site)
@@ -218,10 +219,11 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             "move_above_pos_dist": np.linalg.norm(above_table_site_pos - leg_site_pos),
             "leg_up": leg_up,
             "table_up": table_up,
+            "table_forward": table_forward,
             "move_up_ang_dist": T.cos_siml(leg_up, table_up),
             "leg_forward": leg_forward,
-            "target_forward": target_forward,
-            "move_forward_ang_dist": T.cos_siml(leg_forward, target_forward),
+            "leg_forward_rotated": leg_forward_rotated,
+            "move_forward_ang_dist": T.cos_siml(leg_forward_rotated, table_forward),
             "proj_table": T.cos_siml(-table_up, leg_site_pos - table_site_pos),
             "proj_leg": T.cos_siml(leg_up, table_site_pos - leg_site_pos),
             "table_displacement": np.linalg.norm(
