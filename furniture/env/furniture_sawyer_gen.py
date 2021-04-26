@@ -736,7 +736,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 def main():
     from ..config import create_parser
 
-    parser = create_parser(env="FurnitureSawyerGenEnv")
+    parser = create_parser(env="IKEASawyerGen-v0")
     config, unparsed = parser.parse_known_args()
     if len(unparsed):
         logger.error("Unparsed argument is detected:\n%s", unparsed)
