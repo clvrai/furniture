@@ -249,7 +249,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             7. move_leg_fine: fine grain alignment of the up and forward vectors
         """
         phase_bonus = reward = 0
-        # _, _, info = super()._compute_reward(ac)
         info = {}
 
         # clear the original success and done

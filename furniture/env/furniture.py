@@ -156,6 +156,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._rotate_speed = config.rotate_speed
 
         self._preassembled = config.preassembled
+        self._num_connects = config.num_connects
 
         if self._agent_type != "Cursor" and self._control_type in [
             "ik",
@@ -195,13 +196,14 @@ class FurnitureEnv(metaclass=EnvMeta):
             if hasattr(self, "_" + k):
                 setattr(self, "_" + k, v)
 
-    def set_subtask(self, subtask):
+    def set_subtask(self, subtask, num_connects=None):
         """ Simply sets @self._preassembled to [0, 1, ..., @subtask]. """
         self._preassembled = range(subtask)
+        self._num_connects = num_connects
 
     def num_subtask(self):
-        if self._config.num_connects is not None:
-            return self._config.num_connects
+        if self._num_connects is not None:
+            return self._num_connects
         else:
             return len(self._object_names) - 1
 
@@ -1456,9 +1458,9 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._prev_num_connected = 0
         if self._agent_type == "Cursor":
             self._cursor_selected = [None, None]
-        if self._config.num_connects is not None:
-            self._success_num_conn = self._config.num_connects
-            self._success_num_conn += len(self._config.preassembled)
+        if self._num_connects is not None:
+            self._success_num_conn = self._num_connects
+            self._success_num_conn += len(self._preassembled)
         else:
             self._success_num_conn = len(self._object_names) - 1
 
