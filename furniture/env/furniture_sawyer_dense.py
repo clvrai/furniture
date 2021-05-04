@@ -738,8 +738,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             "connect_succ": self._connected,
             "connect_action": ac[-1],
         }
-        if self._connected:
-            return 0, info
 
         v = self._current_values
         leg_touched = v["leg_touched"]
@@ -818,6 +816,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             self._leg_fine_aligned += 1
             info["connect_rew"] = (ac[-1] + 1) * self._aligned_bonus_coef
             rew += info["connect_rew"]
+
+        if self._connected:
+            return 0, info
         return rew, info
 
     def _stable_grip_reward(self) -> Tuple[float, dict]:
