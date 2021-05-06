@@ -216,9 +216,10 @@ class FurnitureEnv(metaclass=EnvMeta):
         num_cam = len(self._camera_ids)
         if self._visual_ob:
             ob_space["camera_ob"] = gym.spaces.Box(
-                low=0.0,
-                high=1.0,
+                low=0,
+                high=255,
                 shape=(num_cam, self._screen_height, self._screen_width, 3),
+                dtype=np.uint8,
             )
 
         if self._object_ob:
@@ -600,7 +601,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 )
                 img = np.expand_dims(img, axis=0)
             assert len(img.shape) == 4
-            img = img[:, ::-1, :, :] / 255.0
+            # img = img[:, ::-1, :, :] / 255.0
+            img = img[:, ::-1, :, :]
             return img
 
         elif mode == "rgbd_array":
@@ -619,7 +621,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 else:
                     img = camera_obs
                 img = np.expand_dims(img, axis=0)
-            img = img[:, ::-1, :, :] / 255.0
+            # img = img[:, ::-1, :, :] / 255.0
+            img = img[:, ::-1, :, :]
 
             if depth is not None:
                 # depth map is 0 to 1, with 1 being furthest
@@ -627,9 +630,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                 black_pixels = np.all(depth == [0, 0, 0], axis=-1)
                 depth[black_pixels] = [255] * 3
                 if len(depth.shape) == 4:
-                    depth = depth[:, ::-1, :, :] / 255.0
+                    # depth = depth[:, ::-1, :, :] / 255.0
+                    depth = depth[:, ::-1, :, :]
                 elif len(depth.shape) == 3:
-                    depth = depth[::-1, :, :] / 255.0
+                    # depth = depth[::-1, :, :] / 255.0
+                    depth = depth[::-1, :, :]
 
             return img, depth
 
@@ -2524,9 +2529,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         if depth is not None:
                             depth = np.concatenate(depth)
 
-                    imageio.imwrite(
-                        config.furniture_name + ".png", (img * 255).astype(np.uint8)
-                    )
+                    imageio.imwrite(config.furniture_name + ".png", img)
                     if self._segmentation_ob:
                         seg = self.render("segmentation")
                         if len(seg.shape) == 4:
@@ -2535,7 +2538,7 @@ class FurnitureEnv(metaclass=EnvMeta):
                         imageio.imwrite("segmentation_ob.png", color_seg)
 
                     if self._depth_ob:
-                        imageio.imwrite("depth_ob.png", (depth * 255).astype(np.uint8))
+                        imageio.imwrite("depth_ob.png", depth)
 
                 if self.action == "save" and self._record_demo:
                     self._demo.save(self.file_prefix)
