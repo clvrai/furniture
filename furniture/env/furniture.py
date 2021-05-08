@@ -643,7 +643,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             return img
 
         elif mode == "human" and not self._unity:
-            if platform is not "win32":
+            if platform != "win32":
                 self._get_viewer().render()
 
         return None

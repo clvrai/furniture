@@ -303,7 +303,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # compute phase-based reward
         phase = self._phases[self._phase_i]
         info["phase_i"] = self._phase_i + len(self._phases) * self._subtask_step
-        info["subtask"] = self._subtask_step
         info["touch"] = leg_touched
 
         stable_grip_reward, sg_info = self._stable_grip_reward()
@@ -462,6 +461,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         reward += ctrl_penalty + phase_reward + stable_grip_reward
         reward += grip_penalty + phase_bonus + move_other_part_penalty
         info["phase_bonus"] = phase_bonus
+        info["subtask"] = self._subtask_step
         info = {**info, **ctrl_info, **phase_info, **sg_info, **grip_info, **move_info}
         # log phase if last frame
         if self._episode_length == self._max_episode_steps - 1 or done:
