@@ -208,7 +208,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._current_values = {
             "eef_pos": eef_pos,
             "leg_touched": leg_touched,
-            "leg_safe_grasp": leg_touched and (eef_pos[2] < leg_grasp_pos[2] - 0.005),
+            "leg_safe_grasp": leg_touched and (eef_pos[2] < leg_grasp_pos[2] - 0.000),
             "leg_grasp_pos": leg_grasp_pos,
             "leg_pos": leg_pos,
             "lift": leg_pos[2] > self._lift_leg_pos[2],
