@@ -34,6 +34,10 @@ class FurnitureGym(gym.Env):
         self.get_env_state = self.env.get_env_state
         self._max_episode_steps = config.max_episode_steps
 
+    def set_max_episode_steps(self, max_episode_steps):
+        self._max_episode_steps = max_episode_steps
+        self.env.set_max_episode_steps(max_episode_steps)
+
     def reset(self):
         """
         Resets the environment.

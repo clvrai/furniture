@@ -304,6 +304,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             ]
         )
 
+    def set_max_episode_steps(self, max_episode_steps):
+        self._max_episode_steps = max_episode_steps
+
     def set_init_qpos(self, init_qpos):
         self._init_qpos = init_qpos
 
