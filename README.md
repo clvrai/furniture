@@ -88,43 +88,48 @@ We provide the demonstration generation script for 10 furniture models.
 python -m furniture.env.furniture_sawyer_gen --furniture_name table_lack_0825 --start_count 0 --n_demos 100
 ```
 
-## IL Training
+## (4) Benchmarking
 
+We provide example commands for `table_lack_0825`. You can simply change the furniture name to test on other furniture models.
+For evaluation, you can add `--is_train False --num_eval 50` to the training command:
+
+### IL Training
 
 ### BC
-We provide behavioral cloning (BC) benchmark. You can simply change the furniture name to test on other furniture models.
-
 ```bash
-$ python -m run --algo bc --run_prefix ik_table_dockstra_0279 --env furniture-sawyer-v0 --gpu 0 --max_episode_steps 500 --furniture_name table_dockstra_0279 --demo_path demos/Sawyer_table_dockstra_0279/Sawyer
+python -m run --algo bc --run_prefix bc_table_lack_0825 --env IKEASawyerDense-v0 --furniture_name table_lack_0825 --demo_path demos/Sawyer_table_lack_0825
 ```
 
-For evaluation, you can add `--is_train False --num_eval 50` to the training command:
+### GAIL
 ```bash
-$ python -m run --algo bc --run_prefix ik_table_dockstra_0279 --env furniture-sawyer-v0 --gpu 0 --max_episode_steps 500 --furniture_name table_dockstra_0279 --demo_path demos/Sawyer_table_dockstra_0279/Sawyer --is_train False --num_eval 50
+mpirun -np 32 python -m run --algo gail --run_prefix gail_table_lack_0825 --env IKEASawyerDense-v0 --furniture_name table_lack_0825 --demo_path demos/Sawyer_table_lack_0825
 ```
 
-## RL Training
+### GAIL + PPO
+```bash
+mpirun -np 32 python -m run --algo gail --run_prefix gailppo_table_lack_0825 --env IKEASawyerDense-v0 --furniture_name table_lack_0825 --demo_path demos/Sawyer_table_lack_0825 --gail_env_reward 0.5
+```
+
+### RL Training
 
 ### SAC
+```bash
+python -m run --algo sac --run_prefix sac_table_lack_0825 --env IKEASawyerDense-v0 --furniture_name table_dockstra_0279
 ```
-$ python -m run --algo sac --run_prefix sac_table_dockstra_0279 --env furniture-sawyer-v0 --gpu 0 --max_episode_steps 100 --furniture_name table_dockstra_0279
-```
-For evaluation, you can add `--is_train False --num_eval 50` to the training command.
 
 ### PPO
+```bash
+mpirun -np 32 python -m run --algo ppo --run_prefix ppo_table_lack_0825 --env IKEASawyerDense-v0 --furniture_name table_dockstra_0279
 ```
-$ python -m run --algo ppo --run_prefix ppo_table_dockstra_0279 --env furniture-sawyer-v0 --gpu 0 --max_episode_steps 100 --furniture_name table_dockstra_0279
-```
-For evaluation, you can add `--is_train False --num_eval 50` to the training command.
 
 <br>
 
-## (2) Documentation
+## (5) Documentation
 See [documentation](docs/readme.md) for installation and configuration details.
 
 <br>
 
-## (3) References
+## (6) References
 Our Mujoco environment is developed based on Robosuite and Unity implementation from DoorGym-Unity is used.
 
 * Robosuite environment: https://github.com/StanfordVL/robosuite
@@ -133,7 +138,7 @@ Our Mujoco environment is developed based on Robosuite and Unity implementation 
 
 <br>
 
-## (4) Citation
+## (7) Citation
 ```
 @inproceedings{lee2021ikea,
   title={{IKEA} Furniture Assembly Environment for Long-Horizon Complex Manipulation Tasks},
