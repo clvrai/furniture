@@ -7,6 +7,7 @@ import time
 import atexit
 import glob
 from sys import platform
+from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -180,9 +181,17 @@ class UnityInterface(object):
         zip_path = APP_FILE_NAME[platform]
         if os.path.exists(zip_path):
             logger.info("%s is already downloaded.", zip_path)
+
+            with ZipFile(zip_path, "r") as zip_file:
+                zip_file.extractall()
         else:
             logger.info("Downloading Unity app from %s", url)
             gdown.cached_download(url, zip_path, postprocess=gdown.extractall)
+
+        if platform == "darwin":
+            import stat
+
+            os.chmod("binary/Furniture.app/Contents/MacOS/Furniture", stat.S_IEXEC)
 
     def _find_unity_path(self):
         """ Finds path to Unity app. """
