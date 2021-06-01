@@ -11,20 +11,20 @@
 1. Install mujoco 2.0 and add the following environment variables into `~/.bashrc` or `~/.zshrc`
 ```bash
 # download mujoco 2.0
-wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip
-unzip mujoco.zip -d ~/.mujoco
-mv ~/.mujoco/mujoco200_linux ~/.mujoco/mujoco200
+$ wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip
+$ unzip mujoco.zip -d ~/.mujoco
+$ mv ~/.mujoco/mujoco200_linux ~/.mujoco/mujoco200
 
 # copy mujoco license key `mjkey.txt` to `~/.mujoco`
 
 # add mujoco to LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mujoco200/bin
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mujoco200/bin
 
 # for GPU rendering (replace 418 with your nvidia driver version)
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-418
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-418
 
 # only for a headless server
-export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/nvidia-418/libGL.so
+$ export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so:/usr/lib/nvidia-418/libGL.so
 ```
 
 For macOS Catalina, you first have to make `libmujoco200.dylib` and `libglfw.dylib` in `~/.mujoco/mujoco200/bin` executable. Otherwise, the files cannot be opened because they are from an unidentified developer. To resolve this issue, navigate to the directory `~/.mujoco/mujoco200/bin`, right click each file, click `open` in the menu, and click the `open` button.

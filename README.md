@@ -9,8 +9,8 @@
 | Sawyer | Baxter | Cursors | Jaco | Panda |
 
 
-This code contains the **IKEA Furniture Assembly environment** as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes.
-An agent (Sawyer, Baxter, Panda, Jaco, Cursor) is required to move, align, and connect furniture parts sequentially.
+We are announcing the launch of the **IKEA Furniture Assembly environment** as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes.
+An agent (Sawyer, Baxter, Cursor) is required to move, align, and connect furniture parts sequentially.
 The task is completed when all parts are connected.
 
 
@@ -35,7 +35,6 @@ The structure of the repository:
   - `demo_manual.py`: Script for testing the environment with keyboard control
 - `furniture-unity`: Unity code for the IKEA furniture assembly environment (excluded in this repo due to the size of files, instead download pre-built Unity app)
 - `method`: Reinforcement learning and imitation learning code (will be updated soon)
-
 
 ## (0) Installation
 
