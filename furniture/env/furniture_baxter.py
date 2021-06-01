@@ -69,17 +69,13 @@ class FurnitureBaxterEnv(FurnitureEnv):
         """
         ob, _, done, _ = super()._step(a)
 
-        reward, done, info = self._compute_reward()
-
-        ctrl_reward = self._ctrl_reward(a)
-        info["reward_ctrl"] = ctrl_reward
+        reward, _done, info = self._compute_reward(a)
+        done = done or _done
 
         info["ac"] = a
 
         if self._success:
             logger.info("Success!")
-
-        reward = ctrl_reward + reward
 
         return ob, reward, done, info
 
@@ -247,11 +243,11 @@ class FurnitureBaxterEnv(FurnitureEnv):
             "right": self.sim.model.site_name2id("grip_site"),
         }
 
-    def _compute_reward(self):
+    def _compute_reward(self, ac):
         """
         Computes reward of the current state.
         """
-        return super()._compute_reward()
+        return super()._compute_reward(ac)
 
 
 def main():

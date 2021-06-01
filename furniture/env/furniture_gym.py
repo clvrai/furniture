@@ -28,10 +28,18 @@ class FurnitureGym(gym.Env):
 
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
+
+        # methods for demo
+        self.run_manual = self.env.run_manual
+        self.run_demo = self.env.run_demo
+        self.run_vr = self.env.run_vr
+
+        # policy sequencing methods
         self.num_subtask = self.env.num_subtask
         self.set_subtask = self.env.set_subtask
         self.set_init_qpos = self.env.set_init_qpos
         self.get_env_state = self.env.get_env_state
+
         self._max_episode_steps = config.max_episode_steps
 
     def set_max_episode_steps(self, max_episode_steps):

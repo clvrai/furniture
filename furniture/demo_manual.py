@@ -6,11 +6,11 @@ Pass --record_demo True and press Y to save the the current scene
 into demos/test.pkl.
 """
 
-import argparse
+import gym
 
-from env import make_env
-from env.models import agent_names, background_names, furniture_names
-from util import str2bool
+import furniture
+from furniture import agent_names, background_names, furniture_names
+from furniture.util import str2bool
 
 # available agents
 agent_names
@@ -22,7 +22,7 @@ furniture_names
 background_names
 
 
-def main(args):
+def main():
     """
     Inputs types of agent, furniture model, and background and simulates the environment.
     """
@@ -61,9 +61,9 @@ def main(args):
         furniture_id = int(s)
         furniture_name = furniture_names[furniture_id]
     except:
-        print("Input is not valid. Use 0 by default.")
-        furniture_id = 0
-        furniture_name = furniture_names[0]
+        print("Input is not valid. Use 'three_blocks' by default.")
+        furniture_id = 57
+        furniture_name = "three_blocks"
 
     # choose a background scene
     print()
@@ -83,11 +83,8 @@ def main(args):
         print("Input is not valid. Use 0 by default.")
         background_name = background_names[0]
 
-    # set parameters for the environment (env, furniture_id, background)
-    env_name = "Furniture{}Env".format(agent_name)
-    args.env = env_name
-    args.furniture_id = furniture_id
-    args.background = background_name
+    # set correct environment name based on agent_name
+    env_name = "IKEA{}-v0".format(agent_name)
 
     print()
     print(
@@ -97,7 +94,7 @@ def main(args):
     )
 
     # make environment following arguments
-    env = make_env(env_name, args)
+    env = gym.make(env_name, furniture_name=furniture_name, background=background_name)
 
     # print brief instruction
     print()
@@ -113,27 +110,10 @@ def main(args):
     print()
 
     # manual control of agent using keyboard
-    env.run_manual(args)
+    env.run_manual()
     # close the environment instance
     env.close()
 
 
-def argsparser():
-    """
-    Returns argument parser for furniture assembly environment.
-    """
-    parser = argparse.ArgumentParser("Demo for IKEA Furniture Assembly Environment")
-    parser.add_argument("--seed", type=int, default=123)
-    parser.add_argument("--debug", type=str2bool, default=False)
-
-    import config.furniture as furniture_config
-
-    furniture_config.add_argument(parser)
-
-    args = parser.parse_args()
-    return args
-
-
 if __name__ == "__main__":
-    args = argsparser()
-    main(args)
+    main()

@@ -2170,10 +2170,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.action = action
         self._action_on = True
 
-    def run_demo(self, config):
+    def run_demo(self, config=None):
         """
         Since we save all states, just play back states
         """
+        if config is None:
+            config = self._config
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
@@ -2220,7 +2222,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             return None, None
         return np.asarray(pose), state
 
-    def run_vr(self, config):
+    def run_vr(self, config=None):
         """
         Runs the environment with HTC Vive support
         """
@@ -2229,6 +2231,8 @@ class FurnitureEnv(metaclass=EnvMeta):
         self.vr = triad_openvr.triad_openvr()
         self.vr.print_discovered_objects()
 
+        if config is None:
+            config = self._config
         assert config.render, "Set --render True to see the viewer"
 
         if config.furniture_name is not None:
@@ -2393,10 +2397,12 @@ class FurnitureEnv(metaclass=EnvMeta):
 
             time.sleep(0.05)
 
-    def run_manual(self, config):
+    def run_manual(self, config=None):
         """
         Run the environment under manual (keyboard) control
         """
+        if config is None:
+            config = self._config
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
@@ -2562,10 +2568,12 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._record_vid:
                 self.vid_rec.close()
 
-    def run_demo_actions(self, config):
+    def run_demo_actions(self, config=None):
         """
         Play the stored actions in demonstration
         """
+        if config is None:
+            config = self._config
         if config.furniture_name is not None:
             config.furniture_id = furniture_name2id[config.furniture_name]
         self.reset(config.furniture_id, config.background)
@@ -2605,7 +2613,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._record_vid:
                 self.vid_rec.close()
 
-    def run_resizer(self, config):
+    def run_resizer(self, config=None):
         """
         Run a resizing program in unity for adjusting furniture size in xml
         """
@@ -2651,7 +2659,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.reset(config.furniture_id, config.background)
             self._action_on = False
 
-    def run_img(self, config):
+    def run_img(self, config=None):
         """
         Run a resizing program in unity for adjusting furniture size in xml
         """

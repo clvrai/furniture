@@ -60,19 +60,12 @@ class FurnitureCursorEnv(FurnitureEnv):
         """
         Takes a simulation step with @a and computes reward.
         """
-        prev_reward, _, old_info = self._compute_reward()
-
         ob, _, done, _ = super()._step(a)
 
-        reward, done, info = self._compute_reward()
-
-        connect_reward = reward - prev_reward
-        info["reward_connect"] = connect_reward
+        reward, _done, info = self._compute_reward(a)
 
         if self._success:
             logger.info("Success!")
-
-        reward = connect_reward
 
         return ob, reward, done, info
 
@@ -115,11 +108,11 @@ class FurnitureCursorEnv(FurnitureEnv):
 
         return state
 
-    def _compute_reward(self):
+    def _compute_reward(self, ac):
         """
         Computes reward of the current state.
         """
-        return super()._compute_reward()
+        return super()._compute_reward(ac)
 
 
 def main():

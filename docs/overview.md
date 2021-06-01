@@ -15,7 +15,7 @@ parts together. This process is repeated until the furniture is assembled. You c
 <img src="img/agents/cursor.gif" width="250">
 
 ```bash
-$ python -m demo_manual
+$ python -m furniture.demo_manual
 ```
 We recommend trying the Cursor agent first to get a sense of the furniture and physics.
 The Cursor, Sawyer, and Baxter share a common control scheme. In general, the control is over the movement and rotation of the hand.
@@ -33,30 +33,25 @@ The Cursor, Sawyer, and Baxter share a common control scheme. In general, the co
 
 ## Basic Usage and Configuration
 
-The Gym-like interface makes it easy to use the environment with various RL algorithms. Moreover, users can easily switch furniture models and backgrounds using `reset` method. Please refer to [`furniture/demo_manual.py`](../env/furniture.py) for more detail.
+The Gym interface makes it easy to use the environment with various RL algorithms. Moreover, users can easily switch furniture models and backgrounds using `reset` method. Please refer to [`furniture/demo_manual.py`](../env/furniture.py) for more detail.
 
 ```py
-from env import make_env
-from env.models import furniture_names, background_names
-from config.furniture import get_default_config
+import gym
+import furniture
 
-
-# get a default arguments
-config = get_default_config()
-
-# make environment following arguments
-env = make_env('FurnitureBaxterEnv', config)
-
-# reset environment with @furniture_id and @background_name
-observation = env.reset(furniture_id, background_name)
+# make an environment
+env = gym.make('IKEASawyer-v0', furniture_name="table_lack_0825")
 
 done = False
-while not done:
-  # sample action from policy
-  action = pi.act(observation)
 
-  # take a step
-  observation, reward, done, info = env.step(action)
+# reset environment
+observation = env.reset()
+# reset environment with @furniture_id and @background_name
+# observation = env.reset(furniture_id=furniture_id, background=background_name)
+
+while not done:
+    # simulate environment
+    observation, reward, done, info = env.step(env.action_space.sample())
 ```
 
 Here are some general command line configuration options.
@@ -80,7 +75,7 @@ Here are some general command line configuration options.
 '--demo_dir': string, path to demonstration folder
 '--virtual_display': str, specify display number
 ```
-Within each `furniture_*.py`, there are environment specific configurations in the `__init__` function. See [Configure Environments](configurations.md) for available furniture models, backgrounds, etc.
+Within each `furniture/config/furniture_*.py`, there are environment specific configurations in the `__init__` function. See [Configure Environments](configurations.md) for available furniture models, backgrounds, etc.
 
 |<img src="img/observations/camera_ob.png" width="150">|<img src="img/observations/depth_ob.png" width="150">|<img src="img/observations/segmentation_ob.png" width="150">|
 | :----------: | :----------: | :----------: |
@@ -96,23 +91,6 @@ To configure the observations, use the following flags.
 '--segmentation_ob': bool, whether to include object segmentation in ob
 ```
 
-### Gym interface
-Gym interface for the IKEA Furniture Assembly environment is also provided in [`furniture/env/furniture_gym.py`](../env/furniture_gym.py), but the furniture model and background should be predefined when registered (see [`furniture/env/__init__.py`](../env/__init__.py).
-```py
-import gym
-
-# make environment
-env = gym.make('furniture-baxter-v0')
-
-# reset environment
-observation = env.reset()
-
-done = False
-while not done:
-  # take a step
-  observation, reward, done, info = env.step(env.action_space.sample())
-```
-
 ### Parallel Execution
 See [`demo_gym.py`](../demo_gym.py) for parallel execution of our environment.
 
@@ -125,7 +103,7 @@ The structure of the repository:
 * `method`: Code for IL/RL (BC, SAC, and PPO)
 
 ### env folder
-This folder contains the python code for environment scripting. We use many files and functions from the [Robosuite environment](https://github.com/StanfordVL/robosuite). The main files and folders are:
+`furniture/env` folder contains the python code for environment scripting. We use many files and functions from the [Robosuite environment](https://github.com/StanfordVL/robosuite). The main files and folders are:
 
 #### furniture.py
 This is the base environment. It contains functionality for interfacing with the MuJoCo simulation and Unity Renderer.
@@ -136,12 +114,12 @@ Some functions of interest are:
 * `_connect(a,b)`: Connects the given two connectors using a weld constraint.
 
 #### Agent-specific files
-The next files all extend [`furniture/env/furniture.py`](../env/furniture.py) with agent-specific logic.
-- [`furniture/env/furniture_cursor.py`](../env/furniture_cursor.py)
-- [`furniture/env/furniture_sawyer.py`](../env/furniture_sawyer.py)
-- [`furniture/env/furniture_baxter.py`](../env/furniture_baxter.py)
-- [`furniture/env/furniture_panda.py`](../env/furniture_panda.py)
-- [`furniture/env/furniture_jaco.py`](../env/furniture_jaco.py)
+The next files all extend [`furniture/env/furniture.py`](../furniture/env/furniture.py) with agent-specific logic.
+- [`furniture/env/furniture_cursor.py`](../furniture/env/furniture_cursor.py)
+- [`furniture/env/furniture_sawyer.py`](../furniture/env/furniture_sawyer.py)
+- [`furniture/env/furniture_baxter.py`](../furniture/env/furniture_baxter.py)
+- [`furniture/env/furniture_panda.py`](../furniture/env/furniture_panda.py)
+- [`furniture/env/furniture_jaco.py`](../furniture/env/furniture_jaco.py)
 
 These agents override `observation_space`, `dof`, `get_obs`, and `_step`.
 
