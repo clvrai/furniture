@@ -1865,6 +1865,8 @@ class FurnitureEnv(metaclass=EnvMeta):
                 from .controllers import PandaIKController as IKController
             elif self._agent_type == "Jaco":
                 from .controllers import JacoIKController as IKController
+            elif self._agent_type == "Fetch":
+                from .controllers import FetchIKController as IKController
             else:
                 raise ValueError
 

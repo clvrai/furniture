@@ -15,13 +15,21 @@ furniture_xmls = ["objects/" + name for name in _furniture_names]
 
 # list of furniture models
 furniture_name2id = {
-    furniture_name.split('.')[0]: i for i, furniture_name in enumerate(_furniture_names)
+    furniture_name.split(".")[0]: i for i, furniture_name in enumerate(_furniture_names)
 }
-furniture_names = [furniture_name.split('.')[0] for furniture_name in _furniture_names]
+furniture_names = [furniture_name.split(".")[0] for furniture_name in _furniture_names]
 furniture_ids = [i for i in range(len(furniture_names))]
 
 # list of background names
-background_names = ['Simple', 'Industrial', 'Lab', 'Garage', 'Ambient', 'NightTime', 'Interior']
+background_names = [
+    "Simple",
+    "Industrial",
+    "Lab",
+    "Garage",
+    "Ambient",
+    "NightTime",
+    "Interior",
+]
 
 # list of robot agent names
-agent_names = ['Baxter', 'Sawyer', 'Cursor', 'Panda', 'Jaco']
+agent_names = ["Baxter", "Sawyer", "Cursor", "Panda", "Jaco", "Fetch"]

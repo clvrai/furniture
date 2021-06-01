@@ -11,6 +11,7 @@ from .furniture_cursor import FurnitureCursorEnv
 from .furniture_jaco import FurnitureJacoEnv
 from .furniture_panda import FurniturePandaEnv
 from .furniture_sawyer import FurnitureSawyerEnv
+from .furniture_fetch import FurnitureFetchEnv
 from .furniture_sawyer_dense import FurnitureSawyerDenseRewardEnv
 
 
@@ -73,6 +74,19 @@ register(
     kwargs={
         "name": "FurniturePandaEnv",
         "furniture_id": 1,
+        "background": "Interior",
+        "port": 1050,
+    },
+)
+
+
+# add panda environment to Gym
+register(
+    id="IKEAFetch-v0",
+    entry_point="furniture.env.furniture_gym:FurnitureGym",
+    kwargs={
+        "name": "FurnitureFetchEnv",
+        "furniture_id": 59,
         "background": "Interior",
         "port": 1050,
     },

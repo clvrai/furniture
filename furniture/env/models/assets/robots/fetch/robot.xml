@@ -18,23 +18,23 @@
         <motor gear="1" ctrllimited="true" ctrlrange="-7.36 7.36" joint="wrist_roll_joint" name="wrist_roll" />
     </actuator>
     <asset>
-        <mesh name="base_link" file="../fetch_sim/meshes/base_link_collision.stl" />
-        <mesh name="r_wheel_link" file="../fetch_sim/meshes/r_wheel_link_collision.stl" />
-        <mesh name="l_wheel_link" file="../fetch_sim/meshes/l_wheel_link_collision.stl" />
-        <mesh name="torso_lift_link" file="../fetch_sim/meshes/torso_lift_link_collision.stl" />
-        <mesh name="head_pan_link" file="../fetch_sim/meshes/head_pan_link_collision.stl" />
-        <mesh name="head_tilt_link" file="../fetch_sim/meshes/head_tilt_link_collision.stl" />
-        <mesh name="shoulder_pan_link" file="../fetch_sim/meshes/shoulder_pan_link_collision.stl" />
-        <mesh name="shoulder_lift_link" file="../fetch_sim/meshes/shoulder_lift_link_collision.stl" />
-        <mesh name="upperarm_roll_link" file="../fetch_sim/meshes/upperarm_roll_link_collision.stl" />
-        <mesh name="elbow_flex_link" file="../fetch_sim/meshes/elbow_flex_link_collision.stl" />
-        <mesh name="forearm_roll_link" file="../fetch_sim/meshes/forearm_roll_link_collision.stl" />
-        <mesh name="wrist_flex_link" file="../fetch_sim/meshes/wrist_flex_link_collision.stl" />
-        <mesh name="wrist_roll_link" file="../fetch_sim/meshes/wrist_roll_link_collision.stl" />
-        <mesh name="bellows_link" file="../fetch_sim/meshes/bellows_link_collision.stl" />
-        <mesh name="estop_link" file="../fetch_sim/meshes/estop_link.stl" />
-        <mesh name="laser_link" file="../fetch_sim/meshes/laser_link.stl" />
-        <mesh name="torso_fixed_link" file="../fetch_sim/meshes/torso_fixed_link.stl" />
+        <mesh name="base_link" file="meshes/base_link_collision.stl" />
+        <mesh name="r_wheel_link" file="meshes/r_wheel_link_collision.stl" />
+        <mesh name="l_wheel_link" file="meshes/l_wheel_link_collision.stl" />
+        <mesh name="torso_lift_link" file="meshes/torso_lift_link_collision.stl" />
+        <mesh name="head_pan_link" file="meshes/head_pan_link_collision.stl" />
+        <mesh name="head_tilt_link" file="meshes/head_tilt_link_collision.stl" />
+        <mesh name="shoulder_pan_link" file="meshes/shoulder_pan_link_collision.stl" />
+        <mesh name="shoulder_lift_link" file="meshes/shoulder_lift_link_collision.stl" />
+        <mesh name="upperarm_roll_link" file="meshes/upperarm_roll_link_collision.stl" />
+        <mesh name="elbow_flex_link" file="meshes/elbow_flex_link_collision.stl" />
+        <mesh name="forearm_roll_link" file="meshes/forearm_roll_link_collision.stl" />
+        <mesh name="wrist_flex_link" file="meshes/wrist_flex_link_collision.stl" />
+        <mesh name="wrist_roll_link" file="meshes/wrist_roll_link_collision.stl" />
+        <mesh name="bellows_link" file="meshes/bellows_link_collision.stl" />
+        <mesh name="estop_link" file="meshes/estop_link.stl" />
+        <mesh name="laser_link" file="meshes/laser_link.stl" />
+        <mesh name="torso_fixed_link" file="meshes/torso_fixed_link.stl" />
         <texture name="texgeom" type="cube" builtin="flat" rgb1="1 1 1" rgb2="1 1 1" mark="random" markrgb=".3 .3 .4" random="0.05" width="512" height="512"/>
         <material name="geomMat" texture="texgeom" specular="0.75" shininess=".03"/>
     </asset>
@@ -55,7 +55,7 @@
     </default>
 
     <worldbody>
-        <body name='base' pos='0 0 0' euler='0 0 -1.57'>
+        <body name='base' pos='0 0 0' euler='0 0 -3.14'>
             <body childclass="fetch" name="base_link" pos="0.3 0.27 0" euler="0 0 1.57">
                 <inertial pos="-0.0036 0 0.0014" quat="0.760522 -0.0132765 -0.00610742 0.649147" mass="70.1294" diaginertia="1.2869 1.2236 0.986794" />
                 <geom class="fetchGrey" mesh="base_link" name="base_link_collision"/>
