@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+    <title>IKEA Furniture Assembly Environment</title>
+
+    <meta charset="UTF-8">
+    <meta property="og:title" content="IKEA Furniture Assembly Environment">
+    <meta property="og:description" content="Lee et al. IKEA Furniture Assembly Environment.">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <meta property="og:type" content="website">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/png" href="img/favicon-32x32.png">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="theme.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100, 100i,300,400,500,700,900" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+
+    <!-- Showdown -->
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.0/showdown.min.js"></script>
+    <script src="js/figure-extension.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+    <!-- WAVE -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-65738264-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-65738264-1');
+    </script>
+
+
+
+    <script>
+        const classMap = {
+            ul: 'browser-default'
+        }
+
+        const bindings = Object.keys(classMap)
+        .map(key => ({
+            type: 'output',
+            regex: new RegExp(`<${key}(.*)>`, 'g'),
+            replace: `<${key} class="${classMap[key]}" $1>`
+        }));
+
+        const converter = new showdown.Converter({
+            extensions: [bindings, 'figure']
+        });
+        converter.setOption('parseImgDimensions', true);
+        converter.setOption('tables', true);
+        converter.setFlavor('github');
+
+        //$("#markdown-body").ready(() => {
+        //    $.get( "content.md", (data) => {
+        //        const content_html = converter.makeHtml(data);
+        //        $("#markdown-body").html(content_html);
+        //    });
+        //})
+
+    </script>
+
+    <body>
+        <!-- Header -->
+        <!-- Wide screen -->
+    <header class="hd-container w3-container content-center">
+<!--             <div class="w3-center bg-text w3-cell-row" style="width: 50%; margin: auto; max-width: 1100px; margin-top: 10px; margin-bottom: 10px">
+ -->
+            <div class="w3-center bg-text" style="width:80%; max-width:800px; margin-top: 10px; margin-bottom: 10px">
+                <div class="w3-container  w3-cell-middle">
+                    <div class="title"><p>IKEA Furniture Assembly Environment</p></div>
+
+                    <div class="hide-narrow excerpt">
+                        We are announcing the launch of the IKEA Furniture Assembly environment as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes. The IKEA Furniture Assembly environment will be a stepping stone towards a new era of robots that can understand, plan, and skillfully execute precise physical manipulations, a far departure from the traditional robots of today.
+                    </div>
+                    <!-- Author -->
+                    <div class="hide-narrow authorship-container">
+                        <ul class="horizontal-list">
+                            <li><a href="https://youngwoon.github.io" target="_blank"><i class="far fa-user"></i> Youngwoon Lee</a></li>
+                            <li><a href="https://www.edwardshu.com" target="_blank"><i class="far fa-user"></i> Edward S. Hu</a></li>
+                            <li><a href="https://www.clvrai.com" target="_blank"><i class="far fa-user"></i> Zhengyu Yang</a></li>
+                            <li><a href="https://www.clvrai.com" target="_blank"><i class="far fa-user"></i> Alex Yin</a></li>
+                            <li><a href="https://viterbi-web.usc.edu/~limjj/" target="_blank"><i class="far fa-user"></i> Joseph J. Lim</a></li>
+                        </ul>
+                        <span class="school"><a href="https://www.clvrai.com/" target="_blank"><i class="fas fa-university"></i> Cognitive Learning for Vision and Robotics (CLVR), USC </a></span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!--
+        1. Furniture
+        Comprehensive simulation of furniture assembly, a complex long-horizon manipulation task
+        2. Diversity
+        Over 80 Furniture models, variable background, lighting and textures
+        3. Robots
+        Support for multiple robots: Baxter, Sawyer, and more.
+        4. Easy to use
+        Gym-like API for imitation / reinforcement learning
+        -->
+        <!-- Main Body -->
+        <div class="main-body">
+            <div class="">
+                <div class="w3-content" style="max-width:800px">
+                    <!-- Links -->
+                    <div class="link-container">
+                        <ul class="horizontal-list">
+                          <li><button class="w3-button waves-effect waves-light w3-card-4 grey lighten-2 w3-round-large"><i class="fas fa-file-alt"></i><a href="https://arxiv.org/abs/1911.07246"> Paper </a></button></li>
+                            <li><button class="w3-button waves-effect waves-light w3-card-4 grey lighten-2 w3-round-large"><i class="fas fa-code"></i><a href="https://github.com/clvrai/furniture"> Code </a></button></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="container1" style="padding-top:60px;">
+                  <div class="w3-container w3-center mdcontainer">
+                      <div class="w3-center w3-quarter"/>
+                          <img width="25%" src="./img/icons/chair-solid.svg"/>
+                          <h4 class="icon-header">Furniture Assembly</h4>
+                          <p class="icon-desc">Complex long-horizon manipulation task</p>
+                      </div>
+                      <div class="w3-center w3-quarter"/>
+                          <img width="25%" src="./img/icons/exchange-alt-solid.svg"/>
+                          <h4 class="icon-header">Diversity</h4>
+                          <p class="icon-desc">60+ furniture models, customizable background, lighting and textures</p>
+                      </div>
+                      <div class="w3-center w3-quarter"/>
+                          <img width="25%" src="./img/icons/robot-solid.svg"/>
+                          <h4 class="icon-header">Robots</h4>
+                          <p class="icon-desc">Baxter, Sawyer, and more</p>
+                      </div>
+                      <div class="w3-center w3-quarter"/>
+                          <img width="25%" src="./img/icons/code-solid.svg"/>
+                          <h4 class="icon-header">Easy to Use</h4>
+                          <p class="icon-desc">OpenAI Gym interface for imitation / reinforcement learning</p>
+                      </div>
+                  </div>
+                </div>
+
+                <!--robot simulation -->
+                <div class="container2">
+                  <div class="mdcontainer">
+                    <h2>Realistic Robot Simulation</h2>
+                    <table class="responsivetable">
+                        <tbody><tr>
+                          <td style="width:33%; text-align: center">
+                              <img width="100%" src="img/agents/video_sawyer_swivel_chair.gif" id="round">
+                              <figcaption>Sawyer</figcaption>
+                          </td>
+                          <td style="width:33%; text-align: center">
+                              <img width="100%" src="img/agents/video_baxter_chair.gif" id="round">
+                              <figcaption>Baxter</figcaption>
+                          </td>
+                          <td style="width:33%; text-align: center">
+                              <img width="100%" src="img/agents/video_jaco_tvunit.gif" id="round">
+                              <figcaption>Jaco</figcaption>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="width:33%; text-align: center">
+                              <img width="100%" src="img/agents/video_panda_table.gif" id="round">
+                              <figcaption>Panda</figcaption>
+                          </td>
+                          <td style="width:33%; text-align: center">
+                              <img width="100%" src="img/agents/agents_fetch.png" id="round">
+                              <figcaption>Fetch</figcaption>
+                          </td>
+                          <td style="width:33%; text-align: center">
+                              <img width="100%" src="img/agents/video_cursor_round_table.gif" id="round">
+                              <figcaption>Cursor</figcaption>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <ul class="browser-default" style="width:70%;">
+                      <li>Support for Sawyer, Baxter, Jaco, Panda, and Fetch robots with IK, impedance, and torque controls</li>
+                      <li>Provide <em>Cursor</em> agent as an abstraction</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- various environments -->
+                <div class="container1">
+                  <div class="mdcontainer">
+                    <h2>Various Environments</h2>
+                    <div class="responsiveimg" style="max-width:400px; margin: auto; text-align: center">
+                        <img width="100%" src="img/env/allenv.gif" id="round">
+                        <figcaption class="imgcaption">Diverse lighting, textures, and background</figcaption>
+                    </div>
+                    <ul class="browser-default" style="width:70%">
+                      <li>Variability in furniture, textures, physics, lighting, background, and more</li>
+                      <li>Uses Unity3d for realistic visualization</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Furniture models -->
+                <div class="container2">
+                  <div class="mdcontainer">
+                    <h2>80+ IKEA Furniture Models</h2>
+                    <div style="max-width: 800px; width:60%; margin: auto; text-align:center;">
+                      <img width="100%" src="img/furniture_models.png" id="round">
+                      <figcaption class="imgcaption">Diverse IKEA furniture</figcaption>
+                    </div>
+                    <ul class="browser-default" style="width:70%;">
+                      <li>Over 60 furniture models: chairs, tables, cabinets, bookcases, desks, shelfs, and TVs</li>
+                      <li>Created following official IKEA manuals with minor simplifications in carving and screws</li>
+                    </ul>
+                    <table class="responsivetable" style="max-width:1200px;">
+                      <tbody>
+                        <tr>
+                          <td style="width:33%; text-align: center">
+                              <img id="round" width="100%" src="img/furniture_grid/box%2049%204x.gif">
+                          </td>
+                          <td style="width:33%; text-align: center">
+                              <img id="round" width="100%" src="img/furniture_grid/chair%2014%204x.gif">
+                          </td>
+                          <td style="width:33%; text-align: center">
+                              <img id="round" width="100%" src="img/furniture_grid/chair%2015%204x.gif">
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="width:33%; text-align: center; vertical-align:top">
+                              <img id="round" width="100%" src="img/furniture_grid/shelf%2051%204x.gif">
+                          </td>
+                          <td style="width:33%; text-align: center; vertical-align:top">
+                              <img id="round" width="100%" src="img/furniture_grid/table%2028%204x.gif">
+                          </td>
+                          <td style="width:33%; text-align: center; vertical-align:top">
+                              <img id="round" width="100%" src="img/furniture_grid/table%2084%204x.gif">
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <figcaption class="imgcaption">Examples of furniture models</figcaption>
+                  </div>
+                </div>
+
+                <!-- available observations -->
+                <div class="container1">
+                  <div class="mdcontainer">
+                    <h2 id="available-observations">Available Observations</h2>
+                      <table style="width:100%; margin: auto; max-width: 1200px;">
+                        <tbody>
+                          <tr>
+                            <td style="text-align: center">
+                                <img id="round" src="img/observations/camera_ob.png" width="95%">
+                                <figcaption class="imgcaption">Scene</figcaption>
+                            </td>
+                            <td style="text-align: center">
+                                <img  id="round" src="img/observations/depth_ob.png" width="95%">
+                                <figcaption class="imgcaption">Depth</figcaption>
+                            </td>
+                            <td style="text-align: center">
+                                <img id="round" src="img/observations/segmentation_ob.png" width="95%">
+                                <figcaption class="imgcaption">Segmentation</figcaption>
+                            </td>
+                            <td style="text-align: center">
+                                <img id="round" src="img/observations/goal_camera_ob.png" width="95%">
+                                <figcaption class="imgcaption">Goal</figcaption>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                  </div>
+                </div>
+
+                <!--related research topics -->
+                <div class="container2">
+                  <div class="mdcontainer">
+                    <h2 id="related-research-topics">Related Research Topics</h2>
+                    <ul class="browser-default">
+                      <li>Reinforcement learning and imitation learning for complex manipulation tasks</li>
+                      <li>Sim-to-real for real robot object manipulation</li>
+                      <li>Computer vision tasks (object pose estimation, scene understanding, instance segmentation, etc)</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!--Limiations and future work-->
+                <div class="container1">
+                  <div class="mdcontainer">
+                    <h2 id="limitations-and-future-work">Limitations and Future Work</h2>
+                    <p id="justify">While we worked hard to provide a comprehensive furniture assembly environment, there are many potential avenues for extension.</p>
+                    <ul class="browser-default">
+                      <li><strong>Realistic part attachment:</strong> peg insertion, screwing, nailing mechanisms</li>
+                      <li><strong>Tool use:</strong> using a screwdriver or a hammer</li>
+                      <li><strong>Multi-agent assembly:</strong> using multiple robots to assemble furniture</li>
+                      <li><strong>Supervision:</strong> leverage verbal and visual instructions or demonstrations</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!--Citations-->
+                <div class="container2" style="padding:0px 0;">
+                  <div class="mdcontainer">
+                    <h2 id="citations">Citations</h2>
+                    <pre>
+                      <code>@inproceedings{lee2021ikea,
+  title={{IKEA} Furniture Assembly Environment for Long-Horizon Complex Manipulation Tasks},
+  author={Lee, Youngwoon and Hu, Edward S and Lim, Joseph J},
+  booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
+  year={2021},
+  url={https://clvrai.com/furniture},
+}</code>
+                    </pre>
+                  </div>
+                </div>
+
+                <!--Quesitons and comments-->
+                <div class="container1">
+                  <div class="mdcontainer">
+                    <h2 id="questions-and-comments">Questions and Comments</h2>
+                    <p id="justify">For bug reports, feedback, or comments, please fill out <a href="https://forms.gle/596eDXmETHLFHD7w7">this form</a>, or create a <a href="https://github.com/clvrai/furniture">github issue</a>, or email Youngwoon Lee (lee504@usc.edu).</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="w3-center w3-light-grey w3-padding-32 w3-small">
+    <p style="color: grey">Part of this project was supported by SKT.</br> &copy; Copyright 2019-2021, USC.</p>
+        </footer>
+
+    </body>
+</html>
+
