@@ -387,16 +387,15 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
 
                 safepos_idx = 0
                 safepos.clear()
-                if "grip_init_pos" in p:
-                    if p["grip_init_pos"][j] is not None:
-                        gripbase_pos = self._get_pos(gripbase_site)
-                        # gripbase_pos = [0.05866653 0.26087148 0.17194385]
-                        for pos in p["grip_init_pos"][j]:
-                            init_pos = gripbase_pos + pos[:3]
-                            if len(pos) == 4:
-                                init_pos[2] = pos[3]
-                            safepos.append(init_pos)
-                            print("grip init", init_pos)
+                if "grip_init_pos" in p and p["grip_init_pos"][j] is not None:
+                    gripbase_pos = self._get_pos(gripbase_site)
+                    # gripbase_pos = [0.05866653 0.26087148 0.17194385]
+                    for pos in p["grip_init_pos"][j]:
+                        init_pos = gripbase_pos + pos[:3]
+                        if len(pos) == 4:
+                            init_pos[2] = pos[3]
+                        safepos.append(init_pos)
+                        print("grip init", init_pos)
                 else:
                     self._phase_num = 1
 
