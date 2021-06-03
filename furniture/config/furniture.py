@@ -81,7 +81,7 @@ def add_argument(parser):
         "--num_connects", type=int, default=None, help="number connecting for success"
     )
     parser.add_argument(
-        "--move_speed", type=float, default=0.05, help="step size of move actions"
+        "--move_speed", type=float, default=0.1, help="step size of move actions"
     )
     parser.add_argument(
         "--rotate_speed", type=float, default=22.5, help="step size of rotate actions"

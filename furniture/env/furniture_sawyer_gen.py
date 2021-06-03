@@ -269,6 +269,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         else:
             self._phase_num += 1
             d[0:2] = 0
+        if abs(d[0]) > 0.03:
+            d[0] /= abs(d[0])
+        if abs(d[1]) > 0.03:
+            d[1] /= abs(d[1])
         return d
 
     def move_xyz(self, cur_pos, target_pos, epsilon, noise=None):
@@ -289,6 +293,12 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 d[2] = 0
         else:
             d[0:3] = 0
+        if abs(d[0]) > 0.03:
+            d[0] /= abs(d[0])
+        if abs(d[1]) > 0.03:
+            d[1] /= abs(d[1])
+        if abs(d[2]) > 0.03:
+            d[2] /= abs(d[2])
         return d
 
     def move_z(self, cur_pos, target_pos, epsilon, conn_dist, noise=None, fine=None):
@@ -314,6 +324,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             d[2] = 0
         if fine:
             d /= fine
+            d = np.clip(d, -0.02, 0.02)
         return d
 
     def generate_demos(self, n_demos):
@@ -439,20 +450,19 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     # logger.info(self._phase)
                     if self._phase == "init_grip":
                         action[6] = -1
-                        if safepos_idx >= len(safepos):
-                            safepos_idx = 0
-                            safepos.clear()
-                            self._phase_num += 1
-                        else:
-                            gripbase_pos = self._get_pos(gripbase_site)
-                            action[0:3] = self.move_xyz(
-                                gripbase_pos,
-                                safepos[safepos_idx],
-                                p["eps"],
-                                noise=noise[self._phase],
-                            )
-                            if not np.any(action[0:3]):
-                                safepos_idx += 1
+                        gripbase_pos = self._get_pos(gripbase_site)
+                        action[0:3] = self.move_xyz(
+                            gripbase_pos,
+                            safepos[safepos_idx],
+                            p["eps"],
+                            noise=noise[self._phase],
+                        )
+                        if not np.any(action[0:3]):
+                            safepos_idx += 1
+                            if safepos_idx >= len(safepos):
+                                safepos_idx = 0
+                                safepos.clear()
+                                self._phase_num += 1
 
                     elif self._phase == "xy_move_g":
                         action[6] = -1
@@ -515,8 +525,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                     elif self._phase == "move_waypoints":
                         action[6] = 1
                         if p["waypoints"][j] is None or (
-                            p["waypoints"][j]
-                            and safepos_idx >= len(p["waypoints"][j])
+                            p["waypoints"][j] and safepos_idx >= len(p["waypoints"][j])
                         ):
                             safepos_idx = 0
                             safepos.clear()
@@ -589,7 +598,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                         gconn_pos = self.sim.data.get_site_xpos(gconn)
                         tconn_pos = self.sim.data.get_site_xpos(tconn)
                         action[0:3] = self.move_z(
-                            gconn_pos, tconn_pos, p["z_finedist"], z_conn_dist
+                            gconn_pos,
+                            tconn_pos,
+                            p["eps"],
+                            z_conn_dist + p["z_finedist"],
                         )
                         if not np.any(action[0:3]):
                             self._phase_num += 1

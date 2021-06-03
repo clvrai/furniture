@@ -81,7 +81,7 @@ class SawyerIKController(Controller):
             self.robot_jpos_getter(), self.commanded_joint_positions
         )
         for i, delta in enumerate(deltas):
-            velocities[i] = -2. * delta  # -2. * delta
+            velocities[i] = -5. * delta  # -2. * delta
         velocities = self.clip_joint_velocities(velocities)
 
         self.commanded_joint_velocities = velocities
@@ -296,9 +296,4 @@ class SawyerIKController(Controller):
         """
         Clips joint velocities into a valid range.
         """
-        for i in range(len(velocities)):
-            if velocities[i] >= 1.0:
-                velocities[i] = 1.0
-            elif velocities[i] <= -1.0:
-                velocities[i] = -1.0
-        return velocities
+        return np.clip(velocities, -1, 1)
