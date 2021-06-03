@@ -1,8 +1,8 @@
 # xyz parameters
-fine_magnitude: 1
+fine_magnitude: 3
 z_finedist: 0.05
 z_conn_dist: 0.0
-lat_magnitude: 20
+lat_magnitude: 15
 eps: 0.01
 eps_fine: 0.005
 # rot parameters
