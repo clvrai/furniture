@@ -269,9 +269,9 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         else:
             self._phase_num += 1
             d[0:2] = 0
-        if abs(d[0]) > 0.03:
+        if abs(d[0]) > 0.04:
             d[0] /= abs(d[0])
-        if abs(d[1]) > 0.03:
+        if abs(d[1]) > 0.04:
             d[1] /= abs(d[1])
         return d
 
@@ -293,11 +293,11 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 d[2] = 0
         else:
             d[0:3] = 0
-        if abs(d[0]) > 0.03:
+        if abs(d[0]) > 0.04:
             d[0] /= abs(d[0])
-        if abs(d[1]) > 0.03:
+        if abs(d[1]) > 0.04:
             d[1] /= abs(d[1])
-        if abs(d[2]) > 0.03:
+        if abs(d[2]) > 0.04:
             d[2] /= abs(d[2])
         return d
 
