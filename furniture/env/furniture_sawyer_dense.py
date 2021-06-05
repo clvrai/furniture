@@ -49,6 +49,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # lift_leg
         self._lift_xy_dist_coef = config.lift_xy_dist_coef
         self._lift_z_dist_coef = config.lift_z_dist_coef
+        self._lift_xy_pos_threshold = config.lift_xy_pos_threshold
+        self._lift_z_pos_threshold = config.lift_z_pos_threshold
 
         # align_leg
         self._align_pos_dist_coef = config.align_pos_dist_coef
@@ -609,7 +611,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             "lift_leg_rew": lift_leg_rew,
             "lift_leg_xy_dist": xy_dist,
             "lift_leg_z_dist": z_dist,
-            "lift_leg_succ": int(xy_dist < 0.03 and z_dist < 0.01),
+            "lift_leg_succ": int(
+                xy_dist < self._lift_xy_pos_threshold
+                and z_dist < self._lift_z_pos_threshold
+            ),
             "lift_leg_pos": leg_pos,
             "lift_leg_target": self._lift_leg_pos,
         }

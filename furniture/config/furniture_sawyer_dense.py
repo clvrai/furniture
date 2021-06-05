@@ -40,6 +40,8 @@ def add_argument(parser):
     ## lift_leg
     parser.add_argument("--lift_z_dist_coef", type=float, default=500)
     parser.add_argument("--lift_xy_dist_coef", type=float, default=250)
+    parser.add_argument("--lift_z_pos_threshold", type=float, default=0.02)
+    parser.add_argument("--lift_xy_pos_threshold", type=float, default=0.05)
 
     ## align_leg
     parser.add_argument("--align_pos_dist_coef", type=float, default=100)
