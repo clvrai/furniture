@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import numpy as np
+import gym.spaces
 
 from . import transform_utils as T
 from .furniture_sawyer import FurnitureSawyerEnv
@@ -93,6 +94,35 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             "move_leg",
             "move_leg_fine",
         ]
+
+    @property
+    def observation_space(self):
+        """
+        Returns the observation space.
+        """
+        ob_space = super().observation_space
+
+        if self._config.phase_ob:
+            ob_space.spaces["phase_ob"] = gym.spaces.Box(low=0, high=1, shape=(8,))
+
+        return ob_space
+
+    def _get_obs(self, include_qpos=False):
+        state = super()._get_obs(include_qpos)
+
+        if self._config.phase_ob:
+            state["phase_ob"] = np.eye(8)[self._phase_i]
+
+        return state
+
+    def _step(self, a):
+        ob, reward, done, info = super()._step(a)
+
+        # update phase_ob with updated phase_i
+        if self._config.phase_ob:
+            ob["phase_ob"] = np.eye(8)[self._phase_i]
+
+        return ob, reward, done, info
 
     def _reset_reward_variables(self):
         self._subtask_step = len(self._preassembled)

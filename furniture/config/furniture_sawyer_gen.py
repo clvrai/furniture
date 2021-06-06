@@ -3,6 +3,7 @@ from ..util import str2bool
 
 def add_argument(parser):
     parser.set_defaults(max_episode_steps=None)
+    parser.set_defaults(control_type="ik")
     parser.set_defaults(record_vid=False)
     parser.set_defaults(unity=False)
 
@@ -12,6 +13,12 @@ def add_argument(parser):
     parser.set_defaults(alignment_rot_dist_forward=0.99)
     parser.set_defaults(alignment_project_dist=0.)
 
+    parser.add_argument(
+        "--phase_ob",
+        type=str2bool,
+        default=False,
+        help="includes phase in observation",
+    )
     parser.add_argument(
         "--start_count",
         type=int,

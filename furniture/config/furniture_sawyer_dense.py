@@ -13,6 +13,13 @@ def add_argument(parser):
     parser.set_defaults(alignment_rot_dist_forward=0.99)
     parser.set_defaults(alignment_project_dist=0.)
 
+    parser.add_argument(
+        "--phase_ob",
+        type=str2bool,
+        default=False,
+        help="includes phase in observation",
+    )
+
     # reward coefficients
     ## common rewards
     parser.add_argument("--diff_rew", type=str2bool, default=True)

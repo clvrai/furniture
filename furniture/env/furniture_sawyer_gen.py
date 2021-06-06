@@ -1,9 +1,11 @@
 import yaml
 import numpy as np
 from tqdm import tqdm
+import gym.spaces
 
 from . import transform_utils as T
 from .furniture_sawyer import FurnitureSawyerEnv
+from .furniture_sawyer_dense import FurnitureSawyerDenseRewardEnv
 from .models import background_names, furniture_name2id, furniture_xmls
 from ..util.logger import logger
 
@@ -76,6 +78,21 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             "move_nogrip_safepos",
             "part_done",
         ]
+        self._phases_to_phase_i = {
+            None: 0,
+            "init_grip": 0,
+            "xy_move_g": 1,
+            "align_g": 1,
+            "z_move_g": 2,
+            "move_waypoints": 4,
+            "align_conn": 5,
+            "xy_move_conn": 6,
+            "z_move_conn": 6,
+            "align_conn_fine": 7,
+            "z_move_conn_fine": 7,
+            "move_nogrip_safepos": 0,
+            "part_done": 0,
+        }
 
         self._phase_noise = {
             #   phase      : (min_val, max_val, dimensions)
@@ -86,6 +103,26 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             "move_nogrip_safepos": (0, 2 * self._config.furn_xyz_rand, 3),
         }
         self.reset()
+
+    @property
+    def observation_space(self):
+        """
+        Returns the observation space.
+        """
+        ob_space = super().observation_space
+
+        if self._config.phase_ob:
+            ob_space.spaces["phase_ob"] = gym.spaces.Box(low=0, high=1, shape=(8,))
+
+        return ob_space
+
+    def _get_obs(self, include_qpos=False):
+        state = super()._get_obs(include_qpos)
+
+        if self._config.phase_ob:
+            state["phase_ob"] = np.eye(8)[self._phases_to_phase_i[self._phase]]
+
+        return state
 
     def _get_random_noise(self):
         noise = {}
