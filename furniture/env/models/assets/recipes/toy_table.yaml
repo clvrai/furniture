@@ -2,10 +2,10 @@
 # xyz parameters
 fine_magnitude: 2
 z_finedist: 0.13                  # distance between connsites at which to start fine adjustment
-z_conn_dist: 0.002                 # distance between connsites at which to connect
+z_conn_dist: 0.000                 # distance between connsites at which to connect
 lat_magnitude: 10           # keep movespeed constant at 0.025
 eps: 0.01                      # max acceptable x,y,z difference
-eps_fine: 0.002                # max acceptable x,y,z difference
+eps_fine: 0.004                # max acceptable x,y,z difference
 # rot parameters
 rot_magnitude: 1
 rot_eps: 0.05

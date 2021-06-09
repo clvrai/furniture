@@ -1,10 +1,10 @@
 <mujoco model="toy_table">
   <custom>
     <numeric name="4_part4_initpos" data="-0.3 -0.02 0.03878736 0.00 0.99997892 0.00649339 0"/>
-    <numeric name="3_part3_initpos" data="0.44  0.08 0.04 -0.71 0.71 0 0"/>
-    <numeric name="2_part2_initpos" data="0.32 0.08 0.04 -0.71 0.71 0 0"/>
-    <numeric name="1_part1_initpos" data="0.2 0.08 0.04 -0.71 0.71 0 0"/>
-    <numeric name="0_part0_initpos" data="0.08 0.08 0.04 -0.71 0.71 0 0"/>
+    <numeric name="3_part3_initpos" data="0.44  0.08 0.02 -0.71 0.71 0 0"/>
+    <numeric name="2_part2_initpos" data="0.32 0.08 0.02 -0.71 0.71 0 0"/>
+    <numeric name="1_part1_initpos" data="0.2 0.08 0.02 -0.71 0.71 0 0"/>
+    <numeric name="0_part0_initpos" data="0.08 0.08 0.02 -0.71 0.71 0 0"/>
   </custom>
   <asset>
     <mesh file="toy_table/0.stl" name="part0" scale="0.042 0.042 0.042" />
@@ -54,10 +54,10 @@
       <site name="4_part4_corner_site3" pos="0.23137183701242006 0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
       <site name="4_part4_corner_site2" pos="0.23137183701242006 -0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
       <site name="4_part4_corner_site1" pos="-0.23137183701242006 -0.23137185801260024 -0.03774280480750086" quat="1 0 0 0" rgba="0 0 1 0.3" size="0.016800144133768378" />
-      <site name="top-leg,,conn_site4" pos="0.198 0.198 0" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01679342264788419" />
-      <site name="top-leg,,conn_site3" pos="0.198 -0.198 0" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
-      <site name="top-leg,,conn_site2" pos="-0.198 -0.198 0" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
-      <site name="top-leg,,conn_site1" pos="-0.198 0.198 0" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <site name="top-leg,,conn_site4" pos="0.198 0.198 -0.00" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.01679342264788419" />
+      <site name="top-leg,,conn_site3" pos="0.198 -0.198 -0.00" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <site name="top-leg,,conn_site2" pos="-0.198 -0.198 -0.00" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
+      <site name="top-leg,,conn_site1" pos="-0.198 0.198 -0.00" quat="0 0 1 0" rgba="0.9019 0.0980 0.2941 0.3" size="0.016800144133768374" />
 
       <geom density="50" name="noviz_collision_4_part4_0" pos="-0.198 0.168 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0115 0.0002 0.0485" solref="0.001 1" type="box" />
       <geom density="50" name="noviz_collision_4_part4_1" pos="-0.198 0.228 -0.016" quat="1 0 0 0" rgba="1 0 0 1" size="0.0115 0.0002 0.0485" solref="0.001 1" type="box" />
