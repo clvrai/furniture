@@ -455,7 +455,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
             elif phase_info["move_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 3
+                phase_bonus += self._phase_bonus * 5
 
                 self._prev_move_pos_dist = v["move_pos_dist"]
                 self._prev_proj_t = v["proj_table"]
@@ -468,7 +468,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Moved table too much during move_leg_fine")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus / 2
+                    phase_bonus -= self._phase_bonus * 2
 
             elif phase_info["connect_succ"]:
                 phase_bonus += self._phase_bonus * 3
@@ -484,7 +484,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Dropped leg during move_leg_fine")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus / 2
+                    phase_bonus -= self._phase_bonus * 3
 
         else:
             phase_reward, phase_info = 0, {}
@@ -793,7 +793,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # calculate angular rew
         move_up_ang_dist = v["move_up_ang_dist"]
         if self._diff_rew:
-            f = lambda x: np.exp(-2 * (1 - x))
+            # f = lambda x: np.exp(-2 * (1 - x))
+            f = lambda x: np.exp(-2 * (1 - max(x, self._move_rot_threshold - 0.1)))
             offset = f(move_up_ang_dist) - f(self._prev_move_up_ang_dist)
             # offset = move_up_ang_dist - self._prev_move_up_ang_dist
             up_ang_rew = offset * self._move_fine_rot_dist_coef * 10
@@ -805,7 +806,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         move_forward_ang_dist = v["move_forward_ang_dist"]
         if self._diff_rew:
-            f = lambda x: np.exp(-2 * (1 - x))
+            # f = lambda x: np.exp(-2 * (1 - x))
+            f = lambda x: np.exp(-2 * (1 - max(x, self._move_rot_threshold - 0.1)))
             offset = f(move_forward_ang_dist) - f(self._prev_move_forward_ang_dist)
             # offset = move_forward_ang_dist - self._prev_move_forward_ang_dist
             forward_ang_rew = offset * self._move_fine_rot_dist_coef * 10
@@ -821,7 +823,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         proj_t = v["proj_table"]
         proj_l = v["proj_leg"]
         if self._diff_rew:
-            f = lambda x: np.exp(-3 * (1 - abs(x)))
+            # f = lambda x: np.exp(-3 * (1 - abs(x)))
+            f = lambda x: np.exp(-3 * (1 - max(abs(x), 0.5)))
             offset = f(proj_t) - f(self._prev_proj_t)
             proj_t_rew = offset * self._move_fine_rot_dist_coef * 5
             self._prev_proj_t = proj_t
