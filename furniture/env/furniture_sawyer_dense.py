@@ -410,7 +410,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
             elif phase_info["lift_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus
+                phase_bonus += self._phase_bonus * 2
 
                 self._prev_move_pos_dist = 0
                 self._prev_move_up_ang_dist = v["move_up_ang_dist"]
@@ -423,13 +423,13 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Dropped leg during aligning")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus / 2
+                    phase_bonus -= self._phase_bonus
 
             elif move_info["table_displacement"] > 0.1:
                 logger.info("Moved table too much during move_leg")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus / 2
+                    phase_bonus -= self._phase_bonus
 
             elif phase_info["align_leg_succ"]:
                 self._phase_i += 1
@@ -565,7 +565,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         z_dist = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_dist = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
-            f = lambda x: min(x, 0.2)
+            f = lambda x: min(x, 0.1)
             offset = f(self._prev_eef_leg_dist) - f(eef_leg_dist)
             rew = offset * self._lower_eef_pos_dist_coef * 10
             self._prev_eef_leg_dist = eef_leg_dist
@@ -610,7 +610,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # reward for lifting
         leg_pos = v["leg_pos"]
         xy_dist = np.linalg.norm(self._lift_leg_pos[:2] - leg_pos[:2])
-        z_dist = np.abs(self._lift_leg_pos[2] - leg_pos[2])
+        z_dist = np.abs(max(self._lift_leg_pos[2] - leg_pos[2], -0.1))
         if self._diff_rew:
             f = lambda x: min(x, 0.4)
             z_offset = f(self._prev_lift_leg_z_dist) - f(z_dist)
