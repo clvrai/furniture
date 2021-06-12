@@ -719,7 +719,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # calculate position rew
         move_pos_dist = v["move_above_pos_dist"]
         if self._diff_rew:
-            f = lambda x: min(x, 0.3)
+            f = lambda x: min(x, 0.5)
             offset = f(self._prev_move_pos_dist) - f(move_pos_dist)
             pos_rew = offset * self._move_pos_dist_coef * 10
             self._prev_move_pos_dist = move_pos_dist
@@ -729,7 +729,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # calculate angular rew
         move_up_ang_dist = v["move_up_ang_dist"]
         if self._diff_rew:
-            offset = move_up_ang_dist - self._prev_move_up_ang_dist
+            f = lambda x: max(x, 0)
+            offset = f(move_up_ang_dist) - f(self._prev_move_up_ang_dist)
             up_ang_rew = offset * self._move_rot_dist_coef * 10
             self._prev_move_up_ang_dist = move_up_ang_dist
         else:
@@ -737,7 +738,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         move_forward_ang_dist = v["move_forward_ang_dist"]
         if self._diff_rew:
-            offset = move_forward_ang_dist - self._prev_move_forward_ang_dist
+            f = lambda x: max(x, 0)
+            offset = f(move_forward_ang_dist) - f(self._prev_move_forward_ang_dist)
             forward_ang_rew = offset * self._move_rot_dist_coef * 10
             self._prev_move_forward_ang_dist = move_forward_ang_dist
         else:
