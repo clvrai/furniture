@@ -616,7 +616,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             z_offset = f(self._prev_lift_leg_z_dist) - f(z_dist)
             lift_leg_z_rew = z_offset * self._lift_z_dist_coef * 10
             self._prev_lift_leg_z_dist = z_dist
-            g = lambda x: min(x, 0.2)
+            g = lambda x: min(x, 0.8)
             xy_offset = g(self._prev_lift_leg_xy_dist) - g(xy_dist)
             lift_leg_xy_rew = xy_offset * self._lift_xy_dist_coef * 10
             self._prev_lift_leg_xy_dist = xy_dist
