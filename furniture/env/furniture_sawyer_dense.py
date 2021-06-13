@@ -391,7 +391,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._grasp_leg_reward(ac)
             if phase_info["grasp_leg_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus
+                phase_bonus += self._phase_bonus * 2
 
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
@@ -610,19 +610,21 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # reward for lifting
         leg_pos = v["leg_pos"]
         xy_dist = np.linalg.norm(self._lift_leg_pos[:2] - leg_pos[:2])
-        z_dist = np.abs(max(self._lift_leg_pos[2] - leg_pos[2], -0.1))
+        z_dist = np.abs(self._lift_leg_pos[2] - leg_pos[2])
         if self._diff_rew:
-            f = lambda x: min(x, 0.4)
+            f = lambda x: min(x, 0.5)
             z_offset = f(self._prev_lift_leg_z_dist) - f(z_dist)
-            lift_leg_rew = z_offset * self._lift_z_dist_coef * 10
+            lift_leg_z_rew = z_offset * self._lift_z_dist_coef * 10
             self._prev_lift_leg_z_dist = z_dist
-            g = lambda x: min(x, 0.1)
+            g = lambda x: min(x, 0.2)
             xy_offset = g(self._prev_lift_leg_xy_dist) - g(xy_dist)
-            lift_leg_rew += xy_offset * self._lift_xy_dist_coef * 10
+            lift_leg_xy_rew = xy_offset * self._lift_xy_dist_coef * 10
             self._prev_lift_leg_xy_dist = xy_dist
         else:
-            lift_leg_rew = -z_dist * self._lift_z_dist_coef
-            lift_leg_rew = -xy_dist * self._lift_xy_dist_coef
+            lift_leg_z_rew = -z_dist * self._lift_z_dist_coef
+            lift_leg_xy_rew = -xy_dist * self._lift_xy_dist_coef
+
+        lift_leg_rew = lift_leg_xy_rew + lift_leg_z_rew
 
         # give one time reward for lifting the leg
         leg_lift = leg_pos[2] > (self._init_lift_leg_pos[2] + 0.01)
@@ -639,6 +641,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info = {
             "lift": int(leg_lift),
             "lift_leg_rew": lift_leg_rew,
+            "lift_leg_xy_rew": lift_leg_xy_rew,
+            "lift_leg_z_rew": lift_leg_z_rew,
             "lift_leg_xy_dist": xy_dist,
             "lift_leg_z_dist": z_dist,
             "lift_leg_succ": int(
