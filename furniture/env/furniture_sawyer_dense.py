@@ -565,7 +565,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         z_dist = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_dist = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
-            f = lambda x: min(x, 0.1)
+            f = lambda x: min(x, 0.15)
             offset = f(self._prev_eef_leg_dist) - f(eef_leg_dist)
             rew = offset * self._lower_eef_pos_dist_coef * 10
             self._prev_eef_leg_dist = eef_leg_dist
