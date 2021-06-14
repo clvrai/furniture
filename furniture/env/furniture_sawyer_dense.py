@@ -204,10 +204,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             if self._phase_i == 1:
                 leg_pos = self._get_leg_grasp_pos() + [0, 0, 0.05]
                 dist = np.linalg.norm(eef_pos - leg_pos)
-                self._prev_eef_above_leg_dist = min(dist, 1.0)
+                self._prev_eef_above_leg_dist = dist
             else:
                 dist = np.linalg.norm(eef_pos - self._init_eef_pos)
-                self._prev_init_eef_dist = min(dist, 0.5)
+                self._prev_init_eef_dist = dist
             self._prev_grasp_dist = -1
             self._prev_lift_leg_z_dist = self._recipe["waypoints"][subtask_step][0][2]
             self._prev_lift_leg_xy_dist = 0.0
@@ -302,39 +302,40 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info["skip_to_lift_leg"] = 0
         info["skip_to_move_leg_fine"] = 0
 
-        # detect early picking
-        if v["leg_safe_grasp"] and sg_info["stable_grip_succ"] and self._phase_i < 3:
-            logger.info("Skipped to lift_leg")
-            info["skip_to_lift_leg"] = 1
-            # phase_bonus += self._phase_bonus * (3 - self._phase_i)
-            # phase_bonus += self._phase_bonus
-            self._phase_i = self._phases.index("lift_leg")  # lift_leg
+        if not self._config.phase_ob:
+            # detect early picking
+            if v["leg_safe_grasp"] and sg_info["stable_grip_succ"] and self._phase_i < 3:
+                logger.info("Skipped to lift_leg")
+                info["skip_to_lift_leg"] = 1
+                # phase_bonus += self._phase_bonus * (3 - self._phase_i)
+                # phase_bonus += self._phase_bonus
+                self._phase_i = self._phases.index("lift_leg")  # lift_leg
 
-        # detect early fine alignment without lifting or coarse alignment
-        if leg_touched and self._phase_i in [4, 5]:  # lift_leg or align_leg
-            move_above_pos_dist = v["move_above_pos_dist"]
-            move_pos_dist = v["move_pos_dist"]
-            move_up_ang_dist = v["move_up_ang_dist"]
-            move_forward_ang_dist = v["move_forward_ang_dist"]
+            # detect early fine alignment without lifting or coarse alignment
+            if leg_touched and self._phase_i in [4, 5]:  # lift_leg or align_leg
+                move_above_pos_dist = v["move_above_pos_dist"]
+                move_pos_dist = v["move_pos_dist"]
+                move_up_ang_dist = v["move_up_ang_dist"]
+                move_forward_ang_dist = v["move_forward_ang_dist"]
 
-            if (
-                (
-                    move_pos_dist < self._move_pos_threshold
-                    or move_above_pos_dist < self._move_pos_threshold
-                )
-                and move_up_ang_dist > self._move_rot_threshold
-                and move_forward_ang_dist > self._move_rot_threshold
-            ):
-                logger.info("Skipped to move_leg_fine")
-                info["skip_to_move_leg_fine"] = 1
-                # phase_bonus += self._phase_bonus * (7 - self._phase_i)
-                self._phase_i = self._phases.index("move_leg_fine")  # move_leg_fine
+                if (
+                    (
+                        move_pos_dist < self._move_pos_threshold
+                        or move_above_pos_dist < self._move_pos_threshold
+                    )
+                    and move_up_ang_dist > self._move_rot_threshold
+                    and move_forward_ang_dist > self._move_rot_threshold
+                ):
+                    logger.info("Skipped to move_leg_fine")
+                    info["skip_to_move_leg_fine"] = 1
+                    # phase_bonus += self._phase_bonus * (7 - self._phase_i)
+                    self._phase_i = self._phases.index("move_leg_fine")  # move_leg_fine
 
-                self._prev_move_pos_dist = move_pos_dist
-                self._prev_move_up_ang_dist = move_up_ang_dist
-                self._prev_move_forward_ang_dist = move_forward_ang_dist
-                self._prev_proj_t = v["proj_table"]
-                self._prev_proj_l = v["proj_leg"]
+                    self._prev_move_pos_dist = move_pos_dist
+                    self._prev_move_up_ang_dist = move_up_ang_dist
+                    self._prev_move_forward_ang_dist = move_forward_ang_dist
+                    self._prev_proj_t = v["proj_table"]
+                    self._prev_proj_l = v["proj_leg"]
 
         # compute phase-based reward
         phase = self._phases[self._phase_i]
@@ -363,7 +364,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 eef_pos = v["eef_pos"]
                 leg_pos = v["leg_grasp_pos"] + [0, 0, 0.05]
                 dist = np.linalg.norm(eef_pos - leg_pos)
-                self._prev_eef_above_leg_dist = min(dist, 1.0)
+                self._prev_eef_above_leg_dist = dist
 
         elif phase == "move_eef_above_leg":
             phase_reward, phase_info = self._move_eef_above_leg_reward()
@@ -511,11 +512,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         v = self._current_values
         eef_pos = v["eef_pos"]
         dist = np.linalg.norm(eef_pos - self._init_eef_pos)
-        init_eef_dist = min(dist, 0.5)
+        init_eef_dist = dist
         if self._diff_rew:
-            f = lambda x: np.exp(-10 * x)
+            f = lambda x: np.exp(-10 * min(x, 0.5))
             offset = f(init_eef_dist) - f(self._prev_init_eef_dist)
-            # offset = self._prev_init_eef_dist - init_eef_dist
             rew = offset * self._init_eef_pos_dist_coef * 10
             self._prev_init_eef_dist = init_eef_dist
         else:
@@ -538,12 +538,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         v = self._current_values
         eef_pos = v["eef_pos"]
         leg_pos = v["leg_grasp_pos"] + [0, 0, 0.05]
-        xy_dist = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
-        z_dist = np.abs(eef_pos[2] - leg_pos[2])
-        dist = np.linalg.norm(eef_pos - leg_pos)
-        eef_above_leg_dist = min(dist, 1.0)
+        eef_above_leg_dist = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
-            offset = self._prev_eef_above_leg_dist - eef_above_leg_dist
+            f = lambda x: min(x, 1.0)
+            offset = f(self._prev_eef_above_leg_dist) - f(eef_above_leg_dist)
             rew = offset * self._move_eef_pos_dist_coef * 10
             self._prev_eef_above_leg_dist = eef_above_leg_dist
         else:
@@ -552,7 +550,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info = {
             "move_eef_above_leg_dist": eef_above_leg_dist,
             "move_eef_above_leg_rew": rew,
-            "move_eef_above_leg_succ": int(dist < 0.03),
+            "move_eef_above_leg_succ": int(eef_above_leg_dist < 0.03),
         }
         return rew, info
 
@@ -569,7 +567,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         z_dist = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_dist = np.linalg.norm(eef_pos - leg_pos)
         if self._diff_rew:
-            f = lambda x: min(x, 0.15)
+            f = lambda x: min(x, 0.2)
             offset = f(self._prev_eef_leg_dist) - f(eef_leg_dist)
             rew = offset * self._lower_eef_pos_dist_coef * 10
             self._prev_eef_leg_dist = eef_leg_dist
