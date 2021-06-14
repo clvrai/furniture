@@ -23,7 +23,7 @@ def add_argument(parser):
     # reward coefficients
     ## common rewards
     parser.add_argument("--diff_rew", type=str2bool, default=True)
-    parser.add_argument("--phase_bonus", type=float, default=2000)
+    parser.add_argument("--phase_bonus", type=float, default=5000)
     parser.add_argument("--eef_forward_dist_coef", type=float, default=2)
     parser.add_argument("--eef_up_dist_coef", type=float, default=4)
     parser.add_argument("--eef_rot_threshold", type=float, default=0.95)

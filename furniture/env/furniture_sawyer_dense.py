@@ -140,10 +140,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
     def _update_reward_variables(self):
         """ Updates the reward variables wrt subtask step. """
         subtask_step = self._subtask_step
-        if self._config.reset_robot_after_attach:
-            self._phase_i = 1
-        else:
-            self._phase_i = 0
 
         self._leg, self._table = self._recipe["recipe"][subtask_step]
         self._leg_site, self._table_site = self._site_recipe[subtask_step][:2]
@@ -303,7 +299,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             logger.info("Skipped to lift_leg")
             info["skip_to_lift_leg"] = 1
             # phase_bonus += self._phase_bonus * (3 - self._phase_i)
-            phase_bonus += self._phase_bonus
+            # phase_bonus += self._phase_bonus
             self._phase_i = self._phases.index("lift_leg")  # lift_leg
 
         # detect early fine alignment without lifting or coarse alignment
@@ -391,7 +387,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._grasp_leg_reward(ac)
             if phase_info["grasp_leg_succ"] and sg_info["stable_grip_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus
 
         elif phase == "lift_leg":
             phase_reward, phase_info = self._lift_leg_reward()
@@ -410,7 +406,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
             elif phase_info["lift_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus
 
                 self._prev_move_pos_dist = 0
                 self._prev_move_up_ang_dist = v["move_up_ang_dist"]
@@ -423,17 +419,17 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Dropped leg during aligning")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus
+                    phase_bonus -= self._phase_bonus / 2
 
             elif move_info["table_displacement"] > 0.1:
                 logger.info("Moved table too much during move_leg")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus
+                    phase_bonus -= self._phase_bonus / 2
 
             elif phase_info["align_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 2
+                phase_bonus += self._phase_bonus
 
                 self._prev_move_pos_dist = v["move_above_pos_dist"]
 
@@ -444,17 +440,17 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Dropped leg during move_leg")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus
+                    phase_bonus -= self._phase_bonus / 2
 
             elif move_info["table_displacement"] > 0.1:
                 logger.info("Moved table too much during move_leg")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus
+                    phase_bonus -= self._phase_bonus / 2
 
             elif phase_info["move_leg_succ"]:
                 self._phase_i += 1
-                phase_bonus += self._phase_bonus * 5
+                phase_bonus += self._phase_bonus * 2
 
                 self._prev_move_pos_dist = v["move_pos_dist"]
                 self._prev_proj_t = v["proj_table"]
@@ -467,10 +463,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Moved table too much during move_leg_fine")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus * 2
+                    phase_bonus -= self._phase_bonus
 
             elif phase_info["connect_succ"]:
-                phase_bonus += self._phase_bonus * 3
+                phase_bonus += self._phase_bonus * 2
                 # discourage staying in algined mode
                 phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
 
@@ -483,7 +479,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("Dropped leg during move_leg_fine")
                 done = self._early_termination
                 if self._early_termination:
-                    phase_bonus -= self._phase_bonus * 3
+                    phase_bonus -= self._phase_bonus
 
         else:
             phase_reward, phase_info = 0, {}
