@@ -1,7 +1,7 @@
 # xyz parameters
 fine_magnitude: 2
 z_finedist: 0.1
-lat_magnitude: 20
+lat_magnitude: 10
 eps: 0.01
 eps_fine: 0.005
 # rot parameters
@@ -9,7 +9,7 @@ rot_magnitude: 0.4
 rot_eps: 0.05
 rot_eps_fine: 0.02
 min_rot_act: 0.1
-min_rot_act_fine: 0.05
+min_rot_act_fine: 0.03
 # general parameters
 use_closest: True
 max_success_steps: 800

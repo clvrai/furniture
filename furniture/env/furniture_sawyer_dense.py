@@ -127,6 +127,14 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
     def _reset_reward_variables(self):
         self._subtask_step = len(self._preassembled)
         self._used_sites = set()
+        for part_idx in range(len(self._preassembled)):
+            leg = self._recipe["recipe"][part_idx][0]
+            for i in range(len(self._recipe["recipe"])):
+                g_l, g_r = f"{leg}_ltgt_site{i}", f"{leg}_rtgt_site{i}"
+                if not (g_l in self._used_sites or g_r in self._used_sites):
+                    self._used_sites.add(g_l)
+                    self._used_sites.add(g_r)
+                    break
         self._update_reward_variables()
 
     def _set_next_subtask(self) -> bool:
@@ -571,7 +579,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         info = {
             "lower_eef_leg_dist": eef_leg_dist,
             "lower_eef_leg_rew": rew,
-            "lower_eef_succ": int(xy_dist < 0.02 and z_dist < 0.01),
+            "lower_eef_succ": int(xy_dist < 0.02 and z_dist < 0.015),
         }
         return rew, info
 

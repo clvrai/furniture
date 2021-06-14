@@ -10,7 +10,7 @@ from .models import background_names, furniture_name2id, furniture_xmls
 from ..util.logger import logger
 
 
-class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
+class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
     """
     Sawyer environment for assemblying furniture programmatically.
     """
@@ -63,7 +63,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
         self._phase = None
         self._num_connected_prev = 0
         self._part_success = False
-        self._phases = [
+        self._phases_gen = [
             "init_grip",
             "xy_move_g",
             "align_g",
@@ -103,26 +103,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
             "move_nogrip_safepos": (0, 2 * self._config.furn_xyz_rand, 3),
         }
         self.reset()
-
-    @property
-    def observation_space(self):
-        """
-        Returns the observation space.
-        """
-        ob_space = super().observation_space
-
-        if self._config.phase_ob:
-            ob_space.spaces["phase_ob"] = gym.spaces.Box(low=0, high=1, shape=(8,))
-
-        return ob_space
-
-    def _get_obs(self, include_qpos=False):
-        state = super()._get_obs(include_qpos)
-
-        if self._config.phase_ob:
-            state["phase_ob"] = np.eye(8)[self._phases_to_phase_i[self._phase]]
-
-        return state
 
     def _get_random_noise(self):
         noise = {}
@@ -436,7 +416,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                 else:
                     self._phase_num = 1
 
-                self._phase = self._phases[self._phase_num]
+                self._phase = self._phases_gen[self._phase_num]
 
                 gbody_name, tbody_name = p["recipe"][j]
                 # use conn_sites in site_recipe, other dynamically get closest/furthest conn_site from gripper
@@ -551,6 +531,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             action[0:3] = d
                             z_move_g_prev = grip_tip[2] - ground_offset
                         else:
+                            action[6] = 1
                             self._phase_num += 1
                             if p["waypoints"][j] is not None:
                                 gripbase_pos = self._get_pos(gripbase_site)
@@ -726,7 +707,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerEnv):
                             if not np.any(action[0:3]):
                                 safepos_idx += 1
 
-                    self._phase = self._phases[self._phase_num]
+                    self._phase = self._phases_gen[self._phase_num]
                     action[0:3] = p["lat_magnitude"] * action[0:3]
                     action[3:6] = p["rot_magnitude"] * action[3:6]
                     action = self._norm_rot_action(action)

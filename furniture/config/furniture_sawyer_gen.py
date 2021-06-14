@@ -14,12 +14,6 @@ def add_argument(parser):
     parser.set_defaults(alignment_project_dist=0.)
 
     parser.add_argument(
-        "--phase_ob",
-        type=str2bool,
-        default=False,
-        help="includes phase in observation",
-    )
-    parser.add_argument(
         "--start_count",
         type=int,
         default=None,
