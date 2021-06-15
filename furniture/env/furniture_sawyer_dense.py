@@ -355,13 +355,18 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         grip_penalty, grip_info = self._gripper_penalty(ac)
 
         if phase != "move_leg_fine" and self._connected:
+            phase_reward = 0
+            phase_info = {
+                "connect_succ": self._connected,
+                "connect_action": ac[-1],
+            }
             if move_info["table_displacement"] > 0.1:
                 logger.info("Moved table too much during move_leg_fine")
                 done = self._early_termination
                 if self._early_termination:
                     phase_bonus -= self._phase_bonus
 
-            elif phase_info["connect_succ"]:
+            else:
                 phase_bonus += self._phase_bonus * 2
                 # discourage staying in algined mode
                 phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
