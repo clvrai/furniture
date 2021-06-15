@@ -29,8 +29,9 @@ def add_argument(parser):
     parser.add_argument("--eef_rot_threshold", type=float, default=0.95)
     parser.add_argument("--gripper_penalty_coef", type=float, default=1)
     parser.add_argument("--move_other_part_penalty_coef", type=float, default=50)
+    parser.add_argument("--drop_penalty_coef", type=float, default=20)
 
-    parser.add_argument("--early_termination", type=str2bool, default=True)
+    parser.add_argument("--early_termination", type=str2bool, default=False)
 
     ## init_eef
     parser.add_argument("--init_eef_pos_dist_coef", type=float, default=100)

@@ -161,6 +161,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._subtask_part2 = self._object_name2id[self._table]
 
         self._leg_touched = False
+        self._leg_dropped = False
         self._leg_lift = False
         self._init_table_site_pos = self._get_pos(self._table_site)
         self._init_lift_leg_pos = leg_pos = self._get_pos(self._leg)
@@ -299,12 +300,20 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         leg_touched = v["leg_touched"]
 
-        info["skip_to_lift_leg"] = 0
-        info["skip_to_move_leg_fine"] = 0
+        info["drop_leg"] = (
+            self._phase_i > 3 and not leg_touched and not self._leg_dropped
+        )
 
         if not self._config.phase_ob:
+            info["skip_to_lift_leg"] = 0
+            info["skip_to_move_leg_fine"] = 0
+
             # detect early picking
-            if v["leg_safe_grasp"] and sg_info["stable_grip_succ"] and self._phase_i < 3:
+            if (
+                v["leg_safe_grasp"]
+                and sg_info["stable_grip_succ"]
+                and self._phase_i < 3
+            ):
                 logger.info("Skipped to lift_leg")
                 info["skip_to_lift_leg"] = 1
                 # phase_bonus += self._phase_bonus * (3 - self._phase_i)
@@ -345,7 +354,24 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         stable_grip_reward, sg_info = self._stable_grip_reward()
         grip_penalty, grip_info = self._gripper_penalty(ac)
 
-        if phase == "init_eef":
+        if phase != "move_leg_fine" and self._connected:
+            if move_info["table_displacement"] > 0.1:
+                logger.info("Moved table too much during move_leg_fine")
+                done = self._early_termination
+                if self._early_termination:
+                    phase_bonus -= self._phase_bonus
+
+            elif phase_info["connect_succ"]:
+                phase_bonus += self._phase_bonus * 2
+                # discourage staying in algined mode
+                phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
+
+                self._phase_i = 0
+                logger.info("*** CONNECTED!")
+                # update reward variables for next attachment
+                done = self._success = self._set_next_subtask()
+
+        elif phase == "init_eef":
             phase_reward, phase_info = self._init_eef_reward()
 
             # if move_info["table_displacement"] > 0.1:
@@ -402,7 +428,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._lift_leg_reward()
 
             if not leg_touched:
-                logger.info("Dropped leg during lifting")
+                if not self._leg_dropped:
+                    logger.info("Dropped leg during lifting")
+                    self._leg_dropped = True
                 done = self._early_termination
                 if self._early_termination:
                     phase_bonus += -self._phase_bonus / 2
@@ -425,7 +453,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._align_leg_reward()
 
             if not leg_touched:
-                logger.info("Dropped leg during aligning")
+                if not self._leg_dropped:
+                    logger.info("Dropped leg during aligning")
+                    self._leg_dropped = True
                 done = self._early_termination
                 if self._early_termination:
                     phase_bonus -= self._phase_bonus / 2
@@ -446,7 +476,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             phase_reward, phase_info = self._move_leg_reward()
 
             if not leg_touched:
-                logger.info("Dropped leg during move_leg")
+                if not self._leg_dropped:
+                    logger.info("Dropped leg during move_leg")
+                    self._leg_dropped = True
                 done = self._early_termination
                 if self._early_termination:
                     phase_bonus -= self._phase_bonus / 2
@@ -485,7 +517,9 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 done = self._success = self._set_next_subtask()
 
             elif not leg_touched:
-                logger.info("Dropped leg during move_leg_fine")
+                if not self._leg_dropped:
+                    logger.info("Dropped leg during move_leg_fine")
+                    self._leg_dropped = True
                 done = self._early_termination
                 if self._early_termination:
                     phase_bonus -= self._phase_bonus
@@ -496,6 +530,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         reward += ctrl_penalty + phase_reward + stable_grip_reward
         reward += grip_penalty + phase_bonus + move_other_part_penalty
+        if self._leg_dropped and not self._early_termination:
+            reward -= self._config.drop_penalty_coef
+            info["drop_penalty"] = -self._config.drop_penalty_coef
+        else:
+            info["drop_penalty"] = 0
+
         info["phase_bonus"] = phase_bonus
         info["subtask"] = self._subtask_step
         info = {**info, **ctrl_info, **phase_info, **sg_info, **grip_info, **move_info}
@@ -723,12 +763,13 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_touched = v["leg_touched"]
 
         # calculate position rew
-        move_pos_dist = v["move_above_pos_dist"]
+        move_above_pos_dist = v["move_above_pos_dist"]
+        move_pos_dist = v["move_pos_dist"]
         if self._diff_rew:
             f = lambda x: min(x, 0.5)
-            offset = f(self._prev_move_pos_dist) - f(move_pos_dist)
+            offset = f(self._prev_move_pos_dist) - f(move_above_pos_dist)
             pos_rew = offset * self._move_pos_dist_coef * 10
-            self._prev_move_pos_dist = move_pos_dist
+            self._prev_move_pos_dist = move_above_pos_dist
         else:
             pos_rew = -move_pos_dist * self._move_pos_dist_coef
 
@@ -759,14 +800,17 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         rew = pos_rew + up_ang_rew + forward_ang_rew
         info = {
-            "move_pos_dist": move_pos_dist,
+            "move_pos_dist": move_above_pos_dist,
             "move_pos_rew": pos_rew,
             "move_up_ang_dist": move_up_ang_dist,
             "move_up_ang_rew": up_ang_rew,
             "move_forward_ang_dist": move_forward_ang_dist,
             "move_forward_ang_rew": forward_ang_rew,
             "move_leg_succ": int(
-                move_pos_dist < self._move_pos_threshold
+                (
+                    move_above_pos_dist < self._move_pos_threshold
+                    or move_pos_dist < self._move_pos_threshold
+                )
                 and move_up_ang_dist > self._move_rot_threshold
                 and move_forward_ang_dist > self._move_rot_threshold
                 and leg_touched
