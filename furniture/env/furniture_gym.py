@@ -5,6 +5,7 @@ import numpy as np
 
 from . import make_env
 from ..config.furniture import get_default_config
+from ..config import create_parser
 
 
 class FurnitureGym(gym.Env):
@@ -17,8 +18,10 @@ class FurnitureGym(gym.Env):
         Args:
             kwarg: configurations for the environment.
         """
-        config = get_default_config()
+        # config = get_default_config()
 
+        parser = create_parser(env=kwarg["id"])
+        config, _ = parser.parse_known_args()
         name = kwarg["name"]
         for key, value in kwarg.items():
             setattr(config, key, value)

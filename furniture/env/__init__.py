@@ -20,6 +20,7 @@ register(
     id="IKEACursor-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
+        "id": "IKEACursor-v0",
         "name": "FurnitureCursorEnv",
         "furniture_id": 0,
         "background": "Lab",
@@ -33,6 +34,7 @@ register(
     id="IKEASawyer-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
+        "id": "IKEASawyer-v0",
         "name": "FurnitureSawyerEnv",
         "furniture_name": "swivel_chair_0700",
         "background": "Industrial",
@@ -46,6 +48,7 @@ register(
     id="IKEABaxter-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
+        "id": "IKEABaxter-v0",
         "name": "FurnitureBaxterEnv",
         "furniture_id": 1,
         "background": "Interior",
@@ -59,6 +62,7 @@ register(
     id="IKEAJaco-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
+        "id": "IKEAJaco-v0",
         "name": "FurnitureJacoEnv",
         "furniture_id": 1,
         "background": "Interior",
@@ -72,6 +76,7 @@ register(
     id="IKEAPanda-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
+        "id": "IKEAPanda-v0",
         "name": "FurniturePandaEnv",
         "furniture_id": 1,
         "background": "Interior",
@@ -85,6 +90,7 @@ register(
     id="IKEAFetch-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
     kwargs={
+        "id": "IKEAFetch-v0",
         "name": "FurnitureFetchEnv",
         "furniture_id": 59,
         "background": "Interior",
@@ -97,12 +103,12 @@ register(
 register(
     id="IKEASawyerDense-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={"name": "FurnitureSawyerDenseRewardEnv", "unity": False},
+    kwargs={"id": "IKEASawyerDense-v0", "name": "FurnitureSawyerDenseRewardEnv", "unity": False},
 )
 
 
 register(
     id="furniture-sawyer-densereward-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={"name": "FurnitureSawyerDenseRewardEnv", "unity": False},
+    kwargs={"id": "IKEASawyerDense-v0", "name": "FurnitureSawyerDenseRewardEnv", "unity": False},
 )
