@@ -124,6 +124,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                 demo = pickle.load(f)
                 self._init_qpos = demo["states"][0]
 
+        self._load_init_states = None
+        if config.load_init_states:
+            with open(config.load_init_states, "rb") as f:
+                self._load_init_states = pickle.load(f)
+
         if config.furniture_name:
             furniture_name = config.furniture_name
             config.furniture_id = furniture_name2id[config.furniture_name]
@@ -1424,6 +1429,9 @@ class FurnitureEnv(metaclass=EnvMeta):
             rand = self._init_random(1, "resize")[0]
             resize_factor = 1 + rand
             self.mujoco_model.resize_objects(resize_factor)
+
+        if self._load_init_states and np.random.rand() > 0.2:
+            self.set_init_qpos(np.random.choice(self._load_init_states))
 
         # reset simulation data and clear buffers
         self.sim.reset()

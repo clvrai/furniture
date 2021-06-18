@@ -126,6 +126,12 @@ def add_argument(parser):
         help="fixed furniture initialization across episode for specific partnames",
     )
     parser.add_argument(
+        "--load_init_states",
+        type=str,
+        default=None,
+        help="path to pickle file of a set of initial states",
+    )
+    parser.add_argument(
         "--load_demo",
         type=str,
         default=None,
