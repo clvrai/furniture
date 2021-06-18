@@ -2884,6 +2884,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             )
             logger.warn(e)
             logger.warn(type(e))
+            self.set_init_qpos(None)
             self.reset()
             self._fail = True
 
