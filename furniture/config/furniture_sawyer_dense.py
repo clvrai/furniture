@@ -64,6 +64,7 @@ def add_argument(parser):
     parser.add_argument("--move_rot_threshold", type=float, default=0.85)
 
     ## move_leg_fine
+    parser.add_argument("--move_fine_pos_exp_coef", type=float, default=-25)
     parser.add_argument("--move_fine_pos_dist_coef", type=float, default=500)
     parser.add_argument("--move_fine_rot_dist_coef", type=float, default=200)
     parser.add_argument("--aligned_bonus_coef", type=float, default=10)

@@ -66,6 +66,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._move_rot_threshold = config.move_rot_threshold
 
         # move_leg_fine
+        self._move_fine_pos_exp_coef = config.move_fine_pos_exp_coef
         self._move_fine_rot_dist_coef = config.move_fine_rot_dist_coef
         self._move_fine_pos_dist_coef = config.move_fine_pos_dist_coef
         self._aligned_bonus_coef = config.aligned_bonus_coef
@@ -854,7 +855,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # calculate position rew
         move_pos_dist = v["move_pos_dist"]
         if self._diff_rew:
-            f = lambda x: np.exp(-25 * x)
+            f = lambda x: np.exp(self._move_fine_pos_exp_coef * x)
             offset = f(move_pos_dist) - f(self._prev_move_pos_dist)
             # offset = self._prev_move_pos_dist - move_pos_dist
             pos_rew = offset * self._move_fine_pos_dist_coef * 10
