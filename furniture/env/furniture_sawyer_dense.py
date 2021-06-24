@@ -361,9 +361,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         grip_penalty, grip_info = self._gripper_penalty(ac)
 
         if phase != "move_leg_fine" and self._connected:
+            correct_connect = self._is_aligned(self._leg_site, self._table_site)
             phase_reward = 0
             phase_info = {
-                "connect_succ": self._connected,
+                "connect_succ": self._connected and correct_connect,
                 "connect_action": ac[-1],
             }
             if table_moved:
@@ -374,7 +375,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 if self._early_termination:
                     phase_bonus -= self._phase_bonus
 
-            else:
+            elif correct_connect:
                 phase_bonus += self._phase_bonus * 2
                 # discourage staying in algined mode
                 phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
@@ -383,6 +384,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("*** CONNECTED w/o move_leg_fine!")
                 # update reward variables for next attachment
                 done = self._success = self._set_next_subtask()
+            else:
+                phase_info["wrong_connect"] = 1
+                self._success = False
+                done = True
 
         elif phase == "init_eef":
             phase_reward, phase_info = self._init_eef_reward()
@@ -527,7 +532,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 if self._early_termination:
                     phase_bonus -= self._phase_bonus
 
-            elif phase_info["connect_succ"]:
+            elif self._connected and phase_info["move_leg_fine_succ"]:
                 phase_bonus += self._phase_bonus * 2
                 # discourage staying in algined mode
                 phase_bonus -= self._leg_fine_aligned * self._aligned_bonus_coef
@@ -536,6 +541,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
                 logger.info("*** CONNECTED!")
                 # update reward variables for next attachment
                 done = self._success = self._set_next_subtask()
+
+            elif self._connected:
+                logger.info("*** WRONG CONNECTED!")
+                phase_info["wrong_connect"] = 1
+                done = True
+                self._success = False
 
             if not leg_touched and not phase_info["connect_succ"]:
                 if not self._leg_dropped:
@@ -845,7 +856,6 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         """
         # no dense reward when completed
         info = {
-            "connect_succ": self._connected,
             "connect_action": ac[-1],
         }
 
@@ -911,9 +921,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             proj_l_rew = (proj_l - 1) * self._move_fine_rot_dist_coef / 10
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
-        info["move_leg_fine_succ"] = int(
-            self._is_aligned(self._leg_site, self._table_site) and leg_touched
-        )
+        info["move_leg_fine_succ"] = self._is_aligned(self._leg_site, self._table_site)
+        info["connect_succ"] = self._connected and info["move_leg_fine_succ"]
 
         if not leg_touched:
             # pos_rew = up_ang_rew = forward_ang_rew = proj_t_rew = proj_l_rew = 0
