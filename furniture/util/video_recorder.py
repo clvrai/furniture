@@ -60,15 +60,13 @@ class VideoRecorder(object):
         if data is rgb array, then no need to convert
         """
         if self._record_mode == "ram":
-            if render_mode == "rgb_array":
-                self._frames.append(frame)
-            elif render_mode == "from_env_render":
-                self._frames.append(255 * frame)
+            if np.max(frame) <= 1.0:
+                frame *= 255.0
+            self._frames.append(frame)
         elif self._record_mode == "file":
-            if render_mode == "rgb_array":
-                self._encode_image_frame(frame)
-            elif render_mode == "from_env_render":
-                self._encode_image_frame((255 * frame).astype("uint8"))
+            if np.max(frame) <= 1.0:
+                frame = (255.0 * frame).astype("uint8")
+            self._encode_image_frame(frame)
 
     def _encode_image_frame(self, frame):
         if not self._encoder:
