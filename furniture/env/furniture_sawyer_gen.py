@@ -381,22 +381,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
             noise = self._get_random_noise()
             max_griptip_height = 0
 
-            for part_idx in range(len(self._config.preassembled)):
-                gbody_name, tbody_name = p["recipe"][part_idx]
-                for i in range(len(p["recipe"])):
-                    g_l = (
-                        gbody_name + "_ltgt_site" + str(i)
-                    )  # gripped body left gripsite
-                    g_r = (
-                        gbody_name + "_rtgt_site" + str(i)
-                    )  # gripped body right gripsite
-                    if g_l in self._used_sites or g_r in self._used_sites:
-                        pass
-                    else:
-                        self._used_sites.add(g_l)
-                        self._used_sites.add(g_r)
-                        break
-
             for j in range(len(self._config.preassembled), len(p["recipe"])):
                 self._phase_num = 0
                 t_fwd = None
@@ -437,21 +421,6 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                 if isinstance(z_conn_dist, list):
                     z_conn_dist = z_conn_dist[j]
 
-                # get unused target sites
-                for i in range(len(p["recipe"])):
-                    g_l = (
-                        gbody_name + "_ltgt_site" + str(i)
-                    )  # gripped body left gripsite
-                    g_r = (
-                        gbody_name + "_rtgt_site" + str(i)
-                    )  # gripped body right gripsite
-                    if g_l in self._used_sites or g_r in self._used_sites:
-                        pass
-                    else:
-                        self._used_sites.add(g_l)
-                        self._used_sites.add(g_r)
-                        break
-
                 if self._config.render:
                     self.render()
                 if self._config.record_vid:
@@ -483,7 +452,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                     elif self._phase == "xy_move_g":
                         action[6] = -1
                         grip_xy_pos = self._get_pos(grip_site)[0:2]
-                        g_xy_pos = (self._get_pos(g_l) + self._get_pos(g_r))[0:2] / 2
+                        g_xy_pos = self._get_leg_grasp_pos()[0:2]
                         action[0:2] = self.move_xy(
                             grip_xy_pos, g_xy_pos, p["eps"], noise=noise[self._phase]
                         )
@@ -493,7 +462,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                         if grip_angles is None or grip_angles[j] is not None:
                             # align gripper fingers with grip sites
                             gripfwd_xy = self._get_forward_vector(grip_site)[0:2]
-                            gvec_xy = (self._get_pos(g_r) - self._get_pos(g_l))[0:2]
+                            gvec_xy = self._get_leg_grasp_vector()[0:2]
                             xy_ac = self.align_gripsites(
                                 gripfwd_xy, gvec_xy, p["rot_eps"]
                             )
@@ -509,7 +478,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                             rot_action = [xy_ac, yz_ac, xz_ac]
                             if rot_action == [0, 0, 0]:
                                 grip_pos = self._get_pos(grip_site)[0:2]
-                                g_pos = (self._get_pos(g_l) + self._get_pos(g_r)) / 2
+                                g_pos = self._get_leg_grasp_pos()
                                 action[0:2] = self.move_xy(
                                     grip_pos, g_pos[0:2], p["eps"]
                                 )
@@ -522,7 +491,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                         action[6] = -1
                         grip_pos = self._get_pos(grip_site)
                         grip_tip = self._get_pos(griptip_site)
-                        g_pos = (self._get_pos(g_l) + self._get_pos(g_r)) / 2
+                        g_pos = self._get_leg_grasp_pos()
                         d = (g_pos) - grip_pos
                         if z_move_g_prev is None:
                             z_move_g_prev = grip_tip[2] + ground_offset
