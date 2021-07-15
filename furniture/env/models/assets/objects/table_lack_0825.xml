@@ -4,7 +4,7 @@
     <numeric data="-0.37 0.31 0.01497 0.499854 0.499854 0.500146 0.500146" name="1_part1_initpos" />
     <numeric data="-0.37 0.21 0.01497 0.500129 0.500129 0.499871 0.499871" name="2_part2_initpos" />
     <numeric data="0.0   0.31 0.01497 0.5 -0.5 0.5 -0.5" name="3_part3_initpos" />
-    <numeric data="-0.19 0.01  0.019527 0 1.0 0 0" name="4_part4_initpos" />
+    <numeric data="-0.19 0.00  0.019527 0 1.0 0 0" name="4_part4_initpos" />
   </custom>
   <asset>
     <mesh file="table_lack_0825/leg1.stl" name="part0" scale="0.02 0.02 0.02" />
