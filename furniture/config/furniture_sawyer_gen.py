@@ -2,7 +2,7 @@ from ..util import str2bool
 
 
 def add_argument(parser):
-    parser.set_defaults(max_episode_steps=None)
+    parser.set_defaults(max_episode_steps=2000)
     parser.set_defaults(control_type="ik")
     parser.set_defaults(record_vid=False)
     parser.set_defaults(unity=False)
