@@ -142,7 +142,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
     def get_bodyiterator(self, bodyname):
         for body in self.mujoco_objects[bodyname].root.find("worldbody"):
             if "name" in body.attrib and bodyname == body.attrib["name"]:
-                return body.getiterator()
+                return body.iter()
         return None
 
     def _get_groupname(self, bodyname):

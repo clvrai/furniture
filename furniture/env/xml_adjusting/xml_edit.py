@@ -75,7 +75,7 @@ def main():
     # find group pairs
     num_colors = 0
     for body in root.find("worldbody"):
-        for child in body.getiterator():
+        for child in body.iter():
             if child.tag == "site" and re.search("conn_site", child.attrib["name"]):
                 num_colors += 1
                 groupPair = child.attrib["name"].split(",")[0]
@@ -115,7 +115,7 @@ def main():
         i = 0
         colormap = dict()
         for body in root.find("worldbody"):
-            for child in body.getiterator():
+            for child in body.iter():
                 if child.tag == "site" and re.search("conn_site", child.attrib["name"]):
                     groupPair = child.attrib["name"].split(",")[0]
                     if groupPair not in colormap:
