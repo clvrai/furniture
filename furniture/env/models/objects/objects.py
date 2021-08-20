@@ -223,7 +223,7 @@ class MujocoXMLObject(MujocoXML, MujocoObject):
     def hide_visualization(self):
         for body in self.root.find("worldbody"):
             if "name" in body.attrib and "_part" in body.attrib["name"]:
-                for child in body.getiterator():
+                for child in body.iter():
                     if child.tag == "site" and "name" in child.attrib:
                         if "conn_site" not in child.attrib["name"]:
                             child.attrib["rgba"] = "0 0 0 0"

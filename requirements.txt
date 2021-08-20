@@ -8,7 +8,6 @@ gym
 imageio
 imageio-ffmpeg
 ipdb
-moviepy
 mujoco-py
 opencv-python
 openvr

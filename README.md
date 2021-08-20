@@ -10,7 +10,7 @@
 
 
 We are announcing the launch of the **IKEA Furniture Assembly environment** as a first-of-its-kind benchmark for testing and accelerating the automation of physical assembly processes.
-An agent (Sawyer, Baxter, Cursor) is required to move, align, and connect furniture parts sequentially.
+An agent (Sawyer, Baxter, Jaco, Panda, Fetch) is required to move, align, and connect furniture parts sequentially.
 The task is completed when all parts are connected.
 
 
@@ -41,11 +41,15 @@ The structure of the repository:
 ### Prerequisites
 - Ubuntu 18.04, MacOS Catalina, Windows10
 - Python 3.7 (pybullet may not work with Python 3.8 or higher)
-- Mujoco 2.0
+- Mujoco 2.1
 - Unity 2018.4.23f1 ([Install using Unity Hub](https://unity3d.com/get-unity/download))
 
 ### Installation
 ```bash
+# from github
+pip install git+git//github.com/clvrai/furniture.git
+
+# from code
 git clone https://github.com/clvrai/furniture.git
 cd furniture
 pip install -e .
@@ -149,4 +153,4 @@ Our Mujoco environment is developed based on Robosuite and Unity implementation 
 ```
 
 ## Contributors
-We thank Alex Yin and Zhengyu Yang for their contributions. We would like to thank everyone who has helped IKEA Furniture Assembly Environment in any way.
+We thank [Alex Yin](https://www.linkedin.com/in/alexyin1/) and [Zhengyu Yang](https://zhengyuyang.com) for their contributions. We would like to thank everyone who has helped IKEA Furniture Assembly Environment in any way.

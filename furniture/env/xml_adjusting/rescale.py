@@ -58,7 +58,7 @@ def rescale(tree, root, mult, outpath="out.xml", translate=[], rotate=[], write=
             upt_body_pos = " ".join(body_pos)
             body.set("pos", upt_body_pos)
 
-            for child in body.getiterator():
+            for child in body.iter():
                 if child.tag == "site":
                     site_pos = child.attrib["pos"].split(" ")
                     site_pos = [str(float(i) * mult) for i in site_pos]
