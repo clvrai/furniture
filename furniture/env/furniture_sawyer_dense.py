@@ -867,11 +867,12 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         if self._diff_rew:
             f = lambda x: np.exp(self._move_fine_pos_exp_coef * x)
             offset = f(move_pos_dist) - f(self._prev_move_pos_dist)
-            # offset = self._prev_move_pos_dist - move_pos_dist
+            offset += (self._prev_move_pos_dist - move_pos_dist) * 0.2
             pos_rew = offset * self._move_fine_pos_dist_coef * 10
             self._prev_move_pos_dist = move_pos_dist
         else:
             pos_rew = -move_pos_dist * self._move_fine_pos_dist_coef
+
         info["move_fine_pos_dist"] = move_pos_dist
         info["move_fine_pos_rew"] = pos_rew
 
