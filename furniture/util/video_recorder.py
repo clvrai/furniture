@@ -4,7 +4,7 @@ import glob
 import os
 import subprocess
 
-import moviepy.editor as mpy
+import imageio
 import numpy as np
 
 from .logger import logger
@@ -93,14 +93,11 @@ class VideoRecorder(object):
             if success:
                 fps = self._output_frames_per_sec
 
-                def f(t):
-                    frame_length = len(self._frames)
-                    new_fps = 1.0 / (1.0 / fps + 1.0 / frame_length)
-                    idx = min(int(t * new_fps), frame_length - 1)
-                    return self._frames[idx]
+                if np.issubdtype(self._frames[0].dtype, np.floating):
+                    for i in range(len(self._frames)):
+                        self._frames[i] = self._frames[i].astype(np.uint8)
+                imageio.mimsave(self._outfile, self._frames, fps=fps)
 
-                video = mpy.VideoClip(f, duration=len(self._frames) / fps + 2)
-                video.write_videofile(self._outfile, fps, verbose=False)
                 self._frames = []
 
         elif self._record_mode == "file":

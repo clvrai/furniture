@@ -7,6 +7,7 @@ setup(
     author="Youngwoon Lee",
     author_email="lywoon89@gmail.com",
     description="IKEA furniture assembly environment",
+    url="https://github.com/clvrai/furniture",
     packages=find_packages(),
     install_requires=[
         "numpy",
@@ -19,7 +20,6 @@ setup(
         "imageio",
         "imageio-ffmpeg",
         "ipdb",
-        "moviepy",
         "mujoco-py",
         "opencv-python",
         "openvr",
