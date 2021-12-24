@@ -307,7 +307,7 @@ def mat2quat(rmat, precise=False):
     Returns:
         vec4 float quaternion angles
     """
-    M = np.array(rmat, dtype=np.float32, copy=False)[:3, :3]
+    M = np.array(rmat, dtype=np.float32)[:3, :3]
     if precise:
         q = np.empty((4,))
         t = np.trace(M)
@@ -354,7 +354,7 @@ def mat2quat(rmat, precise=False):
         q = V[[3, 0, 1, 2], np.argmax(w)]
     if q[0] < 0.0:
         np.negative(q, q)
-    return q[[1, 2, 3, 0]]
+    return q[[1, 2, 3, 0]] # xyzw
 
 
 def euler2mat(euler):  # assume xyz
@@ -624,9 +624,9 @@ def euler_to_quat(rotation, quat=None):
     #     convert_quat(mat2quat(euler2mat(np.array(rotation) / 180.0 * np.pi)), to="wxyz")
     # )
     if quat is None:
-        final_quat = list(q)
+        final_quat = np.array(list(q))
     else:
-        final_quat = list(Quaternion(quat) * q)
+        final_quat = np.array(list(Quaternion(quat) * q))
     return final_quat
 
 

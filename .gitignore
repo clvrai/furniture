@@ -1,34 +1,37 @@
 # Mac OS
 .DS_Store
 *~
-.python-version
-
-# Log
-furniture-unity/Assets/StreamingAssets
 
 # Vim
 .*.s[a-w][a-z]
 Session.vim
 
+# VSCode
+.vscode
+
 # Data
 *.csv
 *.ini
 *.npy
-test.mp4
 *.zip
 *.hdf5
 *screenlog*
-recordings
-videos
-demos
+test.mp4
+recordings/
+videos/
+demos/
+results/
+figures/
+backup/
 
-# Mujoco
+# MuJoCo
 MUJOCO_LOG.TXT
-unity-xml
-unity-log
 
 # Unity
 UnitySDK.log
+binary/
+unity-xml/
+unity-log/
 furniture-unity/*.sln
 furniture-unity/[Ll]ibrary/
 furniture-unity/[Ll]ogs/
@@ -38,11 +41,10 @@ furniture-unity/[Bb]uild/
 furniture-unity/[Bb]uilds/
 furniture-unity/Assets/AssetStoreTools*
 furniture-unity/Assets/Resources/[Tt]emp*
+furniture-unity/Assets/StreamingAssets
 furniture-unity/.vs
 furniture-unity/Assembly-CSharp-Editor.csproj
 furniture-unity/*.csproj
-/binary
-
 
 # Python
 ## Byte-compiled / optimized / DLL files
@@ -63,21 +65,14 @@ build/
 ## Jupyter Notebook
 .ipynb_checkpoints
 
-## virtualenv
+## Virtual environment
+.python-version
 .venv
 venv/
 
-## Rope project settings
-.ropeproject
-
-## Wandb
+## WandB
 wandb/
 
 ## Jupyter notebook
 **/*.ipynb
-
-## flake8
-.flake8
-
-## VSCode
-.vscode
+.ipynb_checkpoints

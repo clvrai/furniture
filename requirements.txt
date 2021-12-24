@@ -10,8 +10,8 @@ imageio-ffmpeg
 ipdb
 mujoco-py
 opencv-python
-openvr
 pybullet==1.9.5
+# pybullet==2.6.9
 pyquaternion
 hjson
 pyyaml

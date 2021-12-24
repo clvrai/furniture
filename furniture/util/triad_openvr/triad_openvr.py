@@ -1,10 +1,16 @@
 import time
 import sys
-import openvr
 import math
 import json
 
 from functools import lru_cache
+
+try:
+    import openvr
+except ImportError:
+    print("Please install the openvr package to use VR controllers ($ pip install openvr).")
+    raise
+
 
 # Function to print out text but instead of starting a new line it will overwrite the existing line
 def update_text(txt):

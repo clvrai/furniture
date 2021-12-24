@@ -8,12 +8,18 @@
     <worldbody>
         <geom condim="3" rgba="0.7 0.7 0.7 1" name="FLOOR" pos="0 0 0" size="0.5 0.5 .125" type="plane" />
 
+        <body name="VR_R" pos="0.2 -0.2 0.3">
+            <site rgba="0.7 0.2 0.2 1" name="VR_R_x" pos="0.05 0 0" size="0.05 0.002 0.002" type="box" />
+            <site rgba="0.2 0.7 0.2 1" name="VR_R_y" pos="0 0.05 0" size="0.002 0.05 0.002" type="box" />
+            <site rgba="0.2 0.2 0.7 1" name="VR_R_z" pos="0 0 0.05" size="0.002 0.002 0.05" type="box" />
+        </body>
+
         <light diffuse=".8 .8 .8" dir=".5 -.3 -.8" directional="true" pos="0 0 2.0" specular="0.3 0.3 0.3" castshadow="true"/>
 
         <!-- front view -->
         <!--camera mode="fixed" name="frontview" pos="0 -.7 0.5" quat="0.8891 0.4575 0. 0." fovy="60"/-->
         <!-- robot front view -->
-        <camera mode="fixed" name="frontview" pos="0 -1.2 0.9" quat="0.86 0.51 0. 0." fovy="60"/> 
+        <camera mode="fixed" name="frontview" pos="0 -1.2 0.9" quat="0.86 0.51 0. 0." fovy="60"/>
         <camera mode="fixed" name="sideview" pos="-2.5 0. 0.5" quat="0.5468 0.4482 -0.4482 -0.5468"/>
     </worldbody>
 </mujoco>

@@ -3,8 +3,6 @@
 # OpenAI gym interface
 from gym.envs.registration import register
 
-from .base import make_env, make_vec_env
-
 # register all environment to use
 from .furniture_baxter import FurnitureBaxterEnv
 from .furniture_cursor import FurnitureCursorEnv
@@ -103,12 +101,9 @@ register(
 register(
     id="IKEASawyerDense-v0",
     entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={"id": "IKEASawyerDense-v0", "name": "FurnitureSawyerDenseRewardEnv", "unity": False},
-)
-
-
-register(
-    id="furniture-sawyer-densereward-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={"id": "IKEASawyerDense-v0", "name": "FurnitureSawyerDenseRewardEnv", "unity": False},
+    kwargs={
+        "id": "IKEASawyerDense-v0",
+        "name": "FurnitureSawyerDenseRewardEnv",
+        "unity": False,
+    },
 )

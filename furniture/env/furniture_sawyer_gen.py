@@ -424,7 +424,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                 if self._config.render:
                     self.render()
                 if self._config.record_vid:
-                    self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                    self._video.capture_frame(self.render("rgb_array")[0])
 
                 # initiate phases for single-part assembly
                 while self._phase != "part_done":
@@ -686,7 +686,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                     if self._config.render:
                         self.render()
                     if self._config.record_vid:
-                        self.vid_rec.capture_frame(self.render("rgb_array")[0])
+                        self._video.capture_frame(self.render("rgb_array")[0])
 
                     if self._episode_length > self._config.max_episode_steps:
                         logger.info(
@@ -710,7 +710,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                         self._episode_length,
                     )
                     if self._config.record_vid:
-                        self.vid_rec.close()
+                        self._video.close()
                     if self._config.start_count is not None:
                         demo_count = self._config.start_count + n_successful_demos
                         self._demo.save(self.file_prefix, count=demo_count)
@@ -725,7 +725,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                     logger.warn("Failed to assemble!")
                     n_failed_demos += 1
                     if self._config.record_vid:
-                        self.vid_rec.close(success=True)
+                        self._video.close(success=True)
                     break
 
         logger.info("n_failed_demos: %d", n_failed_demos)

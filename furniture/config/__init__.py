@@ -48,7 +48,7 @@ def add_env_specific_arguments(env, parser):
         furniture_sawyer_dense.add_argument(parser)
         furniture_sawyer_gen.add_argument(parser)
 
-    elif env in ["IKEASawyerDense-v0", "furniture-sawyer-densereward-v0"]:
+    elif env == "IKEASawyerDense-v0":
         from . import furniture_sawyer_dense as f
 
         f.add_argument(parser)

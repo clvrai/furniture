@@ -3,8 +3,7 @@
 import gym
 import numpy as np
 
-from . import make_env
-from ..config.furniture import get_default_config
+from .base import make_env
 from ..config import create_parser
 
 
@@ -18,8 +17,6 @@ class FurnitureGym(gym.Env):
         Args:
             kwarg: configurations for the environment.
         """
-        # config = get_default_config()
-
         parser = create_parser(env=kwarg["id"])
         config, _ = parser.parse_known_args()
         name = kwarg["name"]
@@ -35,7 +32,8 @@ class FurnitureGym(gym.Env):
         # methods for demo
         self.run_manual = self.env.run_manual
         self.run_demo = self.env.run_demo
-        self.run_vr = self.env.run_vr
+        self.run_vr_htc = self.env.run_vr_htc
+        self.run_vr_oculus = self.env.run_vr_oculus
 
         # policy sequencing methods
         self.num_subtask = self.env.num_subtask

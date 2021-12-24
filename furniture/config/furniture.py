@@ -146,7 +146,6 @@ def add_argument(parser):
     parser.add_argument(
         "--record_vid", type=str2bool, default=True, help="enable video recording"
     )
-    parser.add_argument("--record_caption", type=str2bool, default=True)
     parser.add_argument(
         "--record_mode",
         type=str,
