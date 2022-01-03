@@ -1,0 +1,19 @@
+defaults:
+  - ikea
+  - _self_
+
+
+# Overrides
+id: IKEACursor-v0
+ikea_cfg:
+  class_name: FurnitureCursorEnv
+  config_name: ikea_cursor
+  control_type: ik
+  furniture_name: table_lack_0825
+  unity:
+    use_unity: false
+  auto_align: false
+  alignment_pos_dist: 0.1
+  alignment_rot_dist_up: 0.9
+  alignment_rot_dist_forward: 0.9
+  alignment_project_dist: 0.0

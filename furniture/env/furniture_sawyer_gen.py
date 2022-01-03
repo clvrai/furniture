@@ -2,6 +2,8 @@ import yaml
 import numpy as np
 from tqdm import tqdm
 import gym.spaces
+import hydra
+from omegaconf import OmegaConf, DictConfig
 
 from . import transform_utils as T
 from .furniture_sawyer import FurnitureSawyerEnv
@@ -15,10 +17,10 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
     Sawyer environment for assemblying furniture programmatically.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
 
         Abbreviations:
             grip ~ gripper
@@ -57,8 +59,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
             12. part_done:
                     set part_done = True, and part is connected
         """
-        config.record_demo = True
-        super().__init__(config)
+        cfg.record_demo = True
+        super().__init__(cfg)
 
         self._phase = None
         self._num_connected_prev = 0
@@ -98,9 +100,9 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
             #   phase      : (min_val, max_val, dimensions)
             "init_grip": (0, 0, 3),
             "xy_move_g": (0, 0, 2),
-            "xy_move_t": (-self._config.furn_xyz_rand, self._config.furn_xyz_rand, 2),
-            "move_waypoints": (0, 2 * self._config.furn_xyz_rand, 3),
-            "move_nogrip_safepos": (0, 2 * self._config.furn_xyz_rand, 3),
+            "xy_move_t": (-cfg.furn_xyz_rand, cfg.furn_xyz_rand, 2),
+            "move_waypoints": (0, 2 * cfg.furn_xyz_rand, 3),
+            "move_nogrip_safepos": (0, 2 * cfg.furn_xyz_rand, 3),
         }
         self.reset()
 
@@ -352,6 +354,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
             3. fine adjustment phase sometimes very challenging
         """
         p = self._recipe
+        cfg = self._cfg
 
         n_successful_demos = 0
         n_failed_demos = 0
@@ -366,8 +369,8 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
         grip_angles = None
         if "grip_angles" in p:
             grip_angles = p["grip_angles"]
-        if self._config.max_episode_steps is None:
-            self._config.max_episode_steps = p["max_success_steps"]
+        if cfg.max_episode_steps is None:
+            cfg.max_episode_steps = p["max_success_steps"]
         # align_g target vector
         align_g_tgt = np.array([0, -1])
         # background specific, only tested on --background Industrial
@@ -381,7 +384,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
             noise = self._get_random_noise()
             max_griptip_height = 0
 
-            for j in range(len(self._config.preassembled), len(p["recipe"])):
+            for j in range(len(cfg.preassembled), len(p["recipe"])):
                 self._phase_num = 0
                 t_fwd = None
                 z_move_g_prev = None
@@ -396,7 +399,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                         if len(pos) == 4:
                             init_pos[2] = pos[3]
                         safepos.append(init_pos)
-                        print("grip init", init_pos)
+                        logger.info(f"grip init pos: {init_pos}")
                 else:
                     self._phase_num = 1
 
@@ -421,9 +424,9 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                 if isinstance(z_conn_dist, list):
                     z_conn_dist = z_conn_dist[j]
 
-                if self._config.render:
+                if cfg.render:
                     self.render()
-                if self._config.record_vid:
+                if cfg.record_vid:
                     self._video.capture_frame(self.render("rgb_array")[0])
 
                 # initiate phases for single-part assembly
@@ -506,7 +509,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                                 gripbase_pos = self._get_pos(gripbase_site)
                                 for pos in p["waypoints"][j]:
                                     safepos.append(gripbase_pos + pos)
-                                    print("pick up", safepos[-1])
+                                    logger.info(f"pick up pos: {safepos[-1]}")
 
                     elif self._phase == "move_waypoints":
                         action[6] = 1
@@ -645,7 +648,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                         if not np.any(action[0:6]):
                             action[7] = 1
                             self._phase_num += 1
-                            if self._config.reset_robot_after_attach:
+                            if cfg.reset_robot_after_attach:
                                 self._phase_num += 1
                             else:
                                 gripbase_pos = self._get_pos(gripbase_site)
@@ -654,7 +657,7 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                                 if p["nogrip_safepos"][j] is not None:
                                     for pos in p["nogrip_safepos"][j]:
                                         safepos.append(gripbase_pos + pos)
-                                        print("after attach", safepos[-1])
+                                        logger.info(f"Pos after attach: {safepos[-1]}")
 
                     elif self._phase == "move_nogrip_safepos":
                         action[6] = -1
@@ -683,16 +686,14 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                     action = np.clip(action, -1, 1)
                     ob, reward, _, info = self.step(action)
 
-                    if self._config.render:
+                    if cfg.render:
                         self.render()
-                    if self._config.record_vid:
+                    if cfg.record_vid:
                         self._video.capture_frame(self.render("rgb_array")[0])
 
-                    if self._episode_length > self._config.max_episode_steps:
+                    if self._episode_length > cfg.max_episode_steps:
                         logger.info(
-                            "Time-limit exceeds %d/%d",
-                            self._episode_length,
-                            self._config.max_episode_steps,
+                            f"Time-limit exceeds {self._episode_length}/{cfg.max_episode_steps}"
                         )
                         break
                     if self._success:
@@ -704,44 +705,38 @@ class FurnitureSawyerGenEnv(FurnitureSawyerDenseRewardEnv):
                     self._part_success = False
 
                 if self._success:
-                    logger.warn(
-                        "assembled (%s) in %d steps!",
-                        self._config.furniture_name,
-                        self._episode_length,
+                    logger.warning(
+                        f"assembled ({cfg.furniture_name}) in {self._episode_length} steps!",
                     )
-                    if self._config.record_vid:
+                    if cfg.record_vid:
                         self._video.close()
-                    if self._config.start_count is not None:
-                        demo_count = self._config.start_count + n_successful_demos
+                    if cfg.start_count is not None:
+                        demo_count = cfg.start_count + n_successful_demos
                         self._demo.save(self.file_prefix, count=demo_count)
                     else:
                         self._demo.save(self.file_prefix)
                     pbar.update(1)
                     n_successful_demos += 1
-                    print("Max griptip height = %f" % max_griptip_height)
+                    logger.info(f"Max griptip height = {max_griptip_height}")
                     break
-                elif self._episode_length > self._config.max_episode_steps:
+                elif self._episode_length > cfg.max_episode_steps:
                     # failed
-                    logger.warn("Failed to assemble!")
+                    logger.warning("Failed to assemble!")
                     n_failed_demos += 1
-                    if self._config.record_vid:
+                    if cfg.record_vid:
                         self._video.close(success=True)
                     break
 
-        logger.info("n_failed_demos: %d", n_failed_demos)
+        logger.info(f"n_failed_demos: {n_failed_demos}")
 
 
-def main():
-    from ..config import create_parser
+@hydra.main(config_path="../config/env", config_name="ikea_gen")
+def main(cfg: DictConfig) -> None:
+    # make config writable
+    OmegaConf.set_struct(cfg, False)
 
-    parser = create_parser(env="IKEASawyerGen-v0")
-    config, unparsed = parser.parse_known_args()
-    if len(unparsed):
-        logger.error("Unparsed argument is detected:\n%s", unparsed)
-        return
-
-    env = FurnitureSawyerGenEnv(config)
-    env.generate_demos(config.n_demos)
+    env = FurnitureSawyerGenEnv(cfg)
+    env.generate_demos(cfg.n_demos)
 
 
 if __name__ == "__main__":

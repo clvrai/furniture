@@ -16,3 +16,4 @@ pyquaternion
 hjson
 pyyaml
 gdown
+hydra-core

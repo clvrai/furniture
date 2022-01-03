@@ -7,6 +7,8 @@ into demos/test.pkl.
 """
 
 import gym
+import hydra
+from omegaconf import OmegaConf, DictConfig
 
 # from .env import *
 from . import agent_names, background_names, furniture_names
@@ -22,7 +24,7 @@ furniture_names
 background_names
 
 
-def main():
+def main_manual():
     """
     Inputs types of agent, furniture model, and background and simulates the environment.
     """
@@ -134,7 +136,18 @@ def main_vr_test():
     env.close()
 
 
-if __name__ == "__main__":
-    main_vr_test()
+@hydra.main(config_path="config", config_name="ikea_test")
+def main(cfg: DictConfig) -> None:
+    # make config writable
+    OmegaConf.set_struct(cfg, False)
 
+    if cfg.mode == "vr":
+        main_vr_test(cfg.env)
+    elif cfg.mode == "manual":
+        main_manual(cfg.env)
+    else:
+        raise ValueError(f"mode={cfg.mode} is not available. Use 'vr' or 'manual'")
+
+
+if __name__ == "__main__":
     main()

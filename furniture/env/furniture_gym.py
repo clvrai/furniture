@@ -2,9 +2,9 @@
 
 import gym
 import numpy as np
+import hydra
 
 from .base import make_env
-from ..config import create_parser
 
 
 class FurnitureGym(gym.Env):
@@ -17,14 +17,8 @@ class FurnitureGym(gym.Env):
         Args:
             kwarg: configurations for the environment.
         """
-        parser = create_parser(env=kwarg["id"])
-        config, _ = parser.parse_known_args()
-        name = kwarg["name"]
-        for key, value in kwarg.items():
-            setattr(config, key, value)
-
         # create an environment
-        self.env = make_env(name, config)
+        self.env = make_env(**kwarg)
 
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
@@ -41,7 +35,7 @@ class FurnitureGym(gym.Env):
         self.set_init_qpos = self.env.set_init_qpos
         self.get_env_state = self.env.get_env_state
 
-        self._max_episode_steps = config.max_episode_steps
+        self._max_episode_steps = self.env.max_episode_steps
 
     def set_max_episode_steps(self, max_episode_steps):
         self._max_episode_steps = max_episode_steps
@@ -80,7 +74,7 @@ class FurnitureGym(gym.Env):
 
 def main():
     # use gym api to make a new environment.
-    env = gym.make("furniture-baxter-v0")
+    env = gym.make("IKEASawyer-v0")
     # reset environment.
     env.reset()
     done = False

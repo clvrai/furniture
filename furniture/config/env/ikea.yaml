@@ -1,0 +1,85 @@
+id: IKEA-v0
+
+ikea_cfg:
+  class_name: ???
+  config_name: ???
+  agent_type: ???
+
+
+  # Unity
+  unity:
+    use_unity: true
+    use_editor: false
+    virtual_display: null
+    port: 1050
+    background: Industrial  # choices=[Industrial, Indoor, Lab, Garage, Random]
+    quality: 4
+
+
+  # MuJoCo simulation
+  control_type: ik  # choices=[ik, ik_quaternion, impedance, torque]
+  control_freq: 10
+  rescale_actions: true  # rescale actions to [-1, 1]
+  move_speed: 0.1
+  rotate_speed: 22.5
+  discrete_grip: true
+  cursor_boundary: 1.5
+
+
+  # Assembly
+  seed: 123
+  num_connects: null
+  auto_align: true
+  furniture_name: null
+  furniture_id: null
+  load_init_states: null
+  preassembled: []
+  max_episode_steps: 2000
+  reset_robot_after_attach: false
+  furn_xyz_rand: 0.02
+  furn_rot_rand: 3
+  agent_xyz_rand: 0.001
+  furn_size_rand: 0
+  alignment_pos_dist: 0.1
+  alignment_rot_dist_up: 0.9
+  alignment_rot_dist_forward: 0.9
+  alignment_project_dist: 0.3
+
+
+  # Observations
+  robot_ob: true
+  object_ob: true
+  object_ob_all: true
+  visual_ob: false
+  subtask_ob: false
+  depth_ob: false
+  segmentation_ob: false
+  screen_size: [512, 512]
+  camera_ids: [0]
+
+
+  # Reward
+  reward:
+    ctrl_penalty: 1e-3
+    unstable_penalty: 100
+    success: 100
+    touch: 100
+    pick: 100
+
+
+  # Evaluation
+  demo_dir: demos
+  record_demo: false
+  record_vid: false
+  record_mode: ram  # choices=[ram, file]  store frames to "ram" or "file"
+
+
+  # Debug
+  fix_init: false
+  fix_init_parts: null
+  load_demo: null
+  render: false
+  render_agent: true
+  no_collision: false
+  assembled: false
+  debug: false

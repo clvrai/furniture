@@ -15,14 +15,14 @@ class FurnitureJacoEnv(FurnitureEnv):
     Jaco environment.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.agent_type = "Jaco"
+        cfg.agent_type = "Jaco"
 
-        super().__init__(config)
+        super().__init__(cfg)
 
     @property
     def observation_space(self):
@@ -222,27 +222,3 @@ class FurnitureJacoEnv(FurnitureEnv):
         Computes reward of the current state.
         """
         return super()._compute_reward(ac)
-
-
-def main():
-    from ..config import create_parser
-
-    parser = create_parser(env="FurnitureJacoEnv")
-    parser.set_defaults(max_episode_steps=2000)
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-
-    # create an environment and run manual control of Jaco environment
-    env = FurnitureJacoEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

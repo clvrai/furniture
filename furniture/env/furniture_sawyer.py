@@ -15,14 +15,14 @@ class FurnitureSawyerEnv(FurnitureEnv):
     Sawyer environment.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.agent_type = "Sawyer"
+        cfg.agent_type = "Sawyer"
 
-        super().__init__(config)
+        super().__init__(cfg)
 
     @property
     def observation_space(self):
@@ -70,7 +70,7 @@ class FurnitureSawyerEnv(FurnitureEnv):
 
         # discretize gripper action
         applied_action = a.copy()
-        if self._discrete_grip:
+        if self._cfg.discrete_grip:
             applied_action[-2] = -1 if a[-2] < 0 else 1
 
         ob, _, done, _ = super()._step(applied_action)
@@ -241,30 +241,3 @@ class FurnitureSawyerEnv(FurnitureEnv):
                 touch_right_finger = True
 
         return touch_left_finger, touch_right_finger
-
-
-def main():
-    from ..config import create_parser
-
-    parser = create_parser(env="FurnitureSawyerEnv")
-    parser.set_defaults(max_episode_steps=2000)
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-    if len(unparsed):
-        logger.error("Unparsed argument is detected:\n%s", unparsed)
-        return
-
-    # create an environment and run manual control of Sawyer environment
-    env = FurnitureSawyerEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

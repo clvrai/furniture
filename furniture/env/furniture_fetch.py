@@ -15,14 +15,14 @@ class FurnitureFetchEnv(FurnitureEnv):
     Fetch environment.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.agent_type = "Fetch"
+        cfg.agent_type = "Fetch"
 
-        super().__init__(config)
+        super().__init__(cfg)
 
     @property
     def observation_space(self):
@@ -235,30 +235,3 @@ class FurnitureFetchEnv(FurnitureEnv):
                 touch_right_finger = True
 
         return touch_left_finger, touch_right_finger
-
-
-def main():
-    from ..config import create_parser
-
-    parser = create_parser(env="FurnitureFetch")
-    parser.set_defaults(max_episode_steps=2000)
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-    if len(unparsed):
-        logger.error("Unparsed argument is detected:\n%s", unparsed)
-        return
-
-    # create an environment and run manual control of Fetch environment
-    env = FurnitureFetchEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

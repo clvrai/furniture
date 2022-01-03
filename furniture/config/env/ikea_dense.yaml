@@ -1,0 +1,74 @@
+defaults:
+  - ikea
+  - _self_
+
+
+# Overrides
+id: IKEASawyerDense-v0
+ikea_cfg:
+  class_name: FurnitureSawyerDenseRewardEnv
+  config_name: ikea_dense
+  agent_type: Sawyer
+  max_episode_steps: 150
+  control_type: impedance
+  furniture_name: table_lack_0825
+  unity:
+    use_unity: false
+  auto_align: false
+  alignment_pos_dist: 0.02
+  alignment_rot_dist_up: 0.99
+  alignment_rot_dist_forward: 0.99
+  alignment_project_dist: 0.0
+
+
+  # Observations
+  phase_ob: false
+
+
+  # Reward
+  reward:
+    ## Common
+    phase_bonus: 5000
+    eef_forward_dist_coef: 2
+    eef_up_dist_coef: 4
+    eef_rot_threshold: 0.95
+    gripper_penalty_coef: 1
+    move_other_part_penalty_coef: 50
+    drop_penalty_coef: 20
+    early_termination: false
+
+    ## init_eef
+    init_eef_pos_dist_coef: 100
+
+    ## move_eef_above_leg
+    move_eef_pos_dist_coef: 100
+
+    ## lower_eef_to_leg
+    lower_eef_pos_dist_coef: 1000
+
+    ## grasp_leg
+    grasp_dist_coef: 200
+
+    ## lift_leg
+    lift_z_dist_coef: 500
+    lift_xy_dist_coef: 250
+    lift_z_pos_threshold: 0.02
+    lift_xy_pos_threshold: 0.05
+
+    ## align_leg
+    align_pos_dist_coef: 100
+    align_rot_dist_coef: 50
+    align_pos_threshold: 0.2
+    align_rot_threshold: 0.85
+
+    ## move_leg
+    move_pos_dist_coef: 300
+    move_rot_dist_coef: 50
+    move_pos_threshold: 0.06
+    move_rot_threshold: 0.85
+
+    ## move_leg_fine
+    move_fine_pos_exp_coef: -25
+    move_fine_pos_dist_coef: 500
+    move_fine_rot_dist_coef: 200
+    aligned_bonus_coef: 10

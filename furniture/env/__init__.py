@@ -1,7 +1,7 @@
 """ Define all environments and provide helper functions to load environments. """
 
 # OpenAI gym interface
-from gym.envs.registration import register
+from gym import register
 
 # register all environment to use
 from .furniture_baxter import FurnitureBaxterEnv
@@ -13,97 +13,55 @@ from .furniture_fetch import FurnitureFetchEnv
 from .furniture_sawyer_dense import FurnitureSawyerDenseRewardEnv
 
 
-# add cursor environment to Gym
-register(
-    id="IKEACursor-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEACursor-v0",
-        "name": "FurnitureCursorEnv",
-        "furniture_id": 0,
-        "background": "Lab",
-        "port": 1050,
+entry_point = "furniture.env.furniture_gym:FurnitureGym"
+
+
+envs = {
+    "IKEACursor-v0": {
+        "class_name": "FurnitureCursorEnv",
+        "config_name": "ikea_cursor",
+        "agent_type": "Cursor",
+        "unity": {"background": "Lab"},
     },
-)
-
-
-# add sawyer environment to Gym
-register(
-    id="IKEASawyer-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEASawyer-v0",
-        "name": "FurnitureSawyerEnv",
+    "IKEASawyer-v0": {
+        "class_name": "FurnitureSawyerEnv",
+        "config_name": "ikea",
+        "agent_type": "Sawyer",
         "furniture_name": "swivel_chair_0700",
-        "background": "Industrial",
-        "port": 1050,
+        "unity": {"background": "Industrial"},
     },
-)
-
-
-# add baxter environment to Gym
-register(
-    id="IKEABaxter-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEABaxter-v0",
-        "name": "FurnitureBaxterEnv",
-        "furniture_id": 1,
-        "background": "Interior",
-        "port": 1050,
+    "IKEABaxter-v0": {
+        "class_name": "FurnitureBaxterEnv",
+        "config_name": "ikea",
+        "agent_type": "Baxter",
+        "unity": {"background": "Interior"},
     },
-)
-
-
-# add jaco environment to Gym
-register(
-    id="IKEAJaco-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEAJaco-v0",
-        "name": "FurnitureJacoEnv",
-        "furniture_id": 1,
-        "background": "Interior",
-        "port": 1050,
+    "IKEAJaco-v0": {
+        "class_name": "FurnitureJacoEnv",
+        "config_name": "ikea",
+        "agent_type": "Jaco",
+        "unity": {"background": "Interior"},
     },
-)
-
-
-# add panda environment to Gym
-register(
-    id="IKEAPanda-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEAPanda-v0",
-        "name": "FurniturePandaEnv",
-        "furniture_id": 1,
-        "background": "Interior",
-        "port": 1050,
+    "IKEAPanda-v0": {
+        "class_name": "FurniturePandaEnv",
+        "config_name": "ikea",
+        "agent_type": "Panda",
+        "unity": {"background": "Interior"},
     },
-)
-
-
-# add panda environment to Gym
-register(
-    id="IKEAFetch-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEAFetch-v0",
-        "name": "FurnitureFetchEnv",
-        "furniture_id": 59,
-        "background": "Interior",
-        "port": 1050,
+    "IKEAFetch-v0": {
+        "class_name": "FurnitureFetchEnv",
+        "config_name": "ikea",
+        "agent_type": "Fetch",
+        "unity": {"background": "Interior"},
     },
-)
-
-
-# add sawyer dense reward environment to Gym
-register(
-    id="IKEASawyerDense-v0",
-    entry_point="furniture.env.furniture_gym:FurnitureGym",
-    kwargs={
-        "id": "IKEASawyerDense-v0",
-        "name": "FurnitureSawyerDenseRewardEnv",
-        "unity": False,
+    "IKEASawyerDense-v0": {
+        "class_name": "FurnitureSawyerDenseRewardEnv",
+        "config_name": "ikea_dense",
+        "agent_type": "Sawyer",
+        "unity": {"use_unity": False},
     },
-)
+}
+
+
+for id, kwargs in envs.items():
+    register(id=id, entry_point=entry_point, order_enforce=False, kwargs=kwargs)

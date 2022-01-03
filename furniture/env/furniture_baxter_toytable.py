@@ -13,14 +13,14 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
     Baxter environment.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.furniture_id = furniture_name2id["toy_table_flip"]
+        cfg.furniture_id = furniture_name2id["toy_table_flip"]
 
-        super().__init__(config)
+        super().__init__(cfg)
         self._gravity_compensation = 1
 
     def _step(self, a):
@@ -30,7 +30,7 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         a = a.copy()
 
         # discretize gripper action
-        if self._config.discrete_grip:
+        if self._cfg.discrete_grip:
             a[-2] = -1 if a[-2] < 0 else 1
             a[-3] = -1 if a[-3] < 0 else 1
 
@@ -85,16 +85,16 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         return pos_init, quat_init
 
     def _ctrl_reward(self, action):
-        if self._config.control_type in ["ik", "position_orientation"]:
+        if self._cfg.control_type in ["ik", "position_orientation"]:
             a = np.linalg.norm(action[:12])
-        elif self._config.control_type in ["ik_quaternion"]:
+        elif self._cfg.control_type in ["ik_quaternion"]:
             a = np.linalg.norm(action[:14])
-        elif self._config.control_type in ["position"]:
+        elif self._cfg.control_type in ["position"]:
             a = np.linalg.norm(action[:6])
-        elif self._config.control_type == "impedance":
+        elif self._cfg.control_type == "impedance":
             a = np.linalg.norm(action[:14])
 
-        ctrl_reward = -self._config.ctrl_penalty_coef * a
+        ctrl_reward = -self._cfg.ctrl_penalty_coef * a
         return ctrl_reward
 
     def _compute_reward(self, action):
@@ -161,30 +161,3 @@ class FurnitureBaxterToyTableEnv(FurnitureBaxterEnv):
         info["table_pos"] = table_pos
         info["table_dist"] = table_dist
         return rew, done, info
-
-
-def main():
-    from config import create_parser
-
-    parser = create_parser(env="FurnitureBaxterToyTableEnv")
-    parser.set_defaults(max_episode_steps=1000)
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-    if len(unparsed):
-        logger.error("Unparsed argument is detected:\n%s", unparsed)
-        return
-
-    # create an environment and run manual control of Baxter environment
-    env = FurnitureBaxterToyTableEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

@@ -15,61 +15,60 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
     Here, we call a moving object as 'leg' and a target object as 'table'.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.furniture_id = furniture_name2id[config.furniture_name]
-        super().__init__(config)
+        cfg.furniture_id = furniture_name2id[cfg.furniture_name]
+        super().__init__(cfg)
 
         # common rewards
-        self._diff_rew = config.diff_rew
-        self._phase_bonus = config.phase_bonus
-        self._ctrl_penalty_coef = config.ctrl_penalty_coef
-        self._eef_rot_threshold = config.eef_rot_threshold
-        self._eef_forward_dist_coef = config.eef_forward_dist_coef
-        self._eef_up_dist_coef = config.eef_up_dist_coef
-        self._gripper_penalty_coef = config.gripper_penalty_coef
-        self._move_other_part_penalty_coef = config.move_other_part_penalty_coef
+        self._phase_bonus = cfg.reward.phase_bonus
+        self._ctrl_penalty_coef = cfg.reward.ctrl_penalty
+        self._eef_rot_threshold = cfg.reward.eef_rot_threshold
+        self._eef_forward_dist_coef = cfg.reward.eef_forward_dist_coef
+        self._eef_up_dist_coef = cfg.reward.eef_up_dist_coef
+        self._gripper_penalty_coef = cfg.reward.gripper_penalty_coef
+        self._move_other_part_penalty_coef = cfg.reward.move_other_part_penalty_coef
 
-        self._early_termination = config.early_termination
+        self._early_termination = cfg.reward.early_termination
 
         # init_eef
-        self._init_eef_pos_dist_coef = config.init_eef_pos_dist_coef
+        self._init_eef_pos_dist_coef = cfg.reward.init_eef_pos_dist_coef
 
         # move_eef_above_leg
-        self._move_eef_pos_dist_coef = config.move_eef_pos_dist_coef
+        self._move_eef_pos_dist_coef = cfg.reward.move_eef_pos_dist_coef
 
         # lower_eef
-        self._lower_eef_pos_dist_coef = config.lower_eef_pos_dist_coef
+        self._lower_eef_pos_dist_coef = cfg.reward.lower_eef_pos_dist_coef
 
         # grasp_leg
-        self._grasp_dist_coef = config.grasp_dist_coef
+        self._grasp_dist_coef = cfg.reward.grasp_dist_coef
 
         # lift_leg
-        self._lift_xy_dist_coef = config.lift_xy_dist_coef
-        self._lift_z_dist_coef = config.lift_z_dist_coef
-        self._lift_xy_pos_threshold = config.lift_xy_pos_threshold
-        self._lift_z_pos_threshold = config.lift_z_pos_threshold
+        self._lift_xy_dist_coef = cfg.reward.lift_xy_dist_coef
+        self._lift_z_dist_coef = cfg.reward.lift_z_dist_coef
+        self._lift_xy_pos_threshold = cfg.reward.lift_xy_pos_threshold
+        self._lift_z_pos_threshold = cfg.reward.lift_z_pos_threshold
 
         # align_leg
-        self._align_pos_dist_coef = config.align_pos_dist_coef
-        self._align_rot_dist_coef = config.align_rot_dist_coef
-        self._align_pos_threshold = config.align_pos_threshold
-        self._align_rot_threshold = config.align_rot_threshold
+        self._align_pos_dist_coef = cfg.reward.align_pos_dist_coef
+        self._align_rot_dist_coef = cfg.reward.align_rot_dist_coef
+        self._align_pos_threshold = cfg.reward.align_pos_threshold
+        self._align_rot_threshold = cfg.reward.align_rot_threshold
 
         # move_leg
-        self._move_pos_dist_coef = config.move_pos_dist_coef
-        self._move_rot_dist_coef = config.move_rot_dist_coef
-        self._move_pos_threshold = config.move_pos_threshold
-        self._move_rot_threshold = config.move_rot_threshold
+        self._move_pos_dist_coef = cfg.reward.move_pos_dist_coef
+        self._move_rot_dist_coef = cfg.reward.move_rot_dist_coef
+        self._move_pos_threshold = cfg.reward.move_pos_threshold
+        self._move_rot_threshold = cfg.reward.move_rot_threshold
 
         # move_leg_fine
-        self._move_fine_pos_exp_coef = config.move_fine_pos_exp_coef
-        self._move_fine_rot_dist_coef = config.move_fine_rot_dist_coef
-        self._move_fine_pos_dist_coef = config.move_fine_pos_dist_coef
-        self._aligned_bonus_coef = config.aligned_bonus_coef
+        self._move_fine_pos_exp_coef = cfg.reward.move_fine_pos_exp_coef
+        self._move_fine_rot_dist_coef = cfg.reward.move_fine_rot_dist_coef
+        self._move_fine_pos_dist_coef = cfg.reward.move_fine_pos_dist_coef
+        self._aligned_bonus_coef = cfg.reward.aligned_bonus_coef
 
         self._num_connect_steps = 0
         self._grip_up_phases = set(
@@ -103,7 +102,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         """
         ob_space = super().observation_space
 
-        if self._config.phase_ob:
+        if self._cfg.phase_ob:
             ob_space.spaces["phase_ob"] = gym.spaces.Box(low=0, high=1, shape=(8,))
 
         return ob_space
@@ -111,7 +110,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
     def _get_obs(self, include_qpos=False):
         state = super()._get_obs(include_qpos)
 
-        if self._config.phase_ob:
+        if self._cfg.phase_ob:
             state["phase_ob"] = np.eye(8)[self._phase_i]
 
         return state
@@ -120,7 +119,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         ob, reward, done, info = super()._step(a)
 
         # update phase_ob with updated phase_i
-        if self._config.phase_ob:
+        if self._cfg.phase_ob:
             ob["phase_ob"] = np.eye(8)[self._phase_i]
 
         return ob, reward, done, info
@@ -176,7 +175,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._leg_allowed_angles = [x for x in self._leg_site.split(",")[1:-1] if x]
         eef_pos = self._get_pos("griptip_site")
 
-        if self._config.reset_robot_after_attach:
+        if self._cfg.reset_robot_after_attach:
             self._phase_i = 1
         else:
             self._phase_i = 0
@@ -203,17 +202,16 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         self._get_leg_grasp_pos = lambda: (self._get_pos(g_l) + self._get_pos(g_r)) / 2
         self._get_leg_grasp_vector = lambda: self._get_pos(g_r) - self._get_pos(g_l)
 
-        if self._diff_rew:
-            if self._phase_i == 1:
-                leg_pos = self._get_leg_grasp_pos() + [0, 0, 0.05]
-                dist = np.linalg.norm(eef_pos - leg_pos)
-                self._prev_eef_above_leg_dist = dist
-            else:
-                dist = np.linalg.norm(eef_pos - self._init_eef_pos)
-                self._prev_init_eef_dist = dist
-            self._prev_grasp_dist = -1
-            self._prev_lift_leg_z_dist = self._recipe["waypoints"][subtask_step][0][2]
-            self._prev_lift_leg_xy_dist = 0.0
+        if self._phase_i == 1:
+            leg_pos = self._get_leg_grasp_pos() + [0, 0, 0.05]
+            dist = np.linalg.norm(eef_pos - leg_pos)
+            self._prev_eef_above_leg_dist = dist
+        else:
+            dist = np.linalg.norm(eef_pos - self._init_eef_pos)
+            self._prev_init_eef_dist = dist
+        self._prev_grasp_dist = -1
+        self._prev_lift_leg_z_dist = self._recipe["waypoints"][subtask_step][0][2]
+        self._prev_lift_leg_xy_dist = 0.0
 
     def _reset(self, furniture_id=None, background=None):
         super()._reset(furniture_id, background)
@@ -303,7 +301,7 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_touched = v["leg_touched"]
         table_moved = move_info["table_displacement"] > 0.1
 
-        if not self._config.phase_ob:
+        if not self._cfg.phase_ob:
             info["skip_to_lift_leg"] = 0
             info["skip_to_move_leg_fine"] = 0
 
@@ -563,8 +561,8 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         reward += ctrl_penalty + phase_reward + stable_grip_reward
         reward += grip_penalty + phase_bonus + move_other_part_penalty
         if self._leg_dropped and not self._early_termination:
-            reward -= self._config.drop_penalty_coef
-            info["drop_penalty"] = -self._config.drop_penalty_coef
+            reward -= self._cfg.reward.drop_penalty_coef
+            info["drop_penalty"] = -self._cfg.reward.drop_penalty_coef
         else:
             info["drop_penalty"] = 0
 
@@ -585,13 +583,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         eef_pos = v["eef_pos"]
         dist = np.linalg.norm(eef_pos - self._init_eef_pos)
         init_eef_dist = dist
-        if self._diff_rew:
-            f = lambda x: np.exp(-10 * min(x, 0.5))
-            offset = f(init_eef_dist) - f(self._prev_init_eef_dist)
-            rew = offset * self._init_eef_pos_dist_coef * 10
-            self._prev_init_eef_dist = init_eef_dist
-        else:
-            rew = -init_eef_dist * self._init_eef_pos_dist_coef
+        f = lambda x: np.exp(-10 * min(x, 0.5))
+        offset = f(init_eef_dist) - f(self._prev_init_eef_dist)
+        rew = offset * self._init_eef_pos_dist_coef * 10
+        self._prev_init_eef_dist = init_eef_dist
 
         info = {
             "init_eef_dist": init_eef_dist,
@@ -611,13 +606,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         eef_pos = v["eef_pos"]
         leg_pos = v["leg_grasp_pos"] + [0, 0, 0.05]
         eef_above_leg_dist = np.linalg.norm(eef_pos - leg_pos)
-        if self._diff_rew:
-            f = lambda x: min(x, 1.0)
-            offset = f(self._prev_eef_above_leg_dist) - f(eef_above_leg_dist)
-            rew = offset * self._move_eef_pos_dist_coef * 10
-            self._prev_eef_above_leg_dist = eef_above_leg_dist
-        else:
-            rew = -eef_above_leg_dist * self._move_eef_pos_dist_coef
+        f = lambda x: min(x, 1.0)
+        offset = f(self._prev_eef_above_leg_dist) - f(eef_above_leg_dist)
+        rew = offset * self._move_eef_pos_dist_coef * 10
+        self._prev_eef_above_leg_dist = eef_above_leg_dist
 
         info = {
             "move_eef_above_leg_dist": eef_above_leg_dist,
@@ -638,13 +630,10 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         xy_dist = np.linalg.norm(eef_pos[:2] - leg_pos[:2])
         z_dist = np.abs(eef_pos[2] - leg_pos[2])
         eef_leg_dist = np.linalg.norm(eef_pos - leg_pos)
-        if self._diff_rew:
-            f = lambda x: min(x, 0.2)
-            offset = f(self._prev_eef_leg_dist) - f(eef_leg_dist)
-            rew = offset * self._lower_eef_pos_dist_coef * 10
-            self._prev_eef_leg_dist = eef_leg_dist
-        else:
-            rew = -eef_leg_dist * self._lower_eef_pos_dist_coef
+        f = lambda x: min(x, 0.2)
+        offset = f(self._prev_eef_leg_dist) - f(eef_leg_dist)
+        rew = offset * self._lower_eef_pos_dist_coef * 10
+        self._prev_eef_leg_dist = eef_leg_dist
 
         info = {
             "lower_eef_leg_dist": eef_leg_dist,
@@ -685,18 +674,14 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         leg_pos = v["leg_pos"]
         xy_dist = np.linalg.norm(self._lift_leg_pos[:2] - leg_pos[:2])
         z_dist = np.abs(self._lift_leg_pos[2] - leg_pos[2])
-        if self._diff_rew:
-            f = lambda x: min(x, 0.5)
-            z_offset = f(self._prev_lift_leg_z_dist) - f(z_dist)
-            lift_leg_z_rew = z_offset * self._lift_z_dist_coef * 10
-            self._prev_lift_leg_z_dist = z_dist
-            g = lambda x: min(x, 0.8)
-            xy_offset = g(self._prev_lift_leg_xy_dist) - g(xy_dist)
-            lift_leg_xy_rew = xy_offset * self._lift_xy_dist_coef * 10
-            self._prev_lift_leg_xy_dist = xy_dist
-        else:
-            lift_leg_z_rew = -z_dist * self._lift_z_dist_coef
-            lift_leg_xy_rew = -xy_dist * self._lift_xy_dist_coef
+        f = lambda x: min(x, 0.5)
+        z_offset = f(self._prev_lift_leg_z_dist) - f(z_dist)
+        lift_leg_z_rew = z_offset * self._lift_z_dist_coef * 10
+        self._prev_lift_leg_z_dist = z_dist
+        g = lambda x: min(x, 0.8)
+        xy_offset = g(self._prev_lift_leg_xy_dist) - g(xy_dist)
+        lift_leg_xy_rew = xy_offset * self._lift_xy_dist_coef * 10
+        self._prev_lift_leg_xy_dist = xy_dist
 
         lift_leg_rew = lift_leg_xy_rew + lift_leg_z_rew
 
@@ -738,30 +723,21 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # calculate position rew
         leg_pos = self._get_pos(self._leg)
         move_pos_dist = np.linalg.norm(self._lift_leg_pos - leg_pos)
-        if self._diff_rew:
-            f = lambda x: min(x, 0.4)
-            offset = f(self._prev_move_pos_dist) - f(move_pos_dist)
-            pos_rew = offset * self._align_pos_dist_coef * 10
-            self._prev_move_pos_dist = move_pos_dist
-        else:
-            pos_rew = -move_pos_dist * self._align_pos_dist_coef
+        f = lambda x: min(x, 0.4)
+        offset = f(self._prev_move_pos_dist) - f(move_pos_dist)
+        pos_rew = offset * self._align_pos_dist_coef * 10
+        self._prev_move_pos_dist = move_pos_dist
 
         # calculate angular rew
         move_up_ang_dist = v["move_up_ang_dist"]
-        if self._diff_rew:
-            offset = move_up_ang_dist - self._prev_move_up_ang_dist
-            up_ang_rew = offset * self._align_rot_dist_coef * 10
-            self._prev_move_up_ang_dist = move_up_ang_dist
-        else:
-            up_ang_rew = (move_up_ang_dist - 1) * self._align_rot_dist_coef
+        offset = move_up_ang_dist - self._prev_move_up_ang_dist
+        up_ang_rew = offset * self._align_rot_dist_coef * 10
+        self._prev_move_up_ang_dist = move_up_ang_dist
 
         move_forward_ang_dist = v["move_forward_ang_dist"]
-        if self._diff_rew:
-            offset = move_forward_ang_dist - self._prev_move_forward_ang_dist
-            forward_ang_rew = offset * self._align_rot_dist_coef * 10
-            self._prev_move_forward_ang_dist = move_forward_ang_dist
-        else:
-            forward_ang_rew = (move_forward_ang_dist - 1) * self._align_rot_dist_coef
+        offset = move_forward_ang_dist - self._prev_move_forward_ang_dist
+        forward_ang_rew = offset * self._align_rot_dist_coef * 10
+        self._prev_move_forward_ang_dist = move_forward_ang_dist
 
         if not leg_touched:
             # pos_rew = up_ang_rew = forward_ang_rew = 0
@@ -797,32 +773,23 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
         # calculate position rew
         move_above_pos_dist = v["move_above_pos_dist"]
         move_pos_dist = v["move_pos_dist"]
-        if self._diff_rew:
-            f = lambda x: min(x, 0.5)
-            offset = f(self._prev_move_pos_dist) - f(move_above_pos_dist)
-            pos_rew = offset * self._move_pos_dist_coef * 10
-            self._prev_move_pos_dist = move_above_pos_dist
-        else:
-            pos_rew = -move_pos_dist * self._move_pos_dist_coef
+        f = lambda x: min(x, 0.5)
+        offset = f(self._prev_move_pos_dist) - f(move_above_pos_dist)
+        pos_rew = offset * self._move_pos_dist_coef * 10
+        self._prev_move_pos_dist = move_above_pos_dist
 
         # calculate angular rew
         move_up_ang_dist = v["move_up_ang_dist"]
-        if self._diff_rew:
-            f = lambda x: max(x, 0)
-            offset = f(move_up_ang_dist) - f(self._prev_move_up_ang_dist)
-            up_ang_rew = offset * self._move_rot_dist_coef * 10
-            self._prev_move_up_ang_dist = move_up_ang_dist
-        else:
-            up_ang_rew = (move_up_ang_dist - 1) * self._move_rot_dist_coef
+        f = lambda x: max(x, 0)
+        offset = f(move_up_ang_dist) - f(self._prev_move_up_ang_dist)
+        up_ang_rew = offset * self._move_rot_dist_coef * 10
+        self._prev_move_up_ang_dist = move_up_ang_dist
 
         move_forward_ang_dist = v["move_forward_ang_dist"]
-        if self._diff_rew:
-            f = lambda x: max(x, 0)
-            offset = f(move_forward_ang_dist) - f(self._prev_move_forward_ang_dist)
-            forward_ang_rew = offset * self._move_rot_dist_coef * 10
-            self._prev_move_forward_ang_dist = move_forward_ang_dist
-        else:
-            forward_ang_rew = (move_forward_ang_dist - 1) * self._move_rot_dist_coef
+        f = lambda x: max(x, 0)
+        offset = f(move_forward_ang_dist) - f(self._prev_move_forward_ang_dist)
+        forward_ang_rew = offset * self._move_rot_dist_coef * 10
+        self._prev_move_forward_ang_dist = move_forward_ang_dist
 
         if not leg_touched:
             # pos_rew = up_ang_rew = forward_ang_rew = 0
@@ -864,62 +831,47 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
 
         # calculate position rew
         move_pos_dist = v["move_pos_dist"]
-        if self._diff_rew:
-            f = lambda x: np.exp(self._move_fine_pos_exp_coef * x)
-            offset = f(move_pos_dist) - f(self._prev_move_pos_dist)
-            offset += (self._prev_move_pos_dist - move_pos_dist) * 0.2
-            pos_rew = offset * self._move_fine_pos_dist_coef * 10
-            self._prev_move_pos_dist = move_pos_dist
-        else:
-            pos_rew = -move_pos_dist * self._move_fine_pos_dist_coef
+        f = lambda x: np.exp(self._move_fine_pos_exp_coef * x)
+        offset = f(move_pos_dist) - f(self._prev_move_pos_dist)
+        offset += (self._prev_move_pos_dist - move_pos_dist) * 0.2
+        pos_rew = offset * self._move_fine_pos_dist_coef * 10
+        self._prev_move_pos_dist = move_pos_dist
 
         info["move_fine_pos_dist"] = move_pos_dist
         info["move_fine_pos_rew"] = pos_rew
 
         # calculate angular rew
         move_up_ang_dist = v["move_up_ang_dist"]
-        if self._diff_rew:
-            # f = lambda x: np.exp(-2 * (1 - x))
-            f = lambda x: np.exp(-2 * (1 - max(x, self._move_rot_threshold - 0.1)))
-            offset = f(move_up_ang_dist) - f(self._prev_move_up_ang_dist)
-            # offset = move_up_ang_dist - self._prev_move_up_ang_dist
-            up_ang_rew = offset * self._move_fine_rot_dist_coef * 10
-            self._prev_move_up_ang_dist = move_up_ang_dist
-        else:
-            up_ang_rew = (move_up_ang_dist - 1) * self._move_fine_rot_dist_coef
+        # f = lambda x: np.exp(-2 * (1 - x))
+        f = lambda x: np.exp(-2 * (1 - max(x, self._move_rot_threshold - 0.1)))
+        offset = f(move_up_ang_dist) - f(self._prev_move_up_ang_dist)
+        # offset = move_up_ang_dist - self._prev_move_up_ang_dist
+        up_ang_rew = offset * self._move_fine_rot_dist_coef * 10
+        self._prev_move_up_ang_dist = move_up_ang_dist
         info["move_fine_up_ang_dist"] = move_up_ang_dist
         info["move_fine_up_ang_rew"] = up_ang_rew
 
         move_forward_ang_dist = v["move_forward_ang_dist"]
-        if self._diff_rew:
-            # f = lambda x: np.exp(-2 * (1 - x))
-            f = lambda x: np.exp(-2 * (1 - max(x, self._move_rot_threshold - 0.1)))
-            offset = f(move_forward_ang_dist) - f(self._prev_move_forward_ang_dist)
-            # offset = move_forward_ang_dist - self._prev_move_forward_ang_dist
-            forward_ang_rew = offset * self._move_fine_rot_dist_coef * 10
-            self._prev_move_forward_ang_dist = move_forward_ang_dist
-        else:
-            forward_ang_rew = (
-                move_forward_ang_dist - 1
-            ) * self._move_fine_rot_dist_coef
+        # f = lambda x: np.exp(-2 * (1 - x))
+        f = lambda x: np.exp(-2 * (1 - max(x, self._move_rot_threshold - 0.1)))
+        offset = f(move_forward_ang_dist) - f(self._prev_move_forward_ang_dist)
+        # offset = move_forward_ang_dist - self._prev_move_forward_ang_dist
+        forward_ang_rew = offset * self._move_fine_rot_dist_coef * 10
+        self._prev_move_forward_ang_dist = move_forward_ang_dist
         info["move_fine_forward_ang_dist"] = move_forward_ang_dist
         info["move_fine_forward_ang_rew"] = forward_ang_rew
 
         # proj will approach 1 if aligned correctly
         proj_t = v["proj_table"]
         proj_l = v["proj_leg"]
-        if self._diff_rew:
-            # f = lambda x: np.exp(-3 * (1 - abs(x)))
-            f = lambda x: np.exp(-3 * (1 - max(abs(x), 0.5)))
-            offset = f(proj_t) - f(self._prev_proj_t)
-            proj_t_rew = offset * self._move_fine_rot_dist_coef * 5
-            self._prev_proj_t = proj_t
-            offset = f(proj_l) - f(self._prev_proj_l)
-            proj_l_rew = offset * self._move_fine_rot_dist_coef * 5
-            self._prev_proj_l = proj_l
-        else:
-            proj_t_rew = (proj_t - 1) * self._move_fine_rot_dist_coef / 10
-            proj_l_rew = (proj_l - 1) * self._move_fine_rot_dist_coef / 10
+        # f = lambda x: np.exp(-3 * (1 - abs(x)))
+        f = lambda x: np.exp(-3 * (1 - max(abs(x), 0.5)))
+        offset = f(proj_t) - f(self._prev_proj_t)
+        proj_t_rew = offset * self._move_fine_rot_dist_coef * 5
+        self._prev_proj_t = proj_t
+        offset = f(proj_l) - f(self._prev_proj_l)
+        proj_l_rew = offset * self._move_fine_rot_dist_coef * 5
+        self._prev_proj_l = proj_l
         info.update({"proj_t_rew": proj_t_rew, "proj_t": proj_t})
         info.update({"proj_l_rew": proj_l_rew, "proj_l": proj_l})
         info["move_leg_fine_succ"] = self._is_aligned(self._leg_site, self._table_site)
@@ -1018,29 +970,3 @@ class FurnitureSawyerDenseRewardEnv(FurnitureSawyerEnv):
             "table_displacement": table_displacement,
         }
         return rew, info
-
-
-def main():
-    from ..config import create_parser
-
-    parser = create_parser(env="furniture-sawyer-densereward-v0")
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-    if len(unparsed):
-        logger.error("Unparsed argument is detected:\n%s", unparsed)
-        return
-
-    # create an environment and run manual control of Sawyer environment
-    env = FurnitureSawyerDenseRewardEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

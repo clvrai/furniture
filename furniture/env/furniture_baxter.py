@@ -15,14 +15,14 @@ class FurnitureBaxterEnv(FurnitureEnv):
     Baxter robot environment.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.agent_type = "Baxter"
+        cfg.agent_type = "Baxter"
 
-        super().__init__(config)
+        super().__init__(cfg)
 
     @property
     def observation_space(self):
@@ -248,35 +248,3 @@ class FurnitureBaxterEnv(FurnitureEnv):
         Computes reward of the current state.
         """
         return super()._compute_reward(ac)
-
-
-def main():
-    from ..config import create_parser
-
-    parser = create_parser(env="FurnitureBaxterEnv")
-    parser.set_defaults(max_episode_steps=2000)
-
-    # settings for VR demos
-    parser.set_defaults(alignment_pos_dist=0.15)
-    parser.set_defaults(alignment_rot_dist_up=0.8)
-    parser.set_defaults(alignment_rot_dist_forward=0.8)
-    parser.set_defaults(alignment_project_dist=0.2)
-    parser.set_defaults(control_type="ik")
-    parser.set_defaults(move_speed=0.05)
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-
-    # create an environment and run manual control of Baxter environment
-    env = FurnitureBaxterEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

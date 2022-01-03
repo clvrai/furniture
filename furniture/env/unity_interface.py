@@ -180,7 +180,7 @@ class UnityInterface(object):
     def _download_unity(self):
         """Downloads Unity app from Google Drive."""
         url = "https://drive.google.com/uc?id=" + APP_GDRIVE_ID[platform]
-        zip_dir = Path(__file__).parent.parent.parent
+        zip_dir = Path(__file__).parents[2]
         zip_path = zip_dir / APP_FILE_NAME[platform]
         if zip_path.exists():
             logger.info("%s is already downloaded.", zip_path)
@@ -197,7 +197,7 @@ class UnityInterface(object):
 
     def _find_unity_path(self):
         """Finds path to Unity app."""
-        binary_dir = Path(__file__).parent.parent.parent / "binary"
+        binary_dir = Path(__file__).parents[2] / "binary"
 
         launch_string = None
         if platform == "linux" or platform == "linux2":

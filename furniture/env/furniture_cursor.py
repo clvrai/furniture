@@ -15,14 +15,14 @@ class FurnitureCursorEnv(FurnitureEnv):
     Cursor environment.
     """
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         """
         Args:
-            config: configurations for the environment.
+            cfg: configurations for the environment.
         """
-        config.agent_type = "Cursor"
+        cfg.agent_type = "Cursor"
 
-        super().__init__(config)
+        super().__init__(cfg)
 
         # turn on the gravity compensation for selected furniture pieces
         self._gravity_compensation = 1
@@ -113,29 +113,3 @@ class FurnitureCursorEnv(FurnitureEnv):
         Computes reward of the current state.
         """
         return super()._compute_reward(ac)
-
-
-def main():
-    from ..config import create_parser
-
-    parser = create_parser(env="furniture-cursor-v0")
-    parser.add_argument(
-        "--run_mode", type=str, default="manual", choices=["manual", "vr", "demo"]
-    )
-    config, unparsed = parser.parse_known_args()
-    if len(unparsed):
-        logger.error("Unparsed argument is detected:\n%s", unparsed)
-        return
-
-    # create an environment and run manual control of Cursor environment
-    env = FurnitureCursorEnv(config)
-    if config.run_mode == "manual":
-        env.run_manual(config)
-    elif config.run_mode == "vr":
-        env.run_vr(config)
-    elif config.run_mode == "demo":
-        env.run_demo_actions(config)
-
-
-if __name__ == "__main__":
-    main()

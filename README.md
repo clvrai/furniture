@@ -40,14 +40,17 @@ The structure of the repository:
 
 ### Prerequisites
 - Ubuntu 18.04, MacOS Catalina, Windows10
-- Python 3.7 (pybullet may not work with Python 3.8 or higher)
-- Mujoco 2.1
+- Python 3.9
+- Mujoco 2.1.1
 - Unity 2018.4.23f1 ([Install using Unity Hub](https://unity3d.com/get-unity/download))
 
 ### Installation
 ```bash
-# from github
+# from github (latest)
 pip install git+git//github.com/clvrai/furniture.git
+
+# from pypi
+pip install furniture
 
 # from code
 git clone https://github.com/clvrai/furniture.git
@@ -73,7 +76,7 @@ import gym
 import furniture
 
 # make an environment
-env = gym.make('IKEASawyer-v0', furniture_name="table_lack_0825")
+env = gym.make("IKEASawyer-v0", furniture_name="table_lack_0825")
 
 done = False
 
