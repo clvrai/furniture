@@ -1665,7 +1665,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             with open(controller_file) as f:
                 params = hjson.load(f)
         except FileNotFoundError:
-            logger.warn(
+            logger.warning(
                 "Controller config file '{}' not found. Please check filepath and try again.".format(
                     controller_file
                 )
@@ -2207,7 +2207,7 @@ class FurnitureEnv(metaclass=EnvMeta):
     def get_vr_input(self, controller):
         c = self.vr.devices[controller]
         if controller not in self.vr.devices:
-            logger.warn("Lost track of ", controller)
+            logger.warning("Lost track of ", controller)
             return None, None
         # pose = c.get_pose_euler()
         pose = c.get_pose_quaternion()
@@ -2218,7 +2218,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             pose[3:] = T.euler_to_quat([0, 0, 180], pose[3:])
         state = c.get_controller_inputs()
         if pose is None or state is None or np.linalg.norm(pose[:3]) < 0.001:
-            logger.warn("Lost track of pose ", controller)
+            logger.warning("Lost track of pose ", controller)
             return None, None
         return np.asarray(pose), state
 
@@ -2253,7 +2253,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         def init_origin():
             for i, arm in enumerate(self._arms):
-                logger.warn("Initialize %s VR controller", arm)
+                logger.warning("Initialize %s VR controller", arm)
                 while True:
                     origin_pose, origin_state = self.get_vr_input(
                         "controller_%d" % (i + 1)
@@ -3107,11 +3107,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                         self._stop_object(obj_name, gravity=1)
 
         except Exception as e:
-            logger.warn(
+            logger.warning(
                 "[!] Warning: Simulation is unstable. The episode is terminated."
             )
-            logger.warn(e)
-            logger.warn(type(e))
+            logger.warning(e)
+            logger.warning(type(e))
             self.set_init_qpos(None)
             self.reset()
             self._fail = True
@@ -3304,11 +3304,11 @@ class FurnitureEnv(metaclass=EnvMeta):
             self._cur_time += self._control_timestep
 
         except Exception as e:
-            logger.warn(
+            logger.warning(
                 "[!] Warning: Simulation is unstable. The episode is terminated."
             )
-            logger.warn(e)
-            logger.warn(type(e))
+            logger.warning(e)
+            logger.warning(type(e))
             self.reset()
             self._fail = True
 

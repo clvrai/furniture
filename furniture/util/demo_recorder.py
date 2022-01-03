@@ -82,7 +82,7 @@ class DemoRecorder(object):
 
         with open(path, "wb") as f:
             pickle.dump(demo, f)
-        logger.warn("Save demo of length %d to %s", len(self._obs), path)
+        logger.warning("Save demo of length %d to %s", len(self._obs), path)
 
         self.reset()
 

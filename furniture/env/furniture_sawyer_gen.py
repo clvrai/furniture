@@ -735,8 +735,8 @@ def main(cfg: DictConfig) -> None:
     # make config writable
     OmegaConf.set_struct(cfg, False)
 
-    env = FurnitureSawyerGenEnv(cfg)
-    env.generate_demos(cfg.n_demos)
+    env = FurnitureSawyerGenEnv(cfg.ikea_cfg)
+    env.generate_demos(cfg.ikea_cfg.n_demos)
 
 
 if __name__ == "__main__":

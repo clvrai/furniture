@@ -1,2 +1,12 @@
 defaults:
   - env: ikea_dense
+  - override hydra/hydra_logging: none
+  - override hydra/job_logging: stdout
+  - _self_
+
+
+# Hydra
+hydra:
+  output_subdir: null
+  run:
+    dir: .

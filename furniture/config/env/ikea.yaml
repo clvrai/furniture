@@ -1,10 +1,16 @@
+defaults:
+  - override hydra/hydra_logging: none
+  - override hydra/job_logging: stdout
+  - _self_
+
+
 id: IKEA-v0
+
 
 ikea_cfg:
   class_name: ???
   config_name: ???
   agent_type: ???
-
 
   # Unity
   unity:
@@ -15,7 +21,6 @@ ikea_cfg:
     background: Industrial  # choices=[Industrial, Indoor, Lab, Garage, Random]
     quality: 4
 
-
   # MuJoCo simulation
   control_type: ik  # choices=[ik, ik_quaternion, impedance, torque]
   control_freq: 10
@@ -24,7 +29,6 @@ ikea_cfg:
   rotate_speed: 22.5
   discrete_grip: true
   cursor_boundary: 1.5
-
 
   # Assembly
   seed: 123
@@ -45,7 +49,6 @@ ikea_cfg:
   alignment_rot_dist_forward: 0.9
   alignment_project_dist: 0.3
 
-
   # Observations
   robot_ob: true
   object_ob: true
@@ -57,7 +60,6 @@ ikea_cfg:
   screen_size: [512, 512]
   camera_ids: [0]
 
-
   # Reward
   reward:
     ctrl_penalty: 1e-3
@@ -66,13 +68,11 @@ ikea_cfg:
     touch: 100
     pick: 100
 
-
   # Evaluation
   demo_dir: demos
   record_demo: false
   record_vid: false
   record_mode: ram  # choices=[ram, file]  store frames to "ram" or "file"
-
 
   # Debug
   fix_init: false
@@ -83,3 +83,10 @@ ikea_cfg:
   no_collision: false
   assembled: false
   debug: false
+
+
+# Hydra
+hydra:
+  output_subdir: null
+  run:
+    dir: .
