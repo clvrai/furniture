@@ -60,6 +60,7 @@ pip install -e .
 
 See [`docs/installation.md`](docs/installation.md) for more detailed instruction and troubleshooting.<br/>
 If you are on a headless server, make sure you run a [virtual display](docs/installation.md#virtual-display-on-headless-machines) and use `--virtual_display` to specify the display number (e.g. :0 or :1).
+For VR control, install `oculus_reader` package following the [instruction](https://github.com/rail-berkeley/oculus_reader).
 
 
 ## (1) Human control
@@ -67,6 +68,11 @@ You can use WASDQE keys for moving and IJKLUO keys for rotating an end-effector 
 
 ```bash
 python -m furniture.demo_manual
+```
+
+Oculus Quest2 is also available to control robots.
+```bash
+python -m furniture.vr
 ```
 
 ## (2) Gym interface

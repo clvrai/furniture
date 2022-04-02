@@ -10,20 +10,13 @@ import gym
 import hydra
 from omegaconf import OmegaConf, DictConfig
 
-# from .env import *
-from . import agent_names, background_names, furniture_names
-
-# available agents
-agent_names
-
-# available furnitures
-furniture_names
-
-# available background scenes
-background_names
+from furniture import agent_names  # list of available agents
+from furniture import background_names  # list of available background scenes
+from furniture import furniture_names  # list of available furnitures
 
 
 def main_vr_test(cfg):
+    # specify agent, furniture, and background
     agent_name = agent_names[1]
     furniture_name = "three_blocks"
     background_name = background_names[0]

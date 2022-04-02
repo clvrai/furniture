@@ -74,3 +74,6 @@ sudo /usr/bin/X :1 &
 # Set virtual display flag
 python -m furniture.demo_manual --virtual_display :1
 ```
+
+6. Install `oculus_reader` for VR control
+Install `oculus_reader` package following the [instruction](https://github.com/rail-berkeley/oculus_reader).
