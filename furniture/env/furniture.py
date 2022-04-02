@@ -695,13 +695,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         if self._unity:
             self._unity.disconnect_to_unity()
 
-    def __del__(self):
-        """
-        Called to destroy environment
-        """
-        if self._unity:
-            self._unity.disconnect_to_unity()
-
     def _move_cursor(self, cursor_i, move_offset):
         """
         Moves cursor by move_offset amount, takes into account the
@@ -2425,6 +2418,7 @@ class FurnitureEnv(metaclass=EnvMeta):
 
         # set initial pose of controller as origin
         prev_handle_press = {arm: False for arm in self._arms}
+        prev_gripper_press = {arm: False for arm in self._arms}
         prev_vr_pos = {arm: None for arm in self._arms}
         prev_vr_quat = {arm: None for arm in self._arms}
         prev_sim_pos = {arm: None for arm in self._arms}
@@ -2472,7 +2466,7 @@ class FurnitureEnv(metaclass=EnvMeta):
             # rot[0], rot[1], rot[2] = 0, 0, rot[1]
             # rot[0], rot[1], rot[2] = rot[2], 0, 0
             # rot[0], rot[1], rot[2] = rot[2], rot[0], rot[1]
-            logger.info(rot)
+            # logger.info(rot)
 
             if abs(rot[0]) < 1:
                 rot[0] = 0
@@ -2569,9 +2563,11 @@ class FurnitureEnv(metaclass=EnvMeta):
                             f"{arm}_hand"
                         ).copy()
 
-                prev_handle_press[arm] = handle_press[arm]
-                if gripper_press[arm]:
+                if prev_gripper_press[arm] and not gripper_press[arm]:
                     select[arm] *= -1
+
+                prev_handle_press[arm] = handle_press[arm]
+                prev_gripper_press[arm] = gripper_press[arm]
 
             if tmp_vr_quat is not None:
                 self._set_quat("VR_R", tmp_vr_quat)

@@ -1,7 +1,5 @@
 """
 Human control for the IKEA furniture assembly environment.
-The `three_blocks` task requires a robot to move the block on the left to the top of the center block, and attach them.
-Then, the right block should be attached on top of the left block.
 """
 
 import gym
@@ -13,7 +11,7 @@ from furniture import background_names  # list of available background scenes
 from furniture import furniture_names  # list of available furnitures
 
 
-def main_vr_test(cfg):
+def main_manual_test(cfg):
     # specify agent, furniture, and background
     agent_name = agent_names[1]
     furniture_name = "three_blocks"
@@ -27,8 +25,8 @@ def main_vr_test(cfg):
         env_name, furniture_name=furniture_name, background=background_name, ikea_cfg=cfg.ikea_cfg
     )
 
-    # manual control of agent using Oculus Quest2
-    env.run_vr_oculus()
+    # manual control of agent using keyboard
+    env.run_manual()
 
     # close the environment instance
     env.close()
@@ -42,11 +40,11 @@ def main(cfg: DictConfig) -> None:
     # set environment config for keyboard control
     cfg.env.ikea_cfg.unity.use_unity = True
     cfg.env.ikea_cfg.render = True
-    cfg.env.ikea_cfg.control_type = "ik_quaternion"
+    cfg.env.ikea_cfg.control_type = "ik"
     cfg.env.ikea_cfg.max_episode_steps = 10000
     cfg.env.ikea_cfg.screen_size = [1024, 1024]
 
-    main_vr_test(cfg.env)
+    main_manual_test(cfg.env)
 
 
 if __name__ == "__main__":

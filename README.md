@@ -60,14 +60,15 @@ pip install -e .
 
 See [`docs/installation.md`](docs/installation.md) for more detailed instruction and troubleshooting.<br/>
 If you are on a headless server, make sure you run a [virtual display](docs/installation.md#virtual-display-on-headless-machines) and use `--virtual_display` to specify the display number (e.g. :0 or :1).
-For VR control, install `oculus_reader` package following the [instruction](https://github.com/rail-berkeley/oculus_reader).
+
+For VR control, install `oculus_reader` package following the [instruction](https://github.com/rail-berkeley/oculus_reader). If you already have ADB and git-lfs installed, you can simply install `oculus_reader` with `pip install git+https://github.com/rail-berkeley/oculus_reader.git`.
 
 
 ## (1) Human control
 You can use WASDQE keys for moving and IJKLUO keys for rotating an end-effector of an agent. SPACE and ENTER are closing and opening the gripper, respectively. C key will connect two aligned parts.
 
 ```bash
-python -m furniture.demo_manual
+python -m furniture.manual
 ```
 
 Oculus Quest2 is also available to control robots.
