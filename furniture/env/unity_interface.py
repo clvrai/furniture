@@ -191,6 +191,10 @@ class UnityInterface(object):
             logger.info("Downloading Unity app from %s", url)
             gdown.cached_download(url, zip_path, postprocess=gdown.extractall)
 
+        file_path = Path(__file__).parents[2] / APP_FILE_NAME[platform][:-4]
+        if file_path.exists:
+            self.rename_unity_dir()
+
         if platform == "darwin":
             binary_path = zip_dir / "binary/Furniture.app/Contents/MacOS/Furniture"
             binary_path.chmod(stat.S_IEXEC)
@@ -198,7 +202,6 @@ class UnityInterface(object):
     def _find_unity_path(self):
         """Finds path to Unity app."""
         binary_dir = Path(__file__).parents[2] / "binary"
-
         launch_string = None
         if platform == "linux" or platform == "linux2":
             candidates = list(binary_dir.glob("Furniture.x86_64"))
@@ -287,3 +290,12 @@ class UnityInterface(object):
             else:
                 os.killpg(os.getpgid(self.proc1.pid), signal.SIGTERM)
             self.proc1 = None
+
+    def _rename_unity_dir(self):
+        """Rename the unzipped unity directory"""
+        file_path = Path(__file__).parents[2] / APP_FILE_NAME[platform][:-4]
+        if file_path.exists():
+            new_path = Path(__file__).parents[2] / "binary"
+            os.rename(file_path, new_path)
+        else:
+            logger.info("can't find unzipped unity directory")
