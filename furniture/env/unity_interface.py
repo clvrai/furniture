@@ -189,7 +189,7 @@ class UnityInterface(object):
                 zip_file.extractall()
         else:
             logger.info("Downloading Unity app from %s", url)
-            gdown.cached_download(url, zip_path, postprocess=gdown.extractall)
+            gdown.cached_download(url, str(zip_path), postprocess=gdown.extractall)
 
         file_path = Path(__file__).parents[2] / APP_FILE_NAME[platform][:-4]
         if file_path.exists:
