@@ -193,7 +193,7 @@ class UnityInterface(object):
 
         file_path = Path(__file__).parents[2] / APP_FILE_NAME[platform][:-4]
         if file_path.exists:
-            self.rename_unity_dir()
+            self._rename_unity_dir()
 
         if platform == "darwin":
             binary_path = zip_dir / "binary/Furniture.app/Contents/MacOS/Furniture"
