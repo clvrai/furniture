@@ -13,7 +13,7 @@ ikea_cfg:
   # Unity
   unity:
     use_unity: true
-    use_editor: false
+    use_editor: true
     virtual_display: null
     port: 1050
     background: Industrial  # choices=[Industrial, Indoor, Lab, Garage, Random]

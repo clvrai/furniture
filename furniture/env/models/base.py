@@ -114,7 +114,9 @@ class MujocoXML(object):
             if mode == "mujoco_py":
                 from mujoco_py import load_model_from_xml, load_model_from_path
 
-                fname = "test.xml"
+                # save temp xml file and load model from file
+                # fname = "unity_xml/temp.xml"
+                fname = "temp.xml"
                 self.save_model(fname, pretty=True)
                 model = load_model_from_path(fname)
                 # print(string.getvalue())#debug

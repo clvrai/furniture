@@ -24,7 +24,7 @@ def test_baxter_furniture_reset(take_picture=False, img_folder="test_imgs"):
         os.makedirs(img_folder, exist_ok=True)
     parser = create_parser(env="FurnitureBaxterEnv")
     config, unparsed = parser.parse_known_args()
-    config.unity = False
+    config.unity = True
 
     env = FurnitureBaxterEnv(config)
     pbar = tqdm(furniture_names)
