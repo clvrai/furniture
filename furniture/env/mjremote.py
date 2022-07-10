@@ -195,9 +195,7 @@ class mjremote:
         self._s.sendall(struct.pack("i", len(name)))
         self._s.send(name.encode())
 
-    def update_pos(
-        self, body_names, body_pos, body_quat, geom_names, geom_pos, geom_quat
-    ):
+    def update_pos(self, body_names, body_pos, body_quat):
         if not self._s:
             return "Not connected"
         self._s.sendall(struct.pack("i", 18))
@@ -208,14 +206,6 @@ class mjremote:
             self._s.sendall(fquat_body.tobytes())
             self._s.sendall(struct.pack("i", len(body_names[i])))
             self._s.send(body_names[i].encode())
-        for i in range(len(geom_pos)):
-            fpos_geom = geom_pos[i].astype("float32")
-            fquat_geom = geom_quat[i].astype("float32")
-
-            self._s.sendall(fpos_geom.tobytes())
-            self._s.sendall(fquat_geom.tobytes())
-            self._s.sendall(struct.pack("i", len(geom_names[i])))
-            self._s.send(geom_names[i].encode())
 
     def setbackground(self, name):
         if not self._s:

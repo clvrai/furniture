@@ -392,17 +392,12 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         Updates unity rendering with qpos. Call this after you change qpos
         """
-        # try to replace this function
-        # self._unity.set_qpos(self.sim.data.qpos)
-
         self._unity.update_pos(
             self.sim.model.body_names,
-            self.sim.model.body_pos,
-            self.sim.model.body_quat,
-            self.sim.model.geom_names,
-            self.sim.data.geom_xpos,
-            self.sim.model.geom_quat,
+            self.sim.data.body_xpos,
+            self.sim.data.body_xquat,
         )
+
         if self._agent_type == "Cursor":
             for cursor_i in range(2):
                 cursor_name = "cursor%d" % cursor_i
