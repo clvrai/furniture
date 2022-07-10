@@ -41,7 +41,7 @@ def main(cfg: DictConfig) -> None:
     OmegaConf.set_struct(cfg, False)
 
     # set environment config for keyboard control
-    cfg.env.ikea_cfg.unity.use_unity = False
+    cfg.env.ikea_cfg.unity.use_unity = True
     cfg.env.ikea_cfg.render = True
     cfg.env.ikea_cfg.control_type = "ik"
     cfg.env.ikea_cfg.max_episode_steps = 10000

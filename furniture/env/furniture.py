@@ -394,8 +394,7 @@ class FurnitureEnv(metaclass=EnvMeta):
         """
         self._unity.update_pos(
             self.sim.model.body_names,
-            self.sim.data.body_xpos,
-            self.sim.data.body_xquat,
+            np.hstack((self.sim.data.body_xpos, self.sim.data.body_xquat)),
         )
 
         if self._agent_type == "Cursor":
