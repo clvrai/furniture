@@ -393,7 +393,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         Updates unity rendering with qpos. Call this after you change qpos
         """
         self._unity.update_pos(
-            self.sim.model.body_names,
             np.hstack((self.sim.data.body_xpos, self.sim.data.body_xquat)),
         )
 

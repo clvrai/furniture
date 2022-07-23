@@ -146,10 +146,10 @@ class UnityInterface(object):
 
     def get_input(self):
         """Gets a key input from Unity."""
-        return self._remote.getinput()
+        return self._remote.getkeyinput()
 
-    def update_pos(self, body_names, body_pos_quat):
-        self._remote.update_pos(body_names, body_pos_quat)
+    def update_pos(self, body_pos_quat):
+        self._remote.updatepos(body_pos_quat)
 
     def set_qpos(self, qpos):
         """Changes qpos of the scene."""
