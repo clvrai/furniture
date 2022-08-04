@@ -49,7 +49,11 @@ def main(cfg: DictConfig) -> None:
 
     cfg.env.ikea_cfg.render_mode = "file"
     cfg.env.ikea_cfg.record_vid = True
-    cfg.env.ikea_cfg.load_demo = "demo/Sawyer_chair_agne_0007_0000.pkl"
+    cfg.env.ikea_cfg.depth_ob = True
+    cfg.env.ikea_cfg.segmentation_ob = True
+    cfg.env.ikea_cfg.load_demo = "demos/Sawyer_three_blocks_0002.pkl"
+    # cfg.env.ikea_cfg.load_demo = "demo/Sawyer_chair_agne_0007_0000.pkl"
+    # cfg.env.ikea_cfg.camera_ids = [0, 1, 2]
 
     main_demo_test(cfg.env)
 

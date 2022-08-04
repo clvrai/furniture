@@ -61,7 +61,7 @@ class VideoRecorder(object):
         """
         if self._record_mode == "ram":
             if np.max(frame) <= 1.0:
-                frame *= 255.0
+                frame = frame * 255.0
             self._frames.append(frame)
         elif self._record_mode == "file":
             if np.max(frame) <= 1.0:
