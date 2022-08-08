@@ -105,7 +105,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         self._segmentation_ob = cfg.segmentation_ob
         self._depth_ob = cfg.depth_ob
         self._camera_ids = cfg.camera_ids
-        self._camera_name = "frontview"
         self._is_render = False
         self._furniture_id = None
         self._background = None
@@ -603,13 +602,15 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._unity:
                 img, _ = self._unity.get_images(self._camera_ids)
             else:
-                img = self.sim.render(
-                    camera_name=self._camera_name,
-                    width=self._screen_width,
-                    height=self._screen_height,
-                    depth=False,
-                )
-                img = np.expand_dims(img, axis=0)
+                img = [
+                    self.sim.render(
+                        camera_name=self.sim.model.camera_id2name(id),
+                        width=self._screen_width,
+                        height=self._screen_height,
+                        depth=False,
+                    ) for id in self._camera_ids
+                ]
+                img = np.stack(img)
             assert len(img.shape) == 4
             # img = img[:, ::-1, :, :] / 255.0
             img = img[:, ::-1, :, :]
@@ -620,17 +621,22 @@ class FurnitureEnv(metaclass=EnvMeta):
             if self._unity:
                 img, depth = self._unity.get_images(self._camera_ids, self._depth_ob)
             else:
-                camera_obs = self.sim.render(
-                    camera_name=self._camera_name,
-                    width=self._screen_width,
-                    height=self._screen_height,
-                    depth=self._depth_ob,
-                )
+                camera_obs = [
+                    self.sim.render(
+                        camera_name=self.sim.model.camera_id2name(id),
+                        width=self._screen_width,
+                        height=self._screen_height,
+                        depth=self._depth_ob,
+                    ) for id in self._camera_ids
+                ]
                 if self._depth_ob:
-                    img, depth = camera_obs
+                    img, depth = zip(*camera_obs)
+                    depth = np.stack(depth)
+                    depth = np.repeat(np.expand_dims(depth, -1), 3, -1)
+                    depth = (depth * 255).astype(np.uint8)
                 else:
                     img = camera_obs
-                img = np.expand_dims(img, axis=0)
+                img = np.stack(img)
             # img = img[:, ::-1, :, :] / 255.0
             img = img[:, ::-1, :, :]
 
@@ -2178,21 +2184,25 @@ class FurnitureEnv(metaclass=EnvMeta):
             cfg.furniture_id = furniture_name2id[cfg.furniture_name]
         self.reset(cfg.furniture_id, cfg.unity.background)
         if cfg.record_vid:
+            if self._depth_ob:
+                img, depth = self.render("rgbd_array")
+                img = np.concatenate(img)
+                depth = np.concatenate(depth)
+                img = np.concatenate([img, depth], axis=1)
+            else:
+                img = self.render("rgb_array")
+                img = np.concatenate(img)
+
             if self._segmentation_ob:
                 seg = self.render("segmentation")
-                if len(seg.shape) == 4:
-                    seg = np.concatenate(seg)
+                seg = np.concatenate(seg)
                 color_seg = color_segmentation(seg)
-                self._video.capture_frame(color_seg)
-            elif self._depth_ob:
-                img, depth = self.render("rgbd_array")
-                depth = np.concatenate(depth)
-                self._video.capture_frame(depth)
-            # default case
-            else:
-                self._video.capture_frame(self.render("rgb_array")[0])
+                img = np.concatenate([img, color_seg], axis=1)
+
+            self._video.capture_frame(img)
         else:
-            self.render("rgb_array")[0]
+            self.render("rgb_array")
+
         with open(cfg.load_demo, "rb") as f:
             demo = pickle.load(f)
             all_states = demo["states"]
@@ -2206,20 +2216,24 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self._unity:
                     self._update_unity()
                 if cfg.record_vid:
+                    if self._depth_ob:
+                        img, depth = self.render("rgbd_array")
+                        img = np.concatenate(img)
+                        depth = np.concatenate(depth)
+                        img = np.concatenate([img, depth], axis=1)
+                    else:
+                        img = self.render("rgb_array")
+                        img = np.concatenate(img)
+
                     if self._segmentation_ob:
                         seg = self.render("segmentation")
-                        if len(seg.shape) == 4:
-                            seg = np.concatenate(seg)
+                        seg = np.concatenate(seg)
                         color_seg = color_segmentation(seg)
-                        self._video.capture_frame(color_seg)
-                    elif self._depth_ob:
-                        img, depth = self.render("rgbd_array")
-                        depth = np.concatenate(depth)
-                        self._video.capture_frame(depth)
-                    else:
-                        self._video.capture_frame(self.render("rgb_array")[0])
+                        img = np.concatenate([img, color_seg], axis=1)
+
+                    self._video.capture_frame(img)
                 else:
-                    self.render("rgb_array")[0]
+                    self.render("rgb_array")
 
         finally:
             if cfg.record_vid:
