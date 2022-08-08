@@ -46,9 +46,6 @@ def main(cfg: DictConfig) -> None:
     cfg.env.ikea_cfg.control_type = "ik"
     cfg.env.ikea_cfg.max_episode_steps = 10000
     cfg.env.ikea_cfg.screen_size = [1024, 1024]
-    # cfg.env.ikea_cfg.record_demo = True
-    cfg.env.ikea_cfg.depth_ob = True
-    cfg.env.ikea_cfg.segmentation_ob = True
     main_manual_test(cfg.env)
 
 

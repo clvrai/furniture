@@ -1,5 +1,5 @@
 """
-Human control for the IKEA furniture assembly environment.
+Replay recorded demo and save rgb, segmentation or depth video for the IKEA furniture assembly environment.
 """
 
 import gym
@@ -49,10 +49,9 @@ def main(cfg: DictConfig) -> None:
 
     cfg.env.ikea_cfg.render_mode = "file"
     cfg.env.ikea_cfg.record_vid = True
-    cfg.env.ikea_cfg.depth_ob = True
-    # cfg.env.ikea_cfg.segmentation_ob = True
-    cfg.env.ikea_cfg.load_demo = "demos/Sawyer_three_blocks_0002.pkl"
-    # cfg.env.ikea_cfg.load_demo = "demo/Sawyer_chair_agne_0007_0000.pkl"
+
+    # run furniture/envs/manual.py to get demo first
+    # cfg.env.ikea_cfg.load_demo = "demos/Sawyer_three_blocks_0002.pkl"
     cfg.env.ikea_cfg.camera_ids = [0]
 
     main_demo_test(cfg.env)

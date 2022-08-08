@@ -119,10 +119,6 @@ class FurnitureEnv(metaclass=EnvMeta):
         if cfg.load_demo:
             with open(cfg.load_demo, "rb") as f:
                 demo = pickle.load(f)
-                # demo downloaded uses params: qpos, not states
-                # self._init_qpos = demo["states"][0]
-                # self._init_qpos = demo["qpos"][0]
-                # new version is state
                 self._init_qpos = demo["states"][0]
 
         self._load_init_states = None
@@ -2199,9 +2195,6 @@ class FurnitureEnv(metaclass=EnvMeta):
             self.render("rgb_array")[0]
         with open(cfg.load_demo, "rb") as f:
             demo = pickle.load(f)
-            # change state to qpos
-            # all_states = demo["state"]
-            # all_states = demo["qpos"]
             all_states = demo["states"]
             if cfg.debug:
                 for i, (obs, action) in enumerate(zip(demo["obs"], demo["actions"])):
