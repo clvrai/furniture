@@ -2182,7 +2182,19 @@ class FurnitureEnv(metaclass=EnvMeta):
             cfg.furniture_id = furniture_name2id[cfg.furniture_name]
         self.reset(cfg.furniture_id, cfg.unity.background)
         if cfg.record_vid:
-            self._video.capture_frame(self.render("segmentation")[0])
+            if self._segmentation_ob:
+                seg = self.render("segmentation")
+                if len(seg.shape) == 4:
+                    seg = np.concatenate(seg)
+                color_seg = color_segmentation(seg)
+                self._video.capture_frame(color_seg)
+            elif self._depth_ob:
+                img, depth = self.render("rgbd_array")
+                depth = np.concatenate(depth)
+                self._video.capture_frame(depth)
+            # default case
+            else:
+                self._video.capture_frame(self.render("rgb_array")[0])
         else:
             self.render("rgb_array")[0]
         with open(cfg.load_demo, "rb") as f:
@@ -2201,7 +2213,18 @@ class FurnitureEnv(metaclass=EnvMeta):
                 if self._unity:
                     self._update_unity()
                 if cfg.record_vid:
-                    self._video.capture_frame(self.render("segmentation")[0])
+                    if self._segmentation_ob:
+                        seg = self.render("segmentation")
+                        if len(seg.shape) == 4:
+                            seg = np.concatenate(seg)
+                        color_seg = color_segmentation(seg)
+                        self._video.capture_frame(color_seg)
+                    elif self._depth_ob:
+                        img, depth = self.render("rgbd_array")
+                        depth = np.concatenate(depth)
+                        self._video.capture_frame(depth)
+                    else:
+                        self._video.capture_frame(self.render("rgb_array")[0])
                 else:
                     self.render("rgb_array")[0]
 
