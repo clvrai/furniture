@@ -2,7 +2,6 @@
 
 import gym
 import numpy as np
-import hydra
 
 from .base import make_env
 
@@ -81,6 +80,7 @@ def main():
     while not done:
         # take a step
         ob, reward, done, info = env.step(env.action_space.sample())
+        env.render()
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ envs = {
         "class_name": "FurnitureCursorEnv",
         "config_name": "ikea_cursor",
         "agent_type": "Cursor",
+        "furniture_name": "three_blocks",
         "unity": {"background": "Lab"},
     },
     "IKEASawyer-v0": {
@@ -34,30 +35,35 @@ envs = {
         "class_name": "FurnitureBaxterEnv",
         "config_name": "ikea",
         "agent_type": "Baxter",
+        "furniture_name": "three_blocks",
         "unity": {"background": "Interior"},
     },
     "IKEAJaco-v0": {
         "class_name": "FurnitureJacoEnv",
         "config_name": "ikea",
         "agent_type": "Jaco",
+        "furniture_name": "three_blocks",
         "unity": {"background": "Interior"},
     },
     "IKEAPanda-v0": {
         "class_name": "FurniturePandaEnv",
         "config_name": "ikea",
         "agent_type": "Panda",
+        "furniture_name": "three_blocks",
         "unity": {"background": "Interior"},
     },
     "IKEAFetch-v0": {
         "class_name": "FurnitureFetchEnv",
         "config_name": "ikea",
         "agent_type": "Fetch",
+        "furniture_name": "three_blocks",
         "unity": {"background": "Interior"},
     },
     "IKEASawyerDense-v0": {
         "class_name": "FurnitureSawyerDenseRewardEnv",
         "config_name": "ikea_dense",
         "agent_type": "Sawyer",
+        "furniture_name": "three_blocks",
         "unity": {"use_unity": False},
     },
 }

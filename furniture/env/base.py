@@ -45,7 +45,7 @@ def get_cfg(**kwarg):
             )
 
         with hydra.initialize(config_path="../config/env"):
-            ikea_cfg = hydra.compose(config_name=kwarg["config_name"])
+            ikea_cfg = hydra.compose(config_name=kwarg["config_name"])["ikea_cfg"]
             OmegaConf.set_struct(ikea_cfg, False)
 
     for key, value in kwarg.items():
